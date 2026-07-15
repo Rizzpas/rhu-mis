@@ -1,0 +1,278 @@
+/* ===== ORG CHART STYLES ===== */
+.org-chart {
+    --line-color: #22c55e;
+    --line-width: 2px;
+    --card-radius: 14px;
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    overflow-x: auto;
+    padding: 2rem 0;
+}
+
+/* ── Card base ── */
+.oc-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: 1rem 1.25rem;
+    text-align: center;
+    transition: all .3s ease;
+    position: relative;
+}
+.dark .oc-card { background: #1f2937; border-color: #374151; }
+.oc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(34,197,94,.18);
+    border-color: #22c55e;
+}
+.oc-card .oc-name { font-weight: 700; font-size: .92rem; color: #111827; }
+.dark .oc-card .oc-name { color: #f3f4f6; }
+.oc-card .oc-title { font-size: .72rem; color: #6b7280; margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+
+/* Head card */
+.oc-head {
+    background: linear-gradient(135deg, #15803d, #16a34a);
+    border: 3px solid #bbf7d0;
+    color: #fff;
+    min-width: 260px;
+    padding: 1.25rem 1.75rem;
+}
+.oc-head .oc-name { color: #fff; font-size: 1.05rem; }
+.oc-head .oc-title { color: #bbf7d0; }
+
+/* Medical staff cards */
+.oc-medical {
+    border-left: 4px solid #3b82f6;
+    min-width: 200px;
+}
+
+/* Division header cards */
+.oc-division {
+    background: linear-gradient(135deg, #065f46, #047857);
+    color: #fff;
+    border: none;
+    padding: .85rem 1.5rem;
+    min-width: 200px;
+    cursor: pointer;
+    user-select: none;
+}
+.oc-division .oc-name { color: #fff; font-size: .95rem; }
+.oc-division .oc-title { color: #a7f3d0; }
+.oc-division::after {
+    content: '▼';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: .65rem;
+    color: #a7f3d0;
+    transition: transform .3s;
+}
+.oc-division.collapsed::after { transform: translateY(-50%) rotate(-90deg); }
+
+/* Section header cards */
+.oc-section {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-left: 4px solid #22c55e;
+    cursor: pointer;
+    user-select: none;
+}
+.dark .oc-section { background: #064e3b; border-color: #065f46; }
+.oc-section .oc-name { color: #065f46; font-size: .85rem; }
+.dark .oc-section .oc-name { color: #6ee7b7; }
+.oc-section::after {
+    content: '▼';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: .6rem;
+    color: #22c55e;
+    transition: transform .3s;
+}
+.oc-section.collapsed::after { transform: translateY(-50%) rotate(-90deg); }
+
+/* Sub-unit header */
+.oc-unit {
+    background: #f0fdf4;
+    border: 1px dashed #86efac;
+    font-size: .82rem;
+    padding: .6rem 1rem;
+}
+.dark .oc-unit { background: #052e16; border-color: #065f46; }
+.oc-unit .oc-name { font-size: .8rem; color: #166534; }
+.dark .oc-unit .oc-name { color: #86efac; }
+
+/* Staff pill */
+.oc-staff {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 4px 14px 4px 8px;
+    font-size: .76rem;
+    color: #374151;
+    transition: all .2s;
+    white-space: nowrap;
+}
+.dark .oc-staff { background: #1f2937; border-color: #374151; color: #d1d5db; }
+.oc-staff:hover { background: #ecfdf5; border-color: #86efac; }
+.oc-staff .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    flex-shrink: 0;
+}
+
+/* ── Tree connectors ── */
+.oc-tree { position: relative; }
+.oc-vline {
+    width: var(--line-width);
+    background: var(--line-color);
+    margin: 0 auto;
+}
+.oc-hline {
+    height: var(--line-width);
+    background: var(--line-color);
+}
+
+/* Vertical connector */
+.oc-connector-v {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.oc-connector-v .oc-vline { height: 28px; }
+
+/* Branch container — children laid out horizontally */
+.oc-branch {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    position: relative;
+    flex-wrap: wrap;
+}
+.oc-branch > .oc-branch-child {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 0 1 auto;
+    padding: 0 12px;
+}
+/* horizontal connector across branch children */
+.oc-branch-bar {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0;
+}
+.oc-branch-bar .oc-hline {
+    position: absolute;
+    top: 0;
+    height: var(--line-width);
+    background: var(--line-color);
+}
+
+/* ── Collapsible ── */
+.oc-children {
+    overflow: hidden;
+    transition: max-height .4s ease, opacity .3s ease;
+    max-height: 8000px;
+    opacity: 1;
+}
+.oc-children.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── Staff grid ── */
+.oc-staff-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 8px 0;
+}
+
+/* ── Division row ── */
+.oc-divisions-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+@media (max-width: 1024px) { .oc-divisions-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .oc-divisions-row { grid-template-columns: 1fr; } }
+
+/* Division column */
+.oc-div-col {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+.oc-div-col > .oc-section-block {
+    margin-top: 6px;
+    border-left: 2px solid #86efac;
+    padding-left: 12px;
+}
+.oc-div-col > .oc-section-block > .oc-unit-block {
+    margin-top: 4px;
+    padding-left: 10px;
+    border-left: 2px dashed #d1fae5;
+}
+
+/* Expand/collapse all button */
+.oc-toggle-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all .2s;
+}
+.dark .oc-toggle-all { background: #1f2937; border-color: #4b5563; color: #d1d5db; }
+.oc-toggle-all:hover { border-color: #22c55e; color: #15803d; }
+
+/* Badge */
+.oc-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+}
+.oc-badge-blue { background: #dbeafe; color: #1e40af; }
+.oc-badge-green { background: #d1fae5; color: #065f46; }
+.oc-badge-purple { background: #ede9fe; color: #5b21b6; }
+.oc-badge-amber { background: #fef3c7; color: #92400e; }
+.dark .oc-badge-blue { background: #1e3a5f; color: #93c5fd; }
+.dark .oc-badge-green { background: #064e3b; color: #6ee7b7; }
+.dark .oc-badge-purple { background: #3b0764; color: #c4b5fd; }
+.dark .oc-badge-amber { background: #451a03; color: #fcd34d; }
+
+/* Medical staff vertical list */
+.oc-med-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 0;
+}
