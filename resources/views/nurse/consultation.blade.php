@@ -258,20 +258,25 @@
                                     </select>
                                     <select name="test_name" x-show="requestType === 'Laboratory'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white">
                                         <option value="" disabled selected>-- Select Laboratory Test --</option>
-                                        <option value="CBC">CBC (Complete Blood Count)</option>
+                                        <option value="Complete Blood Count (CBC)">CBC (Complete Blood Count)</option>
                                         <option value="Urinalysis">Urinalysis</option>
                                         <option value="Fecalysis">Fecalysis</option>
                                         <option value="Blood Typing">Blood Typing</option>
                                         <option value="Fasting Blood Sugar (FBS)">Fasting Blood Sugar (FBS)</option>
-                                        <option value="Other">Other (Specify in notes)</option>
+                                        <option value="Lipid Profile">Lipid Profile</option>
+                                        <option value="Blood Uric Acid">Blood Uric Acid</option>
+                                        <option value="Creatinine">Creatinine</option>
+                                        <option value="Blood Urea Nitrogen (BUN)">Blood Urea Nitrogen (BUN)</option>
+                                        <option value="Dengue NS1">Dengue NS1</option>
+                                        <option value="Other">Other (Specify in remarks)</option>
                                     </select>
                                     <select name="test_name" x-show="requestType === 'Radiology'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" x-cloak>
                                         <option value="" disabled selected>-- Select Radiology Test --</option>
-                                        <option value="Chest X-Ray PA">Chest X-Ray PA</option>
-                                        <option value="Chest X-Ray AP">Chest X-Ray AP</option>
-                                        <option value="ECG">ECG (Electrocardiogram)</option>
-                                        <option value="Ultrasound">Ultrasound</option>
-                                        <option value="Other">Other (Specify in notes)</option>
+                                        <option value="Chest X-Ray PA View">Chest X-Ray PA View</option>
+                                        <option value="Chest X-Ray AP View">Chest X-Ray AP View</option>
+                                        <option value="Abdominal Ultrasound">Abdominal Ultrasound</option>
+                                        <option value="Electrocardiogram (ECG)">Electrocardiogram (ECG)</option>
+                                        <option value="Other">Other (Specify in remarks)</option>
                                     </select>
                                     <button type="submit" class="bg-indigo-600 text-white px-5 py-2 flex items-center justify-center gap-2 rounded-md font-bold text-sm hover:bg-indigo-700 shadow-sm transition shrink-0">
                                         Send Request
@@ -281,7 +286,11 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('nurse.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6">
+                    <form action="{{ route('nurse.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6" @submit.prevent="showConfirm(
+                        'Complete Consultation?', 
+                        'Are you sure you want to finalize this medical record? Please ensure all diagnoses and prescriptions are correct.', 
+                        () => $el.submit()
+                    )">
                         @csrf
                         
                         <div>
@@ -292,51 +301,152 @@
                         </div>
 
                         <!-- Dynamic Prescription Builder -->
-                        <div x-data="prescriptionBuilder('teal')" class="mb-4">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Prescription / Treatment Plan <span class="text-slate-400 font-normal ml-1">(Optional)</span></label>
+                        <div x-data="prescriptionBuilder('teal')" class="mb-4 relative">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="block text-sm font-bold text-slate-700">Prescription / Treatment Plan <span class="text-slate-400 font-normal ml-1">(Optional)</span></label>
+                                <span x-show="prescriptions.length > 0" x-cloak class="text-xs font-bold bg-teal-100 text-teal-700 px-2.5 py-1 rounded-full" x-text="prescriptions.length + ' item(s)'"></span>
+                            </div>
+
+                            @if(!($isPharmacyOnline ?? true))
+                            <div class="mb-3 bg-amber-50 border-l-4 border-amber-500 p-3 rounded-md">
+                                <div class="flex items-start">
+                                    <svg class="h-5 w-5 text-amber-400 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-amber-700 font-bold">Pharmacy is currently offline.</p>
+                                        <p class="text-xs text-amber-600 mt-1">Prescriptions will be queued but won't be dispensed until a Pharmacist logs in.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                             
                             <!-- Visual List of added medicines -->
-                            <div class="space-y-2 mb-3 mt-2" x-show="prescriptions.length > 0" x-cloak>
+                            <div class="space-y-2 mb-4" x-show="prescriptions.length > 0" x-cloak>
                                 <template x-for="(item, index) in prescriptions" :key="index">
-                                    <div class="flex items-center justify-between p-3 bg-teal-50 border border-teal-200 rounded-lg shadow-sm">
-                                        <div class="flex-1">
-                                            <p class="font-bold text-teal-900 text-sm" x-text="item.medicine"></p>
-                                            <p class="text-xs text-teal-700 mt-0.5"><span x-text="item.amount"></span> &bull; <span x-text="item.instruction"></span></p>
+                                    <div class="flex items-start gap-3 p-3 rounded-xl border shadow-sm transition-all"
+                                         :class="item.isOtc ? 'bg-slate-50 border-slate-200' : 'bg-teal-50 border-teal-200'">
+                                        <div class="pt-0.5 shrink-0">
+                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black"
+                                                  :class="item.isOtc ? 'bg-slate-200 text-slate-600' : 'bg-teal-200 text-teal-800'"
+                                                  x-text="index + 1"></span>
                                         </div>
-                                        <button type="button" @click="removePrescription(index)" class="text-rose-500 hover:text-rose-700 p-1 opacity-70 hover:opacity-100 transition">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <p class="font-bold text-sm text-slate-900" x-text="item.medicine"></p>
+                                                <span x-show="item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">OTC / External</span>
+                                                <span x-show="!item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-teal-200 text-teal-700 px-1.5 py-0.5 rounded">RHU Inventory</span>
+                                            </div>
+                                            <div class="flex items-center gap-3 mt-1 text-xs text-slate-600">
+                                                <span><span x-text="item.amount"></span></span>
+                                                <span>&bull; <span x-text="item.instruction"></span></span>
+                                                <span x-show="item.quantity">· Qty: <span x-text="item.quantity"></span></span>
+                                            </div>
+                                        </div>
+                                        <button type="button" @click="removePrescription(index)" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition shrink-0" title="Remove">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </div>
                                 </template>
                             </div>
 
                             <!-- Builder Form -->
-                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg relative">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 relative">
+                                <!-- OTC Toggle -->
+                                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" @click="isOtcMode = false" 
+                                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                                :class="!isOtcMode ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-slate-500 border border-slate-200 hover:border-teal-300'">
+                                            From RHU Inventory
+                                        </button>
+                                        <button type="button" @click="isOtcMode = true" 
+                                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                                :class="isOtcMode ? 'bg-slate-700 text-white shadow-sm' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'">
+                                            Custom / OTC Medicine
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div class="relative">
-                                        <input type="text" x-model="searchQuery" @input.debounce.300ms="searchMedicine" @keydown.escape="showSuggestions = false" @click.away="showSuggestions = false" placeholder="Search medicine (e.g. Paracetamol)..." class="w-full text-sm rounded-md border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                            <span x-text="isOtcMode ? 'Medicine Name (type manually)' : 'Search RHU Inventory'"></span> <span class="text-rose-400">*</span>
+                                        </label>
+                                        <input type="text" x-model="searchQuery" 
+                                               @input.debounce.300ms="!isOtcMode && searchMedicine()" 
+                                               @keydown.escape="showSuggestions = false" 
+                                               @click.away="showSuggestions = false"
+                                               x-ref="medicineInput"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5"
+                                               :placeholder="isOtcMode ? 'e.g. Biogesic, Neozep...' : 'Type to search (e.g. Paracetamol)...'">
                                         
                                         <!-- Suggestions Dropdown -->
-                                        <div x-show="showSuggestions && suggestions.length > 0" class="absolute z-50 w-full bg-white dark:bg-gray-800 mt-1 border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto" x-cloak>
+                                        <div x-show="!isOtcMode && showSuggestions && suggestions.length > 0" 
+                                             x-transition class="absolute z-50 w-full bg-white mt-1 border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto" x-cloak>
                                             <template x-for="med in suggestions" :key="med.id">
-                                                <div @click="selectMedicine(med)" class="px-4 py-2 hover:bg-teal-50 cursor-pointer border-b border-slate-100 last:border-0 transition">
-                                                    <p class="font-semibold text-sm text-slate-800" x-text="med.name"></p>
-                                                    <p class="text-[11px] text-slate-500" x-text="(med.generic_name || '') + (med.form ? ' - ' + med.form : '')"></p>
+                                                <div @click="selectMedicine(med)" class="px-4 py-3 hover:bg-teal-50 cursor-pointer border-b border-slate-100 last:border-0 transition group">
+                                                    <div class="flex justify-between items-start">
+                                                        <div>
+                                                            <p class="font-bold text-sm text-slate-800 group-hover:text-teal-800" x-text="med.name"></p>
+                                                            <p class="text-[11px] text-slate-500 mt-0.5" x-text="(med.generic_name || 'No generic') + (med.form ? ' · ' + med.form : '')"></p>
+                                                        </div>
+                                                        <span class="text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ml-3"
+                                                              :class="med.stock > 10 ? 'bg-emerald-100 text-emerald-700' : (med.stock > 0 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')"
+                                                              x-text="med.stock > 0 ? med.stock + ' in stock' : 'Out of stock'"></span>
+                                                    </div>
                                                 </div>
                                             </template>
                                         </div>
                                     </div>
                                     <div>
-                                        <input type="text" x-model="currentAmount" @keydown.enter.prevent="$refs.instInput.focus()" placeholder="Amount (e.g. 10 tabs, 1 bottle)" class="w-full text-sm rounded-md border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Dosage / Amount</label>
+                                        <input type="text" x-model="currentAmount" x-ref="amountInput"
+                                               @keydown.enter.prevent="$refs.instInput.focus()" 
+                                               placeholder="e.g. 500mg, 10 tablets, 1 bottle"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
                                     </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <input type="text" x-ref="instInput" x-model="currentInstruction" @keydown.enter.prevent="addPrescription()" placeholder="Instructions (e.g. 3x a day after meals)" class="flex-1 text-sm rounded-md border-slate-300 focus:border-teal-500 focus:ring-teal-500">
-                                    <button type="button" @click="addPrescription()" class="bg-teal-600 text-white px-4 py-2 rounded-md font-bold text-sm hover:bg-teal-700 shadow-sm shrink-0 transition">Add Item</button>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Instructions / Frequency</label>
+                                        <input type="text" x-ref="instInput" x-model="currentInstruction" 
+                                               @keydown.enter.prevent="addPrescription()"
+                                               placeholder="e.g. 3x a day after meals for 5 days"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quantity to Dispense</label>
+                                        <input type="number" x-model="currentQuantity" min="1"
+                                               @keydown.enter.prevent="addPrescription()"
+                                               placeholder="e.g. 30"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                    </div>
                                 </div>
+                                <div class="flex flex-wrap gap-1.5 mb-4">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1 self-center">Quick:</span>
+                                    <template x-for="qi in quickInstructions" :key="qi">
+                                        <button type="button" @click="currentInstruction = qi" 
+                                                class="text-[10px] font-bold bg-white border border-slate-200 hover:border-teal-300 hover:bg-teal-50 text-slate-600 hover:text-teal-700 px-2 py-1 rounded-md transition"
+                                                x-text="qi"></button>
+                                    </template>
+                                </div>
+                                <button type="button" @click="addPrescription()" 
+                                        class="w-full bg-teal-600 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-teal-700 shadow-sm transition flex items-center justify-center gap-2"
+                                        :disabled="!searchQuery.trim()" :class="!searchQuery.trim() ? 'opacity-50 cursor-not-allowed' : ''">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    Add to Prescription
+                                </button>
                             </div>
                             
-                            <!-- Hidden input to submit the JSON -->
+                            <!-- Hidden inputs for Laravel array validation -->
+                            <template x-for="(item, index) in prescriptions" :key="'hidden_'+index">
+                                <div>
+                                    <input type="hidden" :name="`prescriptions_list[${index}][medicine_name]`" :value="item.medicine">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][dosage]`" :value="item.amount">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][frequency]`" :value="item.instruction">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][quantity]`" :value="item.quantity">
+                                </div>
+                            </template>
+                            <!-- Also send legacy prescription string if needed -->
                             <input type="hidden" name="prescription" :value="JSON.stringify(prescriptions)">
                         </div>
 
@@ -487,11 +597,6 @@
 
                         <div class="pt-4 border-t border-slate-100 mt-auto flex justify-end gap-3">
                             <button type="submit" 
-                                    @click.prevent="showConfirm(
-                                        'Complete Consultation?', 
-                                        'Are you sure you want to finalize this medical record? Please ensure all diagnoses and prescriptions are correct.', 
-                                        () => $el.closest('form').submit()
-                                    )" 
                                     class="px-6 py-3 bg-teal-600 text-white border border-transparent rounded-lg font-extrabold shadow-lg shadow-teal-600/30 hover:bg-teal-700 hover:shadow-teal-700/40 transition flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 Complete Consultation
@@ -637,8 +742,21 @@ document.addEventListener('alpine:init', () => {
         searchQuery: '',
         currentAmount: '',
         currentInstruction: '',
+        currentQuantity: '',
         suggestions: [],
         showSuggestions: false,
+        isOtcMode: false,
+        quickInstructions: [
+            '1x a day',
+            '2x a day',
+            '3x a day',
+            'Every 4 hours as needed',
+            'Once daily before meals',
+            'After meals',
+            'Before bedtime',
+            'As needed for pain',
+            'Apply topically 2x a day',
+        ],
         
         async searchMedicine() {
             if (this.searchQuery.length < 1) {
@@ -658,11 +776,8 @@ document.addEventListener('alpine:init', () => {
         selectMedicine(med) {
             this.searchQuery = med.name + (med.form ? ` (${med.form})` : '');
             this.showSuggestions = false;
-            
-            // Focus on amount input
             setTimeout(() => {
-                const amountInput = this.$el.querySelector('input[placeholder^="Amount"]');
-                if(amountInput) amountInput.focus();
+                if (this.$refs.amountInput) this.$refs.amountInput.focus();
             }, 50);
         },
         
@@ -670,18 +785,18 @@ document.addEventListener('alpine:init', () => {
             if (!this.searchQuery.trim()) return;
             this.prescriptions.push({
                 medicine: this.searchQuery,
-                amount: this.currentAmount || '1',
-                instruction: this.currentInstruction || 'As directed'
+                amount: this.currentAmount || 'As prescribed',
+                instruction: this.currentInstruction || 'As directed',
+                quantity: this.currentQuantity || '',
+                isOtc: this.isOtcMode,
             });
             this.searchQuery = '';
             this.currentAmount = '';
             this.currentInstruction = '';
+            this.currentQuantity = '';
             this.suggestions = [];
-            
-            // Focus back on search
             setTimeout(() => {
-                const searchInput = this.$el.querySelector('input[placeholder^="Search"]');
-                if(searchInput) searchInput.focus();
+                if (this.$refs.medicineInput) this.$refs.medicineInput.focus();
             }, 50);
         },
         

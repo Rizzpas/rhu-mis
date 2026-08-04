@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds a `followup_completed_at` timestamp to mark when a follow-up
      * cycle has been fulfilled (i.e., the patient returned for their
      * follow-up visit). This preserves the historical record while

@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\Appointment;
-use App\Models\Patient;
 use App\Models\AuditLog;
+use App\Models\Patient;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -86,7 +86,7 @@ class AdminController extends Controller
         $hourLabels = [];
         $hourCounts = [];
         for ($i = 8; $i <= 17; $i++) { // Operating hours 8 AM - 5 PM
-            $hourLabels[] = $i > 12 ? ($i - 12) . ' PM' : ($i == 12 ? '12 PM' : $i . ' AM');
+            $hourLabels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
             $hourCounts[] = $peakHours->get($i, 0);
         }
         $peakHoursData = ['labels' => $hourLabels, 'data' => $hourCounts];
@@ -203,7 +203,7 @@ class AdminController extends Controller
         $compliantFollowups = 0;
         if ($totalFollowupsNeeded > 0) {
             // Count how many of those patients actually had another consultation within 30 days
-            $compliantFollowups = \Illuminate\Support\Facades\DB::select("
+            $compliantFollowups = \Illuminate\Support\Facades\DB::select('
                 SELECT COUNT(DISTINCT c1.id) as compliant
                 FROM consultations c1
                 JOIN consultations c2 ON c1.patient_id = c2.patient_id 
@@ -211,7 +211,7 @@ class AdminController extends Controller
                     AND c2.created_at <= DATE_ADD(c1.created_at, INTERVAL 30 DAY)
                 WHERE c1.is_followup_needed = 1 
                 AND c1.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
-            ")[0]->compliant;
+            ')[0]->compliant;
         }
 
         $complianceRate = $totalFollowupsNeeded > 0 ? round(($compliantFollowups / $totalFollowupsNeeded) * 100) : 0;
@@ -262,7 +262,7 @@ class AdminController extends Controller
             $volumeLabels = [];
             $volumeCounts = [];
             for ($i = 8; $i <= 17; $i++) {
-                $volumeLabels[] = $i > 12 ? ($i - 12) . ' PM' : ($i == 12 ? '12 PM' : $i . ' AM');
+                $volumeLabels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
                 $volumeCounts[] = $visits->get($i, 0);
             }
         } else {
@@ -292,8 +292,8 @@ class AdminController extends Controller
 
         $hourLabels = [];
         $hourCounts = [];
-        for ($i = 8; $i <= 17; $i++) { 
-            $hourLabels[] = $i > 12 ? ($i - 12) . ' PM' : ($i == 12 ? '12 PM' : $i . ' AM');
+        for ($i = 8; $i <= 17; $i++) {
+            $hourLabels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
             $hourCounts[] = $peakHours->get($i, 0);
         }
         $peakHoursData = ['labels' => $hourLabels, 'data' => $hourCounts];
@@ -432,9 +432,10 @@ class AdminController extends Controller
                     ->groupBy('hour')
                     ->pluck('count', 'hour');
 
-                $labels = []; $counts = [];
+                $labels = [];
+                $counts = [];
                 for ($i = 8; $i <= 17; $i++) {
-                    $labels[] = $i > 12 ? ($i - 12) . ' PM' : ($i == 12 ? '12 PM' : $i . ' AM');
+                    $labels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
                     $counts[] = $visits->get($i, 0);
                 }
             } elseif ($timeFilter === 'yearly' || $timeFilter === 'all') {
@@ -445,7 +446,8 @@ class AdminController extends Controller
                     ->groupBy('month')
                     ->pluck('count', 'month');
 
-                $labels = []; $counts = [];
+                $labels = [];
+                $counts = [];
                 for ($i = $monthsToLookBack; $i >= 0; $i--) {
                     $dateObj = now()->subMonths($i);
                     $labels[] = $dateObj->format('M Y');
@@ -459,13 +461,15 @@ class AdminController extends Controller
                     ->groupBy('date')
                     ->pluck('count', 'date');
 
-                $labels = []; $counts = [];
+                $labels = [];
+                $counts = [];
                 for ($i = $daysToLookBack; $i >= 0; $i--) {
                     $dateObj = now()->subDays($i);
                     $labels[] = $dateObj->format('M d');
                     $counts[] = $visits->get($dateObj->format('Y-m-d'), 0);
                 }
             }
+
             return response()->json(['labels' => $labels, 'data' => $counts]);
         }
 
@@ -475,11 +479,13 @@ class AdminController extends Controller
                 ->groupBy('hour')
                 ->pluck('count', 'hour');
 
-            $labels = []; $counts = [];
-            for ($i = 8; $i <= 17; $i++) { 
-                $labels[] = $i > 12 ? ($i - 12) . ' PM' : ($i == 12 ? '12 PM' : $i . ' AM');
+            $labels = [];
+            $counts = [];
+            for ($i = 8; $i <= 17; $i++) {
+                $labels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
                 $counts[] = $peakHours->get($i, 0);
             }
+
             return response()->json(['labels' => $labels, 'data' => $counts]);
         }
 
@@ -490,6 +496,7 @@ class AdminController extends Controller
                 ->select(\Illuminate\Support\Facades\DB::raw('patients.classification, COUNT(DISTINCT consultations.patient_id) as count'))
                 ->groupBy('patients.classification')
                 ->pluck('count', 'classification');
+
             return response()->json(['labels' => array_keys($data->toArray()), 'data' => array_values($data->toArray())]);
         }
 
@@ -499,8 +506,11 @@ class AdminController extends Controller
                 ->where('created_at', '>=', $startDate)
                 ->groupBy('severity')
                 ->pluck('count', 'severity');
-            
-            $labels = array_map(function($l) { return ucfirst($l); }, array_keys($data->toArray()));
+
+            $labels = array_map(function ($l) {
+                return ucfirst($l);
+            }, array_keys($data->toArray()));
+
             return response()->json(['labels' => $labels, 'data' => array_values($data->toArray())]);
         }
 
@@ -514,6 +524,7 @@ class AdminController extends Controller
                 ->orderByDesc('count')
                 ->limit(10)
                 ->pluck('count', 'barangay');
+
             return response()->json(['labels' => array_keys($data->toArray()), 'data' => array_values($data->toArray())]);
         }
 
@@ -550,6 +561,7 @@ class AdminController extends Controller
                     $demoData[$d->sex][$idx] = $d->count;
                 }
             }
+
             return response()->json($demoData);
         }
 
@@ -576,6 +588,7 @@ class AdminController extends Controller
             }
             arsort($workloadFormatted);
             $workloadFormatted = array_slice($workloadFormatted, 0, 10);
+
             return response()->json(['labels' => array_keys($workloadFormatted), 'data' => array_values($workloadFormatted)]);
         }
 
@@ -633,7 +646,7 @@ class AdminController extends Controller
 
         $compliantFollowups = 0;
         if ($totalFollowupsNeeded > 0) {
-            $compliantFollowups = \Illuminate\Support\Facades\DB::select("
+            $compliantFollowups = \Illuminate\Support\Facades\DB::select('
                 SELECT COUNT(DISTINCT c1.id) as compliant
                 FROM consultations c1
                 JOIN consultations c2 ON c1.patient_id = c2.patient_id 
@@ -641,7 +654,7 @@ class AdminController extends Controller
                     AND c2.created_at <= DATE_ADD(c1.created_at, INTERVAL 30 DAY)
                 WHERE c1.is_followup_needed = 1 
                 AND c1.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
-            ")[0]->compliant;
+            ')[0]->compliant;
         }
         $complianceRate = $totalFollowupsNeeded > 0 ? round(($compliantFollowups / $totalFollowupsNeeded) * 100) : 0;
 
@@ -651,7 +664,7 @@ class AdminController extends Controller
             'trendPercentage' => $trendPercentage,
             'avgWaitTime' => $avgWaitTime,
             'complianceRate' => $complianceRate,
-            'totalFollowupsNeeded' => number_format($totalFollowupsNeeded)
+            'totalFollowupsNeeded' => number_format($totalFollowupsNeeded),
         ]);
     }
 
@@ -677,7 +690,7 @@ class AdminController extends Controller
             ->whereNotNull('encoding_duration_seconds');
 
         if ($staffId !== 'all') {
-            $query->where(function($q) use ($staffId) {
+            $query->where(function ($q) use ($staffId) {
                 $q->where('doctor_id', $staffId)->orWhere('nurse_id', $staffId);
             });
             $preTriageQuery->where('recorded_by', $staffId);
@@ -701,7 +714,7 @@ class AdminController extends Controller
             ->whereNotNull('consultation_end_time')
             ->select(\Illuminate\Support\Facades\DB::raw('SUM(TIMESTAMPDIFF(MINUTE, consultation_start_time, consultation_end_time)) as total_duration'))
             ->value('total_duration') ?? 0;
-            
+
         $patientsPerHour = $totalDurationMinutes > 0 ? round($totalPatients / ($totalDurationMinutes / 60), 1) : 0;
 
         // 4. Avg Queue Wait Time (minutes)
@@ -724,11 +737,11 @@ class AdminController extends Controller
                 doctor_id as staff_id, 
                 AVG(TIMESTAMPDIFF(MINUTE, consultation_start_time, consultation_end_time)) as avg_duration
             '));
-            
+
         if ($staffId !== 'all') {
-             $durationPerStaffData->where('doctor_id', $staffId);
+            $durationPerStaffData->where('doctor_id', $staffId);
         }
-            
+
         $durationPerStaffData = $durationPerStaffData->groupBy('staff_id')->get();
 
         $staffIdsForChart1 = $durationPerStaffData->pluck('staff_id')->filter();
@@ -779,7 +792,7 @@ class AdminController extends Controller
 
     public function staffIndex(Request $request)
     {
-        $query = \App\Models\User::whereIn('role', ['super_admin', 'admin', 'regular_doctor', 'pedia_doctor', 'laboratory', 'radiology', 'vitals_nurse', 'clinical_nurse', 'information_desk']);
+        $query = \App\Models\User::whereIn('role', ['super_admin', 'admin', 'regular_doctor', 'pedia_doctor', 'laboratory', 'radiology', 'vitals_nurse', 'clinical_nurse', 'information_desk', 'pharmacy']);
 
         if ($request->filled('q')) {
             $search = $request->q;
@@ -842,7 +855,7 @@ class AdminController extends Controller
                 'avgWaitTime' => round(\App\Models\Consultation::whereNotNull('consultation_start_time')
                     ->where('created_at', '>=', now()->subDays(30))
                     ->select(\Illuminate\Support\Facades\DB::raw('AVG(TIMESTAMPDIFF(MINUTE, created_at, consultation_start_time)) as avg_wait_time'))
-                    ->value('avg_wait_time') ?? 0)
+                    ->value('avg_wait_time') ?? 0),
             ];
         });
 
@@ -857,7 +870,7 @@ class AdminController extends Controller
             $q = $request->q;
             $searchBy = $request->get('search_by', 'all');
 
-            $query->where(function($builder) use ($q, $searchBy) {
+            $query->where(function ($builder) use ($q, $searchBy) {
                 if ($searchBy === 'title') {
                     $builder->where('title', 'like', "%$q%");
                 } elseif ($searchBy === 'subheading') {
@@ -866,8 +879,8 @@ class AdminController extends Controller
                     $builder->where('content', 'like', "%$q%");
                 } else {
                     $builder->where('title', 'like', "%$q%")
-                            ->orWhere('content', 'like', "%$q%")
-                            ->orWhere('subheading', 'like', "%$q%");
+                        ->orWhere('content', 'like', "%$q%")
+                        ->orWhere('subheading', 'like', "%$q%");
                 }
             });
         }
@@ -881,6 +894,7 @@ class AdminController extends Controller
         }
 
         $announcements = $query->latest()->paginate(10);
+
         return view('admin.announcements.index', compact('announcements'));
     }
 
@@ -975,7 +989,7 @@ class AdminController extends Controller
                     $mediaType = 'video_link';
                 }
 
-                if ($sectionMediaPath || $videoUrl || !empty($section['content'])) {
+                if ($sectionMediaPath || $videoUrl || ! empty($section['content'])) {
                     $announcement->images()->create([
                         'image_path' => $sectionMediaPath ?? '', // Empty string if only URL or Text
                         'video_url' => $videoUrl,
@@ -1087,7 +1101,7 @@ class AdminController extends Controller
                         } else {
                             $updateData['media_type'] = 'image';
                         }
-                    } elseif (!empty($data['video_url'])) {
+                    } elseif (! empty($data['video_url'])) {
                         $updateData['media_type'] = 'video_link';
                     }
 
@@ -1114,7 +1128,7 @@ class AdminController extends Controller
                     $mediaType = 'video_link';
                 }
 
-                if ($sectionImagePath || $videoUrl || !empty($section['content'])) {
+                if ($sectionImagePath || $videoUrl || ! empty($section['content'])) {
                     $announcement->images()->create([
                         'image_path' => $sectionImagePath ?? '',
                         'video_url' => $videoUrl,
@@ -1134,6 +1148,7 @@ class AdminController extends Controller
     public function destroyAnnouncement(Announcement $announcement)
     {
         $announcement->delete();
+
         return back()->with('success', 'Announcement archived successfully!');
     }
 
@@ -1142,12 +1157,12 @@ class AdminController extends Controller
     {
         $newStatus = $request->input('status');
 
-        if (!in_array($newStatus, ['draft', 'pending', 'published'])) {
+        if (! in_array($newStatus, ['draft', 'pending', 'published'])) {
             return back()->with('error', 'Invalid status requested.');
         }
 
         // Only super_admin can set to published directly
-        if ($newStatus === 'published' && !Auth::user()->hasRole('super_admin')) {
+        if ($newStatus === 'published' && ! Auth::user()->hasRole('super_admin')) {
             $newStatus = 'pending';
         }
 
@@ -1161,6 +1176,7 @@ class AdminController extends Controller
         $announcement->save();
 
         $statusMsg = $announcement->status === 'published' ? 'posted/re-uploaded' : "moved to {$announcement->status}";
+
         return back()->with('success', "Announcement has been $statusMsg successfully!");
     }
 
@@ -1170,6 +1186,7 @@ class AdminController extends Controller
             Storage::disk('uploads')->delete($image->image_path);
         }
         $image->delete();
+
         return back()->with('success', 'Image removed from gallery.');
     }
 
@@ -1199,7 +1216,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:super_admin,admin,regular_doctor,pedia_doctor,laboratory,radiology,vitals_nurse,clinical_nurse,information_desk',
+            'role' => 'required|in:super_admin,admin,regular_doctor,pedia_doctor,laboratory,radiology,vitals_nurse,clinical_nurse,information_desk,pharmacy',
             'status' => 'required|string',
             'schedule' => 'nullable|string',
             'avatar' => 'nullable|image|max:2048',
@@ -1221,13 +1238,14 @@ class AdminController extends Controller
             'name' => $name,
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
-            'role' => $validated['role'],
             'status' => $validated['status'],
             // 'schedule' string column is no longer used, we save to practitioner_schedules instead
             'avatar_path' => $avatarPath,
         ]);
+        $user->role = $validated['role'];
+        $user->save();
 
-        if (!empty($validated['schedule'])) {
+        if (! empty($validated['schedule'])) {
             $schedules = json_decode($validated['schedule'], true);
             if (is_array($schedules)) {
                 foreach ($schedules as $sched) {
@@ -1246,10 +1264,15 @@ class AdminController extends Controller
 
     public function updateStaff(Request $request, \App\Models\User $user)
     {
+        // Prevent regular admin from editing admin or super_admin accounts
+        if (in_array($user->role, ['admin', 'super_admin'])) {
+            \Illuminate\Support\Facades\Gate::authorize('manage-admins');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:super_admin,admin,regular_doctor,pedia_doctor,laboratory,radiology,vitals_nurse,clinical_nurse,information_desk',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'role' => 'required|in:super_admin,admin,regular_doctor,pedia_doctor,laboratory,radiology,vitals_nurse,clinical_nurse,information_desk,pharmacy',
             'status' => 'required|string',
             'schedule' => 'nullable|string',
             'password' => 'nullable|string|min:8',
@@ -1266,12 +1289,11 @@ class AdminController extends Controller
         $data = [
             'name' => $name,
             'email' => $validated['email'],
-            'role' => $validated['role'],
             'status' => $validated['status'],
             // 'schedule' string column is no longer used directly
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $data['password'] = bcrypt($validated['password']);
         }
 
@@ -1284,11 +1306,16 @@ class AdminController extends Controller
         }
 
         $user->update($data);
+        
+        if ($user->role !== $validated['role']) {
+            $user->role = $validated['role'];
+            $user->save();
+        }
 
         // Handle Schedule Update
         if ($request->has('schedule')) {
             $user->practitionerSchedules()->delete(); // Clear old schedules
-            if (!empty($validated['schedule'])) {
+            if (! empty($validated['schedule'])) {
                 $schedules = json_decode($validated['schedule'], true);
                 if (is_array($schedules)) {
                     foreach ($schedules as $sched) {
@@ -1308,11 +1335,23 @@ class AdminController extends Controller
 
     public function destroyStaff(\App\Models\User $user)
     {
-        // Optionally prevent deleting the last admin
+        // Prevent regular admin from deleting admin or super_admin accounts
+        if (in_array($user->role, ['admin', 'super_admin'])) {
+            \Illuminate\Support\Facades\Gate::authorize('manage-admins');
+        }
+
+        // Prevent deleting the last admin
         if ($user->role === 'admin' && \App\Models\User::where('role', 'admin')->count() === 1) {
             return back()->with('error', 'Cannot delete the only admin account.');
         }
+
+        // Prevent deleting the last super_admin
+        if ($user->role === 'super_admin' && \App\Models\User::where('role', 'super_admin')->count() === 1) {
+            return back()->with('error', 'Cannot delete the only super admin account.');
+        }
+
         $user->delete();
+
         return back()->with('success', 'Staff archived successfully!');
     }
 
@@ -1324,7 +1363,7 @@ class AdminController extends Controller
 
         $updateData = ['status' => $request->status];
 
-        // If an admin forces someone to be "Present", artificially bump their heartbeat 
+        // If an admin forces someone to be "Present", artificially bump their heartbeat
         // so they instantly appear online without needing to log in.
         if (in_array($request->status, ['Present', 'Active', 'Online', 'Available', 'In Office'])) {
             $updateData['last_activity_at'] = now();
@@ -1340,8 +1379,9 @@ class AdminController extends Controller
         \Illuminate\Support\Facades\Gate::authorize('promote-admin');
 
         // Only promote if they are actually staff
-        if (in_array($user->role, ['regular_doctor', 'pedia_doctor', 'laboratory', 'radiology', 'clinical_nurse', 'vitals_nurse', 'information_desk'])) {
+        if (in_array($user->role, ['regular_doctor', 'pedia_doctor', 'laboratory', 'radiology', 'clinical_nurse', 'vitals_nurse', 'information_desk', 'pharmacy'])) {
             $user->update(['role' => 'admin']);
+
             return back()->with('success', "{$user->name} has been promoted to Administrator!");
         }
 
@@ -1374,7 +1414,7 @@ class AdminController extends Controller
         // Permanently delete the patient (and their related records depending on cascading rules)
         $patient->forceDelete();
 
-        return back()->with('success', "Inactive patient record permanently deleted.");
+        return back()->with('success', 'Inactive patient record permanently deleted.');
     }
 
     public function patientRecordsIndex(Request $request)
@@ -1413,13 +1453,15 @@ class AdminController extends Controller
             },
             'consultations.doctor',
             'consultations.nurse',
-            'medicalCases.consultation'
+            'medicalCases.consultation.ancillaryRequests.technician',
+            'medicalCases.consultation.prescriptionRecord.items',
         ]);
 
         AuditLog::record('Viewed Full Patient Record', $patient);
 
         return view('admin.patients.show', compact('patient'));
     }
+
     public function bulkDeleteAnnouncements(Request $request)
     {
         $request->validate([
@@ -1429,7 +1471,7 @@ class AdminController extends Controller
 
         Announcement::whereIn('id', $request->ids)->delete();
 
-        return back()->with('success', count($request->ids) . ' announcements archived successfully!');
+        return back()->with('success', count($request->ids).' announcements archived successfully!');
     }
 
     public function bulkDeleteStaff(Request $request)
@@ -1440,19 +1482,31 @@ class AdminController extends Controller
         ]);
 
         $ids = $request->ids;
+        $usersToDelete = \App\Models\User::whereIn('id', $ids)->get();
+
+        // Regular admin cannot bulk-delete admin or super_admin accounts
+        $hasAdminTargets = $usersToDelete->whereIn('role', ['admin', 'super_admin'])->isNotEmpty();
+        if ($hasAdminTargets) {
+            \Illuminate\Support\Facades\Gate::authorize('manage-admins');
+        }
 
         // Prevent deleting all admins
-        $usersToDelete = \App\Models\User::whereIn('id', $ids)->get();
         $adminCountToDelete = $usersToDelete->where('role', 'admin')->count();
         $totalAdmins = \App\Models\User::where('role', 'admin')->count();
-
         if ($adminCountToDelete > 0 && $totalAdmins <= $adminCountToDelete) {
             return back()->with('error', 'Cannot delete all admin accounts.');
         }
 
+        // Prevent deleting all super_admins
+        $superAdminCountToDelete = $usersToDelete->where('role', 'super_admin')->count();
+        $totalSuperAdmins = \App\Models\User::where('role', 'super_admin')->count();
+        if ($superAdminCountToDelete > 0 && $totalSuperAdmins <= $superAdminCountToDelete) {
+            return back()->with('error', 'Cannot delete all super admin accounts.');
+        }
+
         \App\Models\User::whereIn('id', $ids)->delete();
 
-        return back()->with('success', count($ids) . ' staff members archived successfully!');
+        return back()->with('success', count($ids).' staff members archived successfully!');
     }
 
     public function bulkDeleteRetention(Request $request)
@@ -1466,7 +1520,7 @@ class AdminController extends Controller
 
         \App\Models\Patient::whereIn('patient_id', $request->ids)->forceDelete();
 
-        return back()->with('success', count($request->ids) . ' inactive patient records permanently deleted.');
+        return back()->with('success', count($request->ids).' inactive patient records permanently deleted.');
     }
 
     public function bulkExtendRetention(Request $request)
@@ -1478,10 +1532,10 @@ class AdminController extends Controller
 
         \App\Models\Patient::whereIn('patient_id', $request->ids)->update([
             'updated_at' => now(),
-            'expires_at' => now()->addYears(10)
+            'expires_at' => now()->addYears(10),
         ]);
 
-        return back()->with('success', 'Data retention for ' . count($request->ids) . ' patients extended.');
+        return back()->with('success', 'Data retention for '.count($request->ids).' patients extended.');
     }
 
     // Content Management
@@ -1498,6 +1552,9 @@ class AdminController extends Controller
 
     public function contentUpdate(Request $request)
     {
+        // Only super_admin can modify system content settings
+        \Illuminate\Support\Facades\Gate::authorize('manage-content');
+
         $request->validate([
             'settings' => 'required|array',
             'hero_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
@@ -1505,7 +1562,7 @@ class AdminController extends Controller
 
         if ($request->hasFile('hero_image_file')) {
             $path = $request->file('hero_image_file')->store('content', 'uploads');
-            \App\Models\SiteSetting::set('hero_image', 'uploads/' . $path);
+            \App\Models\SiteSetting::set('hero_image', 'uploads/'.$path);
         }
 
         foreach ($request->settings as $key => $value) {
@@ -1516,7 +1573,7 @@ class AdminController extends Controller
             foreach ($request->steps as $unitSlug => $unitSteps) {
                 if (is_array($unitSteps)) {
                     $steps = array_values(array_filter($unitSteps, function ($s) {
-                        return !empty($s['title']) || !empty($s['description']);
+                        return ! empty($s['title']) || ! empty($s['description']);
                     }));
 
                     // Handle step image uploads
@@ -1533,7 +1590,7 @@ class AdminController extends Controller
                     unset($step);
 
                     \App\Models\SiteSetting::updateOrCreate(
-                        ['key' => 'steps_data_' . $unitSlug],
+                        ['key' => 'steps_data_'.$unitSlug],
                         ['group' => 'steps', 'value' => json_encode($steps), 'type' => 'json']
                     );
                 }
@@ -1542,7 +1599,7 @@ class AdminController extends Controller
 
         if ($request->has('faq')) {
             $faq = array_values(array_filter($request->faq, function ($f) {
-                return !empty($f['question']) || !empty($f['answer']);
+                return ! empty($f['question']) || ! empty($f['answer']);
             }));
             \App\Models\SiteSetting::where('key', 'faq_items')->update(['value' => json_encode($faq)]);
         }
@@ -1558,10 +1615,11 @@ class AdminController extends Controller
 
         return back()->with('success', 'Content updated successfully!');
     }
+
     public function printItr(Request $request, Patient $patient)
     {
         $caseIds = $request->input('cases', []);
-        
+
         if (empty($caseIds)) {
             // Print all if none specified
             $cases = $patient->medicalCases()->orderBy('created_at', 'desc')->get();

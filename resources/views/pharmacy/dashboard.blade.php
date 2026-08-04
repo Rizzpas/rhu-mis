@@ -41,17 +41,6 @@
         </div>
     </div>
 
-    <!-- Simulation Mode Banner -->
-    <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm animate-pulse">
-        <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 border border-indigo-200">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        </div>
-        <div>
-            <h4 class="text-sm font-black text-indigo-900 uppercase tracking-widest">Simulation Mode Active</h4>
-            <p class="text-xs text-indigo-700 font-medium">The Ancillary and Pharmacy modules are currently placeholders for structural demonstration. Results encoded here will be visible to doctors for flow testing only.</p>
-        </div>
-    </div>
-
     <!-- Active Consultations List -->
     <div class="pt-4">
         <div class="flex justify-between items-end mb-6">
@@ -80,7 +69,42 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm">
                         @forelse($prescriptions as $request)
-                            <!-- Placeholder loop content -->
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors group">
+                                <td class="p-4 sm:p-5 align-top">
+                                    <div class="flex items-center gap-3">
+                                        <div class="shrink-0 w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
+                                            RX
+                                        </div>
+                                        <div>
+                                            <p class="font-extrabold text-slate-900 dark:text-white text-sm">#{{ $request->id }}</p>
+                                            <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{{ $request->created_at->format('h:i A') }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 sm:p-5 align-top">
+                                    <p class="font-bold text-slate-800 dark:text-slate-200">{{ $request->patient->full_name ?? 'Unknown' }}</p>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">{{ $request->patient->patient_id ?? '---' }}</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">{{ $request->patient->dob ? \Carbon\Carbon::parse($request->patient->dob)->age : '?' }} yrs • {{ $request->patient->sex ?? '?' }}</p>
+                                </td>
+                                <td class="p-4 sm:p-5 align-top">
+                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ $request->doctor->formatted_name ?? 'Unknown' }}</p>
+                                    <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1">{{ $request->items->count() }} Items Prescribed</p>
+                                </td>
+                                <td class="p-4 sm:p-5 align-top">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shadow-sm">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Pending
+                                    </span>
+                                </td>
+                                <td class="p-4 sm:p-5 align-top text-right">
+                                    <button onclick="openDispenseModal({{ $request->id }})" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                                        Review & Dispense
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                    </button>
+
+
+                                </td>
+                            </tr>
                         @empty
                             <tr>
                                 <td colspan="5" class="p-12 sm:p-20 text-center text-slate-500 dark:text-slate-400">
@@ -100,4 +124,82 @@
         </div>
     </div>
 </div>
+@foreach($prescriptions as $request)
+    <!-- Dispense Modal -->
+    <div id="dispenseModal-{{ $request->id }}" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm overflow-y-auto w-full h-full text-left">
+        <div class="relative w-full max-w-2xl mx-auto top-20 p-5">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                    <div>
+                        <h3 class="text-xl font-extrabold text-slate-900 dark:text-white">Dispense Prescription</h3>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Review items before deducting from inventory</p>
+                    </div>
+                    <button onclick="closeDispenseModal({{ $request->id }})" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 p-2 rounded-xl transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+                        <h4 class="font-bold text-blue-900 text-sm mb-2">Prescription Items</h4>
+                        <ul class="space-y-3">
+                            @foreach($request->items as $item)
+                                @php
+                                    $cleanName = trim(preg_replace('/\s*\([^)]*\)$/', '', $item->medicine_name));
+                                    $medicine = \App\Models\Medicine::where('name', $item->medicine_name)
+                                        ->orWhere('generic_name', $item->medicine_name)
+                                        ->orWhere('name', $cleanName)
+                                        ->orWhere('generic_name', $cleanName)
+                                        ->first();
+                                    $stock = $medicine ? $medicine->total_stock : 0;
+                                    $sufficient = $stock >= ($item->quantity ?: 0);
+                                @endphp
+                                <li class="flex justify-between items-center bg-white rounded-lg p-3 border border-blue-100/50 shadow-sm">
+                                    <div>
+                                        <p class="font-bold text-sm text-slate-800">{{ $item->medicine_name }}</p>
+                                        <p class="text-xs text-slate-500">{{ $item->dosage }} • {{ $item->frequency }} • {{ $item->duration }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-bold text-slate-900">Qty: {{ $item->quantity ?: 'N/A' }}</p>
+                                        @if($item->quantity)
+                                            @if($sufficient)
+                                                <p class="text-[10px] font-bold text-emerald-600">In Stock ({{ $stock }} avail)</p>
+                                            @else
+                                                <p class="text-[10px] font-bold text-red-600">Low Stock! ({{ $stock }} avail)</p>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    <form action="{{ route('pharmacy.dispense', $request->id) }}" method="POST">
+                        @csrf
+                        <div class="flex justify-end gap-3 mt-6">
+                            <button type="button" onclick="closeDispenseModal({{ $request->id }})" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Confirm & Dispense
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+@endforeach
+
 @endsection
+
+@push('scripts')
+<script>
+    function openDispenseModal(id) {
+        document.getElementById('dispenseModal-' + id).classList.remove('hidden');
+    }
+    function closeDispenseModal(id) {
+        document.getElementById('dispenseModal-' + id).classList.add('hidden');
+    }
+</script>
+@endpush

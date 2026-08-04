@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class PatientController extends Controller
 {
@@ -18,11 +18,11 @@ class PatientController extends Controller
         // 1. Search Query
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function(\Illuminate\Database\Eloquent\Builder $q) use ($search) {
+            $query->where(function (\Illuminate\Database\Eloquent\Builder $q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('middle_name', 'like', "%{$search}%")
-                  ->orWhere('philhealth_number', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('middle_name', 'like', "%{$search}%")
+                    ->orWhere('philhealth_number', 'like', "%{$search}%");
             });
         }
 
@@ -56,13 +56,34 @@ class PatientController extends Controller
      */
     public function show(Patient $patient)
     {
+        $patient->load(['consultations' => function ($q) {
+            $q->orderBy('created_at', 'asc');
+        }]);
+
+        $vitalsChartData = $patient->consultations->filter(function ($c) {
+            return $c->blood_pressure || $c->weight;
+        })->map(function ($c) {
+            $systolic = null;
+            $diastolic = null;
+            if ($c->blood_pressure && str_contains($c->blood_pressure, '/')) {
+                [$systolic, $diastolic] = explode('/', $c->blood_pressure);
+            }
+
+            return [
+                'date' => $c->created_at->format('M d, Y'),
+                'weight' => floatval($c->weight),
+                'systolic' => floatval($systolic),
+                'diastolic' => floatval($diastolic),
+            ];
+        })->values();
+
         // Load relations (e.g. consultations) natively for the timeline
-        $patient->load(['consultations' => function($q) {
+        $patient->load(['consultations' => function ($q) {
             $q->orderBy('consultation_date', 'desc')->orderBy('created_at', 'desc');
         }]);
 
         \App\Models\AuditLog::record('Viewed Patient Info (Information Desk)', $patient);
 
-        return view('frontdesk.patients.show', compact('patient'));
+        return view('frontdesk.patients.show', compact('patient', 'vitalsChartData'));
     }
 }

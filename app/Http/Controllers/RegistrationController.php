@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Patient;
 use App\Models\Consultation;
+use App\Models\Patient;
 use App\Models\PreTriage;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class RegistrationController extends Controller
 {
@@ -75,8 +75,8 @@ class RegistrationController extends Controller
         // Determine what panel to show on the right side
         // (mirrors FrontDeskController logic — we replicate the variables here)
         $selectedPatient = null;
-        $isNewPatient   = false;
-        $prefillApt     = null;
+        $isNewPatient = false;
+        $prefillApt = null;
         if ($request->filled('prefill_apt')) {
             $prefillApt = \App\Models\Appointment::find($request->input('prefill_apt'));
             $isNewPatient = true; // Force show the form
@@ -115,15 +115,17 @@ class RegistrationController extends Controller
     {
         if (in_array($appointment->status, ['pending', 'approved', 'rescheduled'])) {
             $appointment->update(['status' => 'arrived']);
+            broadcast(new \App\Events\QueueUpdated('Appointment checked in', 'general'));
         }
 
         return redirect()->route('frontdesk.registration.index')
             ->with('success', 'Patient Checked In! Please instruct the patient to proceed to the Vitals Station.');
     }
+
     public function searchJson(Request $request)
     {
         $search = $request->query('query');
-        if (!$search || strlen($search) < 1) {
+        if (! $search || strlen($search) < 1) {
             return response()->json([]);
         }
 
@@ -146,10 +148,10 @@ class RegistrationController extends Controller
             return [
                 'id' => $patient->patient_id,
                 'formatted_name' => $patient->full_name,
-                'formatted_dob' => \Carbon\Carbon::parse($patient->dob)->format('M d, Y'),
+                'formatted_dob' => $patient->dob ? \Carbon\Carbon::parse($patient->dob)->format('M d, Y') : 'N/A',
                 'contact_number' => $patient->contact_number,
                 'classification' => $patient->classification ?? 'Unclassified',
-                'age' => \Carbon\Carbon::parse($patient->dob)->age,
+                'age' => $patient->dob ? \Carbon\Carbon::parse($patient->dob)->age : null,
                 'is_follow_up' => $patient->is_follow_up,
             ];
         }));
@@ -169,7 +171,7 @@ class RegistrationController extends Controller
             'house_no',
             'street',
             'building',
-            'barangay'
+            'barangay',
         ];
         foreach ($titleCaseFields as $field) {
             if ($request->has($field) && is_string($request->input($field))) {
@@ -182,7 +184,7 @@ class RegistrationController extends Controller
             if ($request->filled('philhealth_number')) {
                 // If the frontend sent philhealth_number but it's a pediatric patient, it is actually the guardian's!
                 $request->merge([
-                    'guardian_philhealth' => $request->input('philhealth_number')
+                    'guardian_philhealth' => $request->input('philhealth_number'),
                 ]);
                 $request->request->remove('philhealth_number'); // Remove so it doesn't fail 'required' validation for normal philhealth
             }
@@ -222,11 +224,11 @@ class RegistrationController extends Controller
 
         if (isset($validated['classification'])) {
             $age = \Carbon\Carbon::parse($patient->dob)->age;
-            if ($validated['classification'] === 'Pediatric' && $age > 12) {
-                return back()->with('error', 'Pediatric classification is restricted to patients 12 years old and below.');
+            if ($validated['classification'] === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+                return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.');
             }
-            if ($validated['classification'] === 'Regular Adult' && $age < 13) {
-                return back()->with('error', 'Adult classification requires the patient to be at least 13 years old.');
+            if ($validated['classification'] === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+                return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old.');
             }
             if ($validated['classification'] === 'Senior Citizen' && $age < 60) {
                 return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old.');
@@ -249,7 +251,7 @@ class RegistrationController extends Controller
                 ->where('last_name', $validated['last_name'])
                 ->where('dob', $validated['dob'])
                 ->first();
-            
+
             if ($appointment) {
                 $appointment->update(['status' => 'registered']);
                 $request->merge(['appointment_id' => $appointment->id]);
@@ -258,6 +260,7 @@ class RegistrationController extends Controller
 
         return back()->with('success', 'Patient information updated successfully.');
     }
+
     public function storePatient(Request $request)
     {
         $titleCaseFields = [
@@ -272,7 +275,7 @@ class RegistrationController extends Controller
             'house_no',
             'street',
             'building',
-            'barangay'
+            'barangay',
         ];
         foreach ($titleCaseFields as $field) {
             if ($request->has($field) && is_string($request->input($field))) {
@@ -285,7 +288,7 @@ class RegistrationController extends Controller
             if ($request->filled('philhealth_number')) {
                 // If the frontend sent philhealth_number but it's a pediatric patient, it is actually the guardian's!
                 $request->merge([
-                    'guardian_philhealth' => $request->input('philhealth_number')
+                    'guardian_philhealth' => $request->input('philhealth_number'),
                 ]);
                 $request->request->remove('philhealth_number'); // Remove so it doesn't fail 'required' validation
             }
@@ -324,11 +327,11 @@ class RegistrationController extends Controller
         ]);
 
         $age = \Carbon\Carbon::parse($validated['dob'])->age;
-        if ($validated['classification'] === 'Pediatric' && $age > 12) {
-            return back()->with('error', 'Pediatric classification is restricted to patients 12 years old and below. Please choose another classification.')->withInput();
+        if ($validated['classification'] === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+            return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below. Please choose another classification.')->withInput();
         }
-        if ($validated['classification'] === 'Regular Adult' && $age < 13) {
-            return back()->with('error', 'Adult classification requires the patient to be at least 13 years old. Please correct the classification or date of birth.')->withInput();
+        if ($validated['classification'] === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+            return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old. Please correct the classification or date of birth.')->withInput();
         }
         if ($validated['classification'] === 'Senior Citizen' && $age < 60) {
             return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old. Please correct the classification or date of birth.')->withInput();
@@ -362,7 +365,7 @@ class RegistrationController extends Controller
                 ->where('last_name', $validated['last_name'])
                 ->where('dob', $validated['dob'])
                 ->first();
-            
+
             if ($appointment) {
                 $appointment->update(['status' => 'registered']);
             }
@@ -370,15 +373,15 @@ class RegistrationController extends Controller
 
         return redirect()->route('frontdesk.registration.index')
             ->with('success', 'Patient registered successfully.')
-            ->with('new_patient_id', $patient->id);
+            ->with('new_patient_id', $patient->patient_id);
     }
 
     public function storeVisit(Request $request, Patient $patient)
     {
         // Pre-triage ID is always required — no manual vitals entry
         $validated = $request->validate([
-            'pre_triage_id'    => 'required|exists:pre_triages,id',
-            'consultation_date'=> 'required|date',
+            'pre_triage_id' => 'required|exists:pre_triages,id',
+            'consultation_date' => 'required|date',
             'symptom_severity' => 'required|in:light,mild,severe',
         ]);
 
@@ -397,7 +400,7 @@ class RegistrationController extends Controller
                 ->where('last_name', $patient->last_name)
                 ->where('dob', $patient->dob)
                 ->first();
-            
+
             if ($appointment) {
                 $appointment->update(['status' => 'registered']);
                 $request->merge(['appointment_id' => $appointment->id]); // Important for queue numbering
@@ -418,7 +421,7 @@ class RegistrationController extends Controller
 
         // Calculate BMI
         $bmi = null;
-        if (!empty($validated['height']) && !empty($validated['weight'])) {
+        if (! empty($validated['height']) && ! empty($validated['weight'])) {
             $heightInMeters = $validated['height'] / 100;
             if ($heightInMeters > 0) {
                 $bmi = number_format($validated['weight'] / ($heightInMeters * $heightInMeters), 2);
@@ -437,10 +440,10 @@ class RegistrationController extends Controller
         $originalDoctorId = null;
 
         if ($latestFollowUp) {
-            $referenceDate = $latestFollowUp->followup_date 
-                ? \Carbon\Carbon::parse($latestFollowUp->followup_date)->startOfDay() 
+            $referenceDate = $latestFollowUp->followup_date
+                ? \Carbon\Carbon::parse($latestFollowUp->followup_date)->startOfDay()
                 : \Carbon\Carbon::parse($latestFollowUp->consultation_date)->startOfDay();
-                
+
             $today = \Carbon\Carbon::today();
             if ($today->copy()->subMonths(3)->lte($referenceDate)) {
                 $isFollowUpWithinGracePeriod = true;
@@ -449,12 +452,12 @@ class RegistrationController extends Controller
         }
 
         // 2. Fallback: If no explicit follow-up was marked, but they booked a follow-up appointment
-        if (!$isFollowUpWithinGracePeriod && isset($appointment) && $appointment->is_follow_up) {
+        if (! $isFollowUpWithinGracePeriod && isset($appointment) && $appointment->is_follow_up) {
             $lastConsultation = \App\Models\Consultation::where('patient_id', $patient->patient_id)
                 ->whereNotNull('doctor_id')
                 ->orderBy('consultation_date', 'desc')
                 ->first();
-                
+
             if ($lastConsultation) {
                 $isFollowUpWithinGracePeriod = true;
                 $originalDoctorId = $lastConsultation->doctor_id;
@@ -468,16 +471,19 @@ class RegistrationController extends Controller
 
         // ── Age Validation ──────────────────────────────────────────
         $age = \Carbon\Carbon::parse($patient->dob)->age;
-        if ($classification === 'Pediatric' && $age > 12)
-            return back()->with('error', 'Pediatric classification is restricted to patients 12 years old and below.');
-        if ($classification === 'Regular Adult' && $age < 13)
-            return back()->with('error', 'Adult classification requires the patient to be at least 13 years old.');
-        if ($classification === 'Senior Citizen' && $age < 60)
+        if ($classification === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+            return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.');
+        }
+        if ($classification === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+            return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old.');
+        }
+        if ($classification === 'Senior Citizen' && $age < 60) {
             return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old.');
+        }
 
         $isRoutingResolved = false;
 
-        if ($isFollowUpWithinGracePeriod && $originalDoctorId && !$request->has('override_absent_doctor')) {
+        if ($isFollowUpWithinGracePeriod && $originalDoctorId && ! $request->has('override_absent_doctor')) {
             $originalDoctor = \App\Models\User::find($originalDoctorId);
             if ($originalDoctor && $originalDoctor->status === 'Present') {
                 $doctor_id = $originalDoctorId;
@@ -485,58 +491,64 @@ class RegistrationController extends Controller
             } else {
                 return back()->withInput()->with('doctor_absent', true)
                     ->with('absent_doctor_name', $originalDoctor->name ?? 'Unknown Doctor')
-                    ->with('error', 'The requested Follow-up Doctor (' . ($originalDoctor->name ?? 'Unknown') . ') is currently absent.');
+                    ->with('error', 'The requested Follow-up Doctor ('.($originalDoctor->name ?? 'Unknown').') is currently absent.');
             }
         }
 
-        if (!$isRoutingResolved) {
+        if (! $isRoutingResolved) {
             if ($classification === 'Pediatric') {
                 // Pediatric → Always Pedia Doctor
                 $pediaDoctor = \App\Models\User::where('role', 'pedia_doctor')->present()
-                    ->withCount(['consultationsAsDoctor' => fn($q) => $q->whereDate('created_at', today())])
+                    ->withCount(['consultationsAsDoctor' => fn ($q) => $q->whereDate('created_at', today())])
                     ->orderBy('consultations_as_doctor_count')->first()
                     ?? \App\Models\User::where('role', 'pedia_doctor')->present()->inRandomOrder()->first();
 
-                if (!$pediaDoctor) {
+                if (! $pediaDoctor) {
                     return back()->with('error', 'Cannot queue pediatric patient: No Pediatrician is currently available.');
                 }
                 $doctor_id = $pediaDoctor->id;
             } else {
-            // Adult / Senior / PWD — route by severity
-            $severity = $validated['symptom_severity'];
+                // Adult / Senior / PWD — route by severity
+                $severity = $validated['symptom_severity'];
 
-            $nurse = User::where('role', 'clinical_nurse')->present()
-                ->withCount(['consultationsAsNurse' => fn($q) => $q->whereDate('created_at', today())])
-                ->orderBy('consultations_as_nurse_count')->first();
+                $nurse = User::where('role', 'clinical_nurse')->present()
+                    ->withCount(['consultationsAsNurse' => fn ($q) => $q->whereDate('created_at', today())])
+                    ->orderBy('consultations_as_nurse_count')->first();
 
-            $doctor = User::where('role', 'regular_doctor')->present()
-                ->withCount(['consultationsAsDoctor' => fn($q) => $q->whereDate('created_at', today())])
-                ->orderBy('consultations_as_doctor_count')->first();
+                $doctor = User::where('role', 'regular_doctor')->present()
+                    ->withCount(['consultationsAsDoctor' => fn ($q) => $q->whereDate('created_at', today())])
+                    ->orderBy('consultations_as_doctor_count')->first();
 
-            if ($severity === 'light') {
-                // Light → Always Nurse
-                if ($nurse) { $nurse_id = $nurse->id; }
-                else if ($doctor) { $doctor_id = $doctor->id; } // fallback
-            } elseif ($severity === 'severe') {
-                // Severe → Always Doctor
-                if ($doctor) { $doctor_id = $doctor->id; }
-                else if ($nurse) { $nurse_id = $nurse->id; } // fallback
-            } else {
-                // Mild → Load balance
-                if ($nurse && $doctor) {
-                    if ($nurse->consultations_as_nurse_count <= $doctor->consultations_as_doctor_count) {
+                if ($severity === 'light') {
+                    // Light → Always Nurse
+                    if ($nurse) {
                         $nurse_id = $nurse->id;
-                    } else {
+                    } elseif ($doctor) {
+                        $doctor_id = $doctor->id;
+                    } // fallback
+                } elseif ($severity === 'severe') {
+                    // Severe → Always Doctor
+                    if ($doctor) {
+                        $doctor_id = $doctor->id;
+                    } elseif ($nurse) {
+                        $nurse_id = $nurse->id;
+                    } // fallback
+                } else {
+                    // Mild → Load balance
+                    if ($nurse && $doctor) {
+                        if ($nurse->consultations_as_nurse_count <= $doctor->consultations_as_doctor_count) {
+                            $nurse_id = $nurse->id;
+                        } else {
+                            $doctor_id = $doctor->id;
+                        }
+                    } elseif ($nurse) {
+                        $nurse_id = $nurse->id;
+                    } elseif ($doctor) {
                         $doctor_id = $doctor->id;
                     }
-                } else if ($nurse) {
-                    $nurse_id = $nurse->id;
-                } else if ($doctor) {
-                    $doctor_id = $doctor->id;
                 }
-            }
 
-                if (!$nurse_id && !$doctor_id) {
+                if (! $nurse_id && ! $doctor_id) {
                     return back()->with('error', 'Cannot auto-triage: No Regular Doctors or Clinical Nurses are currently available.');
                 }
             }
@@ -545,9 +557,9 @@ class RegistrationController extends Controller
         // ── Generate Queue Number (PED-001, PRI-001, REG-001, APED-001, PED-E-001) ──
         $prefixMap = [
             'PWD' => 'PRI', 'Senior Citizen' => 'PRI',
-            'Regular Adult' => 'REG', 'Pediatric' => 'PED'
+            'Regular Adult' => 'REG', 'Pediatric' => 'PED',
         ];
-        
+
         $isAppointment = $request->filled('appointment_id');
         $isEmergency = $request->has('emergency_override');
 
@@ -565,7 +577,7 @@ class RegistrationController extends Controller
         $consultationDate = \Carbon\Carbon::parse($validated['consultation_date']);
 
         // ── Enforce 5-Slot Pedia Walk-in Cap ────────────────────────
-        if ($classification === 'Pediatric' && !$isAppointment && !$isEmergency) {
+        if ($classification === 'Pediatric' && ! $isAppointment && ! $isEmergency) {
             $walkInCount = \App\Models\Consultation::whereDate('consultation_date', $consultationDate->toDateString())
                 ->where('queue_number', 'LIKE', 'PED-%')
                 ->count();
@@ -573,45 +585,46 @@ class RegistrationController extends Controller
                 return back()->with('error', 'The Walk-in limit (5 patients) for Pediatrics has been reached for today. Please advise the patient to book an appointment for another date.');
             }
         }
-        
+
         $queueNumber = \Illuminate\Support\Facades\DB::transaction(function () use ($consultationDate, $prefix) {
             $latest = \App\Models\Consultation::whereDate('consultation_date', $consultationDate->toDateString())
-                ->where('queue_number', 'LIKE', $prefix . '-%')
+                ->where('queue_number', 'LIKE', $prefix.'-%')
                 ->lockForUpdate()
                 ->orderBy('id', 'desc')
                 ->first();
-                
+
             $dayCount = $latest ? intval(substr($latest->queue_number, strlen($prefix) + 1)) + 1 : 1;
-            return $prefix . '-' . str_pad($dayCount, 3, '0', STR_PAD_LEFT);
+
+            return $prefix.'-'.str_pad($dayCount, 3, '0', STR_PAD_LEFT);
         });
 
         // ── Create Consultation ─────────────────────────────────────
         $consultation = \App\Models\Consultation::create([
-            'patient_id'           => $patient->patient_id,
-            'doctor_id'            => $doctor_id,
-            'nurse_id'             => $nurse_id,
-            'pre_triage_id'        => $preTriage->id,
-            'consultation_date'    => $validated['consultation_date'],
-            'queue_number'         => $queueNumber,
-            'status'               => 'queued',
-            'severity'             => $validated['symptom_severity'] ?? null,
-            'blood_pressure'       => $preTriage->blood_pressure,
-            'temperature'          => $preTriage->temperature,
-            'weight'               => $preTriage->weight,
-            'height'               => $preTriage->height,
-            'heart_rate'           => $preTriage->heart_rate,
-            'respiratory_rate'     => $preTriage->respiratory_rate,
-            'pulse_rate'           => $preTriage->pulse_rate,
-            'spo2'                 => $preTriage->spo2 ?? $preTriage->oxygen_saturation,
+            'patient_id' => $patient->patient_id,
+            'doctor_id' => $doctor_id,
+            'nurse_id' => $nurse_id,
+            'pre_triage_id' => $preTriage->id,
+            'consultation_date' => $validated['consultation_date'],
+            'queue_number' => $queueNumber,
+            'status' => 'queued',
+            'severity' => $validated['symptom_severity'] ?? null,
+            'blood_pressure' => $preTriage->blood_pressure,
+            'temperature' => $preTriage->temperature,
+            'weight' => $preTriage->weight,
+            'height' => $preTriage->height,
+            'heart_rate' => $preTriage->heart_rate,
+            'respiratory_rate' => $preTriage->respiratory_rate,
+            'pulse_rate' => $preTriage->pulse_rate,
+            'spo2' => $preTriage->spo2 ?? $preTriage->oxygen_saturation,
         ]);
 
         // ── Create Queue Entry (Workflow Tracking) ──────────────────
         \App\Models\Queue::create([
-            'patient_id'    => $patient->patient_id,
-            'queue_number'  => $queueNumber,
+            'patient_id' => $patient->patient_id,
+            'queue_number' => $queueNumber,
             'priority_type' => $isEmergency ? 'Emergency' : ($isAppointment ? 'Appointment' : (in_array($classification, ['Senior Citizen', 'PWD']) ? 'Priority' : 'Regular')),
-            'service_type'  => 'Consultation',
-            'status'        => 'Waiting',
+            'service_type' => 'Consultation',
+            'status' => 'Waiting',
         ]);
 
         // Mark the pre-triage record as claimed
@@ -627,8 +640,10 @@ class RegistrationController extends Controller
         // ── Audit Logging ──────────────────────────────────────────────────────
         \App\Models\AuditLog::record('Consultation Queued', $consultation, [
             'queue_number' => $queueNumber,
-            'is_followup_routing' => $isFollowUpWithinGracePeriod ?? false
+            'is_followup_routing' => $isFollowUpWithinGracePeriod ?? false,
         ]);
+
+        broadcast(new \App\Events\QueueUpdated('New patient queued', 'general'));
 
         return redirect()->route('frontdesk.registration.index')
             ->with('print_queue_id', $consultation->id)
@@ -638,6 +653,7 @@ class RegistrationController extends Controller
     public function queueSlip(Consultation $visit)
     {
         $visit->load('patient', 'doctor', 'nurse');
+
         return view('frontdesk.registration.queue-slip', compact('visit'));
     }
 
@@ -649,8 +665,8 @@ class RegistrationController extends Controller
     public function registerAndQueue(Request $request, PreTriage $preTriage)
     {
         // ── 1. Register the patient (same logic as storePatient) ───────────────
-        $titleCaseFields = ['first_name','middle_name','last_name','address',
-                            'mothers_maiden_name','guardian_first_name','guardian_middle_name','guardian_last_name','house_no','street','building','barangay'];
+        $titleCaseFields = ['first_name', 'middle_name', 'last_name', 'address',
+            'mothers_maiden_name', 'guardian_first_name', 'guardian_middle_name', 'guardian_last_name', 'house_no', 'street', 'building', 'barangay'];
         foreach ($titleCaseFields as $field) {
             if ($request->has($field) && is_string($request->input($field))) {
                 $request->merge([$field => ucwords(strtolower($request->input($field)))]);
@@ -664,49 +680,52 @@ class RegistrationController extends Controller
         }
 
         $validated = $request->validate([
-            'first_name'          => ['required','string','max:255','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'last_name'           => ['required','string','max:255','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'suffix'              => ['nullable','string','max:20'],
-            'middle_name'         => ['nullable','string','max:255','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'sex'                 => 'required|in:Male,Female',
-            'civil_status'        => 'nullable|string|max:100',
-            'blood_type'          => 'required|string|max:10',
-            'dob'                 => 'required|date|before:today',
-            'contact_number'      => ['nullable', 'required_unless:classification,Pediatric', 'regex:/^09\d{9}$/'],
-            'email'               => ['nullable','email:rfc,dns','max:255'],
-            'address'             => 'required|string',
-            'house_no'           => 'nullable|string|max:255',
-            'street'             => 'nullable|string|max:255',
-            'building'           => 'nullable|string|max:255',
-            'barangay'           => 'nullable|string|max:255',
-            'city_province'      => 'nullable|string|max:255',
-            'philhealth_number'   => ['nullable','required_unless:classification,Pediatric','regex:/^\d{2}-\d{9}-\d{1}$/'],
-            'mothers_maiden_name' => ['required','string','max:255','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'classification'      => 'required|string|in:Regular Adult,Senior Citizen,PWD,Pediatric',
-            'occupation'          => 'nullable|string|max:255',
-            'education'           => 'nullable|string|max:255',
-            'religion'            => 'nullable|string|max:255',
-            'guardian_first_name' => ['nullable','required_if:classification,Pediatric','string','max:255','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'guardian_last_name'  => ['nullable','required_if:classification,Pediatric','string','max:255','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'guardian_middle_name'=> ['nullable','string','max:255','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'guardian_suffix'     => ['nullable','string','max:20','regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'guardian_relation'   => 'nullable|required_if:classification,Pediatric|string|max:255',
-            'guardian_contact'    => ['nullable','required_if:classification,Pediatric','regex:/^09\d{9}$/'],
-            'guardian_philhealth' => ['nullable','required_if:classification,Pediatric','string','regex:/^\d{2}-\d{9}-\d{1}$/'],
-            'consultation_date'   => 'nullable|date',
-            'symptom_severity'    => 'required|in:light,mild,severe',
+            'first_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'suffix' => ['nullable', 'string', 'max:20'],
+            'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'sex' => 'required|in:Male,Female',
+            'civil_status' => 'nullable|string|max:100',
+            'blood_type' => 'required|string|max:10',
+            'dob' => 'required|date|before:today',
+            'contact_number' => ['nullable', 'required_unless:classification,Pediatric', 'regex:/^09\d{9}$/'],
+            'email' => ['nullable', 'email:rfc,dns', 'max:255'],
+            'address' => 'required|string',
+            'house_no' => 'nullable|string|max:255',
+            'street' => 'nullable|string|max:255',
+            'building' => 'nullable|string|max:255',
+            'barangay' => 'nullable|string|max:255',
+            'city_province' => 'nullable|string|max:255',
+            'philhealth_number' => ['nullable', 'required_unless:classification,Pediatric', 'regex:/^\d{2}-\d{9}-\d{1}$/'],
+            'mothers_maiden_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'classification' => 'required|string|in:Regular Adult,Senior Citizen,PWD,Pediatric',
+            'occupation' => 'nullable|string|max:255',
+            'education' => 'nullable|string|max:255',
+            'religion' => 'nullable|string|max:255',
+            'guardian_first_name' => ['nullable', 'required_if:classification,Pediatric', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'guardian_last_name' => ['nullable', 'required_if:classification,Pediatric', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'guardian_middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'guardian_suffix' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
+            'guardian_relation' => 'nullable|required_if:classification,Pediatric|string|max:255',
+            'guardian_contact' => ['nullable', 'required_if:classification,Pediatric', 'regex:/^09\d{9}$/'],
+            'guardian_philhealth' => ['nullable', 'required_if:classification,Pediatric', 'string', 'regex:/^\d{2}-\d{9}-\d{1}$/'],
+            'consultation_date' => 'nullable|date',
+            'symptom_severity' => 'required|in:light,mild,severe',
         ]);
 
         // Default consultation_date to today
         $validated['consultation_date'] = $validated['consultation_date'] ?? date('Y-m-d');
 
         $age = Carbon::parse($validated['dob'])->age;
-        if ($validated['classification'] === 'Pediatric' && $age > 12)
-            return back()->with('error', 'Pediatric classification is restricted to patients 12 years old and below.')->withInput();
-        if ($validated['classification'] === 'Regular Adult' && $age < 13)
-            return back()->with('error', 'Adult classification requires the patient to be at least 13 years old.')->withInput();
-        if ($validated['classification'] === 'Senior Citizen' && $age < 60)
+        if ($validated['classification'] === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+            return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.')->withInput();
+        }
+        if ($validated['classification'] === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+            return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old.')->withInput();
+        }
+        if ($validated['classification'] === 'Senior Citizen' && $age < 60) {
             return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old.')->withInput();
+        }
 
         // Duplicate Check Strategy: Exact match on First Name, Last Name, and Date of Birth
         $existingPatient = Patient::where('first_name', $validated['first_name'])
@@ -725,40 +744,50 @@ class RegistrationController extends Controller
         $bmi = null;
         if ($preTriage->height && $preTriage->weight) {
             $hm = $preTriage->height / 100;
-            if ($hm > 0) $bmi = number_format($preTriage->weight / ($hm * $hm), 2);
+            if ($hm > 0) {
+                $bmi = number_format($preTriage->weight / ($hm * $hm), 2);
+            }
         }
 
         // ── 3. Severity-Based Auto-Triage ──────────────────────────────────────
         $doctor_id = null;
-        $nurse_id  = null;
+        $nurse_id = null;
         $classification = $validated['classification'];
 
         if ($classification === 'Pediatric') {
             // Pediatric → Always Pedia Doctor
-            $pediaDoc = User::where('role','pedia_doctor')->present()
-                ->withCount(['consultationsAsDoctor'=>fn($q)=>$q->whereDate('created_at',today())])
+            $pediaDoc = User::where('role', 'pedia_doctor')->present()
+                ->withCount(['consultationsAsDoctor' => fn ($q) => $q->whereDate('created_at', today())])
                 ->orderBy('consultations_as_doctor_count')->first()
-                ?? User::where('role','pedia_doctor')->inRandomOrder()->first();
-            if (!$pediaDoc) return back()->with('error','No Pediatrician available.')->withInput();
+                ?? User::where('role', 'pedia_doctor')->inRandomOrder()->first();
+            if (! $pediaDoc) {
+                return back()->with('error', 'No Pediatrician available.')->withInput();
+            }
             $doctor_id = $pediaDoc->id;
         } else {
             // Adult / Senior / PWD — route by severity
             $severity = $validated['symptom_severity'];
 
-            $nurse = User::where('role','clinical_nurse')->present()
-                ->withCount(['consultationsAsNurse'=>fn($q)=>$q->whereDate('created_at',today())])
+            $nurse = User::where('role', 'clinical_nurse')->present()
+                ->withCount(['consultationsAsNurse' => fn ($q) => $q->whereDate('created_at', today())])
                 ->orderBy('consultations_as_nurse_count')->first();
 
-            $doctor = User::where('role','regular_doctor')->present()
-                ->withCount(['consultationsAsDoctor'=>fn($q)=>$q->whereDate('created_at',today())])
+            $doctor = User::where('role', 'regular_doctor')->present()
+                ->withCount(['consultationsAsDoctor' => fn ($q) => $q->whereDate('created_at', today())])
                 ->orderBy('consultations_as_doctor_count')->first();
 
             if ($severity === 'light') {
-                if ($nurse) { $nurse_id = $nurse->id; }
-                else if ($doctor) { $doctor_id = $doctor->id; }
+                if ($nurse) {
+                    $nurse_id = $nurse->id;
+                } elseif ($doctor) {
+                    $doctor_id = $doctor->id;
+                }
             } elseif ($severity === 'severe') {
-                if ($doctor) { $doctor_id = $doctor->id; }
-                else if ($nurse) { $nurse_id = $nurse->id; }
+                if ($doctor) {
+                    $doctor_id = $doctor->id;
+                } elseif ($nurse) {
+                    $nurse_id = $nurse->id;
+                }
             } else {
                 // Mild → Load balance
                 if ($nurse && $doctor) {
@@ -767,21 +796,21 @@ class RegistrationController extends Controller
                     } else {
                         $doctor_id = $doctor->id;
                     }
-                } else if ($nurse) {
+                } elseif ($nurse) {
                     $nurse_id = $nurse->id;
-                } else if ($doctor) {
+                } elseif ($doctor) {
                     $doctor_id = $doctor->id;
                 }
             }
 
-            if (!$nurse_id && !$doctor_id) {
+            if (! $nurse_id && ! $doctor_id) {
                 return back()->with('error', 'Cannot auto-triage: No Regular Doctors or Clinical Nurses are currently available.')->withInput();
             }
         }
 
         // ── 4. Generate Queue Number (PED-001, PRI-001, REG-001, APED-001, PED-E-001) ─────
-        $prefixMap = ['PWD'=>'PRI','Senior Citizen'=>'PRI','Regular Adult'=>'REG','Pediatric'=>'PED'];
-        
+        $prefixMap = ['PWD' => 'PRI', 'Senior Citizen' => 'PRI', 'Regular Adult' => 'REG', 'Pediatric' => 'PED'];
+
         $isAppointment = $request->filled('appointment_id');
         $isEmergency = $request->has('emergency_override');
 
@@ -795,11 +824,11 @@ class RegistrationController extends Controller
                 $prefix = 'PED';
             }
         }
-        
+
         $consultationDate = \Carbon\Carbon::parse($validated['consultation_date']);
 
         // ── Enforce 5-Slot Pedia Walk-in Cap ────────────────────────
-        if ($classification === 'Pediatric' && !$isAppointment && !$isEmergency) {
+        if ($classification === 'Pediatric' && ! $isAppointment && ! $isEmergency) {
             $walkInCount = Consultation::whereDate('consultation_date', $consultationDate->toDateString())
                 ->where('queue_number', 'LIKE', 'PED-%')
                 ->count();
@@ -813,42 +842,43 @@ class RegistrationController extends Controller
 
         $dayCount = \Illuminate\Support\Facades\DB::transaction(function () use ($consultationDate, $prefix) {
             $latest = Consultation::whereDate('consultation_date', $consultationDate->toDateString())
-                ->where('queue_number', 'LIKE', $prefix . '-%')
+                ->where('queue_number', 'LIKE', $prefix.'-%')
                 ->lockForUpdate()
                 ->orderBy('id', 'desc')
                 ->first();
+
             return $latest ? intval(substr($latest->queue_number, strlen($prefix) + 1)) + 1 : 1;
         });
-        
-        $queueNumber = $prefix . '-' . str_pad($dayCount, 3, '0', STR_PAD_LEFT);
+
+        $queueNumber = $prefix.'-'.str_pad($dayCount, 3, '0', STR_PAD_LEFT);
 
         // ── 5. Create Consultation ─────────────────────────────────────────────
         $consultation = Consultation::create([
-            'patient_id'           => $patient->patient_id,
-            'doctor_id'            => $doctor_id,
-            'nurse_id'             => $nurse_id,
-            'pre_triage_id'        => $preTriage->id,
-            'consultation_date'    => $validated['consultation_date'],
-            'queue_number'         => $queueNumber,
-            'status'               => 'queued',
-            'severity'             => $validated['symptom_severity'] ?? null,
-            'blood_pressure'       => $preTriage->blood_pressure,
-            'temperature'          => $preTriage->temperature,
-            'weight'               => $preTriage->weight,
-            'height'               => $preTriage->height,
-            'heart_rate'           => $preTriage->heart_rate,
-            'respiratory_rate'     => $preTriage->respiratory_rate,
-            'pulse_rate'           => $preTriage->pulse_rate,
-            'spo2'                 => $preTriage->spo2 ?? $preTriage->oxygen_saturation,
+            'patient_id' => $patient->patient_id,
+            'doctor_id' => $doctor_id,
+            'nurse_id' => $nurse_id,
+            'pre_triage_id' => $preTriage->id,
+            'consultation_date' => $validated['consultation_date'],
+            'queue_number' => $queueNumber,
+            'status' => 'queued',
+            'severity' => $validated['symptom_severity'] ?? null,
+            'blood_pressure' => $preTriage->blood_pressure,
+            'temperature' => $preTriage->temperature,
+            'weight' => $preTriage->weight,
+            'height' => $preTriage->height,
+            'heart_rate' => $preTriage->heart_rate,
+            'respiratory_rate' => $preTriage->respiratory_rate,
+            'pulse_rate' => $preTriage->pulse_rate,
+            'spo2' => $preTriage->spo2 ?? $preTriage->oxygen_saturation,
         ]);
 
         // ── 5a. Create Queue Entry ─────────────────────────────────────────────
         \App\Models\Queue::create([
-            'patient_id'    => $patient->patient_id,
-            'queue_number'  => $queueNumber,
+            'patient_id' => $patient->patient_id,
+            'queue_number' => $queueNumber,
             'priority_type' => $isEmergency ? 'Emergency' : ($isAppointment ? 'Appointment' : (in_array($classification, ['Senior Citizen', 'PWD']) ? 'Priority' : 'Regular')),
-            'service_type'  => 'Consultation',
-            'status'        => 'Waiting',
+            'service_type' => 'Consultation',
+            'status' => 'Waiting',
         ]);
 
         // ── 6. Mark PreTriage as claimed ──────────────────────────────────────
@@ -878,12 +908,13 @@ class RegistrationController extends Controller
         \App\Models\AuditLog::record('Patient Registered', $patient);
         \App\Models\AuditLog::record('Consultation Queued', $consultation, [
             'queue_number' => $queueNumber,
-            'doctor_assigned' => $doctor_id ?? 'Nurse assigned'
+            'doctor_assigned' => $doctor_id ?? 'Nurse assigned',
         ]);
+
+        broadcast(new \App\Events\QueueUpdated('New patient queued', 'general'));
 
         return redirect()->route('frontdesk.registration.index')
             ->with('print_queue_id', $consultation->id)
             ->with('success', "Patient {$patient->first_name} {$patient->last_name} registered and added to queue as {$queueNumber}!");
     }
 }
-

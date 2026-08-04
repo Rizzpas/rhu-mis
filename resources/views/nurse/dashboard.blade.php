@@ -68,6 +68,7 @@
             </div>
         </div>
 
+        <div id="patient-queue-section" data-dynamic-block="true">
         @if(count($queue) > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($queue as $index => $consultation)
@@ -207,6 +208,7 @@
                 <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">You have no patients waiting. Take a break or check your pending lab results below.</p>
             </div>
         @endif
+    </div>
     </div>
 
     <!-- Awaiting Labs Section -->

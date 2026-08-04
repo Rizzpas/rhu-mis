@@ -4,9 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -17,7 +17,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
         'status',
         'avatar_path',
         'schedule',
@@ -71,10 +70,10 @@ class User extends Authenticatable
     {
         $rawName = $this->name ?? '';
         $role = $this->role ?? '';
-        
+
         // Strip out existing prefixes to prevent duplication
         $cleanName = trim(preg_replace('/^(Dr\.|Dr|Doc|Doctor|Nurse|MedTech)\s+/i', '', $rawName));
-        
+
         // Only format clinical staff
         if (str_contains($role, 'doctor') || str_contains($role, 'nurse') || $role === 'laboratory' || $role === 'radiology') {
             // Attempt to format as "Last, First"
@@ -82,23 +81,23 @@ class User extends Authenticatable
             if (count($parts) > 1) {
                 $lastName = array_pop($parts);
                 $firstName = implode(' ', $parts);
-                $formattedName = $lastName . ', ' . $firstName;
+                $formattedName = $lastName.', '.$firstName;
             } else {
                 $formattedName = $cleanName;
             }
-            
+
             // Re-apply correct prefix
             if (str_contains($role, 'doctor')) {
-                return 'Dr. ' . $formattedName;
+                return 'Dr. '.$formattedName;
             } elseif (str_contains($role, 'nurse')) {
-                return 'Nurse ' . $formattedName;
+                return 'Nurse '.$formattedName;
             } elseif ($role === 'laboratory') {
-                return 'MedTech ' . $formattedName;
+                return 'MedTech '.$formattedName;
             } elseif ($role === 'radiology') {
-                return 'RadTech ' . $formattedName;
+                return 'RadTech '.$formattedName;
             }
         }
-        
+
         return $cleanName;
     }
 
@@ -110,8 +109,9 @@ class User extends Authenticatable
         $cleanName = trim(preg_replace('/^(Dr\.|Dr|Doc|Doctor|Nurse|MedTech)\s+/i', '', $this->name ?? 'A'));
         $parts = preg_split('/\s+/', $cleanName);
         if (count($parts) >= 2) {
-            return strtoupper(substr($parts[0], 0, 1) . substr(end($parts), 0, 1));
+            return strtoupper(substr($parts[0], 0, 1).substr(end($parts), 0, 1));
         }
+
         return strtoupper(substr($cleanName, 0, 1));
     }
 
@@ -120,7 +120,7 @@ class User extends Authenticatable
      */
     public function isActive(int $minutes = 10): bool
     {
-        if (!$this->last_activity_at) {
+        if (! $this->last_activity_at) {
             return false;
         }
 
@@ -139,7 +139,7 @@ class User extends Authenticatable
         $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
         $activeMinutes = $isDemoMode ? 720 : 10;
 
-        if (!$this->isActive($activeMinutes)) {
+        if (! $this->isActive($activeMinutes)) {
             return false;
         }
 
@@ -147,7 +147,7 @@ class User extends Authenticatable
         $dayOfWeek = $now->format('D');
         $timeNow = $now->format('H:i:s');
 
-        // If Demo Mode is ON, we don't care about their schedule at all. 
+        // If Demo Mode is ON, we don't care about their schedule at all.
         // If they are logged in (active heartbeat), they are present.
         if ($isDemoMode) {
             return true;
@@ -159,9 +159,9 @@ class User extends Authenticatable
         }
 
         $query = $this->practitionerSchedules()
-                      ->where('day_of_week', $dayOfWeek)
-                      ->where('time_in', '<=', $timeNow)
-                      ->where('time_out', '>=', $timeNow);
+            ->where('day_of_week', $dayOfWeek)
+            ->where('time_in', '<=', $timeNow)
+            ->where('time_out', '>=', $timeNow);
 
         return $query->exists();
     }
@@ -174,7 +174,7 @@ class User extends Authenticatable
         $now = now();
         $dayOfWeek = $now->format('D');
         $time = $now->format('H:i:s');
-        
+
         $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
 
         $query->whereNotIn('status', ['Out of Office', 'Seminar']);
@@ -186,21 +186,20 @@ class User extends Authenticatable
         }
 
         // For non-demo mode, check if they are manually marked 'Present' OR if they are scheduled + recently active
+        // Crucially, they MUST have been active recently regardless of manual status or schedule.
         $activeSince = $now->copy()->subMinutes(10);
-        
-        $query->where(function ($q) use ($dayOfWeek, $time, $activeSince) {
-            // Either they have a manual 'Present' status...
-            $q->where('status', 'Present')
-              // ...or they match their defined schedule AND have been active recently
-              ->orWhere(function($sq) use ($dayOfWeek, $time, $activeSince) {
-                  $sq->where('last_activity_at', '>=', $activeSince)
-                     ->whereHas('practitionerSchedules', function ($scheduleQuery) use ($dayOfWeek, $time) {
-                         $scheduleQuery->where('day_of_week', $dayOfWeek)
-                           ->where('time_in', '<=', $time)
-                           ->where('time_out', '>=', $time);
-                     });
+
+        $query->where('last_activity_at', '>=', $activeSince)
+              ->where(function ($q) use ($dayOfWeek, $time) {
+                  // Either they have a manual 'Present' status...
+                  $q->where('status', 'Present')
+                    // ...or they match their defined schedule
+                    ->orWhereHas('practitionerSchedules', function ($scheduleQuery) use ($dayOfWeek, $time) {
+                        $scheduleQuery->where('day_of_week', $dayOfWeek)
+                            ->where('time_in', '<=', $time)
+                            ->where('time_out', '>=', $time);
+                    });
               });
-        });
 
         return $query;
     }
@@ -223,16 +222,16 @@ class User extends Authenticatable
         }
 
         $schedules = $this->practitionerSchedules;
-        
+
         // Group by time_in and time_out
         $grouped = [];
         foreach ($schedules as $sched) {
-            $key = $sched->time_in . '-' . $sched->time_out;
-            if (!isset($grouped[$key])) {
+            $key = $sched->time_in.'-'.$sched->time_out;
+            if (! isset($grouped[$key])) {
                 $grouped[$key] = [
                     'days' => [],
                     'time_in' => $sched->time_in,
-                    'time_out' => $sched->time_out
+                    'time_out' => $sched->time_out,
                 ];
             }
             $grouped[$key]['days'][] = $sched->day_of_week;
@@ -254,9 +253,10 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute()
     {
-        if (!$this->avatar_path) {
+        if (! $this->avatar_path) {
             return null;
         }
-        return asset('storage/' . $this->avatar_path);
+
+        return asset('storage/'.$this->avatar_path);
     }
 }

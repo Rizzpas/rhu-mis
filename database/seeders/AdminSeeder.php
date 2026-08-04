@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class AdminSeeder extends Seeder
 {
@@ -17,10 +17,10 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'super_admin@rhu.gov.ph'],
             [
-                'name'     => 'RHU Super Admin',
+                'name' => 'RHU Super Admin',
                 'password' => bcrypt('password'),
-                'role'     => 'super_admin',
-                'status'   => 'Present',
+                'role' => 'super_admin',
+                'status' => 'Present',
             ]
         );
 
@@ -28,10 +28,10 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@rhu.gov.ph'],
             [
-                'name'     => 'RHU Admin',
+                'name' => 'RHU Admin',
                 'password' => bcrypt('password'),
-                'role'     => 'admin',
-                'status'   => 'Present',
+                'role' => 'admin',
+                'status' => 'Present',
             ]
         );
 

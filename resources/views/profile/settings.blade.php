@@ -5,6 +5,7 @@
         'clinical_nurse', 'vitals_nurse' => 'layouts.nurse',
         'information_desk' => 'layouts.frontdesk',
         'laboratory', 'radiology' => 'layouts.lab',
+        'pharmacy' => 'layouts.pharmacy',
         default => 'layouts.app'
     };
 @endphp

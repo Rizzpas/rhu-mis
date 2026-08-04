@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         try {
-             \Illuminate\Support\Facades\View::share('globalServices', \App\Models\Service::all());
+            \Illuminate\Support\Facades\View::share('globalServices', \App\Models\Service::all());
         } catch (\Exception $e) {
             // Fails during migration if table doesn't exist yet
         }
@@ -34,6 +34,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\Gate::define('promote-admin', function (\App\Models\User $user) {
+            return $user->hasRole('super_admin');
+        });
+
+        // Only super_admin can modify or delete admin/super_admin accounts
+        \Illuminate\Support\Facades\Gate::define('manage-admins', function (\App\Models\User $user) {
+            return $user->hasRole('super_admin');
+        });
+
+        // Only super_admin can edit landing page / system content settings
+        \Illuminate\Support\Facades\Gate::define('manage-content', function (\App\Models\User $user) {
             return $user->hasRole('super_admin');
         });
 

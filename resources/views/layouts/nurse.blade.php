@@ -298,10 +298,18 @@
     <!-- Dynamic SPA & Polling Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const dynamicBlocks = document.querySelectorAll('[data-dynamic-block=\"true\"]');
+            const dynamicBlocks = document.querySelectorAll('[data-dynamic-block="true"]');
             
             if (dynamicBlocks.length > 0) {
                 setInterval(async () => {
+                    // Prevent DOM replacement if the user is interacting with an input or has a modal open
+                    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                    if (['input', 'textarea', 'select'].includes(activeTag)) return;
+                    
+                    // Check for open modals (Alpine sets display: none when closed)
+                    const openModals = Array.from(document.querySelectorAll('div[role="dialog"]')).filter(el => window.getComputedStyle(el).display !== 'none');
+                    if (openModals.length > 0) return;
+
                     try {
                         const url = new URL(window.location.href);
                         url.searchParams.append('polling', '1');
@@ -368,6 +376,7 @@
             }
         });
     </script>
+    @stack('scripts')
 </body>
 
 </html>

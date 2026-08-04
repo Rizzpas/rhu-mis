@@ -152,7 +152,7 @@
                 </div>
                 <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl border border-purple-100 dark:border-purple-800">
                     <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-1">Last Visit</p>
-                    <p class="text-xl font-black text-purple-900 dark:text-purple-200">{{ $patient->consultations->first() ? $patient->consultations->first()->consultation_date->diffForHumans() : 'Never' }}</p>
+                    <p class="text-xl font-black text-purple-900 dark:text-purple-200">{{ $patient->consultations->first() ? $patient->consultations->first()->created_at->diffForHumans() : 'Never' }}</p>
                 </div>
             </div>
 
@@ -223,10 +223,34 @@
                                 <p class="text-[10px] uppercase font-bold text-emerald-500 tracking-widest mb-3">Prescription & Plan</p>
                                 <div class="space-y-4">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-400 mb-1">Medications</label>
-                                        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-sm text-emerald-900 dark:text-emerald-200 border border-emerald-100 dark:border-emerald-800 font-mono">
-                                            {!! nl2br(e($case->prescription ?? 'No medication prescribed.')) !!}
-                                        </div>
+                                        <label class="block text-xs font-bold text-gray-400 mb-2">Medications Prescribed</label>
+                                        @php
+                                            $parsedPrescriptions = null;
+                                            if ($case->prescription) {
+                                                $decoded = json_decode($case->prescription, true);
+                                                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                                    $parsedPrescriptions = $decoded;
+                                                }
+                                            }
+                                        @endphp
+                                        
+                                        @if($parsedPrescriptions)
+                                            <div class="space-y-2">
+                                                @foreach($parsedPrescriptions as $med)
+                                                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 flex justify-between items-center">
+                                                        <div>
+                                                            <p class="text-sm font-bold text-emerald-900 dark:text-emerald-200">{{ $med['medicine'] ?? 'Unknown Medicine' }}</p>
+                                                            <p class="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">{{ $med['instruction'] ?? '' }}</p>
+                                                        </div>
+                                                        <span class="text-xs font-bold px-2 py-1 bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 rounded">{{ $med['amount'] ?? '' }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-sm text-emerald-900 dark:text-emerald-200 border border-emerald-100 dark:border-emerald-800 font-mono">
+                                                {!! nl2br(e($case->prescription ?: 'No medication prescribed.')) !!}
+                                            </div>
+                                        @endif
                                     </div>
                                     @if($case->consultation->is_followup_needed)
                                     <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800">
@@ -252,6 +276,52 @@
                                     @endforeach
                                 </div>
                             </div>
+                            
+                            <!-- Ancillary / Laboratory Results Section -->
+                            @if($case->consultation && $case->consultation->ancillaryRequests->count() > 0)
+                            <div class="md:col-span-2 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <p class="text-[10px] uppercase font-bold text-indigo-500 tracking-widest mb-3">Diagnostic Results (Lab / Radiology)</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    @foreach($case->consultation->ancillaryRequests as $req)
+                                    <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-200 text-indigo-800">{{ $req->department }}</span>
+                                                <h4 class="font-bold text-sm text-indigo-900 dark:text-indigo-200 mt-1">{{ $req->test_name }}</h4>
+                                            </div>
+                                            <span class="text-xs text-indigo-500 font-semibold">{{ $req->status }}</span>
+                                        </div>
+                                        
+                                        @if($req->result_data)
+                                            <div class="mt-2 space-y-1">
+                                                @foreach($req->result_data as $key => $val)
+                                                    @if(is_string($val))
+                                                        <div class="flex justify-between text-xs border-b border-indigo-100 dark:border-indigo-800/50 pb-1">
+                                                            <span class="text-indigo-700/70">{{ str_replace('_', ' ', $key) }}:</span>
+                                                            <span class="font-bold text-indigo-900 dark:text-indigo-300">{{ $val }}</span>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                        
+                                        @if($req->result_file_path)
+                                            <div class="mt-3 print:hidden flex gap-2">
+                                                <a href="{{ Storage::url($req->result_file_path) }}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                    View Attachment File
+                                                </a>
+                                                <button type="button" onclick="printAttachment('{{ Storage::url($req->result_file_path) }}')" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 px-3 py-1.5 rounded transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                                    Print Result
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -265,3 +335,24 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function printAttachment(url) {
+    const extension = url.split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print Diagnostic Result</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;height:100vh;background:#f8f9fa;"><img src="' + url + '" style="max-width:100%;max-height:100%;object-fit:contain;" onload="window.print();window.close();"></body></html>');
+        printWindow.document.close();
+    } else {
+        // Fallback for PDFs or other documents
+        const printWindow = window.open(url, '_blank');
+        if (printWindow) {
+            printWindow.onload = function() {
+                setTimeout(() => { printWindow.print(); }, 500);
+            };
+        }
+    }
+}
+</script>
+@endpush

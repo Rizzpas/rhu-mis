@@ -1,0 +1,175 @@
+# Rural Health Unit Management Information System (RHU MIS)
+## Comprehensive System & Security Architecture Documentation
+
+---
+
+## 1. Executive Summary
+The Rural Health Unit Management Information System (RHU MIS) is an enterprise-grade, web-based healthcare platform designed specifically to modernize, digitize, and secure the operational workflows of local government health units. Developed on the robust Laravel PHP framework, the system provides an end-to-end digital lifecycle for patient care—from online appointment booking and on-site triage, through clinical consultation, to laboratory diagnostics and pharmacy dispensing.
+
+Crucially, the RHU MIS is engineered with a primary focus on data security, patient privacy, and clinical accountability, aligning with stringent international standards such as the **Health Insurance Portability and Accountability Act (HIPAA)** and the **ISO/IEC 27001 Information Security Management System (ISMS)** standard.
+
+---
+
+## 2. System Architecture & Technological Stack
+
+The system employs a Model-View-Controller (MVC) architectural pattern, ensuring a strict separation of concerns between data management, business logic, and user interface presentation.
+
+- **Backend Framework:** Laravel 11.x (PHP 8.x)
+- **Database Layer:** Relational Database (MySQL/MariaDB/SQLite) utilizing Eloquent ORM.
+- **Frontend Stack:** 
+  - Blade Templating Engine for server-side rendering.
+  - Tailwind CSS for responsive, utility-first, consistent design aesthetics.
+  - Alpine.js for lightweight, reactive frontend components (e.g., dynamic modals, real-time polling).
+- **Asynchronous Processing:** Laravel Queues and background Jobs handle non-blocking operations like email dispatching.
+- **Real-Time Simulation:** Alpine.js `setInterval` polling combined with Laravel `DatabaseNotifications` creates a robust, fallback-safe real-time alert system without the fragility of continuous WebSocket connections.
+
+---
+
+## 3. Comprehensive Database Architecture
+
+The data models are highly relational and heavily normalized to prevent data redundancy and ensure referential integrity. 
+
+### 3.1 Core Entities & Relationships
+1. **Users (`users` table):**
+   - Serves as the central authentication table for all staff.
+   - Strictly enforces Role-Based Access Control (RBAC) via the `role` enum.
+   - Includes real-time tracking fields: `status` (Present, Out of Office) and `last_activity_at` for the heartbeat presence system.
+   - *Relationships:* HasMany `PractitionerSchedules`, HasMany `Consultations` (as Doctor or Nurse), HasMany `AuditLogs`.
+
+2. **Patients (`patients` table):**
+   - The primary demographic record. Features complex data validation for IDs (PhilHealth).
+   - Generates deterministic, sequence-based IDs (`RHU-YYYY-XXXXX`) via a transactional database lock during creation to prevent race conditions.
+   - *Relationships:* HasMany `Consultations`, HasMany `Appointments`.
+
+3. **Consultations (`consultations` table):**
+   - The central transactional pivot of the clinical workflow. It binds a Patient, a Doctor, and optionally a Nurse.
+   - Tracks timestamps rigorously: `consultation_start_time`, `consultation_end_time` to measure KPI and Wait Times.
+   - *Relationships:* BelongsTo `Patient`, HasOne `PreTriage`, HasMany `AncillaryRequests`, HasOne `Prescription`.
+
+4. **Inventory System (`medicines` & `medicine_batches` tables):**
+   - Employs a dual-table structure to solve the complex problem of varying expiration dates for the same drug.
+   - `medicines` acts as the catalog (Name, Generic Name, Form).
+   - `medicine_batches` tracks specific stock deliveries with absolute `expiration_date`s.
+
+5. **Diagnostic Requests (`ancillary_requests` table):**
+   - A flexible table managing both Laboratory (blood, urine) and Radiology (X-Ray) orders.
+   - Stores structured JSON `result_data` and secure file paths for uploaded PDF/Dicom results.
+
+### 3.2 Data Integrity & Lifecycle
+- **Soft Deletes:** Patient records are never permanently removed by standard actions. The `SoftDeletes` trait adds a `deleted_at` timestamp, hiding the record from queries but preserving it in the database for legal audits.
+- **Transactions:** High-risk database writes (like dispensing medications across multiple batches or generating sequential Patient IDs) are wrapped in `DB::transaction()`. If any step fails, the entire transaction rolls back, preventing orphaned data or incorrect inventory counts.
+
+---
+
+## 4. Module Workflows & Business Logic
+
+The system is compartmentalized into strictly gated modules, accessible only by specific staff roles.
+
+### 4.1 The Public Patient Portal
+The patient-facing portal allows the public to view RHU services and book appointments.
+- **Workflow:** Patients select an Adult or Pediatric track. The system queries the `practitioner_schedules` table in real-time to generate 30-minute time slots based on the aggregate availability of doctors on that specific day.
+- **Follow-up Validation:** If a patient attempts to book a Follow-Up, the system queries their last `Consultation` to verify that a doctor explicitly flagged `is_followup_needed = true` and that the target date has not expired (3-month validity limit).
+
+### 4.2 Front Desk / Information Desk Module (Role: `information_desk`, `admin`)
+The first point of contact within the physical facility.
+- **Queue Initialization:** The staff searches the database to find returning patients or creates new records.
+- **Walk-in vs. Appointment:** Appointments are "Checked-In", while Walk-ins are "Registered". Both are placed into the Vitals Station queue. 
+- **Slip Printing:** The system generates physical queue slips. The algorithm prefixes the slip based on the demographic track (`PED-` for Pediatric, `REG-` for Regular, `SNR-` for Seniors).
+
+### 4.3 Triage & Vitals Station (Role: `vitals_nurse`)
+- **Pre-Triage Capture:** Nurses claim patients from the waiting queue and input blood pressure, temperature, weight, and primary complaints into the `pre_triages` table.
+- **Dynamic Routing Algorithm:** Upon submission, the system evaluates the patient's age and classification. Seniors and PWDs are pushed to the top of the clinical queues. Pediatric patients are routed to the specific `pedia_doctor` queue, bypassing adult tracks.
+
+### 4.4 Clinical Nurse Station (Role: `clinical_nurse`)
+- **Assessment Phase:** Clinical nurses review the vitals, conduct deeper interviews, and update the patient's permanent medical history (allergies, chronic conditions).
+- **Pre-emptive Diagnostics:** If a nurse identifies an obvious need (e.g., a suspected fracture), they can issue an `AncillaryRequest` to Radiology *before* the doctor sees the patient, drastically cutting down total wait times.
+- **Forwarding:** The nurse forwards the digital folder to an available physician's active queue.
+
+### 4.5 Doctor's Portal (Roles: `regular_doctor`, `pedia_doctor`)
+The most secure and heavily audited module in the system.
+- **Historical Access:** Doctors view a chronological timeline of all past consultations, lab results, and dispensed medications.
+- **Clinical Action:** The doctor records the final `diagnosis`, issues new `AncillaryRequests`, or drafts an electronic `Prescription`.
+- **E-Prescription Array:** Prescriptions are structured as multi-dimensional arrays (Medicine, Dosage, Frequency, Duration, Quantity) ensuring data standardization rather than relying on messy free-text fields.
+
+### 4.6 Laboratory & Radiology (Roles: `laboratory`, `radiology`)
+- **Fulfillment:** Technicians monitor their respective dashboards for incoming `Pending` requests.
+- **Result Publishing:** Technicians input numerical results or upload official PDFs. Submitting the form immediately alters the status to `Done`, and an Alpine.js polling mechanism silently updates the Doctor's screen to notify them that results are ready for interpretation.
+
+### 4.7 Pharmacy Module (Role: `pharmacy`)
+- **Real-time Notifications:** When a doctor completes a consultation with a prescription, the `NewPrescriptionNotification` is dispatched. The Pharmacist's UI polls the `/api/notifications` endpoint every 15 seconds, illuminating a red bell icon and triggering a dropdown alert.
+- **FIFO Dispensing Algorithm:** When a pharmacist clicks "Dispense", the system queries the `medicine_batches` table. It deducts stock starting from the batch with the *earliest* expiration date. If the required quantity exceeds the oldest batch, it exhausts the oldest batch, calculates the remainder, and automatically begins deducting from the next oldest batch.
+- **Safety Locks:** The algorithm strictly blocks dispensing if the requested quantity exceeds the aggregate total stock across all active batches.
+
+### 4.8 Administrator Dashboard (Roles: `admin`, `super_admin`)
+- **Analytics:** Visualizes multi-dimensional data via Chart.js, including Visit Volumes, Peak Hourly Traffic, Age-Sex Demographics, and Staff Productivity (patients seen per hour).
+- **Staff Scheduling:** Modifies the `practitioner_schedules` to define exactly what days and hours a doctor is available for online booking.
+
+---
+
+## 5. Security Posture & Hardening Mechanisms
+
+The RHU MIS assumes a zero-trust model for user input and horizontal access.
+
+### 5.1 Insecure Direct Object Reference (IDOR) Mitigation
+- All endpoints that access specific records (e.g., `/doctor/consultation/{id}/start`) execute a strict authorization check. 
+- Example: If Dr. Smith attempts to force-navigate to a URL belonging to Dr. Doe's active consultation, the controller evaluates `if ($consultation->doctor_id !== Auth::id()) { abort(403); }`, immediately rejecting the request.
+
+### 5.2 Mass Assignment Protection
+- Laravel Eloquent's `$fillable` arrays are strictly defined on every model to prevent attackers from injecting unauthorized columns into a POST request.
+- Critical attributes, specifically the User `role`, are intentionally omitted from `$fillable`. Role assignments in the `AdminController` are handled via explicit property assignment (`$user->role = $request->role;`) ensuring that standard profile updates can never be manipulated for privilege escalation.
+
+### 5.3 Request Throttling & Rate Limiting
+To defend against brute-force credential stuffing and denial-of-service (DoS) attacks, strict rate limits are applied:
+- **Login Endpoint:** Limited to 5 failed attempts per IP address and 5 failed attempts per Email Address, followed by exponential backoff lockouts.
+- **OTP Generation:** The `/staff/forgot-password/otp` route utilizes the `throttle:3,1` middleware, restricting requests to 3 per minute to prevent email spamming and service exhaustion.
+- **Public Appointments:** Throttled to prevent bots from flooding the calendar and consuming all available time slots.
+
+### 5.4 Cross-Site Request Forgery (CSRF) & Cross-Site Scripting (XSS)
+- **CSRF:** All state-mutating requests (POST, PUT, DELETE) require a cryptographically secure CSRF token. Alpine.js AJAX requests automatically read and attach this token from the document's `<meta>` tag.
+- **XSS:** The Blade templating engine (`{{ $variable }}`) automatically runs `htmlspecialchars` on all output, neutralizing any malicious JavaScript injected into text fields by users.
+
+---
+
+## 6. Regulatory Compliance
+
+The system architecture was developed with strict adherence to both local and international healthcare data privacy standards.
+
+### 6.1 HIPAA Compliance (Health Insurance Portability and Accountability Act)
+
+**1. Access Control (HIPAA § 164.312(a)(1))**
+- *Requirement:* Implement technical policies and procedures for electronic information systems that maintain electronic protected health information to allow access only to those persons or software programs that have been granted access rights.
+- *Implementation:* The `RoleMiddleware` ensures that a Vitals Nurse cannot access the Pharmacy inventory, and a Front Desk clerk cannot view a Doctor's clinical notes. Access is strictly compartmentalized based on the principle of least privilege.
+
+**2. Automatic Logoff (HIPAA § 164.312(a)(2)(iii))**
+- *Requirement:* Implement electronic procedures that terminate an electronic session after a predetermined time of inactivity.
+- *Implementation:* The application utilizes a "Heartbeat" presence system. Client-side JavaScript pings the server every 60 seconds. If a staff member closes their browser or walks away from their desk, their `last_activity_at` timestamp grows stale. After 10 minutes of inactivity, the system automatically transitions their status to "Out of Office", and the session is invalidated, requiring a fresh login.
+
+**3. Encryption and Decryption (HIPAA § 164.312(a)(2)(iv))**
+- *Requirement:* Implement a mechanism to encrypt and decrypt electronic protected health information.
+- *Implementation:* Passwords are cryptographically hashed using the bcrypt algorithm. Highly sensitive PII, specifically the `philhealth_number` and `guardian_philhealth` fields in the `patients` table, are encrypted at rest using Laravel's native AES-256-CBC encryption casting. Even if the database is physically compromised, these identifiers remain unreadable without the application's unique `APP_KEY`.
+
+**4. Audit Controls (HIPAA § 164.312(b))**
+- *Requirement:* Implement hardware, software, and/or procedural mechanisms that record and examine activity in information systems that contain or use electronic protected health information.
+- *Implementation:* The custom `AuditLog` model and `Auditable` trait form an immutable ledger. 
+  - Every time a patient record is created, updated, or soft-deleted, a log is generated detailing the "Before" and "After" state of the data.
+  - Furthermore, a specialized trigger exists in the Clinical controllers: whenever a medical professional merely *opens* a patient's digital folder, an explicit *"Accessed Patient Medical Folder: RHU-..."* log is generated, recording the staff member's ID, the exact timestamp, and their IP address. This guarantees absolute accountability for unauthorized snooping.
+
+### 6.2 ISO/IEC 27001 Information Security Management System (ISMS)
+
+**1. A.8.3 Information Transfer (Data in Transit)**
+- The system is designed to operate exclusively over HTTPS/TLS, ensuring that all data transmitted between the client browser and the server is encrypted, protecting against Man-in-the-Middle (MitM) attacks.
+
+**2. A.8.1.4 Disposal of Media (Data Retention & Purging)**
+- The RHU MIS incorporates a robust Archiving and Retention module. Patient records are not stored indefinitely by default.
+- Soft Deletes move records out of active circulation into the Archive. 
+- Administrators have access to tools that identify records that have exceeded their legal retention lifespan (e.g., 10 years). These tools permit the execution of a `forceDelete()`, permanently and irretrievably scrubbing the data from the physical storage media, fulfilling the "Right to be Forgotten" and strict data lifecycle mandates.
+
+**3. A.9.4.2 Secure Log-on Procedures**
+- The system strictly forbids shared accounts. Each physician and nurse operates under a uniquely identifiable account. 
+- The lack of persistent "Remember Me" tokens for staff accounts ensures that closing the browser terminates the session immediately, securing shared terminal workstations in the clinic.
+
+---
+
+## 7. Conclusion
+
+The RHU Management Information System represents a highly secure, logically sound, and operationally efficient platform. By marrying modern web technologies (Laravel, Alpine.js) with aggressive security paradigms (RBAC, AES-256 Encryption, Immutable Audit Logging), the system ensures that healthcare providers can focus entirely on patient care, with the absolute confidence that their data is protected, tracked, and compliant with the highest global standards.

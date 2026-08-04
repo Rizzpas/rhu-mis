@@ -125,6 +125,15 @@
                         {{ $patient->consultations->count() }} Visits
                     </div>
                 </div>
+
+                @if($vitalsChartData->count() > 0)
+                <div class="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700 bg-white" x-data="vitalsChart()">
+                    <h4 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">Vitals Trend</h4>
+                    <div class="relative h-64 w-full">
+                        <canvas id="vitalsChartCanvas"></canvas>
+                    </div>
+                </div>
+                @endif
                 
                 <div class="p-0 overflow-y-auto flex-1">
                     @forelse($patient->consultations as $consultation)
@@ -191,3 +200,94 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('vitalsChart', () => ({
+        init() {
+            const rawData = {!! json_encode($vitalsChartData ?? []) !!};
+            if (rawData.length === 0) return;
+
+            const labels = rawData.map(d => d.date);
+            const systolicData = rawData.map(d => d.systolic);
+            const diastolicData = rawData.map(d => d.diastolic);
+            const weightData = rawData.map(d => d.weight);
+
+            const ctx = document.getElementById('vitalsChartCanvas');
+            if (!ctx) return;
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Systolic BP',
+                            data: systolicData,
+                            borderColor: 'rgba(239, 68, 68, 1)', // Red
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Diastolic BP',
+                            data: diastolicData,
+                            borderColor: 'rgba(245, 158, 11, 1)', // Amber
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Weight (kg)',
+                            data: weightData,
+                            borderColor: 'rgba(14, 165, 233, 1)', // Sky blue
+                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Blood Pressure (mmHg)'
+                            },
+                            suggestedMin: 60,
+                            suggestedMax: 180
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Weight (kg)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }));
+});
+</script>
+@endpush

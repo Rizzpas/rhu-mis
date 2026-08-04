@@ -213,7 +213,7 @@
                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </p>
             <p class="text-2xl font-black text-orange-600 dark:text-orange-400" x-data>
-                <span x-text="$store.dashboard.filtered.avgWaitTime">{{ $avgWaitTime }}</span> <span class="text-sm">min</span>
+                <span x-text="`${$store.dashboard.filtered.avgWaitTime} min`">{{ $avgWaitTime }} min</span>
             </p>
         </div>
 
@@ -387,6 +387,41 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script>
+        // Register Alpine store BEFORE Alpine initializes components
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('dashboard', {
+                timeFilter: @json($timeFilter),
+                loading: false,
+                filtered: {
+                    currentPeriodConsultations: @json(number_format($currentPeriodConsultations)),
+                    currentPeriodConsultationsRaw: {{ $currentPeriodConsultations }},
+                    trendPercentage: {{ $trendPercentage }},
+                    avgWaitTime: {{ $avgWaitTime }},
+                    complianceRate: {{ $complianceRate }},
+                    totalFollowupsNeeded: @json(number_format($totalFollowupsNeeded))
+                },
+                get filterLabel() {
+                    const labels = { today: 'today', weekly: 'weekly', monthly: 'monthly', yearly: 'yearly', all: 'all-time' };
+                    return labels[this.timeFilter] || this.timeFilter;
+                },
+                async refresh() {
+                    this.loading = true;
+                    try {
+                        const statsRes = await fetch(window.__dashboardStatsUrl + '?time_filter=' + this.timeFilter);
+                        const stats = await statsRes.json();
+                        this.filtered = { ...this.filtered, ...stats };
+                        await window.__refreshVolumeChart(this.timeFilter);
+                        await window.__refreshPeakChart(this.timeFilter);
+                        window.__refreshReturnRate(this.filtered.complianceRate);
+                    } catch (e) {
+                        console.error('Dashboard refresh error:', e);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            });
+        });
+
         document.addEventListener("DOMContentLoaded", function () {
             Chart.register(ChartDataLabels);
 
@@ -412,47 +447,11 @@
             let returnRateChartInstance = null;
 
             const chartBaseUrl = @json(route('admin.analytics.chart', ['chart' => '__CHART__']));
-            const statsDataUrl = @json(route('admin.dashboard.statsData'));
+            window.__dashboardStatsUrl = @json(route('admin.dashboard.statsData'));
 
             function getChartUrl(chart, filter) {
                 return chartBaseUrl.replace('__CHART__', chart) + '?time_filter=' + filter;
             }
-
-            // --- Alpine Global Store ---
-            Alpine.store('dashboard', {
-                timeFilter: @json($timeFilter),
-                loading: false,
-                filtered: {
-                    currentPeriodConsultations: @json(number_format($currentPeriodConsultations)),
-                    currentPeriodConsultationsRaw: {{ $currentPeriodConsultations }},
-                    trendPercentage: {{ $trendPercentage }},
-                    avgWaitTime: {{ $avgWaitTime }},
-                    complianceRate: {{ $complianceRate }},
-                    totalFollowupsNeeded: @json(number_format($totalFollowupsNeeded))
-                },
-                get filterLabel() {
-                    const labels = { today: 'today', weekly: 'weekly', monthly: 'monthly', yearly: 'yearly', all: 'all-time' };
-                    return labels[this.timeFilter] || this.timeFilter;
-                },
-                async refresh() {
-                    this.loading = true;
-                    try {
-                        // Fetch KPI stats
-                        const statsRes = await fetch(statsDataUrl + '?time_filter=' + this.timeFilter);
-                        const stats = await statsRes.json();
-                        this.filtered = { ...this.filtered, ...stats };
-
-                        // Refresh charts
-                        await refreshVolumeChart(this.timeFilter);
-                        await refreshPeakChart(this.timeFilter);
-                        refreshReturnRate(this.filtered.complianceRate);
-                    } catch (e) {
-                        console.error('Dashboard refresh error:', e);
-                    } finally {
-                        this.loading = false;
-                    }
-                }
-            });
 
             // --- Helper: Create gradient ---
             function makeGradient(ctx, color, height = 300) {
@@ -474,6 +473,7 @@
                 });
             }
             function refreshReturnRate(rate) { renderReturnRate(rate); }
+            window.__refreshReturnRate = refreshReturnRate;
 
             // --- Visit Volume Chart ---
             async function refreshVolumeChart(filter) {
@@ -515,6 +515,7 @@
                     }
                 });
             }
+            window.__refreshVolumeChart = refreshVolumeChart;
 
             // --- Peak Hours Chart ---
             async function refreshPeakChart(filter) {
@@ -552,6 +553,7 @@
                     }
                 });
             }
+            window.__refreshPeakChart = refreshPeakChart;
 
             // --- Initial Render ---
             renderReturnRate({{ $complianceRate }});
@@ -576,6 +578,57 @@
 
         .dark .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #475569;
+        }
+
+        /* Print Styles for A4 Layout */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 11px !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .print\:hidden, nav, header, aside, button, select, .no-print {
+                display: none !important;
+            }
+            main {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .rounded-3xl, .rounded-2xl {
+                border-radius: 8px !important;
+            }
+            .shadow-sm, .shadow-lg, [class*='shadow-'] {
+                box-shadow: none !important;
+            }
+            .grid {
+                display: block !important;
+            }
+            .grid > * {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 12px;
+            }
+            canvas {
+                max-height: 220px !important;
+            }
+            .mb-10, .mb-8 {
+                margin-bottom: 12px !important;
+            }
+            .p-8 {
+                padding: 12px !important;
+            }
+            .gap-8, .gap-6 {
+                gap: 8px !important;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
         }
     </style>
 @endsection

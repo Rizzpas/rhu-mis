@@ -1,9 +1,8 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\TriageController;
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PublicController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,9 +10,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Public Routes
-use App\Http\Controllers\PublicController;
-
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TriageController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'index'])->name('welcome');
 Route::get('/about', [PublicController::class, 'about'])->name('about');
@@ -39,6 +37,8 @@ Route::post('/appointment/cancel', [PublicController::class, 'cancelAppointment'
 Route::post('/appointment/reschedule', [PublicController::class, 'rescheduleAppointment'])->name('appointment.reschedule');
 Route::get('/appointment/logout', function () {
     session()->forget('manage_appointment_id');
+    session()->regenerateToken(); // Prevent CSRF token reuse across contexts
+
     return redirect()->route('appointment.manage');
 })->name('appointment.logout');
 
@@ -49,8 +49,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Forgot Password
 use App\Http\Controllers\Auth\StaffPasswordResetController;
+
 Route::get('/staff/forgot-password', [StaffPasswordResetController::class, 'showForgotForm'])->name('staff.password.request');
-Route::post('/staff/forgot-password/otp', [StaffPasswordResetController::class, 'sendResetOtp'])->name('staff.password.send-otp');
+Route::post('/staff/forgot-password/otp', [StaffPasswordResetController::class, 'sendResetOtp'])->middleware('throttle:3,1')->name('staff.password.send-otp');
 Route::post('/staff/reset-password', [StaffPasswordResetController::class, 'resetPassword'])->name('staff.password.reset');
 
 // Heartbeat (Presence System) — JS pings this every 60s to keep user "Present"
@@ -58,11 +59,20 @@ Route::post('/heartbeat', [\App\Http\Controllers\HeartbeatController::class, 'pi
     ->middleware('auth')
     ->name('heartbeat.ping');
 
+// Notifications API
+use App\Http\Controllers\NotificationController;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/api/notifications', [NotificationController::class, 'index']);
+    Route::post('/api/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/api/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+});
+
 // Front Desk / Information Desk Routes
 use App\Http\Controllers\RegistrationController;
 use App\Http\Middleware\RoleMiddleware;
 
-Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class . ':admin,information_desk'])->group(function () {
+Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class.':admin,information_desk'])->group(function () {
     Route::get('/registration', [RegistrationController::class, 'index'])->name('frontdesk.registration.index');
     Route::get('/registration/search', [RegistrationController::class, 'searchJson'])->name('frontdesk.registration.search');
     Route::post('/patients', [RegistrationController::class, 'storePatient'])->name('frontdesk.patients.store');
@@ -71,7 +81,7 @@ Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class . ':admin,
     Route::get('/queue-slip/{visit}', [RegistrationController::class, 'queueSlip'])->name('frontdesk.queue-slip');
     Route::get('/queue-overview', [\App\Http\Controllers\FrontDeskController::class, 'queueOverview'])->name('frontdesk.queue-overview');
     Route::post('/appointments/{appointment}/check-in', [RegistrationController::class, 'checkIn'])->name('frontdesk.appointments.check-in');
-    
+
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\FrontDeskController::class, 'dashboard'])->name('frontdesk.dashboard');
     Route::get('/api/appointments', [\App\Http\Controllers\FrontDeskController::class, 'getAppointments'])->name('frontdesk.api.appointments');
@@ -84,7 +94,7 @@ Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class . ':admin,
 });
 
 // Vitals / Triage Nurse Routes
-Route::prefix('triage')->middleware(['auth', RoleMiddleware::class . ':vitals_nurse'])->group(function () {
+Route::prefix('triage')->middleware(['auth', RoleMiddleware::class.':vitals_nurse'])->group(function () {
     Route::get('/dashboard', [TriageController::class, 'dashboard'])->name('triage.dashboard');
     Route::get('/stats', [TriageController::class, 'getStats'])->name('triage.stats');
     Route::get('/search-patient', [TriageController::class, 'searchPatient'])->name('triage.search');
@@ -94,7 +104,7 @@ Route::prefix('triage')->middleware(['auth', RoleMiddleware::class . ':vitals_nu
 });
 
 // Admin Routes
-Route::prefix('admin')->middleware(['auth', RoleMiddleware::class . ':admin,super_admin'])->group(function () {
+Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('admin.analytics');
     Route::get('/analytics/chart/{chart}', [AdminController::class, 'apiChartData'])->name('admin.analytics.chart');
@@ -111,7 +121,7 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class . ':admin,supe
     Route::delete('/announcements/images/bulk/delete', [AdminController::class, 'bulkDeleteImages'])->name('admin.announcements.bulk-delete-images');
     Route::delete('/announcements/bulk/delete', [AdminController::class, 'bulkDeleteAnnouncements'])->name('admin.announcements.bulk-delete');
     Route::delete('/announcements/images/{image}', [AdminController::class, 'deleteAnnouncementImage'])->name('admin.announcements.delete-image');
-    
+
     // Staff Management
     Route::get('/staff', [AdminController::class, 'staffIndex'])->name('admin.staff.index');
     Route::post('/staff', [AdminController::class, 'storeStaff'])->name('admin.staff.store');
@@ -144,7 +154,6 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class . ':admin,supe
     Route::post('/archive/{type}/{id}/restore', [\App\Http\Controllers\ArchiveController::class, 'restore'])->name('admin.archive.restore');
     Route::delete('/archive/{type}/{id}/force-delete', [\App\Http\Controllers\ArchiveController::class, 'forceDelete'])->name('admin.archive.force-delete');
 
-
     // Content Management
     Route::get('/content', [AdminController::class, 'contentIndex'])->name('admin.content.index');
     Route::put('/content', [AdminController::class, 'contentUpdate'])->name('admin.content.update');
@@ -152,8 +161,10 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class . ':admin,supe
 
 // Doctor Routes (regular_doctor + pedia_doctor)
 use App\Http\Controllers\DoctorController;
-Route::prefix('doctor')->middleware(['auth', RoleMiddleware::class . ':regular_doctor,pedia_doctor'])->group(function () {
+
+Route::prefix('doctor')->middleware(['auth', RoleMiddleware::class.':regular_doctor,pedia_doctor'])->group(function () {
     Route::get('/dashboard', [DoctorController::class, 'dashboard'])->name('doctor.dashboard');
+    Route::get('/waiting-results', [DoctorController::class, 'waitingResults'])->name('doctor.waiting-results');
     Route::get('/consultation/{consultation}/start', [DoctorController::class, 'startConsultation'])->name('doctor.consultation.start');
     Route::post('/consultation/{consultation}/complete', [DoctorController::class, 'completeConsultation'])->name('doctor.consultation.complete');
     Route::get('/patients/{patient}', [DoctorController::class, 'showPatient'])->name('doctor.patients.show');
@@ -162,16 +173,33 @@ Route::prefix('doctor')->middleware(['auth', RoleMiddleware::class . ':regular_d
 
 // Medicine API (for autocomplete in prescriptions)
 Route::middleware(['auth'])->get('/api/medicines/search', function (\Illuminate\Http\Request $request) {
-    if (!$request->q) return response()->json([]);
-    return \App\Models\Medicine::where('name', 'like', $request->q . '%')
-        ->orWhere('generic_name', 'like', '%' . $request->q . '%')
+    if (! $request->q) {
+        return response()->json([]);
+    }
+    $medicines = \App\Models\Medicine::where('name', 'like', $request->q.'%')
+        ->orWhere('generic_name', 'like', '%'.$request->q.'%')
         ->take(10)
-        ->get();
+        ->get()
+        ->map(function ($med) {
+            $stock = $med->batches()->where('expiration_date', '>=', now())->sum('quantity');
+
+            return [
+                'id' => $med->id,
+                'name' => $med->name,
+                'generic_name' => $med->generic_name,
+                'form' => $med->form,
+                'stock' => (int) $stock,
+                'in_inventory' => true,
+            ];
+        });
+
+    return response()->json($medicines);
 })->name('api.medicines.search');
 
 // Nurse / Clinical Routes (clinical_nurse role)
 use App\Http\Controllers\NurseController;
-Route::prefix('nurse')->middleware(['auth', RoleMiddleware::class . ':clinical_nurse'])->group(function () {
+
+Route::prefix('nurse')->middleware(['auth', RoleMiddleware::class.':clinical_nurse'])->group(function () {
     Route::get('/dashboard', [NurseController::class, 'dashboard'])->name('nurse.dashboard');
     Route::post('/forward/{consultation}', [NurseController::class, 'forwardToDoctor'])->name('nurse.forward');
     Route::get('/consultation/{consultation}/start', [NurseController::class, 'startConsultation'])->name('nurse.consultation.start');
@@ -181,20 +209,28 @@ Route::prefix('nurse')->middleware(['auth', RoleMiddleware::class . ':clinical_n
 
 // Laboratory / Radiology Routes
 use App\Http\Controllers\LabController;
-Route::prefix('lab')->middleware(['auth', RoleMiddleware::class . ':laboratory,radiology'])->group(function () {
+
+Route::prefix('lab')->middleware(['auth', RoleMiddleware::class.':laboratory,radiology'])->group(function () {
     Route::get('/dashboard', [LabController::class, 'dashboard'])->name('lab.dashboard');
     Route::post('/ancillary/{ancillary}/complete', [LabController::class, 'completeRequest'])->name('lab.ancillary.complete');
 });
 
 // Pharmacy Routes
 use App\Http\Controllers\PharmacyController;
-Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class . ':pharmacy'])->group(function () {
+
+Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy'])->group(function () {
     Route::get('/dashboard', [PharmacyController::class, 'dashboard'])->name('pharmacy.dashboard');
+    Route::get('/history', [PharmacyController::class, 'history'])->name('pharmacy.history');
+    Route::post('/dispense/{prescription}', [PharmacyController::class, 'dispense'])->name('pharmacy.dispense');
     Route::get('/medicines', [PharmacyController::class, 'medicines'])->name('pharmacy.medicines');
+    Route::post('/medicines', [PharmacyController::class, 'storeMedicine'])->name('pharmacy.medicines.store');
+    Route::put('/medicines/{medicine}', [PharmacyController::class, 'updateMedicine'])->name('pharmacy.medicines.update');
+    Route::post('/medicines/{medicine}/add-stock', [PharmacyController::class, 'addStock'])->name('pharmacy.medicines.add-stock');
 });
 
 // Profile Routes
 use App\Http\Controllers\ProfileController;
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -208,5 +244,6 @@ Route::get('locale/{lang}', function ($lang) {
     if (in_array($lang, ['en', 'fil'])) {
         session()->put('locale', $lang);
     }
+
     return back();
 })->name('locale.switch');

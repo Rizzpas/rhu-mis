@@ -103,7 +103,14 @@
                 <svg class="mr-3 h-4 w-4 @if(request()->routeIs('doctor.dashboard')) text-white @else text-gray-900 dark:text-white @endif shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Dashboard
+                Active Queue
+            </a>
+            <a href="{{ route('doctor.waiting-results') }}"
+                class="@if(request()->routeIs('doctor.waiting-results')) bg-gradient-to-r from-emerald-600 to-emerald-800 text-white shadow-md font-semibold @else text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white @endif group flex items-center px-3 py-2.5 rounded-lg transition-colors">
+                <svg class="mr-3 h-4 w-4 @if(request()->routeIs('doctor.waiting-results')) text-white @else text-gray-900 dark:text-white @endif shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+                Waiting for Results
             </a>
         </nav>
 
@@ -276,6 +283,90 @@
     </script>
     @include('partials.idle-timeout')
     @include('partials.heartbeat')
+
+    <!-- Dynamic SPA & Polling Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dynamicBlocks = document.querySelectorAll('[data-dynamic-block="true"]');
+            
+            if (dynamicBlocks.length > 0) {
+                setInterval(async () => {
+                    // Prevent DOM replacement if the user is interacting with an input or has a modal open
+                    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                    if (['input', 'textarea', 'select'].includes(activeTag)) return;
+                    
+                    // Check for open modals (Alpine sets display: none when closed)
+                    const openModals = Array.from(document.querySelectorAll('div[role="dialog"]')).filter(el => window.getComputedStyle(el).display !== 'none');
+                    if (openModals.length > 0) return;
+
+                    try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.append('polling', '1');
+                        
+                        const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        if (!response.ok) return;
+                        const html = await response.text();
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        
+                        dynamicBlocks.forEach(block => {
+                            if (block.id) {
+                                const newBlock = doc.getElementById(block.id);
+                                if (newBlock) block.innerHTML = newBlock.innerHTML;
+                            }
+                        });
+                    } catch (error) {}
+                }, 15000);
+            }
+
+            document.addEventListener('click', async function(e) {
+                const link = e.target.closest('a');
+                if (!link) return;
+                
+                const dynamicBlock = link.closest('[data-dynamic-block="true"]');
+                if (dynamicBlock && link.href && link.hostname === window.location.hostname && link.pathname === window.location.pathname && link.href.includes('page=')) {
+                    e.preventDefault();
+                    await fetchDynamicContent(link.href, dynamicBlock);
+                }
+            });
+
+            document.addEventListener('submit', async function(e) {
+                const form = e.target;
+                const dynamicBlock = form.closest('[data-dynamic-block="true"]');
+                if (dynamicBlock && form.method.toLowerCase() === 'get' && new URL(form.action).pathname === window.location.pathname) {
+                    e.preventDefault();
+                    const url = new URL(form.action);
+                    new FormData(form).forEach((v, k) => url.searchParams.set(k, v));
+                    await fetchDynamicContent(url.toString(), dynamicBlock);
+                }
+            });
+
+            async function fetchDynamicContent(targetUrl, block) {
+                const originalOpacity = block.style.opacity;
+                block.style.opacity = '0.5';
+                block.style.pointerEvents = 'none';
+                
+                try {
+                    const response = await fetch(targetUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!response.ok) return;
+                    const html = await response.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    
+                    const newBlock = doc.getElementById(block.id);
+                    if (newBlock) {
+                        block.innerHTML = newBlock.innerHTML;
+                    }
+                    window.history.pushState({}, '', targetUrl);
+                } catch (error) {
+                    window.location.href = targetUrl;
+                } finally {
+                    block.style.opacity = originalOpacity;
+                    block.style.pointerEvents = 'auto';
+                }
+            }
+        });
+    </script>
+    
+    @stack('scripts')
 </body>
 
 </html>

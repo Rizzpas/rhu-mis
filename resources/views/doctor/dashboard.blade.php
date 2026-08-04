@@ -6,11 +6,19 @@
 <div class="max-w-7xl mx-auto space-y-6 pb-12">
     
     <!-- Stats / Header -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-slate-100 dark:border-slate-800 p-6 flex flex-col justify-center transition-all duration-300">
             <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">My Active Queue</h3>
             <p class="text-4xl font-extrabold text-emerald-600 dark:text-emerald-500">{{ count($queue) }} <span class="text-lg font-medium text-slate-400 dark:text-slate-500">Patients</span></p>
         </div>
+        <a href="{{ route('doctor.waiting-results') }}" class="bg-white dark:bg-slate-900 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-amber-200 dark:border-amber-800/50 p-6 flex flex-col justify-center transition-all duration-300 hover:shadow-lg hover:border-amber-300 group">
+            <h3 class="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <svg class="w-4 h-4 animate-spin-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                Waiting for Results
+            </h3>
+            <p class="text-4xl font-extrabold text-amber-600 dark:text-amber-500">{{ $awaitingLabsCount }} <span class="text-lg font-medium text-slate-400 dark:text-slate-500">Pending</span></p>
+            <p class="text-xs text-slate-400 mt-1 group-hover:text-amber-600 transition">Click to view →</p>
+        </a>
         <div class="md:col-span-2 relative overflow-hidden bg-gradient-to-r from-emerald-600 to-green-700 dark:from-emerald-800 dark:to-green-900 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.1)] border border-emerald-700 dark:border-emerald-900 p-8 flex items-center justify-between text-white transition-colors duration-300">
             <!-- Glassmorphism decorative elements -->
             <div class="absolute -top-24 -right-24 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
@@ -68,22 +76,29 @@
             </div>
         </div>
 
+        <div id="patient-queue-section" data-dynamic-block="true">
         @if(count($queue) > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($queue as $index => $consultation)
-                    <div class="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border {{ $consultation->status === 'active' ? 'border-yellow-400 dark:border-yellow-500/50 ring-4 ring-yellow-400/20' : 'border-slate-100 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-xl' }} transition-all duration-300 overflow-hidden relative">
+                    <div class="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border {{ $consultation->status === 'results_ready' ? 'border-emerald-400 dark:border-emerald-500/50 ring-4 ring-emerald-400/30 animate-pulse' : ($consultation->status === 'active' ? 'border-yellow-400 dark:border-yellow-500/50 ring-4 ring-yellow-400/20' : 'border-slate-100 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-xl') }} transition-all duration-300 overflow-hidden relative">
                         
                         <!-- Card Header: Position & Queue Number -->
-                        <div class="flex justify-between items-center p-4 border-b {{ $consultation->status === 'active' ? 'border-yellow-100 dark:border-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-900/10' : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 group-hover:bg-emerald-50/50 dark:group-hover:bg-emerald-900/10' }} transition-colors">
+                        <div class="flex justify-between items-center p-4 border-b {{ $consultation->status === 'results_ready' ? 'border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-900/20' : ($consultation->status === 'active' ? 'border-yellow-100 dark:border-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-900/10' : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 group-hover:bg-emerald-50/50 dark:group-hover:bg-emerald-900/10') }} transition-colors">
                             <div class="flex items-center gap-2">
-                                <span class="flex items-center justify-center w-8 h-8 rounded-full {{ $consultation->status === 'active' ? 'bg-yellow-400 text-yellow-900' : 'bg-emerald-600 text-white' }} font-black text-sm shadow-sm">{{ $index + 1 }}</span>
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full {{ $consultation->status === 'results_ready' ? 'bg-emerald-500 text-white' : ($consultation->status === 'active' ? 'bg-yellow-400 text-yellow-900' : 'bg-emerald-600 text-white') }} font-black text-sm shadow-sm">{{ $index + 1 }}</span>
                                 <span class="bg-black dark:bg-slate-700 text-white font-black px-2.5 py-1 rounded-md text-sm shadow-sm tracking-wide">{{ $consultation->queue_number }}</span>
+                                @include('partials.queue-wait-indicator', ['createdAt' => $consultation->created_at])
                             </div>
                             
                             @if(\Illuminate\Support\Str::startsWith($consultation->queue_number, 'PED-E'))
                                 <span class="text-[10px] font-black px-2.5 py-1 rounded-full bg-rose-600 text-white uppercase tracking-wider shadow-sm flex items-center gap-1 animate-pulse">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> 
                                     Emergency
+                                </span>
+                            @elseif($consultation->status === 'results_ready')
+                                <span class="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500 text-white uppercase tracking-wider shadow-sm flex items-center gap-1 animate-pulse">
+                                    <span class="w-2 h-2 rounded-full bg-white animate-ping mr-0.5"></span>
+                                    ✓ Results Ready
                                 </span>
                             @elseif($consultation->status === 'active')
                                 <span class="text-[10px] font-black px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900 uppercase tracking-wider shadow-sm flex items-center gap-1">
@@ -102,7 +117,7 @@
                                     <span>&bull;</span>
                                     <span class="{{ in_array($consultation->patient->classification, ['Senior Citizen', 'PWD']) ? 'text-yellow-600 dark:text-yellow-500' : 'text-emerald-600 dark:text-emerald-400' }} bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">{{ $consultation->patient->classification }}</span>
                                     <span>&bull;</span>
-                                    <span>{{ \Carbon\Carbon::parse($consultation->patient->dob)->format('M d, Y') }} ({{ \Carbon\Carbon::parse($consultation->patient->dob)->age }} yrs)</span>
+                                    <span>{{ $consultation->patient->dob ? \Carbon\Carbon::parse($consultation->patient->dob)->format('M d, Y') . ' (' . \Carbon\Carbon::parse($consultation->patient->dob)->age . ' yrs)' : 'DOB: N/A' }}</span>
                                     <span>&bull;</span>
                                     <span>{{ $consultation->patient->sex }}</span>
                                 </div>
@@ -155,6 +170,7 @@
                 <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">You have no patients waiting. Take a break or check your pending lab results below.</p>
             </div>
         @endif
+    </div>
     </div>
 
     <!-- Awaiting Labs Section -->

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -40,19 +39,19 @@ class UserSeeder extends Seeder
 
         if (\App\Models\User::where('email', 'nurse1@rhu.gov.ph')->doesntExist()) {
             \App\Models\User::factory()->create([
-                'name'     => 'Nurse Joy',
-                'email'    => 'nurse1@rhu.gov.ph',
+                'name' => 'Nurse Joy',
+                'email' => 'nurse1@rhu.gov.ph',
                 'password' => bcrypt('password'),
-                'role'     => 'clinical_nurse',
+                'role' => 'clinical_nurse',
             ]);
         }
 
         if (\App\Models\User::where('email', 'nurse_station@rhu.gov.ph')->doesntExist()) {
             \App\Models\User::factory()->create([
-                'name'     => 'Vitals Nurse Station (Shared)',
-                'email'    => 'nurse_station@rhu.gov.ph',
+                'name' => 'Vitals Nurse Station (Shared)',
+                'email' => 'nurse_station@rhu.gov.ph',
                 'password' => bcrypt('password'),
-                'role'     => 'vitals_nurse',
+                'role' => 'vitals_nurse',
             ]);
         }
 
@@ -67,7 +66,7 @@ class UserSeeder extends Seeder
                 'schedule' => 'Mon-Fri 8AM-5PM',
             ]);
         }
-        
+
         if (\App\Models\User::where('email', 'doctor2@rhu.gov.ph')->doesntExist()) {
             \App\Models\User::factory()->create([
                 'name' => 'Dr. Robert Davis',
@@ -78,7 +77,7 @@ class UserSeeder extends Seeder
                 'schedule' => 'Mon-Thu 9AM-4PM',
             ]);
         }
-        
+
         if (\App\Models\User::where('email', 'doctor3@rhu.gov.ph')->doesntExist()) {
             \App\Models\User::factory()->create([
                 'name' => 'Dr. Sarah Johnson',

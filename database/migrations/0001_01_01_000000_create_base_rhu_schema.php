@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $sql = <<<SQL
+        $sql = <<<'SQL'
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 
 CREATE TABLE `ancillary_requests` (

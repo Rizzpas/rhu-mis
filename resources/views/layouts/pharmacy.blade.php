@@ -70,7 +70,7 @@
             }
         }" @open-confirmation.window="show($event.detail)">
     
-    @include('partials.skeleton-dashboard')
+    <!-- Skeleton loader removed to prevent flashing on non-dashboard pages -->
 
     <!-- Mobile Backdrop -->
     <div x-show="sidebarOpen" @click="sidebarOpen = false"
@@ -106,9 +106,9 @@
                 </svg>
                 Dashboard
             </a>
-            <a href="#"
-                class="text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group flex items-center px-3 py-2.5 rounded-lg transition-colors">
-                <svg class="mr-3 h-4 w-4 text-gray-900 dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <a href="{{ route('pharmacy.history') }}"
+                class="@if(request()->routeIs('pharmacy.history')) bg-gradient-to-r from-emerald-600 to-emerald-800 text-white shadow-md font-semibold @else text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white @endif group flex items-center px-3 py-2.5 rounded-lg transition-colors">
+                <svg class="mr-3 h-4 w-4 @if(request()->routeIs('pharmacy.history')) text-white @else text-gray-900 dark:text-white @endif shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 Prescriptions
@@ -217,6 +217,9 @@
                 </div>
 
                 <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                    <!-- Notifications -->
+                    @include('partials.notifications')
+
                     <!-- Theme Toggle -->
                     <button id="theme-toggle" type="button" class="relative inline-flex h-6 w-[42px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-emerald-700/50 dark:bg-emerald-950/50 transition-colors duration-200">
                         <span class="pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white shadow ring-0 transition duration-200 translate-x-0 dark:translate-x-[18px]">
@@ -365,6 +368,8 @@
             }
         });
     </script>
+    
+    @stack('scripts')
 </body>
 
 </html>

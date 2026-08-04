@@ -202,7 +202,8 @@
                 if (dateToPicker) {
                     dateToPicker.set('minDate', dateStr);
                 }
-                dateFromInput.dispatchEvent(new Event('change', { bubbles: true }));
+                dateFromInput.value = dateStr;
+                setTimeout(() => dateFromInput.dispatchEvent(new Event('change', { bubbles: true })), 10);
             }
         });
 
@@ -216,7 +217,8 @@
                 if (dateFromPicker) {
                     dateFromPicker.set('maxDate', dateStr || "today");
                 }
-                dateToInput.dispatchEvent(new Event('change', { bubbles: true }));
+                dateToInput.value = dateStr;
+                setTimeout(() => dateToInput.dispatchEvent(new Event('change', { bubbles: true })), 10);
             }
         });
         

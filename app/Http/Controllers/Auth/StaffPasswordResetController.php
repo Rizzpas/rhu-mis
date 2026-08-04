@@ -27,21 +27,21 @@ class StaffPasswordResetController extends Controller
     public function sendResetOtp(Request $request)
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
-        
+
         $email = $request->email;
         $otp = rand(100000, 999999);
-        
-        Cache::put('password_reset_otp_' . $email, $otp, now()->addMinutes(10));
-        
+
+        Cache::put('password_reset_otp_'.$email, $otp, now()->addMinutes(10));
+
         try {
-            Mail::raw("Your password reset code is: $otp. This code will expire in 10 minutes.", function($msg) use ($email) {
+            Mail::raw("Your password reset code is: $otp. This code will expire in 10 minutes.", function ($msg) use ($email) {
                 $msg->to($email)->subject('RHU MIS - Password Reset Code');
             });
         } catch (\Exception $e) {
             // Fallback for demo if mail is not configured
             Log::info("FALLBACK: Password Reset OTP for {$email} is: {$otp}");
         }
-        
+
         return response()->json(['success' => true]);
     }
 
@@ -56,9 +56,9 @@ class StaffPasswordResetController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $cachedOtp = Cache::get('password_reset_otp_' . $request->email);
-        
-        if (!$cachedOtp || $cachedOtp != $request->otp) {
+        $cachedOtp = Cache::get('password_reset_otp_'.$request->email);
+
+        if (! $cachedOtp || $cachedOtp != $request->otp) {
             throw ValidationException::withMessages([
                 'otp' => ['The provided OTP is invalid or has expired.'],
             ]);
@@ -68,7 +68,7 @@ class StaffPasswordResetController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        Cache::forget('password_reset_otp_' . $request->email);
+        Cache::forget('password_reset_otp_'.$request->email);
 
         return redirect()->route('login')->with('success', 'Password reset successfully. You can now log in.');
     }

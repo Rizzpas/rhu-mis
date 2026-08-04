@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Appointment extends Model
 {
-    use HasFactory, \App\Traits\Sterilizable;
+    use \App\Traits\Sterilizable, HasFactory;
 
     protected $sterilizable = [
-        'first_name', 'middle_name', 'last_name', 'suffix', 'address', 'house_no', 'street', 'building', 
-        'barangay', 'city_province', 'religion', 'occupation', 'mothers_maiden_name', 
-        'guardian_name', 'guardian_first_name', 'guardian_middle_name', 'guardian_last_name', 'guardian_suffix', 
-        'complaint'
+        'first_name', 'middle_name', 'last_name', 'suffix', 'address', 'house_no', 'street', 'building',
+        'barangay', 'city_province', 'religion', 'occupation', 'mothers_maiden_name',
+        'guardian_name', 'guardian_first_name', 'guardian_middle_name', 'guardian_last_name', 'guardian_suffix',
+        'complaint',
     ];
 
     protected $fillable = [
@@ -58,6 +58,7 @@ class Appointment extends Model
     ];
 
     protected $casts = [
+        'dob' => 'date',
         'preferred_date' => 'datetime',
         'data_privacy_agreed' => 'boolean',
         'philhealth_number' => 'encrypted',
@@ -77,12 +78,16 @@ class Appointment extends Model
         if ($this->guardian_first_name || $this->guardian_last_name) {
             return trim("{$this->guardian_first_name} {$this->guardian_middle_name} {$this->guardian_last_name} {$this->guardian_suffix}");
         }
+
         return $this->guardian_name;
     }
 
     public function getMaskedPhilhealthNumberAttribute()
     {
-        if (!$this->philhealth_number) return null;
+        if (! $this->philhealth_number) {
+            return null;
+        }
+
         return preg_replace('/(\d{2})-(\d{5})(\d{4})-(\d{1})/', '$1-*****$3-$4', $this->philhealth_number);
     }
 }

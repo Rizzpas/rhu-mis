@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\User;
-use Illuminate\Console\Command;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class AutoLogoutInactiveStaff extends Command
 {
@@ -31,11 +31,11 @@ class AutoLogoutInactiveStaff extends Command
             ->whereIn('role', [
                 'regular_doctor', 'pedia_doctor',
                 'clinical_nurse', 'vitals_nurse',
-                'information_desk', 'laboratory', 'radiology',
+                'information_desk', 'laboratory', 'radiology', 'pharmacy',
             ])
             ->where(function ($q) use ($cutoff) {
                 $q->where('last_activity_at', '<', $cutoff)
-                  ->orWhereNull('last_activity_at');
+                    ->orWhereNull('last_activity_at');
             })
             ->get();
 

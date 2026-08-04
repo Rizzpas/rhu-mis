@@ -24,39 +24,39 @@ class ComplexAnnouncementSeeder extends Seeder
         ]);
 
         // 2. Add Dynamic Sections (Image + Content Pairs)
-        
+
         // Section 1
         $announcement->images()->create([
-            'image_path' => null, 
-            'content' => "Dental Services: Free cleaning and tooth extraction will be available for children and adults. Our dental bus is fully equipped to handle minor procedures.",
+            'image_path' => null,
+            'content' => 'Dental Services: Free cleaning and tooth extraction will be available for children and adults. Our dental bus is fully equipped to handle minor procedures.',
             'sort_order' => 0,
         ]);
 
         // Section 2
         $announcement->images()->create([
             'image_path' => null,
-            'content' => "Medical Check-ups: General consultation, blood pressure monitoring, and blood sugar testing will be conducted by our resident physicians.",
+            'content' => 'Medical Check-ups: General consultation, blood pressure monitoring, and blood sugar testing will be conducted by our resident physicians.',
             'sort_order' => 1,
         ]);
 
         // Section 3
         $announcement->images()->create([
             'image_path' => null,
-            'content' => "Medicine Distribution: Free vitamins and maintenance medicines will be distributed to eligible senior citizens and children.",
+            'content' => 'Medicine Distribution: Free vitamins and maintenance medicines will be distributed to eligible senior citizens and children.',
             'sort_order' => 2,
         ]);
 
         // Section 4
         $announcement->images()->create([
             'image_path' => null,
-            'content' => "Health Seminars: Join our interactive sessions on nutrition, family planning, and mental health awareness.",
+            'content' => 'Health Seminars: Join our interactive sessions on nutrition, family planning, and mental health awareness.',
             'sort_order' => 3,
         ]);
 
-         // Section 5
-         $announcement->images()->create([
+        // Section 5
+        $announcement->images()->create([
             'image_path' => null,
-            'content' => "Grand Finale: A Zumba marathon and feeding program will conclude the week-long caravan.",
+            'content' => 'Grand Finale: A Zumba marathon and feeding program will conclude the week-long caravan.',
             'sort_order' => 4,
         ]);
     }

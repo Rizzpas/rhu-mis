@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Announcement;
-use App\Models\Appointment;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Cache;
 use App\Mail\AppointmentConfirmation;
 use App\Mail\OtpMail;
-use Illuminate\Support\Str;
+use App\Models\Announcement;
+use App\Models\Appointment;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class PublicController extends Controller
 {
@@ -23,7 +22,7 @@ class PublicController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(7)
             ->get();
-            
+
         return view('welcome', compact('doctors', 'announcements'));
     }
 
@@ -42,6 +41,7 @@ class PublicController extends Controller
             ['name' => 'TB DOTS Facility', 'slug' => 'tb-dots-facility', 'desc' => 'Tuberculosis screening, medication, and full treatment monitoring.'],
             ['name' => 'Animal Bite Center', 'slug' => 'animal-bite-center', 'desc' => 'Immediate care and vaccination for rabies prevention.'],
         ];
+
         return view('units.index', compact('units'));
     }
 
@@ -56,8 +56,8 @@ class PublicController extends Controller
         ]);
 
         $unit = $units->firstWhere('slug', $slug);
-        
-        if (!$unit) {
+
+        if (! $unit) {
             abort(404);
         }
 
@@ -70,7 +70,7 @@ class PublicController extends Controller
         $latestAnnouncement = Announcement::where('status', 'published')
             ->latest('updated_at')
             ->first();
-            
+
         // Check for the latest update timestamp across all doctors
         $latestDoctor = \App\Models\User::where('role', 'doctor')->latest('updated_at')->first();
 
@@ -90,20 +90,21 @@ class PublicController extends Controller
     public function checkAnnouncementUpdate(Announcement $announcement)
     {
         return response()->json([
-            'updated_at' => $announcement->updated_at->toIso8601String()
+            'updated_at' => $announcement->updated_at->toIso8601String(),
         ]);
     }
 
     public function getAnnouncementContent(Announcement $announcement)
     {
         // Render the view partial or full view - we will extract the relevant section in frontend or return a partial view
-        // For simplicity, we can return the entire view and let Alpine/HTMX swap, OR we can make a partial. 
+        // For simplicity, we can return the entire view and let Alpine/HTMX swap, OR we can make a partial.
         // A cleaner way for "everything dynamic" without full reload is to return the specific HTML for the article.
-        // Let's return the full view for now but we will use a special header to indicate it's a fragment if we wanted, 
+        // Let's return the full view for now but we will use a special header to indicate it's a fragment if we wanted,
         // but here we will just let the frontend regex/parse or just return a JSON with html.
         // Actually, returning JSON with HTML is easiest for Alpine to handle.
-        
+
         $html = view('announcements.show', compact('announcement'))->render();
+
         return response()->json(['html' => $html]);
     }
 
@@ -127,7 +128,7 @@ class PublicController extends Controller
         $result = [];
 
         // We only enforce the 20-slot limit on New Pedia appointments
-        if ($type === 'pedia' && !$isFollowUp) {
+        if ($type === 'pedia' && ! $isFollowUp) {
             $bookedCounts = Appointment::where('type', 'pedia')
                 ->whereIn('status', ['pending', 'approved', 'rescheduled', 'arrived'])
                 ->whereBetween('preferred_date', [$startDate->toDateString(), $endDate->toDateString()])
@@ -159,7 +160,7 @@ class PublicController extends Controller
                 $result[$dateString] = [
                     'booked' => $booked,
                     'capacity' => $capacity,
-                    'available' => max(0, $capacity - $booked)
+                    'available' => max(0, $capacity - $booked),
                 ];
             }
         }
@@ -210,19 +211,19 @@ class PublicController extends Controller
         $cursor = $startTime->copy();
         while ($cursor->lt($endTime)) {
             $slotEnd = $cursor->copy()->addMinutes(30);
-            if ($slotEnd->gt($endTime)) break;
+            if ($slotEnd->gt($endTime)) {
+                break;
+            }
 
             $slots[] = [
-                'label' => $cursor->format('g:i A') . ' - ' . $slotEnd->format('g:i A'),
-                'value' => $cursor->format('g:i A') . ' - ' . $slotEnd->format('g:i A'),
+                'label' => $cursor->format('g:i A').' - '.$slotEnd->format('g:i A'),
+                'value' => $cursor->format('g:i A').' - '.$slotEnd->format('g:i A'),
             ];
             $cursor->addMinutes(30);
         }
 
         return response()->json(['slots' => $slots]);
     }
-
-
 
     public function checkDuplicate(Request $request)
     {
@@ -254,7 +255,7 @@ class PublicController extends Controller
             ->whereDate('dob', \Carbon\Carbon::parse($request->dob)->toDateString())
             ->first();
 
-        if (!$patient) {
+        if (! $patient) {
             return response()->json(['valid' => false, 'message' => 'No matching patient record found. Please verify your Name and Date of Birth.']);
         }
 
@@ -264,7 +265,7 @@ class PublicController extends Controller
             ->latest('created_at')
             ->first();
 
-        if (!$latestFollowUp) {
+        if (! $latestFollowUp) {
             return response()->json(['valid' => false, 'message' => 'You do not have any active follow-up instructions from a doctor.']);
         }
 
@@ -279,11 +280,11 @@ class PublicController extends Controller
         // Get the assigned doctor's schedule for the calendar
         $doctorId = $latestFollowUp->followup_doctor_id ?? $latestFollowUp->doctor_id;
         $doctor = $doctorId ? \App\Models\User::with('practitionerSchedules')->find($doctorId) : null;
-        
+
         // Fallback: If no doctor or no schedule, default to standard clinic weekdays to avoid soft-locking
         $doctorSchedule = ($doctor && $doctor->formatted_schedule) ? $doctor->formatted_schedule : 'Mon, Tue, Wed, Thu, Fri';
-        $validDays = ($doctor && $doctor->practitionerSchedules->isNotEmpty()) 
-            ? $doctor->practitionerSchedules->pluck('day_of_week')->unique()->values()->toArray() 
+        $validDays = ($doctor && $doctor->practitionerSchedules->isNotEmpty())
+            ? $doctor->practitionerSchedules->pluck('day_of_week')->unique()->values()->toArray()
             : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
         return response()->json([
@@ -291,7 +292,7 @@ class PublicController extends Controller
             'doctor_id' => $doctorId,
             'doctor_schedule' => $doctorSchedule,
             'valid_days' => $validDays,
-            'doctor_name' => $doctor ? $doctor->formatted_name : 'Assigned Doctor'
+            'doctor_name' => $doctor ? $doctor->formatted_name : 'Assigned Doctor',
         ]);
     }
 
@@ -309,23 +310,26 @@ class PublicController extends Controller
             'barangay',
             'guardian_first_name',
             'guardian_middle_name',
-            'guardian_last_name'
-        ];foreach ($titleCaseFields as $field) {
+            'guardian_last_name',
+        ];
+        foreach ($titleCaseFields as $field) {
             if ($request->has($field) && is_string($request->input($field))) {
                 $request->merge([$field => ucwords(strtolower($request->input($field)))]);
             }
         }
 
-        $ipKey = 'booking_ip:' . $request->ip();
-        $emailKey = 'booking_email:' . strtolower($request->email ?? '');
+        $ipKey = 'booking_ip:'.$request->ip();
+        $emailKey = 'booking_email:'.strtolower($request->email ?? '');
 
         if (RateLimiter::tooManyAttempts($emailKey, 5)) {
             $seconds = RateLimiter::availableIn($emailKey);
+
             return back()->with('error', "You have made too many appointment requests. Please try again in {$seconds} seconds.")->withInput();
         }
 
         if (RateLimiter::tooManyAttempts($ipKey, 5)) {
             $seconds = RateLimiter::availableIn($ipKey);
+
             return back()->with('error', "Too many appointments from your network. Try again in {$seconds} seconds.")->withInput();
         }
 
@@ -380,7 +384,7 @@ class PublicController extends Controller
             $rules['address'] = 'nullable|string|max:500';
             $rules['philhealth_number'] = 'nullable|regex:/^\d{2}-\d{9}-\d{1}$/';
             $rules['mothers_maiden_name'] = 'nullable|string|max:255';
-            
+
             if ($request->type === 'adult') {
                 $rules['contact_number'] = ['nullable', 'regex:/^09\d{9}$/'];
             }
@@ -421,6 +425,7 @@ class PublicController extends Controller
         if (isset($existingAppointment) && $existingAppointment) {
             RateLimiter::hit($ipKey, 300);
             RateLimiter::hit($emailKey, 600);
+
             return back()->withErrors(['email' => 'You already have an active appointment (pending, approved, or rescheduled). Please wait for the current appointment to conclude before creating a new one.'])->withInput();
         }
 
@@ -432,16 +437,16 @@ class PublicController extends Controller
                 ->where('dob', $request->dob)
                 ->first();
 
-            if (!$patientMatch) {
+            if (! $patientMatch) {
                 return back()->withErrors([
-                    'is_follow_up' => 'Patient record not found. Please register as a new patient at the clinic.'
+                    'is_follow_up' => 'Patient record not found. Please register as a new patient at the clinic.',
                 ])->withInput();
             }
 
             // Verify if the patient has a consultation flagged for follow-up (using model accessor)
-            if (!$patientMatch->is_follow_up) {
+            if (! $patientMatch->is_follow_up) {
                 return back()->withErrors([
-                    'is_follow_up' => 'No follow-up order found. Please book as a General Consultation instead.'
+                    'is_follow_up' => 'No follow-up order found. Please book as a General Consultation instead.',
                 ])->withInput();
             }
         }
@@ -449,19 +454,19 @@ class PublicController extends Controller
         $data = $request->all();
         // Checkboxes return 'on' or '1', force boolean for DB
         $data['data_privacy_agreed'] = $request->has('data_privacy_agreed');
-        
+
         if ($request->type === 'pedia') {
-            if (!empty($data['philhealth_number'])) {
+            if (! empty($data['philhealth_number'])) {
                 $data['guardian_philhealth'] = $data['philhealth_number'];
-                $data['philhealth_number']   = null;
+                $data['philhealth_number'] = null;
             }
         }
-        
+
         // Generate Unique Reference Number
         do {
-            $ref = 'APT-' . strtoupper(auth()->id() ?? '') . strtoupper(Str::random(8));
+            $ref = 'APT-'.strtoupper(auth()->id() ?? '').strtoupper(Str::random(8));
         } while (Appointment::where('reference_number', $ref)->exists());
-        
+
         $data['reference_number'] = $ref;
         $data['status'] = 'approved'; // Auto-approve as per requirements
 
@@ -469,7 +474,7 @@ class PublicController extends Controller
 
         // Send Email
         try {
-             Mail::to($request->email)->send(new AppointmentConfirmation($appointment));
+            Mail::to($request->email)->send(new AppointmentConfirmation($appointment));
         } catch (\Exception $e) {
             // Log error or ignore for dev
         }
@@ -477,7 +482,7 @@ class PublicController extends Controller
         RateLimiter::clear($ipKey);
         RateLimiter::clear($emailKey);
 
-        return redirect()->route('welcome')->with('success', 'Appointment Request Submitted Successfully! Your Reference Number is ' . $ref . '. Please check your email.');
+        return redirect()->route('welcome')->with('success', 'Appointment Request Submitted Successfully! Your Reference Number is '.$ref.'. Please check your email.');
     }
 
     public function sendOtp(Request $request)
@@ -485,29 +490,37 @@ class PublicController extends Controller
         $request->validate(['email' => 'required|email']);
         $email = $request->email;
 
-        $lockoutKey = 'otp_lockout_' . $email;
-        $attemptsKey = 'otp_attempts_' . $email;
+        $lockoutKey = 'otp_lockout_'.$email;
+        $attemptsKey = 'otp_attempts_'.$email;
 
         if (Cache::has($lockoutKey)) {
             $secondsRemaining = Cache::get($lockoutKey) - time();
-            $minutes = ceil($secondsRemaining / 60);
-            return response()->json([
-                'success' => false, 
-                'message' => 'Too many requests. Please try again in ' . $minutes . ' minute(s).'
-            ], 429);
+            if ($secondsRemaining > 0) {
+                $minutes = ceil($secondsRemaining / 60);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Too many requests. Please try again in '.$minutes.' minute(s).',
+                ], 429);
+            }
+            // Lockout expired but cache entry lingered — clear it
+            Cache::forget($lockoutKey);
         }
 
         $otp = rand(100000, 999999);
-        
+
         // Store in cache for 10 minutes
-        Cache::put('otp_' . $email, $otp, 600);
-        
+        Cache::put('otp_'.$email, $otp, 600);
+
         try {
             Mail::to($email)->send(new OtpMail($otp));
 
-            $penalties = [5, 10, 15, 30, 60, 120, 300, 1440];
+            // Progressive cooldown: first send has a short 1-min cooldown,
+            // escalating on repeated requests to prevent abuse.
+            // Attempt 0 = 1 min, 1 = 5 min, 2 = 10 min, 3 = 15 min, ...
+            $penalties = [1, 5, 10, 15, 30, 60, 120, 300, 1440];
             $attempts = Cache::get($attemptsKey, 0);
-            
+
             $penaltyMinutes = $penalties[min($attempts, count($penalties) - 1)];
             Cache::put($lockoutKey, time() + ($penaltyMinutes * 60), $penaltyMinutes * 60);
             Cache::put($attemptsKey, $attempts + 1, 1440 * 60 * 2);
@@ -522,15 +535,16 @@ class PublicController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'otp' => 'required|digits:6'
+            'otp' => 'required|digits:6',
         ]);
 
-        $cachedOtp = Cache::get('otp_' . $request->email);
+        $cachedOtp = Cache::get('otp_'.$request->email);
 
         if ($cachedOtp && $cachedOtp == $request->otp) {
-            Cache::forget('otp_attempts_' . $request->email);
-            Cache::forget('otp_lockout_' . $request->email);
-            Cache::forget('otp_' . $request->email);
+            Cache::forget('otp_attempts_'.$request->email);
+            Cache::forget('otp_lockout_'.$request->email);
+            Cache::forget('otp_'.$request->email);
+
             return response()->json(['success' => true]);
         }
 
@@ -538,11 +552,13 @@ class PublicController extends Controller
     }
 
     // Appointment Management
-    public function manageAppointment(Request $request) {
+    public function manageAppointment(Request $request)
+    {
         return view('appointments.manage-login');
     }
 
-    public function loginAppointment(Request $request) {
+    public function loginAppointment(Request $request)
+    {
         $request->validate([
             'reference_number' => 'required|string|exists:appointments,reference_number',
             'email' => 'required|email',
@@ -552,7 +568,7 @@ class PublicController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        if (!$appointment) {
+        if (! $appointment) {
             return back()->withErrors(['email' => 'Details do not match our records.']);
         }
 
@@ -562,20 +578,23 @@ class PublicController extends Controller
         return redirect()->route('appointment.dashboard');
     }
 
-    public function dashboardAppointment() {
-        if (!session('manage_appointment_id')) {
+    public function dashboardAppointment()
+    {
+        if (! session('manage_appointment_id')) {
             return redirect()->route('appointment.manage');
         }
 
         $appointment = Appointment::findOrFail(session('manage_appointment_id'));
+
         return view('appointments.dashboard', compact('appointment'));
     }
 
-    public function cancelAppointment(Request $request) {
-        if (!session('manage_appointment_id')) {
-             return redirect()->route('appointment.manage');
+    public function cancelAppointment(Request $request)
+    {
+        if (! session('manage_appointment_id')) {
+            return redirect()->route('appointment.manage');
         }
-        
+
         $appointment = Appointment::findOrFail(session('manage_appointment_id'));
         $appointment->status = 'cancelled';
         $appointment->save();
@@ -583,21 +602,22 @@ class PublicController extends Controller
         return back()->with('success', 'Appointment has been cancelled successfully.');
     }
 
-    public function rescheduleAppointment(Request $request) {
-         if (!session('manage_appointment_id')) {
-             return redirect()->route('appointment.manage');
+    public function rescheduleAppointment(Request $request)
+    {
+        if (! session('manage_appointment_id')) {
+            return redirect()->route('appointment.manage');
         }
 
         $request->validate([
             'new_date' => 'required|date',
-            'new_time' => 'required|string'
+            'new_time' => 'required|string',
         ]);
 
         $appointment = Appointment::findOrFail(session('manage_appointment_id'));
         $isFollowUp = $appointment->type === 'adult' || $appointment->is_follow_up;
 
         // Enforce Pedia Capacity
-        if (!$isFollowUp && $appointment->type === 'pedia') {
+        if (! $isFollowUp && $appointment->type === 'pedia') {
             $capacity = \App\Models\Capacity::where('date', $request->new_date)->value('capacity') ?? 20;
 
             $booked = Appointment::where('preferred_date', $request->new_date)
@@ -605,9 +625,9 @@ class PublicController extends Controller
                 ->where('is_follow_up', false)
                 ->whereIn('status', ['pending', 'approved', 'rescheduled'])
                 ->count();
-                
+
             if ($booked >= $capacity) {
-                 return back()->withErrors(['new_date' => 'The selected date is fully booked. Please choose another date.']);
+                return back()->withErrors(['new_date' => 'The selected date is fully booked. Please choose another date.']);
             }
         }
 
@@ -616,6 +636,6 @@ class PublicController extends Controller
         $appointment->status = 'rescheduled';
         $appointment->save();
 
-        return back()->with('success', 'Appointment rescheduled successfully to ' . \Carbon\Carbon::parse($request->new_date)->format('F d, Y') . ' at ' . $request->new_time);
+        return back()->with('success', 'Appointment rescheduled successfully to '.\Carbon\Carbon::parse($request->new_date)->format('F d, Y').' at '.$request->new_time);
     }
 }

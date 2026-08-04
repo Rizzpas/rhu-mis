@@ -26,7 +26,7 @@ class CleanupVitals extends Command
     public function handle()
     {
         $today = \Carbon\Carbon::today();
-        
+
         // Find all records from today that are still waiting or claimed
         $count = \App\Models\PreTriage::whereDate('created_at', $today)
             ->whereIn('status', ['waiting', 'claimed'])
@@ -34,17 +34,17 @@ class CleanupVitals extends Command
 
         if ($count > 0) {
             $this->info("Quietly removed $count unfulfilled vitals entries from today's queue.");
-            
+
             // Record a system audit log
             \App\Models\AuditLog::create([
                 'action' => 'End-of-Day Vitals Cleanup',
                 'model_type' => \App\Models\PreTriage::class,
                 'changes' => ['deleted_count' => $count],
                 'ip_address' => '127.0.0.1',
-                'user_agent' => 'System Scheduler'
+                'user_agent' => 'System Scheduler',
             ]);
         } else {
-            $this->info("No unfulfilled vitals entries to clean up today.");
+            $this->info('No unfulfilled vitals entries to clean up today.');
         }
     }
 }

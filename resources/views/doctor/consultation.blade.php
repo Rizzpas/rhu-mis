@@ -238,29 +238,45 @@
                         
                         <div x-show="showAncillary" x-collapse class="mt-3">
                             <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-lg shadow-inner">
-                                <p class="text-xs text-indigo-700 mb-3 font-medium">Forward this patient to the Laboratory or Radiology queue. (Simulation Flow: Does not pause consultation)</p>
+                                <p class="text-xs text-indigo-700 mb-3 font-medium">Forward this patient to the Laboratory or Radiology queue. They will appear on the staff dashboard.</p>
+                                
+                                @if(!$isLabOnline || !$isRadOnline)
+                                <div class="mb-3 bg-rose-50 border-l-4 border-rose-500 p-3 rounded-md">
+                                    <div class="flex items-start">
+                                        <div class="shrink-0">
+                                            <svg class="h-5 w-5 text-rose-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-rose-700 font-bold">
+                                                Attention:
+                                                @if(!$isLabOnline && !$isRadOnline) Both Laboratory and Radiology departments
+                                                @elseif(!$isLabOnline) Laboratory department
+                                                @else Radiology department
+                                                @endif
+                                                are currently offline (Out of Office).
+                                            </p>
+                                            <p class="text-xs text-rose-600 mt-1">Requests will still be queued, but will not be processed until staff logs in.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+
                                 <form action="{{ route('doctor.ancillary.store', $consultation->id) }}" method="POST" class="flex flex-col md:flex-row gap-3" x-data="{ requestType: 'Laboratory' }">
                                     @csrf
                                     <select name="type" x-model="requestType" class="text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" required>
                                         <option value="Laboratory">Laboratory Request</option>
                                         <option value="Radiology">Radiology Request</option>
                                     </select>
-                                    <select name="test_name" x-show="requestType === 'Laboratory'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white">
+                                    <select name="test_name" x-show="requestType === 'Laboratory'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" required>
                                         <option value="" disabled selected>-- Select Laboratory Test --</option>
-                                        <option value="CBC">CBC (Complete Blood Count)</option>
+                                        <option value="Complete Blood Count (CBC)">CBC (Complete Blood Count)</option>
                                         <option value="Urinalysis">Urinalysis</option>
-                                        <option value="Fecalysis">Fecalysis</option>
-                                        <option value="Blood Typing">Blood Typing</option>
-                                        <option value="Fasting Blood Sugar (FBS)">Fasting Blood Sugar (FBS)</option>
-                                        <option value="Other">Other (Specify in notes)</option>
                                     </select>
-                                    <select name="test_name" x-show="requestType === 'Radiology'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" x-cloak>
+                                    <select name="test_name" x-show="requestType === 'Radiology'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" x-cloak required>
                                         <option value="" disabled selected>-- Select Radiology Test --</option>
-                                        <option value="Chest X-Ray PA">Chest X-Ray PA</option>
-                                        <option value="Chest X-Ray AP">Chest X-Ray AP</option>
-                                        <option value="ECG">ECG (Electrocardiogram)</option>
-                                        <option value="Ultrasound">Ultrasound</option>
-                                        <option value="Other">Other (Specify in notes)</option>
+                                        <option value="Chest X-Ray">Chest X-Ray</option>
                                     </select>
                                     <button type="submit" class="bg-indigo-600 text-white px-5 py-2 flex items-center justify-center gap-2 rounded-md font-bold text-sm hover:bg-indigo-700 shadow-sm transition shrink-0">
                                         Send Request
@@ -272,24 +288,24 @@
                         <!-- Display Ancillary Results -->
                         @if($consultation->ancillaryRequests && $consultation->ancillaryRequests->count() > 0)
                             <div class="mt-4 space-y-3">
-                                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-widest border-b border-slate-200 pb-2">Laboratory / Radiology Results</h4>
+                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2">Laboratory / Radiology Results</h4>
                                 @foreach($consultation->ancillaryRequests as $ancillary)
-                                    <div class="bg-white border rounded-lg p-4 shadow-sm {{ $ancillary->status === 'completed' ? 'border-green-200' : 'border-amber-200' }}">
+                                    <div class="bg-white dark:bg-slate-800 border rounded-lg p-4 shadow-sm {{ $ancillary->status === 'Done' ? 'border-green-200 dark:border-green-800' : 'border-amber-200 dark:border-amber-800' }}">
                                         <div class="flex items-start justify-between mb-2">
                                             <div>
-                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $ancillary->type === 'Laboratory' ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-700' }}">
+                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $ancillary->type === 'Laboratory' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' }}">
                                                     {{ $ancillary->type }}
                                                 </span>
-                                                <h5 class="font-bold text-slate-800 mt-1">{{ $ancillary->test_name }}</h5>
+                                                <h5 class="font-bold text-slate-800 dark:text-white mt-1">{{ $ancillary->test_name }}</h5>
                                             </div>
                                             <div>
-                                                @if($ancillary->status === 'completed')
-                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded-md border border-green-200">
+                                                @if($ancillary->status === 'Done')
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-md border border-green-200 dark:border-green-800">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                                         Completed
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800">
                                                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                                         Pending
                                                     </span>
@@ -298,15 +314,39 @@
                                         </div>
                                         
                                         @if($ancillary->remarks)
-                                            <p class="text-xs text-slate-500 mb-2 italic">Remarks/Instructions: {{ $ancillary->remarks }}</p>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2 italic">Remarks/Instructions: {{ $ancillary->remarks }}</p>
                                         @endif
 
-                                        <div class="mt-3 bg-slate-50 rounded-md p-3 border border-slate-100">
+                                        <div class="mt-3 bg-slate-50 dark:bg-slate-900/50 rounded-md p-3 border border-slate-100 dark:border-slate-700">
                                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Results / Findings</p>
-                                            @if($ancillary->status === 'completed')
-                                                <p class="text-sm text-slate-800 font-medium whitespace-pre-line">{{ $ancillary->result_text }}</p>
+                                            @if($ancillary->status === 'Done' && $ancillary->result_data)
+                                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                                    @foreach($ancillary->result_data as $key => $value)
+                                                        @if($value)
+                                                        <div class="bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-600">
+                                                            <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ str_replace('_', ' ', $key) }}</span>
+                                                            <span class="text-sm font-extrabold text-slate-900 dark:text-white">{{ $value }}</span>
+                                                        </div>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                                
+                                                @if($ancillary->result_file_path)
+                                                    <div class="mt-3">
+                                                        <a href="{{ Storage::url($ancillary->result_file_path) }}" target="_blank" class="inline-flex items-center gap-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800/50 transition">
+                                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                            View Attachment
+                                                        </a>
+                                                    </div>
+                                                @endif
+
+                                                @if($ancillary->technician)
+                                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-3 font-medium">Processed by {{ $ancillary->technician->formatted_name }} &bull; {{ $ancillary->completed_at->format('M d, Y h:i A') }}</p>
+                                                @endif
+                                            @elseif($ancillary->status === 'Done')
+                                                <p class="text-sm text-slate-800 dark:text-slate-200 font-medium">Results submitted (no structured data).</p>
                                             @else
-                                                <p class="text-sm text-slate-500 italic">Waiting for laboratory/radiology to upload results...</p>
+                                                <p class="text-sm text-slate-500 dark:text-slate-400 italic">Waiting for laboratory/radiology to submit results...</p>
                                             @endif
                                         </div>
                                     </div>
@@ -315,7 +355,7 @@
                         @endif
                     </div>
 
-                    <form action="{{ route('doctor.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6">
+                    <form action="{{ route('doctor.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6" x-data="{ showConfirm: false }" @submit.prevent="showConfirm = true">
                         @csrf
                         
                         <div>
@@ -327,56 +367,244 @@
 
                         <!-- Dynamic Prescription Builder -->
                         <div x-data="prescriptionBuilder('teal')" class="mb-4 relative">
-                            <div class="flex justify-between items-center mb-2">
+                            <div class="flex justify-between items-center mb-3">
                                 <label class="block text-sm font-bold text-slate-700">Prescription / Treatment Plan <span class="text-slate-400 font-normal ml-1">(Optional)</span></label>
-                                <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-widest flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    Simulation Only
-                                </span>
+                                <span x-show="prescriptions.length > 0" x-cloak class="text-xs font-bold bg-teal-100 text-teal-700 px-2.5 py-1 rounded-full" x-text="prescriptions.length + ' item(s)'"></span>
                             </div>
                             
+                            @if(!$isPharmacyOnline)
+                            <div class="mb-3 bg-amber-50 border-l-4 border-amber-500 p-3 rounded-md">
+                                <div class="flex items-start">
+                                    <div class="shrink-0">
+                                        <svg class="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-amber-700 font-bold">
+                                            Attention: Pharmacy department is currently offline (Out of Office).
+                                        </p>
+                                        <p class="text-xs text-amber-600 mt-1">Prescriptions will be queued, but will not be dispensed until a Pharmacist logs in.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+
                             <!-- Visual List of added medicines -->
-                            <div class="space-y-2 mb-3 mt-2" x-show="prescriptions.length > 0" x-cloak>
+                            <div class="space-y-2 mb-4" x-show="prescriptions.length > 0" x-cloak>
                                 <template x-for="(item, index) in prescriptions" :key="index">
-                                    <div class="flex items-center justify-between p-3 bg-teal-50 border border-teal-200 rounded-lg shadow-sm">
-                                        <div class="flex-1">
-                                            <p class="font-bold text-teal-900 text-sm" x-text="item.medicine"></p>
-                                            <p class="text-xs text-teal-700 mt-0.5"><span x-text="item.amount"></span> &bull; <span x-text="item.instruction"></span></p>
+                                    <div class="flex items-start gap-3 p-3 rounded-xl border shadow-sm transition-all"
+                                         :class="item.isOtc ? 'bg-slate-50 border-slate-200' : 'bg-teal-50 border-teal-200'">
+                                        <div class="pt-0.5 shrink-0">
+                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black"
+                                                  :class="item.isOtc ? 'bg-slate-200 text-slate-600' : 'bg-teal-200 text-teal-800'"
+                                                  x-text="index + 1"></span>
                                         </div>
-                                        <button type="button" @click="removePrescription(index)" class="text-rose-500 hover:text-rose-700 p-1 opacity-70 hover:opacity-100 transition">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <p class="font-bold text-sm text-slate-900" x-text="item.medicine"></p>
+                                                <span x-show="item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">OTC / External</span>
+                                                <span x-show="!item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-teal-200 text-teal-700 px-1.5 py-0.5 rounded">RHU Inventory</span>
+                                            </div>
+                                            <div class="flex items-center gap-3 mt-1 text-xs text-slate-600">
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                                                    <span x-text="item.amount"></span>
+                                                </span>
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    <span x-text="item.instruction"></span>
+                                                </span>
+                                                <span x-show="item.quantity" class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                                    Qty: <span x-text="item.quantity"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" @click="removePrescription(index)" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition shrink-0" title="Remove">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </div>
                                 </template>
                             </div>
 
                             <!-- Builder Form -->
-                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg relative">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 relative">
+                                <!-- OTC Toggle -->
+                                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" @click="isOtcMode = false" 
+                                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                                :class="!isOtcMode ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-slate-500 border border-slate-200 hover:border-teal-300'">
+                                            <span class="flex items-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                                From RHU Inventory
+                                            </span>
+                                        </button>
+                                        <button type="button" @click="isOtcMode = true" 
+                                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                                :class="isOtcMode ? 'bg-slate-700 text-white shadow-sm' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'">
+                                            <span class="flex items-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                Custom / OTC Medicine
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <!-- Medicine Name Field -->
                                     <div class="relative">
-                                        <input type="text" x-model="searchQuery" @input.debounce.300ms="searchMedicine" @keydown.escape="showSuggestions = false" @click.away="showSuggestions = false" placeholder="Search medicine (e.g. Paracetamol)..." class="w-full text-sm rounded-md border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                            <span x-text="isOtcMode ? 'Medicine Name (type manually)' : 'Search RHU Inventory'"></span>
+                                            <span class="text-rose-400">*</span>
+                                        </label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path x-show="!isOtcMode" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                                    <path x-show="isOtcMode" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                                </svg>
+                                            </div>
+                                            <input type="text" x-model="searchQuery" 
+                                                   @input.debounce.300ms="!isOtcMode && searchMedicine()" 
+                                                   @keydown.escape="showSuggestions = false" 
+                                                   @click.away="showSuggestions = false"
+                                                   x-ref="medicineInput"
+                                                   class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 pl-9 py-2.5"
+                                                   :placeholder="isOtcMode ? 'e.g. Biogesic, Neozep, Dolfenal...' : 'Type to search (e.g. Paracetamol)...'">
+                                        </div>
                                         
-                                        <!-- Suggestions Dropdown -->
-                                        <div x-show="showSuggestions && suggestions.length > 0" class="absolute z-50 w-full bg-white dark:bg-gray-800 mt-1 border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto" x-cloak>
+                                        <!-- Suggestions Dropdown (only in inventory mode) -->
+                                        <div x-show="!isOtcMode && showSuggestions && suggestions.length > 0" 
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 -translate-y-1"
+                                             x-transition:enter-end="opacity-100 translate-y-0"
+                                             class="absolute z-50 w-full bg-white mt-1 border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto" x-cloak>
                                             <template x-for="med in suggestions" :key="med.id">
-                                                <div @click="selectMedicine(med)" class="px-4 py-2 hover:bg-teal-50 cursor-pointer border-b border-slate-100 last:border-0 transition">
-                                                    <p class="font-semibold text-sm text-slate-800" x-text="med.name"></p>
-                                                    <p class="text-[11px] text-slate-500" x-text="(med.generic_name || '') + (med.form ? ' - ' + med.form : '')"></p>
+                                                <div @click="selectMedicine(med)" class="px-4 py-3 hover:bg-teal-50 cursor-pointer border-b border-slate-100 last:border-0 transition group">
+                                                    <div class="flex justify-between items-start">
+                                                        <div>
+                                                            <p class="font-bold text-sm text-slate-800 group-hover:text-teal-800" x-text="med.name"></p>
+                                                            <p class="text-[11px] text-slate-500 mt-0.5" x-text="(med.generic_name || 'No generic name') + (med.form ? ' · ' + med.form : '')"></p>
+                                                        </div>
+                                                        <div class="shrink-0 ml-3">
+                                                            <span class="text-[10px] font-bold px-2 py-1 rounded-full"
+                                                                  :class="med.stock > 10 ? 'bg-emerald-100 text-emerald-700' : (med.stock > 0 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')"
+                                                                  x-text="med.stock > 0 ? med.stock + ' in stock' : 'Out of stock'"></span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </template>
+                                            <!-- No results hint -->
+                                            <div x-show="suggestions.length === 0 && searchQuery.length > 1" class="px-4 py-3 text-center text-slate-400 text-sm">
+                                                No medicine found. Try <button type="button" @click="isOtcMode = true" class="text-teal-600 font-bold underline">Custom / OTC</button> mode.
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <!-- Dosage / Amount Field -->
                                     <div>
-                                        <input type="text" x-model="currentAmount" @keydown.enter.prevent="$refs.instInput.focus()" placeholder="Amount (e.g. 10 tabs, 1 bottle)" class="w-full text-sm rounded-md border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Dosage / Amount</label>
+                                        <input type="text" x-model="currentAmount" x-ref="amountInput"
+                                               @keydown.enter.prevent="$refs.instInput.focus()" 
+                                               placeholder="e.g. 500mg, 10 tablets, 1 bottle"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
                                     </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <input type="text" x-ref="instInput" x-model="currentInstruction" @keydown.enter.prevent="addPrescription()" placeholder="Instructions (e.g. 3x a day after meals)" class="flex-1 text-sm rounded-md border-slate-300 focus:border-teal-500 focus:ring-teal-500">
-                                    <button type="button" @click="addPrescription()" class="bg-teal-600 text-white px-4 py-2 rounded-md font-bold text-sm hover:bg-teal-700 shadow-sm shrink-0 transition">Add Item</button>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                    <!-- Instructions Field -->
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Instructions / Frequency</label>
+                                        <input type="text" x-ref="instInput" x-model="currentInstruction" 
+                                               @keydown.enter.prevent="addPrescription()"
+                                               placeholder="e.g. 3x a day after meals for 5 days"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                    </div>
+
+                                    <!-- Quantity Field -->
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quantity to Dispense</label>
+                                        <input type="number" x-model="currentQuantity" min="1"
+                                               @keydown.enter.prevent="addPrescription()"
+                                               placeholder="e.g. 30"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                    </div>
                                 </div>
+
+                                <!-- Quick Analgesic Presets (Adult mg vs Pedia mL) -->
+                                <div class="mb-4 pb-3 border-b border-slate-200 space-y-3">
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">⚡ Adult Analgesic Presets (Solid / mg):</span>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 500mg (Tablet)', amount: '500mg', instruction: '1 tab every 4-6 hours as needed for fever/pain', quantity: 10, isOtc: true })" 
+                                                    class="text-xs font-bold bg-teal-50 border border-teal-200 text-teal-800 hover:bg-teal-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                <span>💊 Paracetamol 500mg Tab</span>
+                                            </button>
+                                            <button type="button" @click="applyPreset({ name: 'Ibuprofen 400mg (Tablet)', amount: '400mg', instruction: '1 tab 3x daily after meals for 5 days', quantity: 15, isOtc: true })" 
+                                                    class="text-xs font-bold bg-blue-50 border border-blue-200 text-blue-800 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                <span>💊 Ibuprofen 400mg Tab</span>
+                                            </button>
+                                            <button type="button" @click="applyPreset({ name: 'Mefenamic Acid 500mg (Capsule)', amount: '500mg', instruction: '1 cap 3x daily after meals for pain', quantity: 9, isOtc: true })" 
+                                                    class="text-xs font-bold bg-purple-50 border border-purple-200 text-purple-800 hover:bg-purple-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                <span>💊 Mefenamic Acid 500mg Cap</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">🍼 Pediatric Presets (Liquid / mL & Drops):</span>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 250mg/5mL Syrup', amount: '250mg/5mL', instruction: '5 mL every 4-6 hours as needed for fever', quantity: 1, isOtc: true })" 
+                                                    class="text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                <span>🍼 Paracetamol 250mg/5mL Syrup</span>
+                                            </button>
+                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 120mg/5mL Syrup', amount: '120mg/5mL', instruction: '5 mL every 4-6 hours as needed for fever', quantity: 1, isOtc: true })" 
+                                                    class="text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                <span>🍼 Paracetamol 120mg/5mL Syrup</span>
+                                            </button>
+                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 100mg/mL Drops', amount: '100mg/mL', instruction: '1 mL every 4-6 hours as needed for infant fever', quantity: 1, isOtc: true })" 
+                                                    class="text-xs font-bold bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                <span>💧 Paracetamol 100mg/mL Drops</span>
+                                            </button>
+                                            <button type="button" @click="applyPreset({ name: 'Ibuprofen 100mg/5mL Syrup', amount: '100mg/5mL', instruction: '5 mL 3x daily after meals for 5 days', quantity: 1, isOtc: true })" 
+                                                    class="text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-800 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                <span>🍼 Ibuprofen 100mg/5mL Syrup</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Instruction Buttons -->
+                                <div class="flex flex-wrap gap-1.5 mb-4">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1 self-center">Frequency:</span>
+                                    <template x-for="qi in quickInstructions" :key="qi">
+                                        <button type="button" @click="currentInstruction = qi" 
+                                                class="text-[10px] font-bold bg-white border border-slate-200 hover:border-teal-300 hover:bg-teal-50 text-slate-600 hover:text-teal-700 px-2 py-1 rounded-md transition"
+                                                x-text="qi"></button>
+                                    </template>
+                                </div>
+
+                                <button type="button" @click="addPrescription()" 
+                                        class="w-full bg-teal-600 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-teal-700 shadow-sm transition flex items-center justify-center gap-2"
+                                        :disabled="!searchQuery.trim()"
+                                        :class="!searchQuery.trim() ? 'opacity-50 cursor-not-allowed' : ''">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    Add to Prescription
+                                </button>
                             </div>
                             
-                            <!-- Hidden input to submit the JSON -->
+                            <!-- Hidden inputs for Laravel array validation -->
+                            <template x-for="(item, index) in prescriptions" :key="'hidden_'+index">
+                                <div>
+                                    <input type="hidden" :name="`prescriptions_list[${index}][medicine_name]`" :value="item.medicine">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][dosage]`" :value="item.amount">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][frequency]`" :value="item.instruction">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][quantity]`" :value="item.quantity">
+                                </div>
+                            </template>
+                            <!-- Also send legacy prescription string if needed -->
                             <input type="hidden" name="prescription" :value="JSON.stringify(prescriptions)">
                         </div>
 
@@ -526,7 +754,7 @@
                             </div>
                         </div>
 
-                        <div class="pt-4 border-t border-slate-100 mt-auto flex justify-end gap-3" x-data="{ showConfirm: false }">
+                        <div class="pt-4 border-t border-slate-100 mt-auto flex justify-end gap-3">
                             <button type="button" @click="showConfirm = true" class="px-6 py-3 bg-teal-600 text-white border border-transparent rounded-lg font-extrabold shadow-lg shadow-teal-600/30 hover:bg-teal-700 hover:shadow-teal-700/40 transition flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 Complete Consultation
@@ -544,7 +772,7 @@
                                         <h3 class="text-xl font-black text-slate-800 mb-2">Ready to Complete?</h3>
                                         <p class="text-slate-500 text-sm mb-6">This will finalize the case and save it to the patient's medical history. Please ensure all diagnosis and instructions are correct.</p>
                                         <div class="flex flex-col gap-2">
-                                            <button type="submit" class="w-full py-3 bg-teal-600 text-white rounded-xl font-black hover:bg-teal-700 transition shadow-lg shadow-teal-600/20">Yes, Finalize Case</button>
+                                            <button type="button" @click="$el.closest('form').submit()" class="w-full py-3 bg-teal-600 text-white rounded-xl font-black hover:bg-teal-700 transition shadow-lg shadow-teal-600/20">Yes, Finalize Case</button>
                                             <button type="button" @click="showConfirm = false" class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition">Go Back & Edit</button>
                                         </div>
                                     </div>
@@ -667,8 +895,21 @@ document.addEventListener('alpine:init', () => {
         searchQuery: '',
         currentAmount: '',
         currentInstruction: '',
+        currentQuantity: '',
         suggestions: [],
         showSuggestions: false,
+        isOtcMode: false,
+        quickInstructions: [
+            '1x a day',
+            '2x a day',
+            '3x a day',
+            'Every 4 hours as needed',
+            'Once daily before meals',
+            'After meals',
+            'Before bedtime',
+            'As needed for pain',
+            'Apply topically 2x a day',
+        ],
         
         async searchMedicine() {
             if (this.searchQuery.length < 1) {
@@ -691,27 +932,36 @@ document.addEventListener('alpine:init', () => {
             
             // Focus on amount input
             setTimeout(() => {
-                const amountInput = this.$el.querySelector('input[placeholder^="Amount"]');
-                if(amountInput) amountInput.focus();
+                if (this.$refs.amountInput) this.$refs.amountInput.focus();
             }, 50);
+        },
+
+        applyPreset(preset) {
+            this.searchQuery = preset.name;
+            this.currentAmount = preset.amount;
+            this.currentInstruction = preset.instruction;
+            this.currentQuantity = preset.quantity;
+            this.isOtcMode = preset.isOtc;
         },
         
         addPrescription() {
             if (!this.searchQuery.trim()) return;
             this.prescriptions.push({
                 medicine: this.searchQuery,
-                amount: this.currentAmount || '1',
-                instruction: this.currentInstruction || 'As directed'
+                amount: this.currentAmount || 'As prescribed',
+                instruction: this.currentInstruction || 'As directed',
+                quantity: this.currentQuantity || '',
+                isOtc: this.isOtcMode,
             });
             this.searchQuery = '';
             this.currentAmount = '';
             this.currentInstruction = '';
+            this.currentQuantity = '';
             this.suggestions = [];
             
             // Focus back on search
             setTimeout(() => {
-                const searchInput = this.$el.querySelector('input[placeholder^="Search"]');
-                if(searchInput) searchInput.focus();
+                if (this.$refs.medicineInput) this.$refs.medicineInput.focus();
             }, 50);
         },
         

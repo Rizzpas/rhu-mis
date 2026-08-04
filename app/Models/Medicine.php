@@ -14,4 +14,19 @@ class Medicine extends Model
         'generic_name',
         'form',
     ];
+
+    public function batches()
+    {
+        return $this->hasMany(MedicineBatch::class);
+    }
+
+    public function inventoryLogs()
+    {
+        return $this->hasMany(InventoryLog::class);
+    }
+
+    public function getTotalStockAttribute()
+    {
+        return $this->batches()->whereDate('expiration_date', '>=', today())->sum('quantity');
+    }
 }

@@ -19,7 +19,7 @@ class TrackUserActivity
             $user = Auth::user();
 
             // Only update if more than 60 seconds since last update (avoid DB spam)
-            if (!$user->last_activity_at || $user->last_activity_at->diffInSeconds(now()) > 60) {
+            if (! $user->last_activity_at || $user->last_activity_at->diffInSeconds(now()) > 60) {
                 $user->update(['last_activity_at' => now()]);
             }
         }

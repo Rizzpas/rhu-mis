@@ -37,6 +37,16 @@
     html, body {
         font-family: "Outfit", sans-serif !important;
     }
+
+    /* Auto Title Case formatting for Name and Address fields */
+    input[name="first_name"], 
+    input[name="last_name"], 
+    input[name="middle_name"], 
+    input[name="street"], 
+    input[name="barangay"],
+    .auto-capitalize {
+        text-transform: capitalize;
+    }
 }
 
 @layer components {
@@ -53,4 +63,30 @@
     .animate-marquee:hover {
         animation-play-state: paused;
     }
+}
+
+@media print {
+    /* Hide sidebars, navigation, and unnecessary UI elements during print */
+    nav, aside, footer, .no-print, [x-show="sidebarOpen"] {
+        display: none !important;
+    }
+
+    /* Expand the main content area */
+    main, .print-full-width {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Ensure background colors and shadows are printed */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Page break helpers */
+    .page-break-before { page-break-before: always; }
+    .page-break-after { page-break-after: always; }
+    .page-break-inside-avoid { page-break-inside: avoid; }
 }

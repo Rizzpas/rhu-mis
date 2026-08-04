@@ -146,4 +146,115 @@
 </div>
 @endif
 
+<!-- Ancillary Departments Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
+    <!-- Laboratory Queue -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[500px] overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-5 shrink-0 flex justify-between items-center text-white">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-white/20 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold">Laboratory</h2>
+                    <p class="text-blue-100 text-xs">{{ count($labQueue) }} Pending Test(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-5 overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
+            @forelse($labQueue as $lab)
+                <div class="bg-white border-l-4 border-blue-500 rounded-lg p-4 mb-3 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-slate-800 text-sm">{{ $lab->queue_number ?? $lab->p_id }}</h4>
+                        @if(in_array($lab->classification, ['Senior Citizen', 'PWD']))
+                            <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Priority</span>
+                        @else
+                            <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Wait</span>
+                        @endif
+                    </div>
+                    <p class="text-sm font-semibold text-slate-700">{{ $lab->first_name }} {{ $lab->last_name }}</p>
+                    <p class="text-xs text-slate-500 mt-1">{{ ucfirst($lab->status) }} &bull; {{ $lab->created_at->diffForHumans() }}</p>
+                </div>
+            @empty
+                <div class="h-full flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                    <svg class="w-10 h-10 mb-2 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <p class="text-sm font-bold">Lab Queue is empty</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- Radiology Queue -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[500px] overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-800 p-5 shrink-0 flex justify-between items-center text-white">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-white/20 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold">Radiology</h2>
+                    <p class="text-purple-100 text-xs">{{ count($radQueue) }} Pending Scan(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-5 overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
+            @forelse($radQueue as $rad)
+                <div class="bg-white border-l-4 border-purple-500 rounded-lg p-4 mb-3 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-slate-800 text-sm">{{ $rad->queue_number ?? $rad->p_id }}</h4>
+                        @if(in_array($rad->classification, ['Senior Citizen', 'PWD']))
+                            <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Priority</span>
+                        @else
+                            <span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Wait</span>
+                        @endif
+                    </div>
+                    <p class="text-sm font-semibold text-slate-700">{{ $rad->first_name }} {{ $rad->last_name }}</p>
+                    <p class="text-xs text-slate-500 mt-1">{{ ucfirst($rad->status) }} &bull; {{ $rad->created_at->diffForHumans() }}</p>
+                </div>
+            @empty
+                <div class="h-full flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                    <svg class="w-10 h-10 mb-2 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <p class="text-sm font-bold">Rad Queue is empty</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- Pharmacy Queue -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[500px] overflow-hidden">
+        <div class="bg-gradient-to-r from-teal-600 to-teal-800 p-5 shrink-0 flex justify-between items-center text-white">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-white/20 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold">Pharmacy</h2>
+                    <p class="text-teal-100 text-xs">{{ count($pharmacyQueue) }} Pending Dispense(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-5 overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
+            @forelse($pharmacyQueue as $pha)
+                <div class="bg-white border-l-4 border-teal-500 rounded-lg p-4 mb-3 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-slate-800 text-sm">{{ $pha->queue_number ?? $pha->p_id }}</h4>
+                        @if(in_array($pha->classification, ['Senior Citizen', 'PWD']))
+                            <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Priority</span>
+                        @else
+                            <span class="bg-teal-100 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Wait</span>
+                        @endif
+                    </div>
+                    <p class="text-sm font-semibold text-slate-700">{{ $pha->first_name }} {{ $pha->last_name }}</p>
+                    <p class="text-xs text-slate-500 mt-1">{{ ucfirst($pha->status) }} &bull; {{ $pha->created_at->diffForHumans() }}</p>
+                </div>
+            @empty
+                <div class="h-full flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                    <svg class="w-10 h-10 mb-2 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <p class="text-sm font-bold">Pharmacy Queue is empty</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+</div>
+
 @endsection

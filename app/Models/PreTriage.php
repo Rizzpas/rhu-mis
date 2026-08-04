@@ -9,8 +9,9 @@ class PreTriage extends Model
     use \App\Traits\Auditable, \App\Traits\Sterilizable;
 
     protected $sterilizable = [
-        'first_name', 'middle_name', 'last_name', 'suffix', 'patient_name', 'chief_complaint', 'medicine_taken', 'known_allergies'
+        'first_name', 'middle_name', 'last_name', 'suffix', 'patient_name', 'chief_complaint', 'medicine_taken', 'known_allergies',
     ];
+
     protected $fillable = [
         'patient_name',
         'first_name',

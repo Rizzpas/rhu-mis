@@ -15,11 +15,24 @@ class AncillaryRequest extends Model
         'test_name',
         'status',
         'remarks',
-        'result_file_path'
+        'result_file_path',
+        'result_data',
+        'completed_by',
+        'completed_at',
+    ];
+
+    protected $casts = [
+        'result_data' => 'array',
+        'completed_at' => 'datetime',
     ];
 
     public function consultation()
     {
         return $this->belongsTo(Consultation::class);
+    }
+
+    public function technician()
+    {
+        return $this->belongsTo(User::class, 'completed_by');
     }
 }

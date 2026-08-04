@@ -268,7 +268,7 @@
     </div>
 
     <!-- Row 5: Barangay Heatmap (Full Width) -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col w-full h-[500px]">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col w-full" style="min-height: 400px;">
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
@@ -303,7 +303,7 @@
                 </div>
             </div>
         </div>
-        <div class="relative flex-1 w-full min-h-0"><canvas id="barangayChart"></canvas></div>
+        <div class="relative flex-1 w-full min-h-0 overflow-y-auto" id="barangayChartContainer"><canvas id="barangayChart"></canvas></div>
     </div>
 
     <!-- Row 6: Staff Productivity -->
@@ -657,19 +657,33 @@
             }
         });
 
-        // 7. Barangay Heatmap
+        // 7. Barangay Heatmap (Dynamic height based on count)
         const brgyCtx = document.getElementById('barangayChart').getContext('2d');
         const brgyDataRaw = {!! json_encode($barangayData) !!};
+        const brgyCount = Object.keys(brgyDataRaw).length;
+        // Dynamic height: 45px per barangay, minimum 300px
+        const brgyHeight = Math.max(300, brgyCount * 45);
+        document.getElementById('barangayChartContainer').style.height = brgyHeight + 'px';
+        // Generate a gradient color palette based on value intensity
+        const brgyValues = Object.values(brgyDataRaw);
+        const brgyMax = Math.max(...brgyValues, 1);
+        const brgyColors = brgyValues.map(v => {
+            const intensity = v / brgyMax;
+            const r = Math.round(20 + (0 - 20) * intensity);
+            const g = Math.round(184 + (180 - 184) * intensity);
+            const b = Math.round(166 + (100 - 166) * intensity);
+            return `rgba(${r}, ${g}, ${b}, ${0.5 + intensity * 0.5})`;
+        });
         charts['barangay'] = new Chart(brgyCtx, {
             type: 'bar',
             data: {
                 labels: Object.keys(brgyDataRaw),
-                datasets: [{ label: 'Visits', data: Object.values(brgyDataRaw), backgroundColor: '#14b8a6', borderRadius: 4 }]
+                datasets: [{ label: 'Visits', data: brgyValues, backgroundColor: brgyColors, borderRadius: 6, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.85 }]
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 40 } },
-                plugins: { legend: { display: false }, datalabels: { align: 'right', anchor: 'end', color: '#14b8a6' } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+                plugins: { legend: { display: false }, datalabels: { align: 'right', anchor: 'end', color: '#0d9488', font: { weight: '600', size: 12 } } },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(148,163,184,0.08)' } }, y: { grid: { display: false }, ticks: { font: { size: 12, weight: '500' } } } }
             }
         });
 

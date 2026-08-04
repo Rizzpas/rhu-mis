@@ -9,12 +9,13 @@ class Consultation extends Model
     use \App\Traits\Auditable, \App\Traits\Sterilizable;
 
     protected $sterilizable = [
-        'diagnosis', 'prescription', 'medical_notes', 'followup_reason'
+        'diagnosis', 'prescription', 'medical_notes', 'followup_reason',
     ];
+
     protected $touches = ['patient'];
 
     protected $fillable = [
-        'patient_id', 'doctor_id', 'nurse_id', 'pre_triage_id', 'consultation_date', 
+        'patient_id', 'doctor_id', 'nurse_id', 'pre_triage_id', 'consultation_date',
         'queue_number', 'status', 'severity', 'diagnosis',
         'prescription',
         'medical_notes',
@@ -35,12 +36,12 @@ class Consultation extends Model
     ];
 
     protected $casts = [
-        'consultation_date'       => 'date',
+        'consultation_date' => 'date',
         'consultation_start_time' => 'datetime',
-        'consultation_end_time'   => 'datetime',
-        'is_followup_needed'      => 'boolean',
-        'followup_date'           => 'date',
-        'followup_completed_at'   => 'datetime',
+        'consultation_end_time' => 'datetime',
+        'is_followup_needed' => 'boolean',
+        'followup_date' => 'date',
+        'followup_completed_at' => 'datetime',
     ];
 
     public function preTriage()
@@ -66,5 +67,10 @@ class Consultation extends Model
     public function ancillaryRequests()
     {
         return $this->hasMany(AncillaryRequest::class);
+    }
+
+    public function prescriptionRecord()
+    {
+        return $this->hasOne(Prescription::class);
     }
 }

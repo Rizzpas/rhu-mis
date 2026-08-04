@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ServiceSeeder extends Seeder
@@ -21,7 +20,7 @@ class ServiceSeeder extends Seeder
                     ['title' => 'Diagnosis & Enrollment', 'description' => 'Review results and enrollment in the NTP program.'],
                     ['title' => 'Treatment', 'description' => 'Daily medication intake under direct supervision.'],
                     ['title' => 'Monitoring', 'description' => 'Monthly follow-up checkups and testing.'],
-                ]
+                ],
             ],
             [
                 'name' => 'Lying-In Clinic',
@@ -31,7 +30,7 @@ class ServiceSeeder extends Seeder
                     ['title' => 'Labor Admission', 'description' => 'Admission upon onset of active labor.'],
                     ['title' => 'Delivery', 'description' => 'Assisted normal delivery by skilled health professionals.'],
                     ['title' => 'Postpartum Care', 'description' => 'Observation and care for mother and baby for 24 hours.'],
-                ]
+                ],
             ],
             [
                 'name' => 'Family Planning',
@@ -41,7 +40,7 @@ class ServiceSeeder extends Seeder
                     ['title' => 'Counseling', 'description' => 'One-on-one session to discuss FP methods.'],
                     ['title' => 'Method Selection', 'description' => 'Choose preferred method (Pills, Injectables, IUD, etc.).'],
                     ['title' => 'Dispensing', 'description' => 'Administration of chosen method.'],
-                ]
+                ],
             ],
             [
                 'name' => 'Health / Sanitary Card',
@@ -51,7 +50,7 @@ class ServiceSeeder extends Seeder
                     ['title' => 'Payment', 'description' => 'Pay corresponding fees at the Treasury Office.'],
                     ['title' => 'Seminar', 'description' => 'Attend Food Handlers Seminar (if applicable).'],
                     ['title' => 'Release', 'description' => 'Claim signed Health/Sanitary Card.'],
-                ]
+                ],
             ],
             [
                 'name' => 'Dental Services',
@@ -60,7 +59,7 @@ class ServiceSeeder extends Seeder
                     ['title' => 'Consultation', 'description' => 'Dental examination and history taking.'],
                     ['title' => 'Procedure', 'description' => 'Extraction or temporary filling as assessed.'],
                     ['title' => 'Medication', 'description' => 'Prescription of antibiotics or pain relievers if needed.'],
-                ]
+                ],
             ],
             [
                 'name' => 'General Consultation',
@@ -69,7 +68,7 @@ class ServiceSeeder extends Seeder
                     ['title' => 'Triage', 'description' => 'Vital signs taking and initial interview.'],
                     ['title' => 'Doctor Consultation', 'description' => 'Medical assessment and physical examination.'],
                     ['title' => 'Management', 'description' => 'Prescription, treatment, or referral to higher facility.'],
-                ]
+                ],
             ],
         ];
 

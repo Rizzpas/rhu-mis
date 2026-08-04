@@ -148,7 +148,9 @@
                                 Clinical Nurse</option>
                             <option value="vitals_nurse" {{ request('role') == 'vitals_nurse' ? 'selected' : '' }}>Vitals
                                 Nurse</option>
+                            <option value="pharmacy" {{ request('role') == 'pharmacy' ? 'selected' : '' }}>Pharmacist</option>
                             <option value="information_desk" {{ request('role') == 'information_desk' ? 'selected' : '' }}>
+
                                 Front Desk</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
@@ -378,6 +380,7 @@
                                                 Radiology</option>
                                             <option value="clinical_nurse" {{ old('role') == 'clinical_nurse' ? 'selected' : '' }}>Clinical Nurse</option>
                                             <option value="vitals_nurse" {{ old('role') == 'vitals_nurse' ? 'selected' : '' }}>Vitals Nurse (Triage)</option>
+                                            <option value="pharmacy" {{ old('role') == 'pharmacy' ? 'selected' : '' }}>Pharmacist</option>
                                             <option value="information_desk" {{ old('role') == 'information_desk' ? 'selected' : '' }}>Front Desk / Information Desk</option>
                                         </select>
                                     </div>
@@ -657,6 +660,7 @@
                                                 <option value="radiology">Radiology</option>
                                                 <option value="clinical_nurse">Clinical Nurse</option>
                                                 <option value="vitals_nurse">Vitals Nurse (Triage)</option>
+                                                <option value="pharmacy">Pharmacist</option>
                                                 <option value="information_desk">Front Desk / Information Desk</option>
                                             </select>
                                         </div>
@@ -847,6 +851,7 @@
                                                             'radiology' => 'text-purple-600 dark:text-purple-400',
                                                             'clinical_nurse' => 'text-yellow-500 dark:text-yellow-400',
                                                             'vitals_nurse' => 'text-yellow-500 dark:text-yellow-400',
+                                                            'pharmacy' => 'text-teal-600 dark:text-teal-400',
                                                             'information_desk' => 'text-slate-500 dark:text-slate-400',
                                                         ];
 

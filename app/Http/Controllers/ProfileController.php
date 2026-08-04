@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -16,6 +16,7 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
+
         return view('profile.settings', compact('user'));
     }
 
@@ -42,7 +43,7 @@ class ProfileController extends Controller
 
         // Require OTP verification if email is changing
         if ($user->email !== $validated['email']) {
-            if (!session('email_otp_verified') || session('email_otp_verified') !== $validated['email']) {
+            if (! session('email_otp_verified') || session('email_otp_verified') !== $validated['email']) {
                 return back()->withErrors(['email' => 'You must verify your new email address via OTP first before saving.']);
             }
             session()->forget('email_otp_verified');
@@ -72,13 +73,13 @@ class ProfileController extends Controller
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
             'password' => [
-                'required', 
-                'string', 
-                'confirmed', 
+                'required',
+                'string',
+                'confirmed',
                 \Illuminate\Validation\Rules\Password::min(8)
                     ->mixedCase()
                     ->numbers()
-                    ->symbols()
+                    ->symbols(),
             ],
         ]);
 
@@ -96,17 +97,17 @@ class ProfileController extends Controller
     {
         $request->validate(['email' => 'required|email|unique:users,email']);
         $otp = rand(100000, 999999);
-        \Illuminate\Support\Facades\Cache::put('email_change_otp_' . auth()->id(), ['email' => $request->email, 'otp' => $otp], now()->addMinutes(10));
-        
+        \Illuminate\Support\Facades\Cache::put('email_change_otp_'.auth()->id(), ['email' => $request->email, 'otp' => $otp], now()->addMinutes(10));
+
         try {
-            \Illuminate\Support\Facades\Mail::raw("Your email verification code is: $otp", function($msg) use ($request) {
+            \Illuminate\Support\Facades\Mail::raw("Your email verification code is: $otp", function ($msg) use ($request) {
                 $msg->to($request->email)->subject('Verify your new email address');
             });
         } catch (\Exception $e) {
             // Fallback for demo if mail is not configured
-            \Illuminate\Support\Facades\Log::info("FALLBACK: Email OTP for " . $request->email . " is: " . $otp);
+            \Illuminate\Support\Facades\Log::info('FALLBACK: Email OTP for '.$request->email.' is: '.$otp);
         }
-        
+
         return response()->json(['success' => true]);
     }
 
@@ -116,15 +117,15 @@ class ProfileController extends Controller
     public function verifyEmailOtp(Request $request)
     {
         $request->validate(['otp' => 'required|string', 'email' => 'required|email']);
-        $cached = \Illuminate\Support\Facades\Cache::get('email_change_otp_' . auth()->id());
-        
-        if (!$cached || $cached['email'] !== $request->email || $cached['otp'] != $request->otp) {
+        $cached = \Illuminate\Support\Facades\Cache::get('email_change_otp_'.auth()->id());
+
+        if (! $cached || $cached['email'] !== $request->email || $cached['otp'] != $request->otp) {
             return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.'], 422);
         }
-        
+
         session(['email_otp_verified' => $request->email]);
-        \Illuminate\Support\Facades\Cache::forget('email_change_otp_' . auth()->id());
-        
+        \Illuminate\Support\Facades\Cache::forget('email_change_otp_'.auth()->id());
+
         return response()->json(['success' => true]);
     }
 }

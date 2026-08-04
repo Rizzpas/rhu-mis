@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Appointment;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class AppointmentSeeder extends Seeder
 {
@@ -21,7 +20,7 @@ class AppointmentSeeder extends Seeder
                 ['email' => "patient{$i}@gmail.com", 'preferred_date' => $fullDate],
                 [
                     'first_name' => 'FullDay',
-                    'last_name' => 'Patient' . $i,
+                    'last_name' => 'Patient'.$i,
                     'sex' => 'Male',
                     'dob' => '2018-05-10',
                     'address' => 'Barangay Test, Quezon City',
@@ -34,7 +33,7 @@ class AppointmentSeeder extends Seeder
                     'complaint' => 'Routine Checkup',
                     'status' => 'approved',
                     'data_privacy_agreed' => true,
-                    'reference_number' => 'REF-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+                    'reference_number' => 'REF-'.\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
                 ]
             );
         }
@@ -46,7 +45,7 @@ class AppointmentSeeder extends Seeder
                 ['email' => "limited{$i}@gmail.com", 'preferred_date' => $limitedDate],
                 [
                     'first_name' => 'Limited',
-                    'last_name' => 'Patient' . $i,
+                    'last_name' => 'Patient'.$i,
                     'sex' => 'Female',
                     'dob' => '2020-01-15',
                     'address' => 'Barangay Test, Manila',
@@ -59,7 +58,7 @@ class AppointmentSeeder extends Seeder
                     'complaint' => 'Immunization',
                     'status' => 'pending',
                     'data_privacy_agreed' => true,
-                    'reference_number' => 'REF-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+                    'reference_number' => 'REF-'.\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
                 ]
             );
         }
@@ -71,7 +70,7 @@ class AppointmentSeeder extends Seeder
                 ['email' => "avail{$i}@gmail.com", 'preferred_date' => $availableDate],
                 [
                     'first_name' => 'Available',
-                    'last_name' => 'Patient' . $i,
+                    'last_name' => 'Patient'.$i,
                     'sex' => 'Male',
                     'dob' => '2019-09-20',
                     'address' => 'Barangay Available, Makati',
@@ -84,7 +83,7 @@ class AppointmentSeeder extends Seeder
                     'complaint' => 'Checkup',
                     'status' => 'arrived',
                     'data_privacy_agreed' => true,
-                    'reference_number' => 'REF-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+                    'reference_number' => 'REF-'.\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
                 ]
             );
         }

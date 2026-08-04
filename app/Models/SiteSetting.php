@@ -29,8 +29,10 @@ class SiteSetting extends Model
         $value = static::get($key);
         if ($value) {
             $decoded = json_decode($value, true);
+
             return is_array($decoded) ? $decoded : $default;
         }
+
         return $default;
     }
 
@@ -44,7 +46,7 @@ class SiteSetting extends Model
         });
 
         // If cached as array of key=>value (from get()), re-fetch with group info
-        if (!($settings instanceof \Illuminate\Database\Eloquent\Collection)) {
+        if (! ($settings instanceof \Illuminate\Database\Eloquent\Collection)) {
             $settings = static::all();
         }
 

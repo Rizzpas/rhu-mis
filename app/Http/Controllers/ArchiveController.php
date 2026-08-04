@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Announcement;
+use Illuminate\Http\Request;
 
 class ArchiveController extends Controller
 {
@@ -26,7 +26,7 @@ class ArchiveController extends Controller
                 'color' => 'blue',
                 'count' => \App\Models\User::onlyTrashed()->count(),
                 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />',
-            ]
+            ],
         ];
 
         return view('admin.archive.index', compact('categories'));
@@ -71,6 +71,9 @@ class ArchiveController extends Controller
      */
     public function forceDelete($type, $id)
     {
+        // Only super_admin can permanently delete archived records
+        \Illuminate\Support\Facades\Gate::authorize('force-delete');
+
         $record = $this->getRecord($type, $id);
 
         // Handle physical file deletions before force deleting the record
@@ -80,10 +83,10 @@ class ArchiveController extends Controller
             }
             // Delete associated gallery images physically
             foreach ($record->images()->get() as $image) {
-                 if ($image->image_path) {
-                     \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
-                 }
-                 $image->delete();
+                if ($image->image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
+                }
+                $image->delete();
             }
         } elseif ($type === 'staff') {
             if ($record->avatar_path) {
@@ -110,6 +113,7 @@ class ArchiveController extends Controller
                 abort(404, 'Category not found.');
         }
     }
+
     /**
      * Bulk restore soft-deleted records.
      */
@@ -137,6 +141,9 @@ class ArchiveController extends Controller
      */
     public function bulkForceDelete(Request $request, $type)
     {
+        // Only super_admin can permanently delete archived records
+        \Illuminate\Support\Facades\Gate::authorize('force-delete');
+
         $request->validate([
             'ids' => 'required|array',
         ]);
@@ -151,10 +158,10 @@ class ArchiveController extends Controller
                     \Illuminate\Support\Facades\Storage::disk('public')->delete($record->image_path);
                 }
                 foreach ($record->images()->get() as $image) {
-                     if ($image->image_path) {
-                         \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
-                     }
-                     $image->delete();
+                    if ($image->image_path) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
+                    }
+                    $image->delete();
                 }
                 $record->forceDelete();
             }
