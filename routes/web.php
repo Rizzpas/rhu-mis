@@ -18,6 +18,7 @@ Route::get('/about', [PublicController::class, 'about'])->name('about');
 Route::get('/units', [PublicController::class, 'units'])->name('units.index');
 Route::get('/units/{slug}', [PublicController::class, 'showUnit'])->name('units.show');
 Route::get('/check-home-updates', [PublicController::class, 'checkHomeUpdates'])->name('welcome.check-updates');
+Route::get('/announcements', [PublicController::class, 'announcementsIndex'])->name('announcements.index');
 Route::get('/announcements/{announcement}', [PublicController::class, 'showAnnouncement'])->name('announcements.show');
 Route::get('/announcements/{announcement}/check-update', [PublicController::class, 'checkAnnouncementUpdate'])->name('announcements.check-update');
 Route::get('/announcements/{announcement}/fetch-content', [PublicController::class, 'getAnnouncementContent'])->name('announcements.fetch-content');

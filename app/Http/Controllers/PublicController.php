@@ -82,6 +82,15 @@ class PublicController extends Controller
         ]);
     }
 
+    public function announcementsIndex()
+    {
+        $announcements = Announcement::where('status', 'published')
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
+        return view('announcements.index', compact('announcements'));
+    }
+
     public function showAnnouncement(Announcement $announcement)
     {
         return view('announcements.show', compact('announcement'));

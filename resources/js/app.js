@@ -6,6 +6,37 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
+// --- Scroll Reveal (IntersectionObserver) ---
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+
+        document.querySelectorAll('[data-reveal]').forEach(el => revealObserver.observe(el));
+
+        // Re-observe after Alpine live-update refreshes content
+        const announcementsContainer = document.querySelector('#announcements-container');
+        if (announcementsContainer) {
+            const mutationObserver = new MutationObserver(() => {
+                announcementsContainer.querySelectorAll('[data-reveal]:not(.is-visible)').forEach(el => {
+                    revealObserver.observe(el);
+                });
+            });
+            mutationObserver.observe(announcementsContainer, { childList: true, subtree: true });
+        }
+    } else {
+        // Reduced motion: make everything visible immediately
+        document.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('is-visible'));
+    }
+});
+
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         window.Echo.channel('queues')

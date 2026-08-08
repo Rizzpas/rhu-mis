@@ -12,7 +12,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    @stack('head')
 
     <!-- Flatpickr for better date pickers -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -47,11 +49,6 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background-image: url('{{ asset('assets/images/bg-image-light.png') }}') !important;
-        }
-
-        html.dark body {
-            background-image: url('{{ asset('assets/images/bg-image-dark.png') }}') !important;
         }
 
         .glass {
@@ -80,7 +77,7 @@
 </head>
 
 <body
-    class="antialiased bg-theme-light dark:bg-theme-dark bg-cover md:bg-size-[100%_auto] bg-top bg-no-repeat bg-[#eefcf1] dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans"
+    class="antialiased bg-[#FAF9F6] dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans"
     x-data="{ 
             open: false,
             title: '',
@@ -163,10 +160,46 @@
                             </svg>
                         </button>
                     </li>
-                    <li>
-                        <a href="{{ route('appointment.create') }}"
-                            class="block py-2 px-3 text-gray-900 dark:text-white hover:text-green-600 hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">
-                            Appointment</a>
+                    <li class="relative" x-data="{ apptOpen: false }" @click.away="apptOpen = false">
+                        <button @click="apptOpen = !apptOpen"
+                            class="flex items-center gap-1 py-2 px-3 font-medium text-gray-900 dark:text-white hover:text-green-600 md:hover:bg-transparent md:border-0 md:p-0 transition">
+                            Appointment
+                            <svg class="w-4 h-4 transition-transform duration-200" :class="apptOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/></svg>
+                        </button>
+                        <!-- Appointment Dropdown -->
+                        <div x-show="apptOpen"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 -translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-2"
+                             class="appt-dropdown"
+                             style="display: none;">
+                            <a href="{{ route('appointment.create') }}" class="appt-dropdown-item">
+                                <span class="shrink-0 w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center mt-0.5">
+                                    <svg class="w-5 h-5 text-green-700 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                </span>
+                                <span>
+                                    <span class="block font-semibold text-gray-900 dark:text-white text-sm">Get Started</span>
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">New here? Book your visit</span>
+                                </span>
+                            </a>
+                            <a href="{{ route('appointment.manage') }}" class="appt-dropdown-item">
+                                <span class="shrink-0 w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center mt-0.5">
+                                    <svg class="w-5 h-5 text-teal-700 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                                </span>
+                                <span>
+                                    <span class="block font-semibold text-gray-900 dark:text-white text-sm">Manage Appointment</span>
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Already booked? Check or change it</span>
+                                </span>
+                            </a>
+                        </div>
+                        <!-- Mobile: show both links inline when menu is collapsed -->
+                        <div class="md:hidden" x-show="apptOpen" x-transition>
+                            <a href="{{ route('appointment.create') }}" class="block py-2 px-6 text-sm text-gray-700 dark:text-gray-300 hover:text-green-600">↳ Get Started</a>
+                            <a href="{{ route('appointment.manage') }}" class="block py-2 px-6 text-sm text-gray-700 dark:text-gray-300 hover:text-green-600">↳ Manage Appointment</a>
+                        </div>
                     </li>
 
                     <li>
@@ -209,54 +242,75 @@
         </div>
 
         <div id="mega-menu-full-dropdown"
-            class="hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg border-y absolute w-full z-50 left-0 max-h-[60vh] overflow-y-auto">
-            <div class="grid max-w-7xl px-4 py-5 mx-auto text-gray-900 dark:text-white sm:grid-cols-2 lg:grid-cols-3 lg:px-8 gap-4"
+            class="hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl border-y absolute w-full z-50 left-0 max-h-[60vh] overflow-y-auto">
+            <div class="max-w-7xl px-4 py-6 mx-auto lg:px-8"
                 aria-labelledby="mega-menu-full-dropdown-button">
 
-                <a href="{{ route('units.index') }}"
-                    class="block p-4 rounded-xl bg-green-50 dark:bg-green-900/30 hover:bg-green-600/20 transition border border-transparent">
-                    <div class="font-bold text-green-900 dark:text-green-400 mb-1">View All Units</div>
-                    <span class="text-sm text-gray-600 dark:text-gray-400">See our complete facility overview.</span>
-                </a>
+                {{-- Header row --}}
+                <div class="flex items-center justify-between mb-4 px-1">
+                    <h3 class="font-display text-lg font-bold text-gray-900 dark:text-white">Our Facilities</h3>
+                    <a href="{{ route('units.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 dark:text-green-400 hover:text-green-700 transition">
+                        View all
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
 
-                <a href="{{ route('units.show', 'main-health-center') }}"
-                    class="block p-4 rounded-xl bg-green-50 dark:bg-green-900/30 hover:bg-green-600/20 transition border border-transparent">
-                    <div class="font-semibold text-green-800 dark:text-green-400 mb-1">Main Health Center</div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Comprehensive check-ups, diagnostics, and
-                        general medical
-                        consultations.</span>
-                </a>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <a href="{{ route('units.show', 'main-health-center') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition border border-transparent hover:border-green-100 dark:hover:border-green-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">Main Health Center</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Check-ups, diagnostics & general consultations</span>
+                        </span>
+                    </a>
 
-                <a href="{{ route('units.show', 'lying-in-clinic') }}"
-                    class="block p-4 rounded-xl bg-green-50 dark:bg-green-900/30 hover:bg-green-600/20 transition border border-transparent">
-                    <div class="font-semibold text-green-800 dark:text-green-400 mb-1">Lying-in Clinic</div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">24/7 maternity care, safe delivery, and
-                        newborn screening
-                        services.</span>
-                </a>
+                    <a href="{{ route('units.show', 'lying-in-clinic') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-900/10 transition border border-transparent hover:border-pink-100 dark:hover:border-pink-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400 group-hover:bg-pink-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-pink-700 dark:group-hover:text-pink-400 transition-colors">Lying-in Clinic</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">24/7 maternity care, delivery & newborn screening</span>
+                        </span>
+                    </a>
 
-                <a href="{{ route('units.show', 'dental-clinic') }}"
-                    class="block p-4 rounded-xl bg-green-50 dark:bg-green-900/30 hover:bg-green-600/20 transition border border-transparent">
-                    <div class="font-semibold text-green-800 dark:text-green-400 mb-1">Dental Clinic</div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Tooth extraction, oral prophylaxis, and
-                        general dental
-                        hygiene.</span>
-                </a>
+                    <a href="{{ route('units.show', 'dental-clinic') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-900/10 transition border border-transparent hover:border-sky-100 dark:hover:border-sky-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:bg-sky-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">Dental Clinic</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Extraction, prophylaxis & dental hygiene</span>
+                        </span>
+                    </a>
 
-                <a href="{{ route('units.show', 'tb-dots-facility') }}"
-                    class="block p-4 rounded-xl bg-green-50 dark:bg-green-900/30 hover:bg-green-600/20 transition border border-transparent">
-                    <div class="font-semibold text-green-800 dark:text-green-400 mb-1">TB DOTS Facility</div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Tuberculosis screening, medication, and full
-                        treatment
-                        monitoring.</span>
-                </a>
+                    <a href="{{ route('units.show', 'tb-dots-facility') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/10 transition border border-transparent hover:border-amber-100 dark:hover:border-amber-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">TB DOTS Facility</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">TB screening, medication & treatment monitoring</span>
+                        </span>
+                    </a>
 
-                <a href="{{ route('units.show', 'animal-bite-center') }}"
-                    class="block p-4 rounded-xl bg-green-50 dark:bg-green-900/30 hover:bg-green-600/20 transition border border-transparent">
-                    <div class="font-semibold text-green-800 dark:text-green-400 mb-1">Animal Bite Center</div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Immediate care and vaccination for rabies
-                        prevention.</span>
-                </a>
+                    <a href="{{ route('units.show', 'animal-bite-center') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition border border-transparent hover:border-red-100 dark:hover:border-red-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285zm0 13.036h.008v.008H12v-.008z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors">Animal Bite Center</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Immediate care & rabies vaccination</span>
+                        </span>
+                    </a>
+                </div>
 
             </div>
         </div>
