@@ -67,11 +67,12 @@
 class="fixed top-4 right-4 sm:top-6 sm:right-6 z-[9999] flex flex-col justify-start gap-3 w-full sm:w-auto min-w-[320px] max-w-md pointer-events-none"
 @add-toast.window="addToast($event.detail.type, $event.detail.message)">
 <template x-for="toast in toasts" :key="toast.id">
-    <div x-show="toast.visible" x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 -translate-y-8 scale-95"
+    <div x-show="toast.visible" x-transition:enter="transition ease-[cubic-bezier(0.16,1,0.3,1)] duration-300"
+        x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
+        x-transition:leave="transition ease-in duration-200" 
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
         @click="togglePin(toast.id)"
         class="pointer-events-auto flex w-full items-start gap-3 rounded-xl border bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:bg-gray-950 dark:ring-white/10 relative overflow-hidden cursor-pointer group transition-all duration-300"
         :class="{

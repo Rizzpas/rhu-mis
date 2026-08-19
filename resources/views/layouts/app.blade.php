@@ -49,6 +49,7 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
+            background-color: #faf8f2;
         }
 
         .glass {
@@ -77,7 +78,7 @@
 </head>
 
 <body
-    class="antialiased bg-[#FAF9F6] dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans"
+    class="antialiased bg-[#faf8f2] dark:bg-[#081a1c] text-gray-800 dark:text-gray-100 font-sans relative"
     x-data="{ 
             open: false,
             title: '',
@@ -108,17 +109,26 @@
                 this.open = false;
             }
         }" @open-confirmation.window="show($event.detail)">
+
+    {{-- Global Aura Gradient: "Frosted Jade" Background --}}
+    <div class="aura-bg" aria-hidden="true">
+        <div class="aura-layer-1"></div>
+        <div class="aura-layer-2"></div>
+        <div class="aura-layer-3"></div>
+        <div class="aura-layer-4"></div>
+    </div>
+
     @include('partials.skeleton-app')
     <!-- Top Bar -->
     <div
-        class="bg-green-700 text-white text-xs py-2 px-4 md:px-8 flex md:flex-row justify-center items-center font-medium gap-4 md:gap-7 text-center">
+        class="bg-green-700 text-white text-xs py-2 px-4 md:px-8 flex md:flex-row justify-center items-center font-medium gap-4 md:gap-7 text-center relative z-10">
         <span><span class="hidden sm:inline">Clinic Hours: </span>{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</span>
         <span><span class="hidden sm:inline">Emergency Hotlines: </span>{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span>
     </div>
 
     <!-- Main Navigation -->
     <nav
-        class="bg-white dark:bg-gray-800 sticky w-full z-50 top-0 start-0 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md sticky w-full z-50 top-0 start-0 border-b border-gray-200/80 dark:border-gray-700/80 shadow-xs">
         <div class="flex flex-wrap justify-between items-center mx-auto max-w-7xl px-4 py-4 md:px-8">
             <a href="{{ route('welcome') }}" class="flex items-center gap-3 rtl:space-x-reverse">
                 <div class="shrink-0">
@@ -153,53 +163,19 @@
                         <button id="mega-menu-full-dropdown-button" data-collapse-toggle="mega-menu-full-dropdown"
                             class="flex items-center justify-between w-full py-2 px-3 font-medium text-gray-900 dark:text-white md:w-auto hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">
                             RHU Units
-                            <svg class="w-4 h-4 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                                height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m19 9-7 7-7-7" />
+                            <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
                             </svg>
                         </button>
                     </li>
-                    <li class="relative" x-data="{ apptOpen: false }" @click.away="apptOpen = false">
-                        <button @click="apptOpen = !apptOpen"
-                            class="flex items-center gap-1 py-2 px-3 font-medium text-gray-900 dark:text-white hover:text-green-600 md:hover:bg-transparent md:border-0 md:p-0 transition">
+                    <li>
+                        <button id="mega-menu-appointment-dropdown-button" data-collapse-toggle="mega-menu-appointment-dropdown"
+                            class="flex items-center justify-between w-full py-2 px-3 font-medium text-gray-900 dark:text-white md:w-auto hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">
                             Appointment
-                            <svg class="w-4 h-4 transition-transform duration-200" :class="apptOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/></svg>
+                            <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                            </svg>
                         </button>
-                        <!-- Appointment Dropdown -->
-                        <div x-show="apptOpen"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 -translate-y-2"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 -translate-y-2"
-                             class="appt-dropdown"
-                             style="display: none;">
-                            <a href="{{ route('appointment.create') }}" class="appt-dropdown-item">
-                                <span class="shrink-0 w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center mt-0.5">
-                                    <svg class="w-5 h-5 text-green-700 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                                </span>
-                                <span>
-                                    <span class="block font-semibold text-gray-900 dark:text-white text-sm">Get Started</span>
-                                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">New here? Book your visit</span>
-                                </span>
-                            </a>
-                            <a href="{{ route('appointment.manage') }}" class="appt-dropdown-item">
-                                <span class="shrink-0 w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center mt-0.5">
-                                    <svg class="w-5 h-5 text-teal-700 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-                                </span>
-                                <span>
-                                    <span class="block font-semibold text-gray-900 dark:text-white text-sm">Manage Appointment</span>
-                                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Already booked? Check or change it</span>
-                                </span>
-                            </a>
-                        </div>
-                        <!-- Mobile: show both links inline when menu is collapsed -->
-                        <div class="md:hidden" x-show="apptOpen" x-transition>
-                            <a href="{{ route('appointment.create') }}" class="block py-2 px-6 text-sm text-gray-700 dark:text-gray-300 hover:text-green-600">↳ Get Started</a>
-                            <a href="{{ route('appointment.manage') }}" class="block py-2 px-6 text-sm text-gray-700 dark:text-gray-300 hover:text-green-600">↳ Manage Appointment</a>
-                        </div>
                     </li>
 
                     <li>
@@ -303,11 +279,52 @@
                     <a href="{{ route('units.show', 'animal-bite-center') }}"
                         class="flex items-start gap-4 p-4 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition border border-transparent hover:border-red-100 dark:hover:border-red-800/30 group">
                         <span class="shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285zm0 13.036h.008v.008H12v-.008z"/></svg>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285zm0 13.036h.008v.008H12v-.008z"/></svg>
                         </span>
                         <span>
                             <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors">Animal Bite Center</span>
                             <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Immediate care & rabies vaccination</span>
+                        </span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="mega-menu-appointment-dropdown"
+            class="hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl border-y absolute w-full z-50 left-0 max-h-[60vh] overflow-y-auto">
+            <div class="max-w-7xl px-4 py-6 mx-auto lg:px-8"
+                aria-labelledby="mega-menu-appointment-dropdown-button">
+
+                {{-- Header row --}}
+                <div class="flex items-center justify-between mb-4 px-1">
+                    <h3 class="font-display text-lg font-bold text-gray-900 dark:text-white">Appointments</h3>
+                    <a href="{{ route('appointment.create') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 dark:text-green-400 hover:text-green-700 transition">
+                        Book now
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-3">
+                    <a href="{{ route('appointment.create') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition border border-transparent hover:border-green-100 dark:hover:border-green-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">Get Started</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">New patient or booking? Schedule your visit online in a few quick steps</span>
+                        </span>
+                    </a>
+
+                    <a href="{{ route('appointment.manage') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-teal-50 dark:hover:bg-teal-900/20 transition border border-transparent hover:border-teal-100 dark:hover:border-teal-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">Manage Appointment</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Already booked? Check status, reschedule, or cancel your booking</span>
                         </span>
                     </a>
                 </div>

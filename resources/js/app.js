@@ -6,6 +6,68 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
+// --- Navbar Mega Menu Dropdown Coordination & Chevron Animation ---
+document.addEventListener('DOMContentLoaded', () => {
+    const unitsBtn = document.getElementById('mega-menu-full-dropdown-button');
+    const apptBtn = document.getElementById('mega-menu-appointment-dropdown-button');
+    const unitsMenu = document.getElementById('mega-menu-full-dropdown');
+    const apptMenu = document.getElementById('mega-menu-appointment-dropdown');
+
+    function syncState() {
+        if (unitsBtn && unitsMenu) {
+            const isOpen = !unitsMenu.classList.contains('hidden');
+            unitsBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+        if (apptBtn && apptMenu) {
+            const isOpen = !apptMenu.classList.contains('hidden');
+            apptBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+    }
+
+    if (unitsBtn && apptMenu) {
+        unitsBtn.addEventListener('click', () => {
+            if (!apptMenu.classList.contains('hidden')) {
+                apptMenu.classList.add('hidden');
+                if (apptBtn) apptBtn.setAttribute('aria-expanded', 'false');
+            }
+            setTimeout(syncState, 50);
+        });
+    }
+
+    if (apptBtn && unitsMenu) {
+        apptBtn.addEventListener('click', () => {
+            if (!unitsMenu.classList.contains('hidden')) {
+                unitsMenu.classList.add('hidden');
+                if (unitsBtn) unitsBtn.setAttribute('aria-expanded', 'false');
+            }
+            setTimeout(syncState, 50);
+        });
+    }
+
+    // Close when clicking outside navbar
+    document.addEventListener('click', (e) => {
+        const nav = document.querySelector('nav');
+        if (nav && !nav.contains(e.target)) {
+            if (unitsMenu && !unitsMenu.classList.contains('hidden')) {
+                unitsMenu.classList.add('hidden');
+                if (unitsBtn) unitsBtn.setAttribute('aria-expanded', 'false');
+            }
+            if (apptMenu && !apptMenu.classList.contains('hidden')) {
+                apptMenu.classList.add('hidden');
+                if (apptBtn) apptBtn.setAttribute('aria-expanded', 'false');
+            }
+        }
+    });
+
+    // Observe changes on dropdown menus to keep rotation animated properly
+    [unitsMenu, apptMenu].forEach(menu => {
+        if (menu) {
+            const observer = new MutationObserver(syncState);
+            observer.observe(menu, { attributes: true, attributeFilter: ['class'] });
+        }
+    });
+});
+
 // --- Scroll Reveal (IntersectionObserver) ---
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

@@ -10,67 +10,65 @@
 
 @section('content')
     <div x-data="{ 
-                    lastAnnouncementModified: '{{ \App\Models\Announcement::where("status", "published")->latest("updated_at")->first()?->updated_at?->toDateTimeString() ?? "" }}',
-                    lastDoctorModified: '{{ \App\Models\User::where("role", "doctor")->latest("updated_at")->first()?->updated_at?->toDateTimeString() ?? "" }}',
-                    announcementCount: {{ \App\Models\Announcement::where("status", "published")->count() }},
-                    doctorCount: {{ \App\Models\User::where("role", "doctor")->count() }},
+                        lastAnnouncementModified: '{{ \App\Models\Announcement::where("status", "published")->latest("updated_at")->first()?->updated_at?->toDateTimeString() ?? "" }}',
+                        lastDoctorModified: '{{ \App\Models\User::where("role", "doctor")->latest("updated_at")->first()?->updated_at?->toDateTimeString() ?? "" }}',
+                        announcementCount: {{ \App\Models\Announcement::where("status", "published")->count() }},
+                        doctorCount: {{ \App\Models\User::where("role", "doctor")->count() }},
 
-                    checkForUpdates() {
-                        fetch('{{ route('welcome.check-updates') }}')
-                            .then(response => response.json())
-                            .then(data => {
-                                let needsUpdate = false;
+                        checkForUpdates() {
+                            fetch('{{ route('welcome.check-updates') }}')
+                                .then(response => response.json())
+                                .then(data => {
+                                    let needsUpdate = false;
 
-                                if (data.last_announcement_modified !== this.lastAnnouncementModified) needsUpdate = true;
-                                if (data.last_doctor_modified !== this.lastDoctorModified) needsUpdate = true;
-                                if (data.announcement_count !== this.announcementCount) needsUpdate = true;
-                                if (data.doctor_count !== this.doctorCount) needsUpdate = true;
+                                    if (data.last_announcement_modified !== this.lastAnnouncementModified) needsUpdate = true;
+                                    if (data.last_doctor_modified !== this.lastDoctorModified) needsUpdate = true;
+                                    if (data.announcement_count !== this.announcementCount) needsUpdate = true;
+                                    if (data.doctor_count !== this.doctorCount) needsUpdate = true;
 
-                                if (needsUpdate) {
-                                    console.log('Update detected (Schedule/Announcement). Silently refreshing...');
-                                    this.lastAnnouncementModified = data.last_announcement_modified || '';
-                                    this.lastDoctorModified = data.last_doctor_modified || '';
-                                    this.announcementCount = data.announcement_count;
-                                    this.doctorCount = data.doctor_count;
-                                    this.refreshContent();
-                                }
-                            })
-                            .catch(error => console.error('Error checking updates:', error));
-                    },
-                    refreshContent() {
-                        fetch(window.location.href)
-                            .then(response => response.text())
-                            .then(html => {
-                                let parser = new DOMParser();
-                                let doc = parser.parseFromString(html, 'text/html');
+                                    if (needsUpdate) {
+                                        console.log('Update detected (Schedule/Announcement). Silently refreshing...');
+                                        this.lastAnnouncementModified = data.last_announcement_modified || '';
+                                        this.lastDoctorModified = data.last_doctor_modified || '';
+                                        this.announcementCount = data.announcement_count;
+                                        this.doctorCount = data.doctor_count;
+                                        this.refreshContent();
+                                    }
+                                })
+                                .catch(error => console.error('Error checking updates:', error));
+                        },
+                        refreshContent() {
+                            fetch(window.location.href)
+                                .then(response => response.text())
+                                .then(html => {
+                                    let parser = new DOMParser();
+                                    let doc = parser.parseFromString(html, 'text/html');
 
-                                let newAnnouncements = doc.querySelector('#announcements-container');
-                                let currentAnnouncements = document.querySelector('#announcements-container');
-                                if (newAnnouncements && currentAnnouncements) {
-                                    currentAnnouncements.innerHTML = newAnnouncements.innerHTML;
-                                }
+                                    let newAnnouncements = doc.querySelector('#announcements-container');
+                                    let currentAnnouncements = document.querySelector('#announcements-container');
+                                    if (newAnnouncements && currentAnnouncements) {
+                                        currentAnnouncements.innerHTML = newAnnouncements.innerHTML;
+                                    }
 
-                                let newSchedule = doc.querySelector('#schedule .grid');
-                                let currentSchedule = document.querySelector('#schedule .grid');
-                                if (newSchedule && currentSchedule) {
-                                    currentSchedule.innerHTML = newSchedule.innerHTML;
-                                }
-                            });
-                    },
-                    init() {
-                        setInterval(() => {
-                            this.checkForUpdates();
-                        }, 5000);
-                    }
-                }" x-init="init()">
+                                    let newSchedule = doc.querySelector('#schedule .grid');
+                                    let currentSchedule = document.querySelector('#schedule .grid');
+                                    if (newSchedule && currentSchedule) {
+                                        currentSchedule.innerHTML = newSchedule.innerHTML;
+                                    }
+                                });
+                        },
+                        init() {
+                            setInterval(() => {
+                                this.checkForUpdates();
+                            }, 5000);
+                        }
+                    }" x-init="init()">
 
-        {{-- ============================================================
-             HERO SECTION — Merged hero + carousel
-        ============================================================ --}}
-        <section class="hero w-full bg-[#FAF9F6] dark:bg-transparent">
-            <div class="mesh"></div>
-            <div class="grain"></div>
-            <div class="hero-content max-w-7xl mx-auto px-5 sm:px-8 py-14 md:py-20 lg:py-24">
+            {{-- ============================================================
+                 HERO SECTION — Merged hero + carousel
+            ============================================================ --}}
+            <section class="hero w-full bg-transparent">
+                <div class="hero-content max-w-7xl mx-auto px-5 sm:px-8 py-14 md:py-20 lg:py-24">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
                     {{-- Left column (formerly right) — Image carousel (sits over dark green) --}}
@@ -100,10 +98,9 @@
                             {{-- Base Image Slide --}}
                             <div class="absolute inset-0 transition-opacity duration-1000" :class="activeSlide === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'">
                                 <img src="{{ $heroImageUrl }}" alt="RHU Silang, Cavite" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent"></div>
-                                <div class="absolute bottom-0 left-0 p-8 sm:p-10 w-full text-white">
-                                    <h3 class="font-display text-3xl font-bold mb-2">{{ \App\Models\SiteSetting::get('carousel_hero_title', 'RHU Silang, Cavite') }}</h3>
-                                    <p class="text-gray-300 font-medium">{{ \App\Models\SiteSetting::get('carousel_hero_subtitle', 'Providing Quality Healthcare for All Citizens') }}</p>
+                                <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6 pb-9 sm:pb-10 bg-gray-950/65 backdrop-blur-md border-t border-white/10 text-white">
+                                    <h3 class="font-display text-xl sm:text-2xl font-bold leading-tight mb-1 text-white">{{ \App\Models\SiteSetting::get('carousel_hero_title', 'RHU Silang, Cavite') }}</h3>
+                                    <p class="text-gray-300 text-xs sm:text-sm font-medium leading-snug">{{ \App\Models\SiteSetting::get('carousel_hero_subtitle', 'Providing Quality Healthcare for All Citizens') }}</p>
                                 </div>
                             </div>
 
@@ -126,20 +123,19 @@
                                         <img src="{{ $slideImgUrl }}" alt="{{ $announcement->title }}" class="w-full h-full object-cover">
                                     @endif
                                 @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent"></div>
-                                <div class="absolute bottom-0 left-0 p-8 sm:p-10 w-full text-white">
-                                    <span class="inline-block px-3 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full mb-3 border border-green-400/30 backdrop-blur-sm uppercase tracking-wider">Announcement</span>
-                                    <h3 class="font-display text-2xl sm:text-3xl font-bold mb-3">{{ $announcement->title }}</h3>
-                                    <p class="text-gray-300 line-clamp-2 max-w-lg">{{ $announcement->content }}</p>
-                                    <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center gap-1.5 mt-4 text-green-400 hover:text-green-300 font-semibold transition-colors">
-                                        Learn more <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6 pb-9 sm:pb-10 bg-gray-950/65 backdrop-blur-md border-t border-white/10 text-white">
+                                    <span class="inline-block px-2.5 py-0.5 bg-green-500/20 text-green-300 text-[11px] font-bold rounded-full mb-1.5 border border-green-400/30 backdrop-blur-sm uppercase tracking-wider">Announcement</span>
+                                    <h3 class="font-display text-lg sm:text-xl md:text-2xl font-bold leading-tight mb-1 text-white">{{ $announcement->title }}</h3>
+                                    <p class="text-gray-300 text-xs sm:text-sm leading-snug line-clamp-2 max-w-lg">{{ $announcement->content }}</p>
+                                    <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center gap-1.5 mt-2 text-xs sm:text-sm text-green-400 hover:text-green-300 font-semibold transition-colors">
+                                        Learn more <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     </a>
                                 </div>
                             </div>
                             @endforeach
 
                             {{-- Carousel Navigation Dots --}}
-                            <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+                            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
                                 <template x-for="i in slidesCount">
                                     <button @click="activeSlide = i - 1; stopAutoPlay(); autoPlay()" class="h-1.5 rounded-full transition-all duration-300" :class="activeSlide === i - 1 ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'" aria-label="Go to slide"></button>
                                 </template>
@@ -193,11 +189,6 @@
             </div>
         </section>
 
-        {{-- Section Divider: Hero → Announcements --}}
-        <div class="max-w-6xl mx-auto px-8">
-            <div class="section-divider"><span class="section-divider-dot"></span></div>
-        </div>
-
         {{-- ============================================================
              ANNOUNCEMENTS SECTION — Featured card + grid, capped at 6
         ============================================================ --}}
@@ -223,7 +214,7 @@
             }
         @endphp
 
-        <div id="announcements" class="bg-white dark:bg-white/[0.03] px-5 sm:px-8 py-16 sm:py-20 backdrop-blur-sm">
+        <div id="announcements" class="px-5 sm:px-8 py-16 sm:py-20">
             <div class="max-w-7xl mx-auto">
                 {{-- Section header --}}
                 <div class="text-center mb-12" data-reveal>
@@ -305,7 +296,7 @@
                                     }
                                     $tag = inferAnnouncementTag($event);
                                 @endphp
-                                <div data-reveal style="transition-delay: {{ $index * 80 }}ms">
+                                <div data-reveal style="transition-delay: {{ $index * 60 }}ms">
                                     <a href="{{ route('announcements.show', $event) }}"
                                        class="block bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700/50 card-hover group h-full">
                                         
@@ -553,177 +544,10 @@
         </div>
 
         {{-- ============================================================
-             CLOSING SECTION — Services overview + CTA
+             CLOSING SECTION — Trust badges + CTA
         ============================================================ --}}
-        <div class="bg-white dark:bg-white/[0.03] px-5 sm:px-8 py-16 sm:py-20 backdrop-blur-sm">
+        <div class="px-5 sm:px-8 py-16 sm:py-20">
             <div class="max-w-7xl mx-auto">
-
-                {{-- Quick services grid --}}
-                <div class="text-center mb-12" data-reveal>
-                    <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ __('Our Services') }}</h2>
-                    <p class="text-gray-500 dark:text-gray-400 mt-3 text-lg max-w-lg mx-auto">{{ __('Comprehensive healthcare for every stage of life') }}</p>
-                    <div class="section-accent mx-auto mt-5"></div>
-                </div>
-
-                <div class="services-bento mb-14" data-reveal>
-                    {{-- 1. Main Health Center (2x2) --}}
-                    <div class="bento-card card-large p-6 flex flex-col" style="transition-delay: 0ms">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            </div>
-                            <div>
-                                <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white">Main Health Center</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">General consultations & primary care</p>
-                            </div>
-                        </div>
-                        
-                        {{-- Realistic Mini UI Preview: Appointment Slots + Overlapping Chip --}}
-                        <div class="flex-1 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-4 relative mt-2 mb-4 overflow-hidden group">
-                            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Today's Availability</div>
-                            <div class="space-y-2">
-                                <div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700 flex justify-between items-center shadow-sm">
-                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">09:00 AM</span>
-                                    <span class="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded text-center w-16">OPEN</span>
-                                </div>
-                                <div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700 flex justify-between items-center shadow-sm">
-                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">10:30 AM</span>
-                                    <span class="text-xs font-bold text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-0.5 rounded text-center w-16">BOOKED</span>
-                                </div>
-                                <div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700 flex justify-between items-center shadow-sm opacity-50">
-                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">01:00 PM</span>
-                                    <span class="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded text-center w-16">OPEN</span>
-                                </div>
-                            </div>
-                            
-                            {{-- Overlapping depth chip --}}
-                            <div class="absolute -bottom-4 -right-4 bg-green-600 text-white p-4 pt-5 pl-5 rounded-tl-3xl shadow-lg transition-transform group-hover:-translate-y-2 group-hover:-translate-x-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-sm">Book Now</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <a href="{{ route('units.index') }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 mt-auto">
-                            View Guide & Details <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </a>
-                    </div>
-
-                    {{-- 2. Lying-in Clinic (2x1) --}}
-                    <div class="bento-card card-wide p-6 flex flex-col justify-between" style="transition-delay: 50ms">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
-                                </div>
-                                <div>
-                                    <h3 class="font-display text-lg font-bold text-gray-900 dark:text-white">Lying-in Clinic</h3>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">24/7 Maternal care services</p>
-                                </div>
-                            </div>
-                            <a href="{{ route('units.index') }}" class="shrink-0 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                            </a>
-                        </div>
-                        
-                        {{-- Realistic Mini UI Preview: Calendar Row --}}
-                        <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700/50 p-3 flex justify-between items-center px-4">
-                            @foreach(['Mon','Tue','Wed','Thu','Fri'] as $day)
-                                <div class="text-center">
-                                    <div class="text-[10px] text-gray-400 uppercase font-bold mb-1">{{ $day }}</div>
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold {{ $loop->first ? 'bg-green-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700' }}">
-                                        {{ 12 + $loop->index }}
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- 3. Dental Clinic (1x2) --}}
-                    <div class="bento-card card-tall p-6 flex flex-col text-center" style="transition-delay: 100ms">
-                        <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0 mx-auto mb-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-gray-900 dark:text-white mb-1">Dental Clinic</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Oral health & extractions</p>
-                        
-                        {{-- Realistic Mini UI Preview: Tooth Status --}}
-                        <div class="flex-1 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700/50 p-4 flex flex-col items-center justify-center mb-6">
-                            <svg class="w-14 h-14 text-gray-300 dark:text-gray-600 mb-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C8.5 2 6 4.5 6 8.5c0 1.5.5 3 1.5 4l1.5 4.5c.3 1 .8 1.5 1.5 1.5.7 0 1-.5 1.5-1.5V14h0v3c.5 1 .8 1.5 1.5 1.5.7 0 1.2-.5 1.5-1.5l1.5-4.5c1-1 1.5-2.5 1.5-4C18 4.5 15.5 2 12 2zm0 9H9.5c-.3 0-.5-.2-.5-.5s.2-.5.5-.5h2.5c.3 0 .5.2.5.5s-.2.5-.5.5z"/>
-                            </svg>
-                            <div class="inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/30 px-3 py-1.5 rounded-full">
-                                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                <span class="text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">5 Slots Open</span>
-                            </div>
-                        </div>
-                        
-                        <a href="{{ route('units.index') }}" class="inline-flex items-center justify-center gap-1 text-xs font-bold text-green-600 hover:text-green-700 dark:text-green-400 transition-colors mt-auto uppercase tracking-wider">
-                            View Details <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </a>
-                    </div>
-
-                    {{-- 4. TB DOTS Facility (1x2) --}}
-                    <div class="bento-card card-tall p-6 flex flex-col text-center" style="transition-delay: 150ms">
-                        <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0 mx-auto mb-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-gray-900 dark:text-white mb-1">TB DOTS</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Tuberculosis treatment</p>
-                        
-                        {{-- Realistic Mini UI Preview: Treatment Progress --}}
-                        <div class="flex-1 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700/50 p-4 flex flex-col justify-center text-left mb-6">
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Medication Stock</div>
-                            <div class="flex items-end gap-1 mb-1">
-                                <span class="text-2xl font-bold text-gray-900 dark:text-white leading-none">94</span>
-                                <span class="text-xs font-medium text-gray-500 mb-0.5">%</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-1">
-                                <div class="h-full bg-green-500 w-[94%] rounded-full"></div>
-                            </div>
-                            <p class="text-[10px] text-gray-500 mt-3 flex items-center gap-1"><svg class="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Resupply arrived</p>
-                        </div>
-                        
-                        <a href="{{ route('units.index') }}" class="inline-flex items-center justify-center gap-1 text-xs font-bold text-green-600 hover:text-green-700 dark:text-green-400 transition-colors mt-auto uppercase tracking-wider">
-                            View Details <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </a>
-                    </div>
-
-                    {{-- 5. Animal Bite Center (2x1) --}}
-                    <div class="bento-card card-wide p-6 flex flex-col justify-between" style="transition-delay: 200ms">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3"/></svg>
-                                </div>
-                                <div>
-                                    <h3 class="font-display text-lg font-bold text-gray-900 dark:text-white">Animal Bite Center</h3>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Rabies vaccination program</p>
-                                </div>
-                            </div>
-                            <a href="{{ route('units.index') }}" class="shrink-0 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                            </a>
-                        </div>
-                        
-                        {{-- Realistic Mini UI Preview: Vaccine Chip --}}
-                        <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700/50 p-3 px-4 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center border border-gray-100 dark:border-gray-700">
-                                    <span class="text-green-600"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"/></svg></span>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Inventory Status</div>
-                                    <div class="text-sm font-semibold text-gray-900 dark:text-white">Anti-Rabies Shots In Stock</div>
-                                </div>
-                            </div>
-                            <div class="px-2.5 py-1 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] uppercase font-bold border border-green-200 dark:border-green-800 tracking-wider">
-                                AVAILABLE
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {{-- Trust badges row --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-14" data-reveal>

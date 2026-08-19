@@ -4,93 +4,111 @@
     <div class="bg-transparent min-h-screen py-12" x-data="appointmentForm()">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="mb-6 flex justify-start">
+            <div class="mb-8 flex justify-start">
                 <a href="{{ route('welcome') }}"
-                    class="inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-green-700 dark:text-green-400 transition bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-                    <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 dark:bg-gray-900/70 border border-white/80 dark:border-gray-800 backdrop-blur-xl shadow-xs text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:scale-105 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     Back to Home
                 </a>
             </div>
-            <!-- Progress Indicator -->
-            <!-- Progress Indicator -->
-            <div class="mb-8 w-full max-w-3xl mx-auto" x-data="{ stepLabels: ['Service', 'Info', 'Date', 'Verify', 'Confirm'] }">
+
+            <!-- Modern Progress Indicator (21st.dev Style) -->
+            <div class="mb-10 w-full max-w-3xl mx-auto" x-data="{ stepLabels: ['Service', 'Patient Info', 'Date & Slot', 'Verification', 'Confirmation'] }">
                 <div class="flex items-start justify-between relative">
-                    <!-- Progress Bar Background -->
-                    <div class="absolute left-0 top-4 md:top-5 transform -translate-y-1/2 w-full h-1 bg-gray-200 z-0"></div>
-                    <!-- Progress Bar Fill -->
-                    <div class="absolute left-0 top-4 md:top-5 transform -translate-y-1/2 h-1 bg-teal-500 z-0 transition-all duration-300"
+                    <!-- Progress Bar Background Track -->
+                    <div class="absolute left-0 top-5 transform -translate-y-1/2 w-full h-1 bg-gray-200/80 dark:bg-gray-700/80 rounded-full z-0"></div>
+                    <!-- Progress Bar Fill Track -->
+                    <div class="absolute left-0 top-5 transform -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full z-0 transition-all duration-300"
                         :style="'width: ' + progress + '%'"></div>
 
                     <!-- Steps 1-5 Bubbles -->
                     <template x-for="i in 5">
                         <div class="relative z-10 flex flex-col items-center w-1/5">
                             <button type="button" @click="goToStep(i)"
-                                class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-colors duration-300 text-xs md:text-base focus:outline-none hover:ring-2 hover:ring-offset-1 hover:ring-teal-400 shadow-sm"
-                                :class="step >= i ? 'bg-teal-500 text-white' : 'bg-gray-200 text-gray-500'" x-text="i"
+                                class="w-10 h-10 rounded-2xl flex items-center justify-center font-display font-extrabold text-sm transition-all duration-300 focus:outline-none cursor-pointer"
+                                :class="step >= i ? 'bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-md shadow-emerald-500/20 scale-105 ring-4 ring-emerald-500/15' : 'bg-white dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-700'" 
+                                x-text="'0' + i"
                                 :disabled="i > step && i > maxStepReached + 1"></button>
-                            <span class="text-[9px] md:text-xs font-bold mt-2 text-gray-500 dark:text-gray-400 text-center uppercase tracking-wider" x-text="stepLabels[i-1]"></span>
+                            <span class="text-[10px] md:text-xs font-bold mt-2 text-center uppercase tracking-wider transition-colors"
+                                  :class="step >= i ? 'text-emerald-700 dark:text-emerald-400 font-extrabold' : 'text-gray-400 dark:text-gray-500'" 
+                                  x-text="stepLabels[i-1]"></span>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-8 relative">
+            <div class="relative rounded-3xl p-6 sm:p-10 bg-white/80 dark:bg-gray-900/80 border border-white/90 dark:border-gray-800/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] overflow-hidden">
+                
+                {{-- Ambient radial background glow --}}
+                <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-25 bg-emerald-500"></div>
 
                 <!-- Loading Overlay -->
                 <div x-show="isLoading"
-                    class="absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-50 z-60 flex items-center justify-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+                    class="absolute inset-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm z-60 flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
                 </div>
 
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Book an Appointment</h2>
+                <div class="text-center mb-8">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 mb-2">
+                        Online Consultation Portal
+                    </span>
+                    <h2 class="font-display text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Book an Appointment</h2>
+                </div>
 
                 <form id="appointment-form" action="{{ route('appointment.store') }}" method="POST"
                     @submit.prevent="submitForm"
                     @submit-appointment-form.window="console.log('Submitting form...'); $el.submit(); isLoading = true">
                     @csrf
                     <div x-show="step === 1" x-transition>
-                        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 1: Select Service</h3>
+                        <h3 class="font-display text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Step 1: Select Consultation Service
+                        </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Pediatrics Tile -->
                             <div @click="setService('pedia')"
-                                class="cursor-pointer border-2 rounded-xl p-6 flex flex-col items-center justify-center transition hover:border-teal-400 hover:bg-teal-50 dark:bg-gray-700 dark:hover:bg-gray-600"
-                                :class="formData.type === 'pedia' ? 'border-teal-500 bg-teal-50 ring-2 ring-teal-200' : 'border-gray-200 dark:border-gray-700'">
-                                <span class="text-4xl mb-2">👶</span>
-                                <span class="font-bold text-gray-800 dark:text-white">{{ __('Pediatrics') }}</span>
-                                <span class="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">General consultation for children</span>
+                                class="cursor-pointer rounded-2xl p-6 flex flex-col items-center justify-center transition-all duration-200 border-2 card-hover"
+                                :class="formData.type === 'pedia' ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/30 shadow-md ring-2 ring-emerald-400/30' : 'border-gray-200 dark:border-gray-700/80 bg-gray-50/60 dark:bg-gray-800/60 hover:border-emerald-400/50'">
+                                <div class="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-3xl mb-3 shadow-inner">
+                                    👶
+                                </div>
+                                <span class="font-display font-extrabold text-lg text-gray-900 dark:text-white">{{ __('Pediatrics') }}</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 font-medium">General consultation & check-up for infants and children</span>
+                                <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                                    Dedicated Pedia Doctor
+                                </span>
                             </div>
 
                             <!-- Adult Follow-up Tile -->
                             <div @click="setService('adult')"
-                                class="cursor-pointer border-2 rounded-xl p-6 flex flex-col items-center justify-center transition hover:border-teal-400 hover:bg-teal-50 dark:bg-gray-700 dark:hover:bg-gray-600"
-                                :class="formData.type === 'adult' ? 'border-teal-500 bg-teal-50 ring-2 ring-teal-200' : 'border-gray-200 dark:border-gray-700'">
-                                <span class="text-4xl mb-2">👨‍⚕️</span>
-                                <span class="font-bold text-gray-800 dark:text-white">{{ __('Adult Follow-up') }}</span>
-                                <span class="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">Check-ups for regular adult & senior patients</span>
+                                class="cursor-pointer rounded-2xl p-6 flex flex-col items-center justify-center transition-all duration-200 border-2 card-hover"
+                                :class="formData.type === 'adult' ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/30 shadow-md ring-2 ring-emerald-400/30' : 'border-gray-200 dark:border-gray-700/80 bg-gray-50/60 dark:bg-gray-800/60 hover:border-emerald-400/50'">
+                                <div class="w-14 h-14 rounded-2xl bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 flex items-center justify-center text-3xl mb-3 shadow-inner">
+                                    👨‍⚕️
+                                </div>
+                                <span class="font-display font-extrabold text-lg text-gray-900 dark:text-white">{{ __('Adult Follow-up') }}</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 font-medium">Check-ups & continuous care for regular adult & senior patients</span>
+                                <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">
+                                    General Physician
+                                </span>
                             </div>
                         </div>
                         <input type="hidden" name="type" x-model="formData.type">
 
                         <div class="mt-6" x-show="formData.type === 'pedia'" x-transition>
-                            <div class="p-4 border rounded-lg transition"
-                                :class="formData.is_follow_up ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'">
+                            <div class="p-4 rounded-2xl border transition-all duration-200"
+                                :class="formData.is_follow_up ? 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 shadow-xs' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'">
                                 <label class="flex items-center space-x-3 cursor-pointer">
                                     <input type="checkbox" x-model="formData.is_follow_up"
-                                        class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 border-gray-300 dark:border-gray-600">
+                                        class="w-5 h-5 text-emerald-600 rounded-lg focus:ring-emerald-500 border-gray-300 dark:border-gray-600 cursor-pointer">
                                     <input type="hidden" name="is_follow_up" :value="formData.is_follow_up ? 1 : 0">
                                     <div>
-                                        <span class="block text-sm font-bold text-gray-800 dark:text-white">Is this a
-                                            follow-up visit?</span>
-                                        <span class="block text-xs text-gray-500 dark:text-gray-200 mt-1">Check this if the
-                                            patient was previously advised by the doctor to return.</span>
+                                        <span class="block text-sm font-bold text-gray-800 dark:text-white">Is this a follow-up visit?</span>
+                                        <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Check this if the patient was previously advised by the pediatrician to return.</span>
                                     </div>
                                 </label>
                             </div>
                         </div>
-                        <input type="hidden" name="type" x-model="formData.type">
                     </div>
 
                     <!-- Step 2: Patient Info -->
@@ -799,33 +817,39 @@
                         </div>
                     </div>
 
-                    <!-- Navigation Buttons -->
-                    <div class="mt-8 flex justify-between">
-                        <button type="button" @click="prevStep()" x-show="step > 1"
-                            class="text-gray-600 font-medium hover:text-gray-900 dark:hover:text-white dark:text-white px-4 py-2">
-                            {{ __('Back') }}
+                    <!-- Navigation Buttons (Framer Motion Spring Micro-interactions & Aligned Position) -->
+                    <div class="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                        <button type="button" @click="prevStep()" x-show="step > 1" x-transition
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            <span>{{ __('Back') }}</span>
                         </button>
                         <div x-show="step === 1"></div> <!-- Spacer -->
 
-                        <!-- Step 1-3 Next Buttons -->
+                        <!-- Step 1-3 Next Button (Framer Motion style spring scale & arrow hover) -->
                         <button type="button" @click="nextStep()" x-show="step < 4"
-                            class="bg-teal-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="group inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-xs text-white shadow-md transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            style="background: linear-gradient(135deg, #10b981, #0F3D3E);"
                             :disabled="(step === 3 && (!selectedDate || !selectedTime))">
-                            <span
-                                x-text="step === 3 ? '{{ __('Proceed to Verification') }}' : '{{ __('Next Step') }}'"></span>
+                            <span x-text="step === 3 ? '{{ __('Proceed to Verification') }}' : '{{ __('Next Step') }}'"></span>
+                            <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
 
                         <!-- Step 4 Verify Button -->
                         <button type="button" @click="nextStep()" x-show="step === 4"
-                            class="bg-teal-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                            {{ __('Verify & Continue') }}
+                            class="group inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-xs text-white shadow-md transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            style="background: linear-gradient(135deg, #10b981, #0F3D3E);">
+                            <span>{{ __('Verify & Continue') }}</span>
+                            <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
 
                         <!-- Step 5 Confirm Button -->
                         <button type="submit" x-show="step === 5"
-                            class="bg-teal-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-teal-700 shadow-lg transform hover:-translate-y-0.5 transition"
-                            :class="!formData.data_privacy_agreed ? 'opacity-50 cursor-not-allowed' : ''">
-                            {{ __('Confirm Booking') }}
+                            class="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-xs text-white shadow-md transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            style="background: linear-gradient(135deg, #10b981, #15803d);"
+                            :disabled="!formData.data_privacy_agreed">
+                            <span>{{ __('Confirm Booking') }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         </button>
                     </div>
 

@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background-color: #faf8f2; }
         [x-cloak] { display: none !important; }
     </style>
     <script>
@@ -24,7 +24,15 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="bg-slate-50 dark:bg-slate-900 flex items-center justify-center min-h-screen relative font-sans text-slate-900 dark:text-white selection:bg-teal-500 selection:text-white p-4 transition-colors duration-200">
+<body class="bg-[#faf8f2] dark:bg-[#081a1c] flex items-center justify-center min-h-screen relative font-sans text-slate-900 dark:text-white selection:bg-teal-500 selection:text-white p-4 transition-colors duration-200">
+    
+    {{-- Global Aura Gradient: "Frosted Jade" Background --}}
+    <div class="aura-bg" aria-hidden="true">
+        <div class="aura-layer-1"></div>
+        <div class="aura-layer-2"></div>
+        <div class="aura-layer-3"></div>
+        <div class="aura-layer-4"></div>
+    </div>
     
     <div class="absolute top-6 left-6 md:top-8 md:left-10 flex items-center gap-3 z-50">
         <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Logo" class="w-10 h-10 md:w-12 md:h-12 drop-shadow-md">

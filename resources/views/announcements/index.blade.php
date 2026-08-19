@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-[#FAF9F6] dark:bg-gray-900 min-h-screen">
+<div class="bg-transparent min-h-screen">
     <div class="max-w-7xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
 
         {{-- Back link --}}
@@ -37,7 +37,7 @@
                         $tag = ['label' => 'Announcement', 'class' => 'tag-general'];
                     }
                 @endphp
-                <div data-reveal style="transition-delay: {{ ($index % 6) * 80 }}ms">
+                <div data-reveal style="transition-delay: {{ ($index % 6) * 60 }}ms">
                     <a href="{{ route('announcements.show', $event) }}"
                        class="block bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700/50 card-hover group h-full">
                         <div class="relative overflow-hidden" style="aspect-ratio: 16/9;">

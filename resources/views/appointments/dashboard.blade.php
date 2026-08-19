@@ -4,84 +4,101 @@
 <div class="min-h-screen bg-transparent py-12" x-data="manageAppointment()">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <!-- Status Banner -->
-        <div class="mb-8 bg-white rounded-lg shadow-sm border border-l-4 p-6
-            @if($appointment->status === 'pending') border-l-yellow-400
-            @elseif($appointment->status === 'rescheduled') border-l-blue-400
-            @elseif($appointment->status === 'cancelled') border-l-red-400
-            @else border-l-green-400 @endif">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Appointment Status</h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Ref: <span class="font-mono font-bold">{{ $appointment->reference_number }}</span></p>
-                </div>
-                <div class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide
-                    @if($appointment->status === 'pending') bg-yellow-100 text-yellow-800
-                    @elseif($appointment->status === 'rescheduled') bg-blue-100 text-blue-800
-                    @elseif($appointment->status === 'cancelled') bg-red-100 text-red-800
-                    @else bg-green-100 text-green-800 @endif">
-                    {{ ucfirst($appointment->status) }}
-                </div>
-            </div>
-        </div>
-        
         <!-- Back to Home -->
-        <div class="mb-4">
-            <a href="{{ route('welcome') }}" class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-500">
-                <svg class="mr-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <div class="mb-6" data-reveal>
+            <a href="{{ route('welcome') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 dark:bg-gray-900/70 border border-white/80 dark:border-gray-800 backdrop-blur-xl shadow-xs text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:scale-105 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back to Home
             </a>
         </div>
 
-        <!-- Appointment Details -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden mb-8">
-            <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Appointment Details</h3>
-            </div>
-            <div class="px-6 py-5">
-                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Patient Name') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $appointment->first_name }} {{ $appointment->last_name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Service Type') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white capitalize">{{ $appointment->type }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Contact Number') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $appointment->contact_number }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Email Address') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $appointment->email }}</dd>
-                    </div>
-                    <div class="col-span-1 sm:col-span-2">
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Scheduled Date') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white font-bold text-teal-600">
-                            {{ $appointment->preferred_date->format('l, F j, Y') }}
-                            @if($appointment->preferred_time)
-                                <span class="ml-2 text-sm font-normal text-gray-600">· Arrival: <strong class="text-teal-700">{{ $appointment->preferred_time }}</strong></span>
-                            @endif
-                        </dd>
-                    </div>
-                     <div class="col-span-1 sm:col-span-2">
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Chief Complaint') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white italic">
-                            "{{ $appointment->complaint ?: 'N/A' }}"
-                        </dd>
-                    </div>
-                </dl>
+        <!-- Status Showcase Card (21st.dev Frosted Glass) -->
+        <div class="relative rounded-3xl p-6 sm:p-8 mb-8 bg-white/80 dark:bg-gray-900/80 border border-white/90 dark:border-gray-800/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] overflow-hidden" data-reveal>
+            
+            {{-- Ambient Glow --}}
+            <div class="absolute -top-10 -right-10 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-30
+                @if($appointment->status === 'pending') bg-yellow-500
+                @elseif($appointment->status === 'rescheduled') bg-blue-500
+                @elseif($appointment->status === 'cancelled') bg-red-500
+                @else bg-emerald-500 @endif"></div>
+
+            <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2
+                        @if($appointment->status === 'pending') bg-yellow-500/10 text-yellow-800 dark:text-yellow-300 border border-yellow-500/20
+                        @elseif($appointment->status === 'rescheduled') bg-blue-500/10 text-blue-800 dark:text-blue-300 border border-blue-500/20
+                        @elseif($appointment->status === 'cancelled') bg-red-500/10 text-red-800 dark:text-red-300 border border-red-500/20
+                        @else bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 @endif">
+                        <span class="w-1.5 h-1.5 rounded-full
+                            @if($appointment->status === 'pending') bg-yellow-500
+                            @elseif($appointment->status === 'rescheduled') bg-blue-500
+                            @elseif($appointment->status === 'cancelled') bg-red-500
+                            @else bg-emerald-500 @endif"></span>
+                        {{ ucfirst($appointment->status) }}
+                    </span>
+                    <h2 class="font-display text-2xl font-extrabold text-gray-900 dark:text-white">Appointment Status</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Reference: <span class="font-mono font-bold text-gray-800 dark:text-gray-200 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60">{{ $appointment->reference_number }}</span></p>
+                </div>
             </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Appointment Details Bento Card -->
+        <div class="relative rounded-3xl p-6 sm:p-8 bg-white/80 dark:bg-gray-900/80 border border-white/90 dark:border-gray-800/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] mb-8" data-reveal style="transition-delay: 80ms">
+            <div class="pb-4 mb-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Booking Information
+                </h3>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 capitalize">
+                    {{ $appointment->type }} Consultation
+                </span>
+            </div>
+
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div class="p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50">
+                    <dt class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Patient Name') }}</dt>
+                    <dd class="mt-1 text-sm font-bold text-gray-900 dark:text-white">{{ $appointment->first_name }} {{ $appointment->last_name }}</dd>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50">
+                    <dt class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Service Type') }}</dt>
+                    <dd class="mt-1 text-sm font-bold text-gray-900 dark:text-white capitalize">{{ $appointment->type }}</dd>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50">
+                    <dt class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Contact Number') }}</dt>
+                    <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{{ $appointment->contact_number }}</dd>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50">
+                    <dt class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Email Address') }}</dt>
+                    <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{{ $appointment->email }}</dd>
+                </div>
+                <div class="col-span-1 sm:col-span-2 p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60">
+                    <dt class="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">{{ __('Scheduled Date & Arrival') }}</dt>
+                    <dd class="mt-1 text-base font-extrabold text-emerald-900 dark:text-emerald-200 flex flex-wrap items-center gap-2">
+                        <span>{{ $appointment->preferred_date->format('l, F j, Y') }}</span>
+                        @if($appointment->preferred_time)
+                            <span class="px-2.5 py-0.5 rounded-md bg-white dark:bg-gray-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold shadow-xs">
+                                Arrival: {{ $appointment->preferred_time }}
+                            </span>
+                        @endif
+                    </dd>
+                </div>
+                <div class="col-span-1 sm:col-span-2 p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50">
+                    <dt class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Chief Complaint') }}</dt>
+                    <dd class="mt-1 text-sm text-gray-700 dark:text-gray-300 italic">
+                        "{{ $appointment->complaint ?: 'N/A' }}"
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Actions (21st.dev Button Style) -->
         @if(in_array($appointment->status, ['pending', 'approved', 'rescheduled']))
-            <div class="flex flex-col sm:flex-row gap-4 justify-end mb-6">
+            <div class="flex flex-col sm:flex-row gap-3.5 justify-end mb-8" data-reveal style="transition-delay: 120ms">
                 <!-- Reschedule Button -->
                 <button type="button" 
                     @click="openRescheduleModal()"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold text-white shadow-md bg-blue-600 hover:bg-blue-700 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     {{ __('Reschedule Appointment') }}
                 </button>
 
@@ -95,7 +112,8 @@
                         action: '{{ route('appointment.cancel') }}',
                         method: 'POST'
                     })"
-                    class="bg-red-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-800 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     {{ __('Cancel Appointment') }}
                 </button>
             </div>
