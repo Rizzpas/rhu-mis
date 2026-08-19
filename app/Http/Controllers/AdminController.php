@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Models\Appointment;
 use App\Models\AuditLog;
+use App\Models\InventoryLog;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
@@ -60,22 +62,8 @@ class AdminController extends Controller
             $trendPercentage = 100; // 100% growth if previous was 0
         }
 
-        // 1. Visit Volumes (Last 7 Days - Always static 7 days for line chart)
-        $sevenDaysAgo = now()->subDays(6)->startOfDay();
-        $visits = \App\Models\Consultation::where('created_at', '>=', $sevenDaysAgo)
-            ->select(\Illuminate\Support\Facades\DB::raw('DATE(created_at) as date, COUNT(id) as count'))
-            ->groupBy('date')
-            ->pluck('count', 'date');
-
-        $volumeLabels = [];
-        $volumeCounts = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dateObj = now()->subDays($i);
-            $dateStr = $dateObj->format('Y-m-d');
-            $volumeLabels[] = $dateObj->format('D, M d');
-            $volumeCounts[] = $visits->get($dateStr, 0);
-        }
-        $visitVolumeData = ['labels' => $volumeLabels, 'data' => $volumeCounts];
+        // 1. Visit Volumes (Dynamic based on selected timeframe)
+        $visitVolumeData = $this->getVisitVolumeData($timeFilter);
 
         // 2. Peak Hours (Filtered by Time)
         $peakHours = \App\Models\Consultation::where('created_at', '>=', $startDate)
@@ -216,6 +204,33 @@ class AdminController extends Controller
 
         $complianceRate = $totalFollowupsNeeded > 0 ? round(($compliantFollowups / $totalFollowupsNeeded) * 100) : 0;
 
+        // 11. Pharmacy Analytics: Top 10 Most Dispensed Medicines (last 30 days)
+        $topDispensed = InventoryLog::where('action', 'Dispensed')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->select('medicine_id', DB::raw('SUM(ABS(quantity_changed)) as total_dispensed'))
+            ->groupBy('medicine_id')
+            ->orderByDesc('total_dispensed')
+            ->limit(10)
+            ->with('medicine:id,name,generic_name')
+            ->get();
+
+        // 12. Pharmacy Analytics: Monthly Dispensing Trend (last 6 months)
+        $monthlyTrend = InventoryLog::where('action', 'Dispensed')
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->select(
+                DB::raw('YEAR(created_at) as year'),
+                DB::raw('MONTH(created_at) as month'),
+                DB::raw('SUM(ABS(quantity_changed)) as total_dispensed')
+            )
+            ->groupBy('year', 'month')
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get()
+            ->map(function ($item) {
+                $item->label = \Carbon\Carbon::create($item->year, $item->month)->format('M Y');
+                return $item;
+            });
+
         return view('admin.dashboard', compact(
             'announcements',
             'timeFilter',
@@ -236,7 +251,9 @@ class AdminController extends Controller
             'demoData',
             'workloadFormatted',
             'complianceRate',
-            'totalFollowupsNeeded'
+            'totalFollowupsNeeded',
+            'topDispensed',
+            'monthlyTrend'
         ));
     }
 
@@ -252,37 +269,8 @@ class AdminController extends Controller
             default => \Carbon\Carbon::create(2000, 1, 1), // all time fallback
         };
 
-        // 1. Visit Volumes (Last 7 Days - Always static 7 days for line chart unless specifically today)
-        if ($timeFilter === 'today') {
-            $visits = \App\Models\Consultation::where('created_at', '>=', $startDate)
-                ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
-                ->groupBy('hour')
-                ->pluck('count', 'hour');
-
-            $volumeLabels = [];
-            $volumeCounts = [];
-            for ($i = 8; $i <= 17; $i++) {
-                $volumeLabels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
-                $volumeCounts[] = $visits->get($i, 0);
-            }
-        } else {
-            $daysToLookBack = $timeFilter === 'weekly' ? 6 : ($timeFilter === 'monthly' ? 29 : 6); // default to 7 days for weekly/all
-            $historyStart = now()->subDays($daysToLookBack)->startOfDay();
-            $visits = \App\Models\Consultation::where('created_at', '>=', $historyStart)
-                ->select(\Illuminate\Support\Facades\DB::raw('DATE(created_at) as date, COUNT(id) as count'))
-                ->groupBy('date')
-                ->pluck('count', 'date');
-
-            $volumeLabels = [];
-            $volumeCounts = [];
-            for ($i = $daysToLookBack; $i >= 0; $i--) {
-                $dateObj = now()->subDays($i);
-                $dateStr = $dateObj->format('Y-m-d');
-                $volumeLabels[] = $dateObj->format('M d');
-                $volumeCounts[] = $visits->get($dateStr, 0);
-            }
-        }
-        $visitVolumeData = ['labels' => $volumeLabels, 'data' => $volumeCounts];
+        // 1. Visit Volumes (Dynamic based on selected timeframe)
+        $visitVolumeData = $this->getVisitVolumeData($timeFilter);
 
         // 2. Peak Hours
         $peakHours = \App\Models\Consultation::where('created_at', '>=', $startDate)
@@ -426,51 +414,7 @@ class AdminController extends Controller
         };
 
         if ($chart === 'volume') {
-            if ($timeFilter === 'today') {
-                $visits = \App\Models\Consultation::where('created_at', '>=', $startDate)
-                    ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
-                    ->groupBy('hour')
-                    ->pluck('count', 'hour');
-
-                $labels = [];
-                $counts = [];
-                for ($i = 8; $i <= 17; $i++) {
-                    $labels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
-                    $counts[] = $visits->get($i, 0);
-                }
-            } elseif ($timeFilter === 'yearly' || $timeFilter === 'all') {
-                $monthsToLookBack = $timeFilter === 'yearly' ? 11 : 23;
-                $historyStart = now()->subMonths($monthsToLookBack)->startOfMonth();
-                $visits = \App\Models\Consultation::where('created_at', '>=', $historyStart)
-                    ->select(\Illuminate\Support\Facades\DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(id) as count'))
-                    ->groupBy('month')
-                    ->pluck('count', 'month');
-
-                $labels = [];
-                $counts = [];
-                for ($i = $monthsToLookBack; $i >= 0; $i--) {
-                    $dateObj = now()->subMonths($i);
-                    $labels[] = $dateObj->format('M Y');
-                    $counts[] = $visits->get($dateObj->format('Y-m'), 0);
-                }
-            } else {
-                $daysToLookBack = $timeFilter === 'weekly' ? 6 : 29;
-                $historyStart = now()->subDays($daysToLookBack)->startOfDay();
-                $visits = \App\Models\Consultation::where('created_at', '>=', $historyStart)
-                    ->select(\Illuminate\Support\Facades\DB::raw('DATE(created_at) as date, COUNT(id) as count'))
-                    ->groupBy('date')
-                    ->pluck('count', 'date');
-
-                $labels = [];
-                $counts = [];
-                for ($i = $daysToLookBack; $i >= 0; $i--) {
-                    $dateObj = now()->subDays($i);
-                    $labels[] = $dateObj->format('M d');
-                    $counts[] = $visits->get($dateObj->format('Y-m-d'), 0);
-                }
-            }
-
-            return response()->json(['labels' => $labels, 'data' => $counts]);
+            return response()->json($this->getVisitVolumeData($timeFilter));
         }
 
         if ($chart === 'peak') {
@@ -1632,5 +1576,65 @@ class AdminController extends Controller
         }
 
         return view('admin.patients.itr', compact('patient', 'cases'));
+    }
+
+    /**
+     * Compute dynamic Visit Volume chart data based on timeframe filter.
+     */
+    private function getVisitVolumeData(string $timeFilter): array
+    {
+        if ($timeFilter === 'today') {
+            $startDate = now()->startOfDay();
+            $visits = \App\Models\Consultation::where('created_at', '>=', $startDate)
+                ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
+                ->groupBy('hour')
+                ->pluck('count', 'hour');
+
+            $labels = [];
+            $counts = [];
+            for ($i = 8; $i <= 17; $i++) {
+                $labels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
+                $counts[] = $visits->get($i, 0);
+            }
+
+            return ['labels' => $labels, 'data' => $counts];
+        }
+
+        if ($timeFilter === 'yearly' || $timeFilter === 'all') {
+            $monthsToLookBack = $timeFilter === 'yearly' ? 11 : 23;
+            $historyStart = now()->subMonths($monthsToLookBack)->startOfMonth();
+            $visits = \App\Models\Consultation::where('created_at', '>=', $historyStart)
+                ->select(\Illuminate\Support\Facades\DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(id) as count'))
+                ->groupBy('month')
+                ->pluck('count', 'month');
+
+            $labels = [];
+            $counts = [];
+            for ($i = $monthsToLookBack; $i >= 0; $i--) {
+                $dateObj = now()->subMonths($i);
+                $labels[] = $dateObj->format('M Y');
+                $counts[] = $visits->get($dateObj->format('Y-m'), 0);
+            }
+
+            return ['labels' => $labels, 'data' => $counts];
+        }
+
+        // Daily lookback (weekly = 6 days, monthly = 29 days)
+        $daysToLookBack = $timeFilter === 'weekly' ? 6 : 29;
+        $historyStart = now()->subDays($daysToLookBack)->startOfDay();
+        $visits = \App\Models\Consultation::where('created_at', '>=', $historyStart)
+            ->select(\Illuminate\Support\Facades\DB::raw('DATE(created_at) as date, COUNT(id) as count'))
+            ->groupBy('date')
+            ->pluck('count', 'date');
+
+        $labels = [];
+        $counts = [];
+        for ($i = $daysToLookBack; $i >= 0; $i--) {
+            $dateObj = now()->subDays($i);
+            $labels[] = $dateObj->format('M d');
+            $counts[] = $visits->get($dateObj->format('Y-m-d'), 0);
+        }
+
+        return ['labels' => $labels, 'data' => $counts];
     }
 }

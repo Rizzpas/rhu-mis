@@ -13,6 +13,8 @@ class Medicine extends Model
         'name',
         'generic_name',
         'form',
+        'category',
+        'unit',
     ];
 
     public function batches()

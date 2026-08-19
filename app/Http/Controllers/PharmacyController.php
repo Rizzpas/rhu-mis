@@ -23,7 +23,67 @@ class PharmacyController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('pharmacy.dashboard', compact('prescriptions'));
+        // ── Inventory Stats for Banners ──
+        $expiredBatchesCount = MedicineBatch::where('quantity', '>', 0)
+            ->whereDate('expiration_date', '<=', today())->count();
+
+        $expiringSoonCount = MedicineBatch::where('quantity', '>', 0)
+            ->whereDate('expiration_date', '>', today())
+            ->whereDate('expiration_date', '<=', today()->addDays(30))->count();
+
+        // Low stock = medicines with total non-expired stock between 1 and 20
+        $lowStockMedicines = Medicine::withSum(['batches as active_stock' => function ($q) {
+            $q->where('quantity', '>', 0)->whereDate('expiration_date', '>=', today());
+        }], 'quantity')
+            ->having('active_stock', '>', 0)
+            ->having('active_stock', '<', 20)
+            ->get();
+        $lowStockCount = $lowStockMedicines->count();
+
+        // Out of stock = medicines where ALL batches have 0 qty or are expired
+        $outOfStockCount = Medicine::whereDoesntHave('batches', function ($q) {
+            $q->where('quantity', '>', 0)->whereDate('expiration_date', '>=', today());
+        })->count();
+
+        $totalMedicines = Medicine::count();
+
+        // ── Analytics: Top 10 Most Dispensed Medicines (last 30 days) ──
+        $topDispensed = InventoryLog::where('action', 'Dispensed')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->select('medicine_id', DB::raw('SUM(ABS(quantity_changed)) as total_dispensed'))
+            ->groupBy('medicine_id')
+            ->orderByDesc('total_dispensed')
+            ->limit(10)
+            ->with('medicine:id,name,generic_name')
+            ->get();
+
+        // ── Analytics: Monthly Dispensing Trend (last 6 months) ──
+        $monthlyTrend = InventoryLog::where('action', 'Dispensed')
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->select(
+                DB::raw('YEAR(created_at) as year'),
+                DB::raw('MONTH(created_at) as month'),
+                DB::raw('SUM(ABS(quantity_changed)) as total_dispensed')
+            )
+            ->groupBy('year', 'month')
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get()
+            ->map(function ($item) {
+                $item->label = \Carbon\Carbon::create($item->year, $item->month)->format('M Y');
+                return $item;
+            });
+
+        return view('pharmacy.dashboard', compact(
+            'prescriptions',
+            'expiredBatchesCount',
+            'expiringSoonCount',
+            'lowStockCount',
+            'outOfStockCount',
+            'totalMedicines',
+            'topDispensed',
+            'monthlyTrend'
+        ));
     }
 
     /**
@@ -158,6 +218,7 @@ class PharmacyController extends Controller
         $perPage = $request->input('per_page', 10);
         $search = $request->input('search');
         $formFilter = $request->input('form_filter');
+        $statusFilter = $request->input('status_filter');
 
         $query = Medicine::with(['batches' => function ($q) {
             $q->orderBy('expiration_date', 'asc');
@@ -174,16 +235,63 @@ class PharmacyController extends Controller
             $query->where('form', $formFilter);
         }
 
-        $medicines = $query->orderBy('name')->paginate($perPage);
+        if ($statusFilter) {
+            switch ($statusFilter) {
+                case 'expired':
+                    $query->whereHas('batches', function ($q) {
+                        $q->where('quantity', '>', 0)->whereDate('expiration_date', '<=', today());
+                    });
+                    break;
+                case 'expiring_soon':
+                    $query->whereHas('batches', function ($q) {
+                        $q->where('quantity', '>', 0)
+                          ->whereDate('expiration_date', '>', today())
+                          ->whereDate('expiration_date', '<=', today()->addDays(30));
+                    });
+                    break;
+                case 'low_stock':
+                    $query->withSum(['batches as active_stock' => function ($q) {
+                        $q->where('quantity', '>', 0)->whereDate('expiration_date', '>=', today());
+                    }], 'quantity')
+                    ->having('active_stock', '>', 0)
+                    ->having('active_stock', '<', 20);
+                    break;
+                case 'out_of_stock':
+                    $query->whereDoesntHave('batches', function ($q) {
+                        $q->where('quantity', '>', 0)->whereDate('expiration_date', '>=', today());
+                    });
+                    break;
+            }
+        }
+
+        $query->addSelect([
+            'earliest_expiry' => \App\Models\MedicineBatch::select('expiration_date')
+                ->whereColumn('medicine_id', 'medicines.id')
+                ->where('quantity', '>', 0)
+                ->orderBy('expiration_date', 'asc')
+                ->limit(1)
+        ]);
+
+        $medicines = $query->orderByRaw('earliest_expiry IS NULL ASC, earliest_expiry ASC')
+            ->orderBy('name', 'asc')
+            ->paginate($perPage);
 
         $forms = Medicine::select('form')->whereNotNull('form')->distinct()->pluck('form');
 
-        // Expiration Statistics for alerts
-        $expiredBatchesCount = MedicineBatch::where('quantity', '>', 0)->whereDate('expiration_date', '<=', today())->count();
-        $expiringSoonCount = MedicineBatch::where('quantity', '>', 0)->whereDate('expiration_date', '>', today())->whereDate('expiration_date', '<=', today()->addDays(30))->count();
-        $expiring60Count = MedicineBatch::where('quantity', '>', 0)->whereDate('expiration_date', '>', today()->addDays(30))->whereDate('expiration_date', '<=', today()->addDays(60))->count();
+        // Get counts for the banner (always show original counts)
+        $expiredBatchesCount = \App\Models\MedicineBatch::where('quantity', '>', 0)
+            ->whereDate('expiration_date', '<=', today())->count();
+
+        $expiringSoonCount = \App\Models\MedicineBatch::where('quantity', '>', 0)
+            ->whereDate('expiration_date', '>', today())
+            ->whereDate('expiration_date', '<=', today()->addDays(30))->count();
+
+        $expiring60Count = \App\Models\MedicineBatch::where('quantity', '>', 0)
+            ->whereDate('expiration_date', '>', today()->addDays(30))
+            ->whereDate('expiration_date', '<=', today()->addDays(60))->count();
 
         return view('pharmacy.medicines', compact('medicines', 'forms', 'expiredBatchesCount', 'expiringSoonCount', 'expiring60Count'));
+
     }
 
     /**
@@ -195,11 +303,41 @@ class PharmacyController extends Controller
             'name' => 'required|string|max:255',
             'generic_name' => 'nullable|string|max:255',
             'form' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'unit' => 'nullable|string|max:255',
+            'batch_number' => 'required|string|max:255',
+            'expiration_date' => 'required|date|after:today',
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        Medicine::create($validated);
+        DB::transaction(function () use ($validated) {
+            $medicine = Medicine::create([
+                'name' => $validated['name'],
+                'generic_name' => $validated['generic_name'],
+                'form' => $validated['form'],
+                'category' => $validated['category'],
+                'unit' => $validated['unit'],
+            ]);
 
-        return back()->with('success', 'New medicine added successfully.');
+            $batch = MedicineBatch::create([
+                'medicine_id' => $medicine->id,
+                'batch_number' => $validated['batch_number'],
+                'expiration_date' => $validated['expiration_date'],
+                'quantity' => $validated['quantity'],
+                'original_quantity' => $validated['quantity'],
+            ]);
+
+            InventoryLog::create([
+                'medicine_id' => $medicine->id,
+                'batch_id' => $batch->id,
+                'action' => 'Added',
+                'quantity_changed' => $validated['quantity'],
+                'remarks' => 'Initial stock intake',
+                'performed_by' => Auth::id(),
+            ]);
+        });
+
+        return back()->with('success', 'New medicine and initial stock added successfully.');
     }
 
     /**
@@ -211,6 +349,8 @@ class PharmacyController extends Controller
             'name' => 'required|string|max:255',
             'generic_name' => 'nullable|string|max:255',
             'form' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'unit' => 'nullable|string|max:255',
         ]);
 
         $medicine->update($validated);
@@ -224,7 +364,7 @@ class PharmacyController extends Controller
     public function addStock(Request $request, Medicine $medicine)
     {
         $validated = $request->validate([
-            'batch_number' => 'nullable|string|max:255',
+            'batch_number' => 'required|string|max:255',
             'expiration_date' => 'required|date|after:today',
             'quantity' => 'required|integer|min:1',
         ]);

@@ -219,7 +219,7 @@ Route::prefix('lab')->middleware(['auth', RoleMiddleware::class.':laboratory,rad
 // Pharmacy Routes
 use App\Http\Controllers\PharmacyController;
 
-Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy'])->group(function () {
+Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,admin,super_admin'])->group(function () {
     Route::get('/dashboard', [PharmacyController::class, 'dashboard'])->name('pharmacy.dashboard');
     Route::get('/history', [PharmacyController::class, 'history'])->name('pharmacy.history');
     Route::post('/dispense/{prescription}', [PharmacyController::class, 'dispense'])->name('pharmacy.dispense');

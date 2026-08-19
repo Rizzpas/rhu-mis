@@ -42,9 +42,9 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('super_admin');
         });
 
-        // Only super_admin can edit landing page / system content settings
+        // Allow admin and super_admin to edit landing page / system content settings
         \Illuminate\Support\Facades\Gate::define('manage-content', function (\App\Models\User $user) {
-            return $user->hasRole('super_admin');
+            return $user->hasRole('admin', 'super_admin');
         });
 
         \Illuminate\Support\Facades\RateLimiter::for('otp', function (\Illuminate\Http\Request $request) {

@@ -67,7 +67,7 @@
         {{-- ============================================================
              HERO SECTION — Merged hero + carousel
         ============================================================ --}}
-        <section class="hero w-full bg-[#FAF9F6] dark:bg-gray-900">
+        <section class="hero w-full bg-[#FAF9F6] dark:bg-transparent">
             <div class="mesh"></div>
             <div class="grain"></div>
             <div class="hero-content max-w-7xl mx-auto px-5 sm:px-8 py-14 md:py-20 lg:py-24">
@@ -99,30 +99,41 @@
                         <div class="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-white/20">
                             {{-- Base Image Slide --}}
                             <div class="absolute inset-0 transition-opacity duration-1000" :class="activeSlide === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'">
-                                <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2000&auto=format&fit=crop" alt="RHU Silang, Cavite" class="w-full h-full object-cover">
+                                <img src="{{ $heroImageUrl }}" alt="RHU Silang, Cavite" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent"></div>
                                 <div class="absolute bottom-0 left-0 p-8 sm:p-10 w-full text-white">
-                                    <h3 class="font-display text-3xl font-bold mb-2">RHU Silang, Cavite</h3>
-                                    <p class="text-gray-300 font-medium">Providing Quality Healthcare for All Citizens</p>
+                                    <h3 class="font-display text-3xl font-bold mb-2">{{ \App\Models\SiteSetting::get('carousel_hero_title', 'RHU Silang, Cavite') }}</h3>
+                                    <p class="text-gray-300 font-medium">{{ \App\Models\SiteSetting::get('carousel_hero_subtitle', 'Providing Quality Healthcare for All Citizens') }}</p>
                                 </div>
                             </div>
 
                             {{-- Announcement Slides --}}
                             @foreach($announcements as $index => $announcement)
-                            <div class="absolute inset-0 transition-opacity duration-1000 bg-green-900" :class="activeSlide === {{ $index + 1 }} ? 'opacity-100 z-10' : 'opacity-0 z-0'">
-                                @if($announcement->image_path)
-                                    <img src="{{ Storage::url($announcement->image_path) }}" alt="{{ $announcement->title }}" class="w-full h-full object-cover opacity-60 mix-blend-overlay">
+                            @php
+                                $slideImg = $announcement->image_path;
+                                if (!$slideImg && $announcement->images->count() > 0) {
+                                    $slideImg = $announcement->images->first()->image_path;
+                                }
+                                $slideImgUrl = $slideImg 
+                                    ? (\Illuminate\Support\Str::startsWith($slideImg, ['uploads/', 'http']) ? asset($slideImg) : asset('uploads/' . $slideImg))
+                                    : null;
+                            @endphp
+                            <div class="absolute inset-0 transition-opacity duration-1000 bg-gray-900" :class="activeSlide === {{ $index + 1 }} ? 'opacity-100 z-10' : 'opacity-0 z-0'">
+                                @if($slideImgUrl)
+                                    @if(\Illuminate\Support\Str::endsWith($slideImg, '.mp4'))
+                                        <video src="{{ $slideImgUrl }}" class="w-full h-full object-cover" muted loop autoplay></video>
+                                    @else
+                                        <img src="{{ $slideImgUrl }}" alt="{{ $announcement->title }}" class="w-full h-full object-cover">
+                                    @endif
                                 @endif
                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent"></div>
                                 <div class="absolute bottom-0 left-0 p-8 sm:p-10 w-full text-white">
                                     <span class="inline-block px-3 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full mb-3 border border-green-400/30 backdrop-blur-sm uppercase tracking-wider">Announcement</span>
                                     <h3 class="font-display text-2xl sm:text-3xl font-bold mb-3">{{ $announcement->title }}</h3>
                                     <p class="text-gray-300 line-clamp-2 max-w-lg">{{ $announcement->content }}</p>
-                                    @if($announcement->url)
-                                    <a href="{{ $announcement->url }}" class="inline-flex items-center gap-1.5 mt-4 text-green-400 hover:text-green-300 font-semibold transition-colors">
+                                    <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center gap-1.5 mt-4 text-green-400 hover:text-green-300 font-semibold transition-colors">
                                         Learn more <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     </a>
-                                    @endif
                                 </div>
                             </div>
                             @endforeach
@@ -183,7 +194,7 @@
         </section>
 
         {{-- Section Divider: Hero → Announcements --}}
-        <div class="max-w-4xl mx-auto px-8">
+        <div class="max-w-6xl mx-auto px-8">
             <div class="section-divider"><span class="section-divider-dot"></span></div>
         </div>
 
@@ -212,7 +223,7 @@
             }
         @endphp
 
-        <div id="announcements" class="bg-white dark:bg-gray-800/50 px-5 sm:px-8 py-16 sm:py-20">
+        <div id="announcements" class="bg-white dark:bg-white/[0.03] px-5 sm:px-8 py-16 sm:py-20 backdrop-blur-sm">
             <div class="max-w-7xl mx-auto">
                 {{-- Section header --}}
                 <div class="text-center mb-12" data-reveal>
@@ -360,7 +371,7 @@
         </div>
 
         {{-- Section Divider: Announcements → Doctors --}}
-        <div class="max-w-4xl mx-auto px-8">
+        <div class="max-w-6xl mx-auto px-8">
             <div class="section-divider"><span class="section-divider-dot"></span></div>
         </div>
 
@@ -537,14 +548,14 @@
         </div>
 
         {{-- Section Divider: Doctors → Closing --}}
-        <div class="max-w-4xl mx-auto px-8">
+        <div class="max-w-6xl mx-auto px-8">
             <div class="section-divider"><span class="section-divider-dot"></span></div>
         </div>
 
         {{-- ============================================================
              CLOSING SECTION — Services overview + CTA
         ============================================================ --}}
-        <div class="bg-white dark:bg-gray-800/50 px-5 sm:px-8 py-16 sm:py-20">
+        <div class="bg-white dark:bg-white/[0.03] px-5 sm:px-8 py-16 sm:py-20 backdrop-blur-sm">
             <div class="max-w-7xl mx-auto">
 
                 {{-- Quick services grid --}}

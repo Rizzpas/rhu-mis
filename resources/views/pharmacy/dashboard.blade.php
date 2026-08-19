@@ -41,6 +41,50 @@
         </div>
     </div>
 
+    <!-- Inventory Alert Banners -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="{{ route('pharmacy.medicines', ['status_filter' => 'expired']) }}" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Expired</p>
+            </div>
+            <p class="text-3xl font-black text-rose-600 dark:text-rose-400">{{ $expiredBatchesCount }}</p>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium uppercase tracking-wider">Batch(es)</p>
+        </a>
+        <a href="{{ route('pharmacy.medicines', ['status_filter' => 'expiring_soon']) }}" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Expiring Soon</p>
+            </div>
+            <p class="text-3xl font-black text-amber-600 dark:text-amber-400">{{ $expiringSoonCount }}</p>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium uppercase tracking-wider">Within 30 Days</p>
+        </a>
+        <a href="{{ route('pharmacy.medicines', ['status_filter' => 'low_stock']) }}" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Low Stock</p>
+            </div>
+            <p class="text-3xl font-black text-blue-600 dark:text-blue-400">{{ $lowStockCount }}</p>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium uppercase tracking-wider">Medicine(s)</p>
+        </a>
+        <a href="{{ route('pharmacy.medicines', ['status_filter' => 'out_of_stock']) }}" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 hover:shadow-md transition-all group">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                </div>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Out of Stock</p>
+            </div>
+            <p class="text-3xl font-black text-slate-600 dark:text-slate-400">{{ $outOfStockCount }}</p>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium uppercase tracking-wider">Medicine(s)</p>
+        </a>
+    </div>
+
     <!-- Active Consultations List -->
     <div class="pt-4">
         <div class="flex justify-between items-end mb-6">
@@ -123,6 +167,39 @@
             </div>
         </div>
     </div>
+
+    <!-- Analytics Insights -->
+    <div class="pt-8">
+        <div class="flex justify-between items-end mb-6">
+            <div>
+                <h3 class="font-extrabold text-slate-900 dark:text-white text-2xl flex items-center gap-2">
+                    <span class="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 p-1.5 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </span>
+                    Inventory Insights
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Analytics on dispensing trends and medicine demand.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Top Dispensed Chart -->
+            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/60 p-6">
+                <h4 class="font-bold text-slate-800 dark:text-white mb-4 text-sm uppercase tracking-wider">Top Dispensed (Last 30 Days)</h4>
+                <div class="h-64 relative">
+                    <canvas id="topDispensedChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Dispensing Trend Chart -->
+            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/60 p-6">
+                <h4 class="font-bold text-slate-800 dark:text-white mb-4 text-sm uppercase tracking-wider">Monthly Dispensing Trend (6 Months)</h4>
+                <div class="h-64 relative">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @foreach($prescriptions as $request)
     <!-- Dispense Modal -->
@@ -201,5 +278,128 @@
     function closeDispenseModal(id) {
         document.getElementById('dispenseModal-' + id).classList.add('hidden');
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const textColor = isDarkMode ? '#cbd5e1' : '#475569';
+        const gridColor = isDarkMode ? '#334155' : '#e2e8f0';
+
+        Chart.defaults.color = textColor;
+        Chart.defaults.font.family = 'Inter, sans-serif';
+
+        // Top Dispensed Chart
+        const topDispensedCtx = document.getElementById('topDispensedChart');
+        if (topDispensedCtx) {
+            const topDispensedData = @json($topDispensed);
+            const labels = topDispensedData.map(item => item.medicine ? (item.medicine.name || item.medicine.generic_name) : 'Unknown');
+            const data = topDispensedData.map(item => item.total_dispensed);
+
+            new Chart(topDispensedCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Quantity Dispensed',
+                        data: data,
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)', // emerald-500
+                        borderRadius: 4,
+                        barThickness: 'flex',
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                            titleColor: isDarkMode ? '#f8fafc' : '#0f172a',
+                            bodyColor: isDarkMode ? '#cbd5e1' : '#475569',
+                            borderColor: isDarkMode ? '#334155' : '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 4
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor, drawBorder: false },
+                            ticks: { precision: 0 }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Monthly Trend Chart
+        const monthlyTrendCtx = document.getElementById('monthlyTrendChart');
+        if (monthlyTrendCtx) {
+            const monthlyTrendData = @json($monthlyTrend);
+            const labels = monthlyTrendData.map(item => item.label);
+            const data = monthlyTrendData.map(item => item.total_dispensed);
+
+            new Chart(monthlyTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Dispensed',
+                        data: data,
+                        borderColor: '#0ea5e9', // sky-500
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#0ea5e9',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                            titleColor: isDarkMode ? '#f8fafc' : '#0f172a',
+                            bodyColor: isDarkMode ? '#cbd5e1' : '#475569',
+                            borderColor: isDarkMode ? '#334155' : '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor, drawBorder: false },
+                            ticks: { precision: 0 }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+    });
 </script>
 @endpush

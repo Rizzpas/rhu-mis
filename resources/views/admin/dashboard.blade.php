@@ -361,7 +361,64 @@
                         <canvas id="peakHoursChart"></canvas>
                     </div>
                 </div>
-            </div>            <!-- Analytics Call To Action -->
+            </div>
+
+            <!-- Pharmacy Inventory Insights -->
+            <div class="mt-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2.5 bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 rounded-xl">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-800 dark:text-white">Pharmacy Inventory Insights</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Medicine dispensing demand and trends for restocking decisions.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Top Dispensed Medicines -->
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80">
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-1">
+                            Top Dispensed (30 Days)
+                            <svg class="w-3 h-3 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Most frequently dispensed medicines over the last 30 days."><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </h3>
+                        @if($topDispensed->count() > 0)
+                            <div class="relative h-64 w-full">
+                                <canvas id="adminTopDispensedChart"></canvas>
+                            </div>
+                        @else
+                            <div class="flex items-center justify-center h-64 text-slate-400 dark:text-slate-500">
+                                <div class="text-center">
+                                    <svg class="w-10 h-10 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                    <p class="text-xs font-medium">No dispensing data available yet.</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Monthly Dispensing Trend -->
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80">
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-1">
+                            Monthly Dispensing Trend
+                            <svg class="w-3 h-3 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Total units dispensed per month over the last 6 months."><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </h3>
+                        @if($monthlyTrend->count() > 0)
+                            <div class="relative h-64 w-full">
+                                <canvas id="adminMonthlyTrendChart"></canvas>
+                            </div>
+                        @else
+                            <div class="flex items-center justify-center h-64 text-slate-400 dark:text-slate-500">
+                                <div class="text-center">
+                                    <svg class="w-10 h-10 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+                                    <p class="text-xs font-medium">No trend data available yet.</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Call To Action -->
             <div class="mt-8 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-3xl p-8 shadow-lg relative overflow-hidden group">
                 <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
                 <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -559,6 +616,95 @@
             renderReturnRate({{ $complianceRate }});
             refreshVolumeChart(@json($timeFilter));
             refreshPeakChart(@json($timeFilter));
+
+            // --- Pharmacy: Top Dispensed Bar Chart ---
+            @if($topDispensed->count() > 0)
+            (function() {
+                const topData = @json($topDispensed);
+                const labels = topData.map(d => d.medicine ? (d.medicine.name || d.medicine.generic_name || 'Unknown') : 'Unknown');
+                const values = topData.map(d => d.total_dispensed);
+                const ctx = document.getElementById('adminTopDispensedChart').getContext('2d');
+                const barGradient = ctx.createLinearGradient(0, 0, 0, 250);
+                barGradient.addColorStop(0, '#14b8a6');
+                barGradient.addColorStop(1, '#0d9488');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Units Dispensed',
+                            data: values,
+                            backgroundColor: barGradient,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: { right: 20 } },
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { align: 'end', anchor: 'end', color: '#0d9488', font: { size: 11, weight: '600' } }
+                        },
+                        scales: {
+                            x: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.08)', drawBorder: false }, border: { display: false } },
+                            y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 }, callback: function(value) { const l = this.getLabelForValue(value); return l.length > 15 ? l.substring(0,15)+'…' : l; } } }
+                        },
+                        animation: { duration: 600, easing: 'easeOutQuart' }
+                    }
+                });
+            })();
+            @endif
+
+            // --- Pharmacy: Monthly Dispensing Trend ---
+            @if($monthlyTrend->count() > 0)
+            (function() {
+                const trendData = @json($monthlyTrend);
+                const labels = trendData.map(d => d.label);
+                const values = trendData.map(d => d.total_dispensed);
+                const ctx = document.getElementById('adminMonthlyTrendChart').getContext('2d');
+                const gradient = makeGradient(ctx, 'rgb(20, 184, 166)');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Units Dispensed',
+                            data: values,
+                            borderColor: '#14b8a6',
+                            backgroundColor: gradient,
+                            borderWidth: 2.5,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#14b8a6',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: { top: 20 } },
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { align: 'top', anchor: 'end', color: '#0d9488', font: { size: 11, weight: '600' } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(148,163,184,0.08)', drawBorder: false }, border: { display: false } },
+                            x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } }
+                        },
+                        animation: { duration: 600, easing: 'easeOutQuart' }
+                    }
+                });
+            })();
+            @endif
         });
     </script>
     <style>
