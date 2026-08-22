@@ -239,12 +239,3 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/email-otp/send', [ProfileController::class, 'sendEmailOtp'])->name('profile.email-otp.send');
     Route::post('/profile/email-otp/verify', [ProfileController::class, 'verifyEmailOtp'])->name('profile.email-otp.verify');
 });
-
-// Localization Route
-Route::get('locale/{lang}', function ($lang) {
-    if (in_array($lang, ['en', 'fil'])) {
-        session()->put('locale', $lang);
-    }
-
-    return back();
-})->name('locale.switch');

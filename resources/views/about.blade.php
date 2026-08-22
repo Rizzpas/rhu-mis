@@ -4,21 +4,29 @@
 <div class="min-h-screen pb-24 bg-transparent">
 
     {{-- ============================================================
-         PAGE HEADER (21st.dev Style Showcase)
+         PAGE HEADER — 2-Column Split Hero
     ============================================================ --}}
-    <section class="pt-12 sm:pt-16 pb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal>
-            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-bold rounded-full mb-5 uppercase tracking-wider border border-emerald-500/20 backdrop-blur-md shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                About Silang Rural Health Unit
-            </span>
-            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight max-w-4xl mx-auto">
-                Advancing Community Health with <span class="hero-highlight">Integrity & Care</span>
-            </h1>
-            <p class="mt-5 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed font-normal">
-                The primary public healthcare authority of the Municipality of Silang, Cavite — dedicated to providing responsive, equitable, and world-class medical services to every citizen.
-            </p>
-            <div class="section-accent mx-auto mt-6"></div>
+    <section class="pt-16 sm:pt-20 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" data-reveal>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-end">
+                {{-- Left Column: Kicker + Heading --}}
+                <div>
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-bold rounded-full mb-5 uppercase tracking-wider border border-emerald-500/20 backdrop-blur-md shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        About Silang Rural Health Unit
+                    </span>
+                    <h1 class="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
+                        Advancing Community Health with <span class="text-emerald-600 dark:text-emerald-400">Integrity & Care</span>
+                    </h1>
+                </div>
+
+                {{-- Right Column: Description (bottom-aligned to heading) --}}
+                <div class="lg:pb-1">
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-xl leading-relaxed font-normal">
+                        The primary public healthcare authority of the Municipality of Silang, Cavite — dedicated to providing responsive, equitable, and world-class medical services to every citizen.
+                    </p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -26,7 +34,7 @@
          IMPACT HIGHLIGHTS (4 Bento Metric Badges)
     ============================================================ --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-8">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" data-reveal>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" data-reveal>
             
             <div class="rounded-2xl p-5 bg-white/70 dark:bg-gray-900/70 border border-white/80 dark:border-gray-800/80 backdrop-blur-xl shadow-xs card-hover flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">

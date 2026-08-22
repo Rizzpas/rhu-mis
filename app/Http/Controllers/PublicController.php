@@ -82,13 +82,142 @@ class PublicController extends Controller
         ]);
     }
 
-    public function announcementsIndex()
+    public static function getAnnouncementCategory($announcement)
     {
-        $announcements = Announcement::where('status', 'published')
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+        $text = strtolower(($announcement->title ?? '') . ' ' . strip_tags($announcement->content ?? ''));
+        if (preg_match('/health alert|outbreak|dengue|covid|virus|disease|warning|epidemic/i', $text)) {
+            return [
+                'id' => 'health-alert',
+                'label' => 'Health Alert',
+                'class' => 'tag-health-alert',
+                'bg' => 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/40',
+                'dot' => 'bg-red-500'
+            ];
+        } elseif (preg_match('/event|celebration|program|fiesta|activity|campaign|drive|mission/i', $text)) {
+            return [
+                'id' => 'event',
+                'label' => 'Event',
+                'class' => 'tag-event',
+                'bg' => 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/40',
+                'dot' => 'bg-blue-500'
+            ];
+        } elseif (preg_match('/advisory|notice|schedule|closure|suspend|update|memo|holiday|maintenance/i', $text)) {
+            return [
+                'id' => 'advisory',
+                'label' => 'Advisory',
+                'class' => 'tag-advisory',
+                'bg' => 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/40',
+                'dot' => 'bg-amber-500'
+            ];
+        } else {
+            return [
+                'id' => 'general',
+                'label' => 'Announcement',
+                'class' => 'tag-general',
+                'bg' => 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40',
+                'dot' => 'bg-emerald-500'
+            ];
+        }
+    }
 
-        return view('announcements.index', compact('announcements'));
+    public function announcementsIndex(Request $request)
+    {
+        $allAnnouncements = Announcement::where('status', 'published')
+            ->with('images')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Calculate sidebar dates archive
+        $datesArchive = [];
+        $monthsArchive = [];
+        $categoryCounts = [
+            'all' => $allAnnouncements->count(),
+            'health-alert' => 0,
+            'advisory' => 0,
+            'event' => 0,
+            'general' => 0,
+        ];
+
+        $items = $allAnnouncements->map(function ($event) use (&$datesArchive, &$monthsArchive, &$categoryCounts) {
+            $cat = self::getAnnouncementCategory($event);
+            $categoryCounts[$cat['id']] = ($categoryCounts[$cat['id']] ?? 0) + 1;
+
+            $dateKey = $event->created_at ? $event->created_at->format('Y-m-d') : null;
+            $monthKey = $event->created_at ? $event->created_at->format('Y-m') : null;
+
+            if ($dateKey) {
+                if (!isset($datesArchive[$dateKey])) {
+                    $datesArchive[$dateKey] = [
+                        'date' => $dateKey,
+                        'display' => $event->created_at->format('M d, Y'),
+                        'day' => $event->created_at->format('d'),
+                        'month_short' => $event->created_at->format('M'),
+                        'year' => $event->created_at->format('Y'),
+                        'count' => 0,
+                    ];
+                }
+                $datesArchive[$dateKey]['count']++;
+            }
+
+            if ($monthKey) {
+                if (!isset($monthsArchive[$monthKey])) {
+                    $monthsArchive[$monthKey] = [
+                        'month' => $monthKey,
+                        'display' => $event->created_at->format('F Y'),
+                        'count' => 0,
+                    ];
+                }
+                $monthsArchive[$monthKey]['count']++;
+            }
+
+            $cardImage = $event->image_path;
+            if (!$cardImage && $event->images->count() > 0) {
+                $cardImage = $event->images->first()->image_path;
+            }
+
+            return [
+                'id' => $event->id,
+                'title' => $event->title,
+                'subheading' => $event->subheading,
+                'content_plain' => Str::limit(strip_tags($event->content), 200),
+                'content_raw' => strip_tags($event->content),
+                'category' => $cat['id'],
+                'category_label' => $cat['label'],
+                'category_bg' => $cat['bg'],
+                'category_class' => $cat['class'],
+                'category_dot' => $cat['dot'],
+                'image_url' => $cardImage ? asset('uploads/' . $cardImage) : null,
+                'is_video' => $cardImage && Str::endsWith(strtolower($cardImage), ['.mp4', '.webm', '.ogg']),
+                'has_image' => !empty($cardImage),
+                'event_date' => $event->event_date ? $event->event_date->format('M d, Y') : null,
+                'start_time' => $event->start_time ? $event->start_time->format('g:i A') : null,
+                'created_at_formatted' => $event->created_at ? $event->created_at->format('F d, Y') : '',
+                'created_date_key' => $dateKey,
+                'created_month_key' => $monthKey,
+                'relative_time' => $event->created_at ? $event->created_at->diffForHumans() : '',
+                'url' => route('announcements.show', $event),
+            ];
+        });
+
+        // Convert archives to indexed arrays sorted descending
+        $datesArchive = array_values($datesArchive);
+        $monthsArchive = array_values($monthsArchive);
+
+        $initialSearch = $request->query('search', '');
+        $initialCategory = $request->query('category', 'all');
+        $initialDate = $request->query('date', '');
+        $initialMonth = $request->query('month', '');
+
+        return view('announcements.index', compact(
+            'items',
+            'datesArchive',
+            'monthsArchive',
+            'categoryCounts',
+            'initialSearch',
+            'initialCategory',
+            'initialDate',
+            'initialMonth'
+        ));
     }
 
     public function showAnnouncement(Announcement $announcement)

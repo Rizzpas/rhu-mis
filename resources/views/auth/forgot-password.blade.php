@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #faf8f2; }
+        body { font-family: 'Inter', sans-serif; }
         [x-cloak] { display: none !important; }
     </style>
     <script>
@@ -24,7 +24,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="bg-[#faf8f2] dark:bg-[#081a1c] flex items-center justify-center min-h-screen relative font-sans text-slate-900 dark:text-white selection:bg-teal-500 selection:text-white p-4 transition-colors duration-200">
+<body class="bg-[#faf8f2] dark:!bg-[#081a1c] flex items-center justify-center min-h-screen relative font-sans text-slate-900 dark:text-white selection:bg-teal-500 selection:text-white p-4 transition-colors duration-200">
     
     {{-- Global Aura Gradient: "Frosted Jade" Background --}}
     <div class="aura-bg" aria-hidden="true">
@@ -39,6 +39,26 @@
         <div class="font-black text-slate-800 dark:text-slate-100 leading-tight tracking-tight text-base md:text-lg hidden sm:block transition-colors">
             RHU <span class="text-teal-600 dark:text-teal-400">SILANG</span>
         </div>
+    </div>
+
+    <div class="absolute top-6 right-6 md:top-8 md:right-10 z-50">
+        <button id="theme-toggle" type="button"
+            class="relative inline-flex h-7 w-[48px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out shadow-sm">
+            <span class="sr-only">Toggle theme</span>
+            <span
+                class="pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow ring-0 transition duration-200 ease-in-out translate-x-0.5 dark:translate-x-[22px]">
+                <svg id="theme-toggle-dark-icon" class="hidden w-3.5 h-3.5 text-slate-700"
+                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                </svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-3.5 h-3.5 text-amber-400"
+                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                        fill-rule="evenodd" clip-rule="evenodd"></path>
+                </svg>
+            </span>
+        </button>
     </div>
 
     <div class="w-full max-w-[900px] bg-white dark:bg-slate-800 rounded-3xl shadow-2xl shadow-teal-900/10 dark:shadow-teal-900/30 overflow-hidden flex flex-col md:flex-row m-4 z-10 border border-slate-100 dark:border-slate-700 transition-colors duration-200">
@@ -236,5 +256,45 @@
             </div>
         </div>
     </div>
+
+    <script>
+        var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        if (themeToggleDarkIcon && themeToggleLightIcon) {
+            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                themeToggleLightIcon.classList.remove('hidden');
+            } else {
+                themeToggleDarkIcon.classList.remove('hidden');
+            }
+
+            var themeToggleBtn = document.getElementById('theme-toggle');
+
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', function () {
+                    themeToggleDarkIcon.classList.toggle('hidden');
+                    themeToggleLightIcon.classList.toggle('hidden');
+
+                    if (localStorage.getItem('color-theme')) {
+                        if (localStorage.getItem('color-theme') === 'light') {
+                            document.documentElement.classList.add('dark');
+                            localStorage.setItem('color-theme', 'dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            localStorage.setItem('color-theme', 'light');
+                        }
+                    } else {
+                        if (document.documentElement.classList.contains('dark')) {
+                            document.documentElement.classList.remove('dark');
+                            localStorage.setItem('color-theme', 'light');
+                        } else {
+                            document.documentElement.classList.add('dark');
+                            localStorage.setItem('color-theme', 'dark');
+                        }
+                    }
+                });
+            }
+        }
+    </script>
 </body>
 </html>

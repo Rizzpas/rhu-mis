@@ -12,21 +12,29 @@
         return name.toLowerCase().includes(q) || desc.toLowerCase().includes(q) || tags.some(t => t.toLowerCase().includes(q));
     }
 }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
         
-        {{-- Header Section with 21st.dev Glass & Aura Styling --}}
-        <div class="text-center mb-12" data-reveal>
-            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-bold rounded-full mb-5 uppercase tracking-wider border border-emerald-500/20 backdrop-blur-md shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                RHU Healthcare Facilities
-            </span>
-            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
-                Our Specialized <span class="hero-highlight">Health Units</span>
-            </h1>
-            <p class="mt-4 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto font-normal leading-relaxed">
-                Explore our dedicated public health facilities, clinical departments, and comprehensive community medical services in Silang, Cavite.
-            </p>
-            <div class="section-accent mx-auto mt-6"></div>
+        {{-- Header Section — 2-Column Split Hero --}}
+        <div class="mb-12" data-reveal>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-end">
+                {{-- Left Column: Kicker + Heading --}}
+                <div>
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-bold rounded-full mb-5 uppercase tracking-wider border border-emerald-500/20 backdrop-blur-md shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        RHU Healthcare Facilities
+                    </span>
+                    <h1 class="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
+                        Our Specialized<br class="hidden sm:block"> <span class="text-emerald-600 dark:text-emerald-400">Health Units</span>
+                    </h1>
+                </div>
+
+                {{-- Right Column: Description (bottom-aligned to heading) --}}
+                <div class="lg:pb-1">
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-xl font-normal leading-relaxed">
+                        Explore our dedicated public health facilities, clinical departments, and comprehensive community medical services in Silang, Cavite.
+                    </p>
+                </div>
+            </div>
         </div>
 
         {{-- Interactive Filter & Search Bar (21st.dev Pill Controls) --}}

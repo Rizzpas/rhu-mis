@@ -179,9 +179,13 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('about') }}"
-                            class="block py-2 px-3 text-gray-900 dark:text-white hover:text-green-600 hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">About
-                            Us</a>
+                        <button id="mega-menu-updates-dropdown-button" data-collapse-toggle="mega-menu-updates-dropdown"
+                            class="flex items-center justify-between w-full py-2 px-3 font-medium text-gray-900 dark:text-white md:w-auto hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">
+                            About & Updates
+                            <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                            </svg>
+                        </button>
                     </li>
 
                     <!-- Theme Toggle -->
@@ -204,14 +208,15 @@
                             </span>
                         </button>
                     </li>
-                    <!-- Language Switcher -->
-                    <li
-                        class="hidden md:flex items-center space-x-2 border-l border-gray-200 dark:border-gray-700 pl-4 ml-2">
-                        <a href="{{ route('locale.switch', 'en') }}"
-                            class="text-xs font-bold {{ app()->getLocale() == 'en' ? 'text-green-700' : 'text-gray-400 hover:text-gray-600 dark:text-gray-400' }} transition">EN</a>
-                        <span class="text-gray-300 text-xs">|</span>
-                        <a href="{{ route('locale.switch', 'fil') }}"
-                            class="text-xs font-bold {{ app()->getLocale() == 'fil' ? 'text-green-700' : 'text-gray-400 hover:text-gray-600 dark:text-gray-400' }} transition">FIL</a>
+                    <!-- Book an Appointment CTA -->
+                    <li class="w-full md:w-auto">
+                        <a href="{{ route('appointment.create') }}"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-xl shadow-sm hover:shadow transition-all duration-200 w-full md:w-auto">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                            <span>Book an Appointment</span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -331,6 +336,51 @@
 
             </div>
         </div>
+
+        <div id="mega-menu-updates-dropdown"
+            class="hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl border-y absolute w-full z-50 left-0 max-h-[60vh] overflow-y-auto">
+            <div class="max-w-7xl px-4 py-6 mx-auto lg:px-8"
+                aria-labelledby="mega-menu-updates-dropdown-button">
+
+                {{-- Header row --}}
+                <div class="flex items-center justify-between mb-4 px-1">
+                    <h3 class="font-display text-lg font-bold text-gray-900 dark:text-white">About & Updates</h3>
+                    <a href="{{ route('announcements.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 dark:text-green-400 hover:text-green-700 transition">
+                        View all announcements
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-3">
+                    <a href="{{ route('announcements.index') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition border border-transparent hover:border-green-100 dark:hover:border-green-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.34 15.84c-.063.046-.129.088-.198.127a3.75 3.75 0 01-4.088-.288L3.25 13.5A2.25 2.25 0 012.25 11.75v-1.5a2.25 2.25 0 011-1.75l2.804-2.179a3.75 3.75 0 014.088-.288c.069.04.135.081.198.127m0 9.68l4.41 4.41a1.5 1.5 0 002.122 0l1.414-1.414a1.5 1.5 0 000-2.122L12 14.004m-1.66 1.836V7.996m0 0a3.75 3.75 0 013.75-3.75h1.5a2.25 2.25 0 012.25 2.25v6a2.25 2.25 0 01-2.25 2.25h-1.5a3.75 3.75 0 01-3.75-3.75z"/>
+                            </svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">Announcements</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Health advisories, public advisories, medical mission notices & community alerts</span>
+                        </span>
+                    </a>
+
+                    <a href="{{ route('about') }}"
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253"/>
+                            </svg>
+                        </span>
+                        <span>
+                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">About Us</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Learn about RHU Silang's mission, healthcare leadership, facilities & history</span>
+                        </span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
     </nav>
 
     <main class="min-h-screen">
@@ -339,21 +389,7 @@
         @yield('content')
     </main>
 
-    <section class="bg-green-900 py-12">
-        <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="text-white">
-                <h3 class="font-bold text-xl mb-1">STAY INFORMED</h3>
-                <p class="text-green-100 text-sm max-w-md">Receive real-time health advisories, vaccination schedules,
-                    and community news from the City Health Office.</p>
-            </div>
-            <div class="flex w-full md:w-auto">
-                <input type="email" placeholder="Email Address"
-                    class="px-4 py-2 w-full md:w-64 rounded-l focus:outline-none text-sm text-gray-800">
-                <button
-                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-r text-sm font-medium transition cursor-pointer">Subscribe</button>
-            </div>
-        </div>
-    </section>
+    <!-- STAY INFORMED section removed -->
 
     <footer class="bg-[#1e4620] pt-16 pb-8 text-green-100 text-sm w-full">
         <div class="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-4 gap-10 mb-12 relative z-10">

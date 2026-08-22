@@ -109,18 +109,21 @@
 
     /* --- Mega Menu Animations --- */
     #mega-menu-full-dropdown:not(.hidden),
-    #mega-menu-appointment-dropdown:not(.hidden) {
+    #mega-menu-appointment-dropdown:not(.hidden),
+    #mega-menu-updates-dropdown:not(.hidden) {
         display: block;
         animation: megaMenuIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     #mega-menu-full-dropdown-button svg,
-    #mega-menu-appointment-dropdown-button svg {
+    #mega-menu-appointment-dropdown-button svg,
+    #mega-menu-updates-dropdown-button svg {
         transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     #mega-menu-full-dropdown-button[aria-expanded="true"] svg,
-    #mega-menu-appointment-dropdown-button[aria-expanded="true"] svg {
+    #mega-menu-appointment-dropdown-button[aria-expanded="true"] svg,
+    #mega-menu-updates-dropdown-button[aria-expanded="true"] svg {
         transform: rotate(180deg);
     }
 
@@ -717,5 +720,14 @@
 
     .page-break-inside-avoid {
         page-break-inside: avoid;
+    }
+    /* ------------------------------------------------------------------
+       Global small corner radius override
+       Ensures all elements (cards, buttons, badges, inputs, containers,
+       images, etc.) use a subtle 0.25rem (rounded-sm) radius for visual
+       consistency.
+    ------------------------------------------------------------------ */
+    [class*="rounded-"] {
+        border-radius: 0.25rem !important;
     }
 }

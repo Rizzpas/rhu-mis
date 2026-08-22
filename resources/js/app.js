@@ -10,57 +10,57 @@ Alpine.start();
 document.addEventListener('DOMContentLoaded', () => {
     const unitsBtn = document.getElementById('mega-menu-full-dropdown-button');
     const apptBtn = document.getElementById('mega-menu-appointment-dropdown-button');
+    const updatesBtn = document.getElementById('mega-menu-updates-dropdown-button');
+
     const unitsMenu = document.getElementById('mega-menu-full-dropdown');
     const apptMenu = document.getElementById('mega-menu-appointment-dropdown');
+    const updatesMenu = document.getElementById('mega-menu-updates-dropdown');
+
+    const dropdowns = [
+        { btn: unitsBtn, menu: unitsMenu },
+        { btn: apptBtn, menu: apptMenu },
+        { btn: updatesBtn, menu: updatesMenu },
+    ];
 
     function syncState() {
-        if (unitsBtn && unitsMenu) {
-            const isOpen = !unitsMenu.classList.contains('hidden');
-            unitsBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        }
-        if (apptBtn && apptMenu) {
-            const isOpen = !apptMenu.classList.contains('hidden');
-            apptBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        }
-    }
-
-    if (unitsBtn && apptMenu) {
-        unitsBtn.addEventListener('click', () => {
-            if (!apptMenu.classList.contains('hidden')) {
-                apptMenu.classList.add('hidden');
-                if (apptBtn) apptBtn.setAttribute('aria-expanded', 'false');
+        dropdowns.forEach(({ btn, menu }) => {
+            if (btn && menu) {
+                const isOpen = !menu.classList.contains('hidden');
+                btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             }
-            setTimeout(syncState, 50);
         });
     }
 
-    if (apptBtn && unitsMenu) {
-        apptBtn.addEventListener('click', () => {
-            if (!unitsMenu.classList.contains('hidden')) {
-                unitsMenu.classList.add('hidden');
-                if (unitsBtn) unitsBtn.setAttribute('aria-expanded', 'false');
-            }
-            setTimeout(syncState, 50);
-        });
-    }
+    // When clicking any button, close all other dropdowns
+    dropdowns.forEach(({ btn, menu }) => {
+        if (btn) {
+            btn.addEventListener('click', () => {
+                dropdowns.forEach(other => {
+                    if (other.menu && other.menu !== menu && !other.menu.classList.contains('hidden')) {
+                        other.menu.classList.add('hidden');
+                        if (other.btn) other.btn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                setTimeout(syncState, 50);
+            });
+        }
+    });
 
     // Close when clicking outside navbar
     document.addEventListener('click', (e) => {
         const nav = document.querySelector('nav');
         if (nav && !nav.contains(e.target)) {
-            if (unitsMenu && !unitsMenu.classList.contains('hidden')) {
-                unitsMenu.classList.add('hidden');
-                if (unitsBtn) unitsBtn.setAttribute('aria-expanded', 'false');
-            }
-            if (apptMenu && !apptMenu.classList.contains('hidden')) {
-                apptMenu.classList.add('hidden');
-                if (apptBtn) apptBtn.setAttribute('aria-expanded', 'false');
-            }
+            dropdowns.forEach(({ btn, menu }) => {
+                if (menu && !menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    if (btn) btn.setAttribute('aria-expanded', 'false');
+                }
+            });
         }
     });
 
     // Observe changes on dropdown menus to keep rotation animated properly
-    [unitsMenu, apptMenu].forEach(menu => {
+    dropdowns.forEach(({ menu }) => {
         if (menu) {
             const observer = new MutationObserver(syncState);
             observer.observe(menu, { attributes: true, attributeFilter: ['class'] });

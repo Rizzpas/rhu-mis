@@ -364,15 +364,6 @@
                             </svg>
                         </span>
                     </button>
-                    
-                    <!-- Language Switcher -->
-                    <div class="flex items-center space-x-2 border-r pr-4 border-emerald-500 dark:border-emerald-700">
-                        <a href="{{ route('locale.switch', 'en') }}"
-                            class="text-sm font-bold {{ app()->getLocale() == 'en' ? 'text-white' : 'text-emerald-200 hover:text-white dark:text-emerald-400' }}">EN</a>
-                        <span class="text-emerald-400/50">|</span>
-                        <a href="{{ route('locale.switch', 'fil') }}"
-                            class="text-sm font-bold {{ app()->getLocale() == 'fil' ? 'text-white' : 'text-emerald-200 hover:text-white dark:text-emerald-400' }}">TAG</a>
-                    </div>
                     <!-- Logout button could go here -->
                 </div>
             </div>
