@@ -33,21 +33,27 @@
                     <div x-data="{ 
                         photoName: null, 
                         photoPreview: null,
-                        updatePreview(e) {
-                            const file = e.target.files[0];
-                            if (!file) return;
-                            
-                            this.photoName = file.name;
-                            const reader = new FileReader();
-                            reader.onload = (event) => { 
-                                this.photoPreview = event.target.result; 
-                            };
-                            reader.readAsDataURL(file);
+                        isDragging: false,
+                        handleAvatarFile(file) {
+                            if (!file || !file.type.startsWith('image/')) return;
+                            const input = document.getElementById('profile_avatar_input');
+                            $store.imageCropper.open(file, {
+                                aspectRatio: 1,
+                                circular: true,
+                                subtitle: 'Square crop (1:1) — Profile Avatar',
+                                onApply: (blob, previewUrl) => {
+                                    this.photoPreview = previewUrl;
+                                    this.photoName = file.name;
+                                    setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                }
+                            });
                         }
                     }">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Avatar</label>
-                        <div class="mt-1 flex items-center space-x-5">
-                            <div class="h-16 w-16 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 relative border-2 border-teal-500 shadow-sm">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Avatar</label>
+                        <div class="flex items-center space-x-6">
+                            <!-- Avatar Preview with Hover Camera Overlay -->
+                            <div @click="document.getElementById('profile_avatar_input').click()" 
+                                 class="h-20 w-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 relative border-2 border-teal-500 shadow-md cursor-pointer group flex-shrink-0">
                                 <template x-if="photoPreview">
                                     <img :src="photoPreview" class="h-full w-full object-cover" alt="Avatar Preview">
                                 </template>
@@ -55,13 +61,34 @@
                                     @if(auth()->user()->avatar_url)
                                         <img class="h-full w-full object-cover" src="{{ auth()->user()->avatar_url }}" alt="Avatar">
                                     @else
-                                        <div class="h-full w-full flex items-center justify-center bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 font-bold text-xl">
+                                        <div class="h-full w-full flex items-center justify-center bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 font-bold text-2xl">
                                             {{ auth()->user()->initials }}
                                         </div>
                                     @endif
                                 </template>
+                                <div class="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </div>
                             </div>
-                            <input type="file" name="avatar" accept="image/*" @change="updatePreview" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-teal-900 dark:file:text-teal-300 transition-colors">
+
+                            <!-- Drag & Drop Dropzone for Avatar -->
+                            <div class="flex-1">
+                                <input type="file" id="profile_avatar_input" name="avatar" accept="image/*" class="hidden"
+                                    @change="if ($event.target.files.length) handleAvatarFile($event.target.files[0])">
+                                
+                                <div @dragover.prevent="isDragging = true"
+                                     @dragleave.prevent="isDragging = false"
+                                     @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) handleAvatarFile($event.dataTransfer.files[0])"
+                                     @click="document.getElementById('profile_avatar_input').click()"
+                                     :class="isDragging ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/20 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750'"
+                                     class="border-2 border-dashed rounded-xl px-4 py-3 text-center cursor-pointer transition-all flex items-center justify-center gap-3">
+                                    <svg class="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <div class="text-left">
+                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="photoName || 'Drag & drop avatar here, or browse'"></p>
+                                        <p class="text-[10px] text-slate-400">1:1 square crop • Max 2MB</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         @error('avatar') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
@@ -342,4 +369,6 @@
         </div>
     </div>
 </div>
+
+@include('partials.image-cropper')
 @endsection

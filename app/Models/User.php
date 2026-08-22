@@ -257,6 +257,21 @@ class User extends Authenticatable
             return null;
         }
 
-        return asset('storage/'.$this->avatar_path);
+        $cleanPath = ltrim(str_replace(['uploads/', 'storage/'], '', $this->avatar_path), '/');
+
+        // Check if file exists in public/uploads/
+        if (file_exists(public_path('uploads/'.$cleanPath))) {
+            return asset('uploads/'.$cleanPath);
+        }
+
+        // Check if file exists in storage/app/public/
+        if (file_exists(storage_path('app/public/'.$cleanPath))) {
+            @mkdir(public_path('uploads/'.dirname($cleanPath)), 0755, true);
+            @copy(storage_path('app/public/'.$cleanPath), public_path('uploads/'.$cleanPath));
+
+            return asset('uploads/'.$cleanPath);
+        }
+
+        return asset('uploads/'.$cleanPath);
     }
 }

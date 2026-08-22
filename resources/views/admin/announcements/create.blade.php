@@ -3,6 +3,94 @@
 @section('header', 'Post Announcement')
 
 @section('content')
+<script>
+    function announcementForm() {
+        return {
+            sections: [],
+            mainImageName: '',
+            mainPreviews: [],
+            isMainDragging: false,
+            
+            addSection() {
+                this.sections.push({
+                    id: Date.now(),
+                    fileName: '',
+                    preview: '',
+                    isDragging: false
+                });
+            },
+            
+            removeSection(index) {
+                this.sections.splice(index, 1);
+            },
+            
+            handleMainFiles(files) {
+                if (!files || files.length === 0) return;
+                const file = files[0];
+                const input = document.getElementById('main_image');
+                
+                if (file.type.startsWith('image/')) {
+                    window.openImageCropper(file, {
+                        aspectRatio: NaN,
+                        subtitle: 'Announcement Cover Media — Free crop or choose ratio',
+                        onApply: (blob, previewUrl) => {
+                            this.mainImageName = file.name;
+                            this.mainPreviews = [previewUrl];
+                            setCroppedFile(input, blob, file.name || 'cover.jpg');
+                        }
+                    });
+                } else {
+                    // Non-image (e.g. video), bypass crop
+                    this.mainImageName = file.name;
+                    this.mainPreviews = [];
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                }
+            },
+
+            handleMainImageChange(event) {
+                this.handleMainFiles(event.target.files);
+            },
+            
+            handleSectionFiles(files, index) {
+                if (!files || files.length === 0) return;
+                const file = files[0];
+                const input = document.getElementById('file_' + this.sections[index].id);
+                
+                if (file.type.startsWith('image/')) {
+                    window.openImageCropper(file, {
+                        aspectRatio: NaN, // Free crop for gallery / section images
+                        subtitle: 'Free crop — Section Media',
+                        onApply: (blob, previewUrl) => {
+                            this.sections[index].fileName = file.name;
+                            this.sections[index].preview = previewUrl;
+                            setCroppedFile(input, blob, file.name || 'section.jpg');
+                        }
+                    });
+                } else {
+                    this.sections[index].fileName = file.name;
+                    this.sections[index].preview = '';
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                }
+            },
+
+            handleSectionFileChange(event, index) {
+                this.handleSectionFiles(event.target.files, index);
+            }
+        }
+    }
+    window.announcementForm = announcementForm;
+    if (window.Alpine) {
+        Alpine.data('announcementForm', announcementForm);
+    }
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('announcementForm', announcementForm);
+    });
+</script>
+
 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 max-w-4xl mx-auto overflow-hidden" x-data="announcementForm()">
     <div class="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 relative overflow-hidden">
         <!-- Subtle background pattern -->
@@ -177,15 +265,24 @@
                 <textarea name="content" rows="6" required placeholder="Describe the announcement in detail..." class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-5 leading-relaxed transition-all">{{ old('content') }}</textarea>
             </div>
 
-            <div class="col-span-2 md:col-span-1">
+            <div class="col-span-2">
                 <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Cover Image/Video</label>
-                <!-- File Input Wrapper -->
-                <div class="relative group">
+                <!-- File Input Wrapper / Drag & Drop -->
+                <div class="relative group"
+                     @dragenter.prevent="isMainDragging = true"
+                     @dragover.prevent="isMainDragging = true"
+                     @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; isMainDragging = false"
+                     @drop.prevent="isMainDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleMainFiles($event.dataTransfer.files)">
                     <input type="file" name="images[]" id="main_image" class="hidden" multiple accept="image/*,video/mp4" @change="handleMainImageChange($event)">
-                    <label for="main_image" class="flex items-center justify-between w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 transition-all">
-                        <span class="text-slate-500 dark:text-slate-400 truncate text-sm" x-text="mainImageName || 'Select Files...'"></span>
-                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </label>
+                    <div @click="document.getElementById('main_image').click()" 
+                         :class="isMainDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                         class="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed rounded-xl cursor-pointer transition-all text-center gap-1.5">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 pointer-events-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="text-slate-700 dark:text-slate-200 text-sm font-semibold pointer-events-none" x-text="mainImageName || 'Drag & drop image(s) or click to browse'"></span>
+                        <span class="text-xs text-slate-400 pointer-events-none">Interactive crop — Free, 16:9, Poster, or Full Image</span>
+                    </div>
                 </div>
                 <!-- Main Image Previews -->
                 <div class="mt-4 grid grid-cols-3 gap-4" x-show="mainPreviews.length > 0">
@@ -194,19 +291,6 @@
                             <img :src="src" class="w-full h-24 object-cover transform group-hover:scale-110 transition-transform duration-500">
                         </div>
                     </template>
-                </div>
-            </div>
-
-            <div class="col-span-2 md:col-span-1">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Display Mode</label>
-                <div class="relative">
-                    <select name="display_mode" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 appearance-none font-bold">
-                        <option value="standard">Standard (Crop)</option>
-                        <option value="infographic">Infographic (Full Height)</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
                 </div>
             </div>
         </div>
@@ -230,9 +314,9 @@
 
             <div class="space-y-6">
                 <template x-for="(section, index) in sections" :key="section.id">
-                    <div class="bg-slate-50 dark:bg-slate-950/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 relative group">
-                        <button type="button" @click="removeSection(index)" class="absolute -top-3 -right-3 bg-red-500 text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 relative group transition-all hover:border-slate-300 dark:hover:border-slate-600">
+                        <button type="button" @click="removeSection(index)" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 p-2 rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -253,12 +337,18 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Section Media (Image/Video)</label>
-                                    <div class="relative group">
+                                    <div class="relative group"
+                                         @dragenter.prevent="section.isDragging = true"
+                                         @dragover.prevent="section.isDragging = true"
+                                         @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; section.isDragging = false"
+                                         @drop.prevent="section.isDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleSectionFiles($event.dataTransfer.files, index)">
                                         <input type="file" :name="`sections[${index}][image]`" :id="'file_' + section.id" class="hidden" accept="image/*,video/mp4" @change="handleSectionFileChange($event, index)">
-                                        <label :for="'file_' + section.id" class="flex items-center justify-between w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-xl cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-all bg-white/50 dark:bg-slate-900/50">
-                                            <span class="text-slate-500 dark:text-slate-400 truncate text-xs" x-text="section.fileName || 'Select Media...'"></span>
-                                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        </label>
+                                        <div @click="document.getElementById('file_' + section.id).click()" 
+                                             :class="section.isDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 bg-white/50 dark:bg-slate-900/50'"
+                                             class="flex items-center justify-between w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all">
+                                            <span class="text-slate-500 dark:text-slate-400 truncate text-xs pointer-events-none" x-text="section.fileName || 'Drag & drop or select media (Free crop)...'"></span>
+                                            <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        </div>
                                     </div>
                                 </div>
                                 <div x-show="section.preview" class="aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -284,7 +374,10 @@
                         <div class="w-12 h-6 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:bg-emerald-500 transition-colors"></div>
                         <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6 shadow-sm"></div>
                     </div>
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400 group-hover:text-emerald-500 transition-colors uppercase tracking-widest">Publish Immediately</span>
+                    <div>
+                        <span class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 transition-colors">Publish Immediately</span>
+                        <p class="text-[10px] text-slate-400">If unchecked, announcement will be saved as pending.</p>
+                    </div>
                 </label>
             </div>
             
@@ -300,53 +393,5 @@
     </form>
 </div>
 
-<script>
-    function announcementForm() {
-        return {
-            sections: [],
-            mainImageName: '',
-            mainPreviews: [],
-            
-            addSection() {
-                this.sections.push({
-                    id: Date.now(),
-                    fileName: '',
-                    preview: ''
-                });
-            },
-            
-            removeSection(index) {
-                this.sections.splice(index, 1);
-            },
-            
-            handleMainImageChange(event) {
-                const files = event.target.files;
-                if (files.length === 0) return;
-                
-                this.mainImageName = files.length === 1 ? files[0].name : `${files.length} files selected`;
-                this.mainPreviews = [];
-                
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        this.mainPreviews.push(e.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            },
-            
-            handleSectionFileChange(event, index) {
-                const file = event.target.files[0];
-                if (!file) return;
-                
-                this.sections[index].fileName = file.name;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.sections[index].preview = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-    }
-</script>
+@include('partials.image-cropper')
 @endsection

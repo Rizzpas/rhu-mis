@@ -133,23 +133,53 @@
                     </div>
                 </div>
 
-                <div class="p-6 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50" x-data="{ imagePreview: '{{ isset($settings['hero']['hero_image']->value) ? asset($settings['hero']['hero_image']->value) : '' }}' }">
+                <div class="p-6 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50" 
+                     x-data="{ 
+                         imagePreview: '{{ isset($settings['hero']['hero_image']->value) ? asset($settings['hero']['hero_image']->value) : '' }}',
+                         isDragging: false,
+                         handleHeroFile(file) {
+                             if (!file || !file.type.startsWith('image/')) return;
+                             const input = document.getElementById('hero_image_file_input');
+                             $store.imageCropper.open(file, {
+                                 aspectRatio: 1,
+                                 subtitle: 'Square crop (1:1) — Hero image banner',
+                                 onApply: (blob, previewUrl) => {
+                                     this.imagePreview = previewUrl;
+                                     setCroppedFile(input, blob, file.name || 'hero.jpg');
+                                 }
+                             });
+                         }
+                     }">
                     <label class="text-sm font-medium leading-none text-slate-900 dark:text-slate-300 mb-4 block">Hero Image</label>
                     <div class="flex flex-col md:flex-row items-start gap-6">
-                        <div class="flex-1 space-y-4">
-                            <input type="file" name="hero_image_file" accept="image/*" class="w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-teal-900/30 dark:file:text-teal-400 dark:hover:file:bg-teal-900/50 transition-colors cursor-pointer"
-                                @change="
-                                    const file = $event.target.files[0];
-                                    if (file) {
-                                        imagePreview = URL.createObjectURL(file);
-                                    }
-                                "
-                            >
-                            <p class="text-xs text-slate-500">Recommended size: 800x800px. Leave empty to keep current image.</p>
+                        <div class="flex-1 space-y-4 w-full">
+                            <input type="file" id="hero_image_file_input" name="hero_image_file" accept="image/*" class="hidden"
+                                @change="if ($event.target.files.length) handleHeroFile($event.target.files[0])">
+                            
+                            <div @dragover.prevent="isDragging = true"
+                                 @dragleave.prevent="isDragging = false"
+                                 @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) handleHeroFile($event.dataTransfer.files[0])"
+                                 @click="document.getElementById('hero_image_file_input').click()"
+                                 :class="isDragging ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/20 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900'"
+                                 class="w-full border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group">
+                                <div class="w-12 h-12 rounded-full bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    Drag & drop your hero image here, or <span class="text-teal-600 dark:text-teal-400 underline">browse</span>
+                                </p>
+                                <p class="text-xs text-slate-400">Supports JPG, PNG, WEBP. Recommended 800×800px (1:1 crop)</p>
+                            </div>
                         </div>
-                        <div class="w-full md:w-48 h-48 bg-white dark:bg-slate-950 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm flex-shrink-0 flex items-center justify-center">
+                        <div class="w-full md:w-48 h-48 bg-white dark:bg-slate-950 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm flex-shrink-0 flex items-center justify-center relative group">
                             <img x-show="imagePreview" :src="imagePreview" class="w-full h-full object-cover" style="display: none;">
                             <span x-show="!imagePreview" class="text-sm text-slate-400">No Image</span>
+                            <template x-if="imagePreview">
+                                <button type="button" @click="document.getElementById('hero_image_file_input').click()" class="absolute inset-0 bg-slate-900/60 text-white flex flex-col items-center justify-center text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity gap-1 backdrop-blur-xs">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    Change / Crop
+                                </button>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -247,27 +277,48 @@
                                             <textarea :name="`steps[{{ $slug }}][${index}][description]`" x-model="step.description" rows="2" placeholder="Detailed instructions for this step..." class="flex min-h-[80px] w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent dark:text-slate-50 transition-colors shadow-sm"></textarea>
                                         </div>
                                         <!-- Step Image Upload -->
-                                        <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                        <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700"
+                                             x-data="{
+                                                 isStepDragging: false,
+                                                 handleStepFile(file, slug, idx) {
+                                                     if (!file || !file.type.startsWith('image/')) return;
+                                                     const input = document.getElementById(`step_image_input_${slug}_${idx}`);
+                                                     $store.imageCropper.open(file, {
+                                                         aspectRatio: 16/9,
+                                                         subtitle: 'Landscape crop (16:9) — Process Step Image',
+                                                         onApply: (blob, previewUrl) => {
+                                                             step._preview = previewUrl;
+                                                             setCroppedFile(input, blob, file.name || 'step.jpg');
+                                                         }
+                                                     });
+                                                 }
+                                             }">
                                             <label class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                                 Step Image (shown on opposite side of timeline)
                                             </label>
                                             <!-- Hidden field to preserve existing image path -->
                                             <input type="hidden" :name="`steps[{{ $slug }}][${index}][image]`" x-model="step.image">
+                                            
+                                            <input type="file" :id="`step_image_input_{{ $slug }}_${index}`" :name="`step_images[{{ $slug }}][${index}]`" accept="image/*" class="hidden"
+                                                @change="if ($event.target.files.length) handleStepFile($event.target.files[0], '{{ $slug }}', index)">
+
                                             <div class="flex items-center gap-4">
-                                                <input type="file" :name="`step_images[{{ $slug }}][${index}]`" accept="image/*" class="text-sm text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-teal-900/30 dark:file:text-teal-400 cursor-pointer"
-                                                    @change="
-                                                        const file = $event.target.files[0];
-                                                        if (file) {
-                                                            step._preview = URL.createObjectURL(file);
-                                                        }
-                                                    "
-                                                >
+                                                <div @dragover.prevent="isStepDragging = true"
+                                                     @dragleave.prevent="isStepDragging = false"
+                                                     @drop.prevent="isStepDragging = false; if ($event.dataTransfer.files.length) handleStepFile($event.dataTransfer.files[0], '{{ $slug }}', index)"
+                                                     @click="document.getElementById(`step_image_input_{{ $slug }}_${index}`).click()"
+                                                     :class="isStepDragging ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/20' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900'"
+                                                     class="flex-1 border border-dashed rounded-lg px-4 py-2 text-center cursor-pointer transition-all flex items-center justify-center gap-2">
+                                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    <span class="text-xs text-slate-600 dark:text-slate-300">Drag & drop or <span class="text-teal-600 dark:text-teal-400 underline">browse</span> to crop (16:9)</span>
+                                                </div>
+
                                                 <!-- Current Image Preview -->
                                                 <template x-if="step.image || step._preview">
-                                                    <div class="relative w-20 h-14 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0">
+                                                    <div class="relative w-20 h-14 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0 group/img">
                                                         <img :src="step._preview || '/uploads/' + step.image" class="w-full h-full object-cover">
-                                                        <button type="button" @click="step.image = ''; step._preview = null; $el.closest('.space-y-2').querySelector('input[type=file]').value = '';" class="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600" title="Remove image">
+                                                        <button type="button" @click="step.image = ''; step._preview = null; const inp = document.getElementById(`step_image_input_{{ $slug }}_${index}`); if(inp) inp.value = '';" class="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-600" title="Remove image">
                                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                                         </button>
                                                     </div>
@@ -455,4 +506,6 @@
         </div>
     </form>
 </div>
+
+@include('partials.image-cropper')
 @endsection

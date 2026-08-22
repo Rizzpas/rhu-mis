@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-transparent min-h-screen py-10 sm:py-14"
+<div class="relative z-10 bg-transparent min-h-screen pt-4 pb-12 sm:pt-6 sm:pb-16"
      x-data="{
         search: '{{ addslashes($initialSearch) }}',
         category: '{{ $initialCategory }}',

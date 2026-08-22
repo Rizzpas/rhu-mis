@@ -51,12 +51,14 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
+            // Delete old avatar from both disks (migration cleanup)
             if ($user->avatar_path) {
-                Storage::disk('public')->delete($user->avatar_path);
+                $cleanPath = ltrim(str_replace(['uploads/', 'storage/'], '', $user->avatar_path), '/');
+                Storage::disk('public')->delete($cleanPath);
+                Storage::disk('uploads')->delete($cleanPath);
             }
-            // Upload new avatar
-            $path = $request->file('avatar')->store('staff', 'public');
+            // Upload new avatar to uploads disk (public/uploads/staff/)
+            $path = $request->file('avatar')->store('staff', 'uploads');
             $user->avatar_path = $path;
         }
 

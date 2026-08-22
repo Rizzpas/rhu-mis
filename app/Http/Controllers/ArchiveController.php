@@ -79,18 +79,26 @@ class ArchiveController extends Controller
         // Handle physical file deletions before force deleting the record
         if ($type === 'announcements') {
             if ($record->image_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($record->image_path);
+                $path = str_replace('uploads/', '', $record->image_path);
+                if (\Illuminate\Support\Facades\Storage::disk('uploads')->exists($path)) {
+                    \Illuminate\Support\Facades\Storage::disk('uploads')->delete($path);
+                }
             }
             // Delete associated gallery images physically
             foreach ($record->images()->get() as $image) {
                 if ($image->image_path) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
+                    $path = str_replace('uploads/', '', $image->image_path);
+                    if (\Illuminate\Support\Facades\Storage::disk('uploads')->exists($path)) {
+                        \Illuminate\Support\Facades\Storage::disk('uploads')->delete($path);
+                    }
                 }
                 $image->delete();
             }
         } elseif ($type === 'staff') {
             if ($record->avatar_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($record->avatar_path);
+                $cleanPath = ltrim(str_replace(['uploads/', 'storage/'], '', $record->avatar_path), '/');
+                \Illuminate\Support\Facades\Storage::disk('uploads')->delete($cleanPath);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($cleanPath);
             }
         }
 
@@ -155,24 +163,32 @@ class ArchiveController extends Controller
             $records = Announcement::onlyTrashed()->whereIn('id', $ids)->get();
             foreach ($records as $record) {
                 if ($record->image_path) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($record->image_path);
+                    $path = str_replace('uploads/', '', $record->image_path);
+                    if (\Illuminate\Support\Facades\Storage::disk('uploads')->exists($path)) {
+                        \Illuminate\Support\Facades\Storage::disk('uploads')->delete($path);
+                    }
                 }
                 foreach ($record->images()->get() as $image) {
                     if ($image->image_path) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
+                        $path = str_replace('uploads/', '', $image->image_path);
+                        if (\Illuminate\Support\Facades\Storage::disk('uploads')->exists($path)) {
+                            \Illuminate\Support\Facades\Storage::disk('uploads')->delete($path);
+                        }
                     }
                     $image->delete();
                 }
-                $record->forceDelete();
             }
+            Announcement::onlyTrashed()->whereIn('id', $ids)->forceDelete();
         } elseif ($type === 'staff') {
             $records = \App\Models\User::onlyTrashed()->whereIn('id', $ids)->get();
             foreach ($records as $record) {
                 if ($record->avatar_path) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($record->avatar_path);
+                    $cleanPath = ltrim(str_replace(['uploads/', 'storage/'], '', $record->avatar_path), '/');
+                    \Illuminate\Support\Facades\Storage::disk('uploads')->delete($cleanPath);
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($cleanPath);
                 }
-                $record->forceDelete();
             }
+            \App\Models\User::onlyTrashed()->whereIn('id', $ids)->forceDelete();
         } else {
             abort(404, 'Category not found.');
         }

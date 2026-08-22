@@ -3,6 +3,114 @@
 @section('header', 'Edit Announcement')
 
 @section('content')
+<script>
+    function announcementEditForm() {
+        return {
+            new_sections: [],
+            selectedSections: [],
+            showBulkModal: false,
+            mainImageName: '',
+            display_type: '{{ $announcement->display_type }}',
+            mainPreviews: [],
+            fullscreenImage: null,
+            isMainDragging: false,
+
+            handleMainFiles(files) {
+                if (!files || files.length === 0) return;
+                const file = files[0];
+                const input = document.getElementById('main_image');
+                
+                if (file.type.startsWith('image/')) {
+                    window.openImageCropper(file, {
+                        aspectRatio: NaN,
+                        subtitle: 'Announcement Cover Media — Free crop or choose ratio',
+                        onApply: (blob, previewUrl) => {
+                            this.mainImageName = file.name;
+                            this.mainPreviews = [previewUrl];
+                            setCroppedFile(input, blob, file.name || 'cover.jpg');
+                        }
+                    });
+                } else {
+                    this.mainImageName = file.name;
+                    this.mainPreviews = [];
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                }
+            },
+
+            handleMainImageChange(event) {
+                this.handleMainFiles(event.target.files);
+            },
+
+            handleExistingSectionFiles(files, sectionId) {
+                if (!files || files.length === 0) return;
+                const file = files[0];
+                const input = document.getElementById('existing_image_' + sectionId);
+                const label = document.getElementById('filename_' + sectionId);
+                
+                if (file.type.startsWith('image/')) {
+                    window.openImageCropper(file, {
+                        aspectRatio: NaN,
+                        subtitle: 'Free crop — Section Media',
+                        onApply: (blob, previewUrl) => {
+                            if (label) label.innerText = file.name;
+                            setCroppedFile(input, blob, file.name || 'section.jpg');
+                        }
+                    });
+                } else {
+                    if (label) label.innerText = file.name;
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                }
+            },
+
+            handleNewSectionFiles(files, index) {
+                if (!files || files.length === 0) return;
+                const file = files[0];
+                const input = document.getElementById('new_section_image_' + index);
+                
+                if (file.type.startsWith('image/')) {
+                    window.openImageCropper(file, {
+                        aspectRatio: NaN,
+                        subtitle: 'Free crop — Section Media',
+                        onApply: (blob, previewUrl) => {
+                            this.new_sections[index].fileName = file.name;
+                            this.new_sections[index].preview = previewUrl;
+                            setCroppedFile(input, blob, file.name || 'section.jpg');
+                        }
+                    });
+                } else {
+                    this.new_sections[index].fileName = file.name;
+                    this.new_sections[index].preview = '';
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                }
+            },
+            
+            addSection() {
+                if(this.new_sections.length < 5) {
+                    this.new_sections.push({ fileName: '', layout: 'left', preview: null, isDragging: false });
+                } else {
+                    alert('Maximum of 5 additional sections allowed.');
+                }
+            },
+            removeSection(index) {
+                this.new_sections.splice(index, 1);
+            }
+        }
+    }
+    window.announcementEditForm = announcementEditForm;
+    if (window.Alpine) {
+        Alpine.data('announcementEditForm', announcementEditForm);
+    }
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('announcementEditForm', announcementEditForm);
+    });
+</script>
+
 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 max-w-4xl mx-auto overflow-hidden" x-data="announcementEditForm()">
     <div class="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 relative overflow-hidden">
         <!-- Subtle background pattern -->
@@ -185,8 +293,8 @@
                 <textarea name="content" rows="6" required class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-5 leading-relaxed transition-all">{{ $announcement->content }}</textarea>
             </div>
 
-            <div class="col-span-2 md:col-span-1">
-                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Main Image(s)</label>
+            <div class="col-span-2">
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Cover Image/Video</label>
                 @if($announcement->image_path)
                     <div class="mb-3">
                         <img src="{{ asset('uploads/' . $announcement->image_path) }}" class="h-32 w-auto rounded-lg border border-gray-200 dark:border-gray-700 object-cover shadow-sm">
@@ -194,13 +302,22 @@
                     </div>
                 @endif
                 
-                <!-- File Input Wrapper -->
-                <div class="relative group">
+                <!-- File Input Wrapper / Drag & Drop -->
+                <div class="relative group"
+                     @dragenter.prevent="isMainDragging = true"
+                     @dragover.prevent="isMainDragging = true"
+                     @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; isMainDragging = false"
+                     @drop.prevent="isMainDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleMainFiles($event.dataTransfer.files)">
                     <input type="file" name="images[]" id="main_image" class="hidden" multiple accept="image/*,video/mp4" @change="handleMainImageChange($event)">
-                    <label for="main_image" class="flex items-center justify-between w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 transition-all">
-                        <span class="text-slate-500 dark:text-slate-400 truncate text-sm" x-text="mainImageName || 'Change Image(s)...'"></span>
-                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </label>
+                    <div @click="document.getElementById('main_image').click()" 
+                         :class="isMainDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                         class="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed rounded-xl cursor-pointer transition-all text-center gap-1.5">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 pointer-events-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="text-slate-700 dark:text-slate-200 text-sm font-semibold pointer-events-none" x-text="mainImageName || 'Change Cover Image (Drag & Drop or browse)'"></span>
+                        <span class="text-xs text-slate-400 pointer-events-none">Interactive crop — Free, 16:9, Poster, or Full Image</span>
+                    </div>
                 </div>
 
                 <!-- Main Image Previews -->
@@ -219,19 +336,6 @@
                     <select name="display_type" x-model="display_type" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 appearance-none font-bold">
                         <option value="list">Standard List (Alternating)</option>
                         <option value="carousel">Carousel / Slider Mode</option>
-                    </select>
-                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-span-2 md:col-span-1">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Display Mode</label>
-                <div class="relative">
-                    <select name="display_mode" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 appearance-none font-bold">
-                        <option value="standard" {{ $announcement->display_mode == 'standard' ? 'selected' : '' }}>Standard (Crop)</option>
-                        <option value="infographic" {{ $announcement->display_mode == 'infographic' ? 'selected' : '' }}>Infographic (Full Height)</option>
                     </select>
                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -306,70 +410,101 @@
                                         </div>
                                     @endif
                                     
-                                     <div class="relative">
-                                        <input type="file" name="existing_sections[{{ $section->id }}][image]" id="existing_image_{{ $section->id }}" class="hidden" accept="image/*,video/mp4" @change="document.getElementById('filename_{{ $section->id }}').innerText = $event.target.files[0].name">
-                                        <label for="existing_image_{{ $section->id }}" class="flex items-center justify-between w-full px-3 py-2 border border-slate-300 dark:border-slate-700 border-dashed rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                            <span id="filename_{{ $section->id }}" class="text-[10px] text-slate-500 truncate">Change Media...</span>
-                                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                        </label>
+                                 <div class="relative group"
+                                     x-data="{ isDragging: false }"
+                                     @dragover.prevent="isDragging = true"
+                                     @dragleave.prevent="isDragging = false"
+                                     @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) handleExistingSectionFiles($event.dataTransfer.files, {{ $section->id }})">
+                                    <input type="file" name="existing_sections[{{ $section->id }}][image]" id="existing_image_{{ $section->id }}" class="hidden" accept="image/*,video/mp4" @change="handleExistingSectionFiles($event.target.files, {{ $section->id }})">
+                                    <div @click="document.getElementById('existing_image_{{ $section->id }}').click()" 
+                                         :class="isDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'"
+                                         class="flex items-center justify-between w-full px-3 py-2 border border-dashed rounded-lg cursor-pointer transition-colors">
+                                        <span id="filename_{{ $section->id }}" class="text-[10px] text-slate-500 truncate">Change Media (Free crop)...</span>
+                                        <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                     </div>
                                 </div>
-                                
-                                <div class="mt-4 flex justify-center gap-3">
-                                     <label class="flex items-center cursor-pointer group">
-                                        <input type="radio" name="existing_sections[{{ $section->id }}][layout]" value="left" x-model="layout" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
-                                        <span class="ml-1 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Left</span>
-                                    </label>
-                                    <label class="flex items-center cursor-pointer group">
-                                        <input type="radio" name="existing_sections[{{ $section->id }}][layout]" value="middle" x-model="layout" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
-                                        <span class="ml-1 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Middle</span>
-                                    </label>
-                                    <label class="flex items-center cursor-pointer group">
-                                        <input type="radio" name="existing_sections[{{ $section->id }}][layout]" value="right" x-model="layout" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
-                                        <span class="ml-1 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Right</span>
-                                    </label>
-                                </div>
                             </div>
-
-                            <!-- Content Column -->
-                            <div class="w-full" :class="{ 'md:w-full': layout === 'middle', 'md:w-1/2': layout !== 'middle' }">
-                                <textarea name="existing_sections[{{ $section->id }}][content]" rows="6" class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-sm p-4 leading-relaxed transition-all">{{ $section->content }}</textarea>
+                            
+                            <div class="mt-4 flex justify-center gap-3">
+                                 <label class="flex items-center cursor-pointer group">
+                                    <input type="radio" name="existing_sections[{{ $section->id }}][layout]" value="left" x-model="layout" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
+                                    <span class="ml-1 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Left</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer group">
+                                    <input type="radio" name="existing_sections[{{ $section->id }}][layout]" value="middle" x-model="layout" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
+                                    <span class="ml-1 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Middle</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer group">
+                                    <input type="radio" name="existing_sections[{{ $section->id }}][layout]" value="right" x-model="layout" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
+                                    <span class="ml-1 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Right</span>
+                                </label>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="text-center py-12 bg-slate-50 dark:bg-slate-950/30 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">No additional sections yet.</p>
-                </div>
-            @endif
-        </div>
 
-        <!-- New Sections -->
-        <div class="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800">
-            <h4 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-                <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Add New Sections
-            </h4>
-            
-            <div class="space-y-6">
-                <template x-for="(section, index) in new_sections" :key="index">
-                    <div class="bg-emerald-50/50 dark:bg-emerald-900/10 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 relative group transition hover:shadow-md">
-                        <button type="button" @click="removeSection(index)" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors bg-white dark:bg-slate-900 rounded-full p-1 shadow-sm">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3" x-text="'New Section ' + (index + 1) + ' Media'"></label>
-                                
-                                <div class="relative mb-4">
-                                    <input type="file" :name="'new_sections[' + index + '][image]'" :id="'new_section_image_' + index" class="hidden" accept="image/*,video/mp4" @change="section.fileName = $event.target.files[0].name; section.preview = URL.createObjectURL($event.target.files[0])">
-                                    <label :for="'new_section_image_' + index" class="flex items-center justify-between w-full px-4 py-3 border border-emerald-200 dark:border-emerald-800/50 border-dashed rounded-xl cursor-pointer bg-white dark:bg-slate-900 hover:bg-emerald-50 transition-all">
-                                        <span class="text-xs text-slate-500 truncate" x-text="section.fileName || 'Upload Media...'"></span>
-                                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                    </label>
+                        <!-- Content Column -->
+                        <div class="w-full" :class="{ 'md:w-full': layout === 'middle', 'md:w-1/2': layout !== 'middle' }">
+                            <textarea name="existing_sections[{{ $section->id }}][content]" rows="6" class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-sm p-4 leading-relaxed transition-all">{{ $section->content }}</textarea>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="text-center py-12 bg-slate-50 dark:bg-slate-950/30 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">No additional sections yet.</p>
+            </div>
+        @endif
+    </div>
+
+    <!-- New Sections -->
+    <div class="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800">
+        <h4 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Add New Sections
+        </h4>
+        
+        <div class="space-y-6">
+            <template x-for="(section, index) in new_sections" :key="index">
+                <div class="bg-emerald-50/50 dark:bg-emerald-900/10 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 relative group transition hover:shadow-md">
+                    <button type="button" @click="removeSection(index)" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors bg-white dark:bg-slate-900 rounded-full p-1 shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3" x-text="'New Section ' + (index + 1) + ' Media'"></label>
+                            
+                            <div class="relative mb-4"
+                                 @dragover.prevent="section.isDragging = true"
+                                 @dragleave.prevent="section.isDragging = false"
+                                 @drop.prevent="section.isDragging = false; if ($event.dataTransfer.files.length) handleNewSectionFiles($event.dataTransfer.files, index)">
+                                <input type="file" :name="'new_sections[' + index + '][image]'" :id="'new_section_image_' + index" class="hidden" accept="image/*,video/mp4" @change="handleNewSectionFiles($event.target.files, index)">
+                                <div @click="document.getElementById('new_section_image_' + index).click()" 
+                                     :class="section.isDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 hover:bg-emerald-50'"
+                                     class="flex items-center justify-between w-full px-4 py-3 border border-dashed rounded-xl cursor-pointer transition-all">
+                                    <span class="text-xs text-slate-500 truncate" x-text="section.fileName || 'Drag & drop or browse media (Free crop)...'"></span>
+                                    <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                 </div>
+                            </div>
+
+                            <div x-show="section.preview" class="mb-4 aspect-video rounded-xl overflow-hidden border border-emerald-100 shadow-sm">
+                                <img :src="section.preview" class="w-full h-full object-cover">
+                            </div>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" :name="'new_sections[' + index + '][layout]'" value="left" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700" checked>
+                                    <span class="ml-1 text-[10px] font-black text-slate-500 uppercase tracking-tighter">Left</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" :name="'new_sections[' + index + '][layout]'" value="middle" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
+                                    <span class="ml-1 text-[10px] font-black text-slate-500 uppercase tracking-tighter">Middle</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" :name="'new_sections[' + index + '][layout]'" value="right" class="h-3 w-3 text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700">
+                                    <span class="ml-1 text-[10px] font-black text-slate-500 uppercase tracking-tighter">Right</span>
+                                </label>
+                            </div>
+                        </div>
 
                                 <div x-show="section.preview" class="mb-4 aspect-video rounded-xl overflow-hidden border border-emerald-100 shadow-sm">
                                     <img :src="section.preview" class="w-full h-full object-cover">
@@ -460,47 +595,5 @@
     </template>
 </div>
 
-<script>
-    function announcementEditForm() {
-        return {
-            new_sections: [],
-            selectedSections: [],
-            showBulkModal: false,
-            mainImageName: '',
-            display_type: '{{ $announcement->display_type }}',
-            mainPreviews: [],
-            fullscreenImage: null,
-
-            handleMainImageChange(event) {
-                this.mainPreviews = [];
-                const files = event.target.files;
-                
-                if (files.length > 1) {
-                    this.mainImageName = files.length + ' files selected';
-                } else if (files.length > 0) {
-                    this.mainImageName = files[0].name;
-                } else {
-                    this.mainImageName = '';
-                }
-
-                if (files.length > 0) {
-                    for (let i = 0; i < files.length; i++) {
-                       this.mainPreviews.push(URL.createObjectURL(files[i]));
-                    }
-                }
-            },
-            
-            addSection() {
-                if(this.new_sections.length < 5) {
-                    this.new_sections.push({ fileName: '', layout: 'left', preview: null });
-                } else {
-                    alert('Maximum of 5 additional sections allowed.');
-                }
-            },
-            removeSection(index) {
-                this.new_sections.splice(index, 1);
-            }
-        }
-    }
-</script>
+@include('partials.image-cropper')
 @endsection

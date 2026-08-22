@@ -863,8 +863,8 @@ class AdminController extends Controller
 
             'images' => 'nullable|array',
             'images.*' => 'file|mimes:jpeg,png,jpg,gif,mp4|max:51200', // Increased max size for video (50MB)
-            'display_type' => 'required|in:list,carousel',
-            'display_mode' => 'required|in:standard,infographic',
+            'display_type' => 'nullable|in:list,carousel',
+            'display_mode' => 'nullable|in:standard,infographic',
             'sections' => 'nullable|array',
             'sections.*.content' => 'nullable|string',
             'sections.*.image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4|max:51200',
@@ -960,7 +960,7 @@ class AdminController extends Controller
             'content' => 'required|string',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
-            'display_type' => 'required|in:list,carousel',
+            'display_type' => 'nullable|in:list,carousel',
             // Update existing sections
             'existing_sections' => 'nullable|array',
             'existing_sections.*.content' => 'nullable|string',
@@ -1173,7 +1173,7 @@ class AdminController extends Controller
 
         $avatarPath = null;
         if ($request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('staff', 'public');
+            $avatarPath = $request->file('avatar')->store('staff', 'uploads');
         }
 
         $name = ucwords(strtolower(trim(str_replace(['Dr. ', 'Dr '], '', $validated['name']))));
@@ -1242,11 +1242,13 @@ class AdminController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if it exists
+            // Delete old avatar from both disks (migration cleanup)
             if ($user->avatar_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar_path);
+                $cleanPath = ltrim(str_replace(['uploads/', 'storage/'], '', $user->avatar_path), '/');
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($cleanPath);
+                \Illuminate\Support\Facades\Storage::disk('uploads')->delete($cleanPath);
             }
-            $data['avatar_path'] = $request->file('avatar')->store('staff', 'public');
+            $data['avatar_path'] = $request->file('avatar')->store('staff', 'uploads');
         }
 
         $user->update($data);
@@ -1505,6 +1507,13 @@ class AdminController extends Controller
         ]);
 
         if ($request->hasFile('hero_image_file')) {
+            $oldHeroImage = \App\Models\SiteSetting::get('hero_image');
+            if ($oldHeroImage && \Illuminate\Support\Str::startsWith($oldHeroImage, 'uploads/')) {
+                $oldPath = str_replace('uploads/', '', $oldHeroImage);
+                if (\Illuminate\Support\Facades\Storage::disk('uploads')->exists($oldPath)) {
+                    \Illuminate\Support\Facades\Storage::disk('uploads')->delete($oldPath);
+                }
+            }
             $path = $request->file('hero_image_file')->store('content', 'uploads');
             \App\Models\SiteSetting::set('hero_image', 'uploads/'.$path);
         }
@@ -1524,6 +1533,12 @@ class AdminController extends Controller
                     foreach ($steps as $index => &$step) {
                         // Check for new uploaded image
                         if ($request->hasFile("step_images.{$unitSlug}.{$index}")) {
+                            if (! empty($step['image'])) {
+                                $oldStepPath = str_replace('uploads/', '', $step['image']);
+                                if (\Illuminate\Support\Facades\Storage::disk('uploads')->exists($oldStepPath)) {
+                                    \Illuminate\Support\Facades\Storage::disk('uploads')->delete($oldStepPath);
+                                }
+                            }
                             $file = $request->file("step_images.{$unitSlug}.{$index}");
                             $path = $file->store('content/steps', 'uploads');
                             $step['image'] = $path;

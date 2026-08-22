@@ -349,11 +349,45 @@
                                         <input type="email" name="email" x-model="email" :required="step === 1"
                                             class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Profile
-                                            Photo (Max 2MB)</label>
-                                        <input type="file" name="avatar" accept="image/*"
-                                            class="mt-1 block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                    <div x-data="{
+                                        avatarFileName: '',
+                                        avatarPreview: null,
+                                        isDragging: false,
+                                        handleStaffAvatar(file) {
+                                            if (!file || !file.type.startsWith('image/')) return;
+                                            const input = document.getElementById('staff_create_avatar_input');
+                                            $store.imageCropper.open(file, {
+                                                aspectRatio: 1,
+                                                circular: true,
+                                                subtitle: 'Square crop (1:1) — Staff Avatar',
+                                                onApply: (blob, previewUrl) => {
+                                                    this.avatarPreview = previewUrl;
+                                                    this.avatarFileName = file.name;
+                                                    setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                                }
+                                            });
+                                        }
+                                    }">
+                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Profile Photo (Max 2MB)</label>
+                                        <input type="file" id="staff_create_avatar_input" name="avatar" accept="image/*" class="hidden"
+                                            @change="if ($event.target.files.length) handleStaffAvatar($event.target.files[0])">
+                                        
+                                        <div class="flex items-center gap-3">
+                                            <template x-if="avatarPreview">
+                                                <div class="h-12 w-12 rounded-full overflow-hidden border-2 border-teal-500 flex-shrink-0 shadow-sm">
+                                                    <img :src="avatarPreview" class="h-full w-full object-cover">
+                                                </div>
+                                            </template>
+                                            <div @dragover.prevent="isDragging = true"
+                                                 @dragleave.prevent="isDragging = false"
+                                                 @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) handleStaffAvatar($event.dataTransfer.files[0])"
+                                                 @click="document.getElementById('staff_create_avatar_input').click()"
+                                                 :class="isDragging ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/20' : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-650'"
+                                                 class="flex-1 border border-dashed rounded-lg p-2.5 text-center cursor-pointer transition-all flex items-center justify-center gap-2">
+                                                <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                <span class="text-xs text-slate-600 dark:text-slate-300 truncate" x-text="avatarFileName || 'Drag & drop avatar or browse (1:1 crop)'"></span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -767,11 +801,45 @@
                                                 <option value="Out of Office">Out of Office</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-700">Update Profile
-                                                Photo</label>
-                                            <input type="file" name="avatar" accept="image/*"
-                                                class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                                        <div x-data="{
+                                            editAvatarFileName: '',
+                                            editAvatarPreview: null,
+                                            isDragging: false,
+                                            handleStaffEditAvatar(file) {
+                                                if (!file || !file.type.startsWith('image/')) return;
+                                                const input = document.getElementById('staff_edit_avatar_input');
+                                                $store.imageCropper.open(file, {
+                                                    aspectRatio: 1,
+                                                    circular: true,
+                                                    subtitle: 'Square crop (1:1) — Staff Avatar',
+                                                    onApply: (blob, previewUrl) => {
+                                                        this.editAvatarPreview = previewUrl;
+                                                        this.editAvatarFileName = file.name;
+                                                        setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                                    }
+                                                });
+                                            }
+                                        }">
+                                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Update Profile Photo</label>
+                                            <input type="file" id="staff_edit_avatar_input" name="avatar" accept="image/*" class="hidden"
+                                                @change="if ($event.target.files.length) handleStaffEditAvatar($event.target.files[0])">
+                                            
+                                            <div class="flex items-center gap-3">
+                                                <template x-if="editAvatarPreview">
+                                                    <div class="h-12 w-12 rounded-full overflow-hidden border-2 border-amber-500 flex-shrink-0 shadow-sm">
+                                                        <img :src="editAvatarPreview" class="h-full w-full object-cover">
+                                                    </div>
+                                                </template>
+                                                <div @dragover.prevent="isDragging = true"
+                                                     @dragleave.prevent="isDragging = false"
+                                                     @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) handleStaffEditAvatar($event.dataTransfer.files[0])"
+                                                     @click="document.getElementById('staff_edit_avatar_input').click()"
+                                                     :class="isDragging ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/20' : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-650'"
+                                                     class="flex-1 border border-dashed rounded-lg p-2.5 text-center cursor-pointer transition-all flex items-center justify-center gap-2">
+                                                    <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    <span class="text-xs text-slate-600 dark:text-slate-300 truncate" x-text="editAvatarFileName || 'Drag & drop avatar or browse (1:1 crop)'"></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1045,4 +1113,6 @@
                     }));
                 }
             </script>
+
+@include('partials.image-cropper')
 @endsection
