@@ -96,23 +96,25 @@
         </div>
 
         {{-- Page Header — 2-Column Split Hero --}}
-        <div class="mb-12" data-reveal>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-end">
-                {{-- Left Column: Kicker + Heading --}}
-                <div>
-                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-bold rounded-full mb-5 uppercase tracking-wider border border-emerald-500/20 backdrop-blur-md shadow-xs">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Official Health Advisories & Updates
-                    </span>
-                    <h1 class="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
-                        Public Bulletins &<br class="hidden sm:block"> <span class="text-emerald-600 dark:text-emerald-400">Announcements</span>
+        <div class="mb-10" data-reveal>
+            <div class="mb-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-widest rounded-md border border-emerald-300/50 dark:border-emerald-700/50">
+                    <svg class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
+                    </svg>
+                    Republic of the Philippines • Municipality of Silang
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end">
+                <div class="lg:col-span-7">
+                    <h1 class="font-display text-3xl sm:text-4xl lg:text-[3.25rem] font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+                        Public Bulletins & <span class="text-emerald-700 dark:text-emerald-400">Announcements</span>
                     </h1>
                 </div>
-
-                {{-- Right Column: Description (bottom-aligned to heading) --}}
-                <div class="lg:pb-1">
-                    <p class="text-gray-600 dark:text-gray-300 text-base sm:text-lg leading-relaxed max-w-xl">
-                        Stay updated with community health advisories, vaccination drives, clinic schedules, and municipal announcements from the Rural Health Unit of Silang.
+                <div class="lg:col-span-5 lg:pb-1">
+                    <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                        Stay updated with community health advisories, vaccination drives, clinic schedules, and municipal health notices from the Rural Health Unit of Silang.
                     </p>
                 </div>
             </div>
@@ -150,12 +152,16 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">Sort:</label>
-                            <select x-model="sortOrder"
-                                    class="py-2.5 px-3 bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
-                                <option value="newest">Newest First</option>
-                                <option value="oldest">Oldest First</option>
-                            </select>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap uppercase tracking-wider">Sort:</label>
+                            <div class="w-36">
+                                <x-select 
+                                    :options="['newest' => 'Newest First', 'oldest' => 'Oldest First']" 
+                                    value="newest"
+                                    x-model="sortOrder" 
+                                    size="sm"
+                                    class="bg-slate-50 dark:bg-slate-900/60"
+                                />
+                            </div>
                         </div>
                     </div>
 

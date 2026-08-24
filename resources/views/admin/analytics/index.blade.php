@@ -14,15 +14,19 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             Export Full Report
         </button>
-        <form action="{{ route('admin.analytics') }}" method="GET" class="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <form action="{{ route('admin.analytics') }}" method="GET" class="flex items-center gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-xl shadow-xs border border-slate-200 dark:border-slate-700">
             <label for="time_filter" class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest pl-2">Global Timeframe:</label>
-            <select name="time_filter" id="time_filter" onchange="this.form.submit()" class="border-0 bg-transparent text-sm font-bold text-slate-800 dark:text-white  py-1 pl-2 pr-8 cursor-pointer dark:bg-slate-800 dark:text-white">
-                <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-            </select>
+            <div class="w-36">
+                <x-select 
+                    name="time_filter" 
+                    id="time_filter" 
+                    :options="['today' => 'Today', 'weekly' => 'This Week', 'monthly' => 'This Month', 'yearly' => 'This Year', 'all' => 'All Time']" 
+                    :value="$timeFilter" 
+                    @change="$el.closest('form').submit()"
+                    size="sm"
+                    class="border-0 shadow-none font-bold text-slate-800 dark:text-white"
+                />
+            </div>
         </form>
     </div>
 </div>

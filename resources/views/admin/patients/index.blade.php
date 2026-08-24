@@ -101,14 +101,19 @@
 
                 <!-- Classification -->
                 <div class="md:col-span-1">
-                    <label class="block text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Classification</label>
-                    <select name="classification" @change="submitForm" class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5 transition-colors bg-gray-50 hover:bg-white dark:bg-gray-900 dark:text-white cursor-pointer">
-                        <option value="all">All Classifications</option>
-                        <option value="Pediatric" {{ request('classification') == 'Pediatric' ? 'selected' : '' }}>Pediatric</option>
-                        <option value="Regular Adult" {{ request('classification') == 'Regular Adult' ? 'selected' : '' }}>Regular Adult</option>
-                        <option value="Senior Citizen" {{ request('classification') == 'Senior Citizen' ? 'selected' : '' }}>Senior Citizen</option>
-                        <option value="PWD" {{ request('classification') == 'PWD' ? 'selected' : '' }}>PWD</option>
-                    </select>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Classification</label>
+                    <x-select 
+                        name="classification" 
+                        :options="[
+                            'all' => 'All Classifications',
+                            'Pediatric' => 'Pediatric',
+                            'Regular Adult' => 'Regular Adult',
+                            'Senior Citizen' => 'Senior Citizen',
+                            'PWD' => 'PWD'
+                        ]" 
+                        :value="request('classification', 'all')"
+                        @change="submitForm"
+                    />
                 </div>
 
                 <!-- Clear -->

@@ -15,17 +15,20 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                 Print Report
             </button>
-            <div x-data class="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <div x-data class="flex items-center gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-xl shadow-xs border border-slate-200 dark:border-slate-700">
                 <label for="time_filter"
                     class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest pl-2">Timeframe:</label>
-                <select id="time_filter" x-model="$store.dashboard.timeFilter" @change="$store.dashboard.refresh()"
-                    class="border-0 bg-transparent text-sm font-bold text-slate-800 focus:ring-0 py-1 pl-2 pr-8 cursor-pointer dark:bg-slate-800 dark:text-white">
-                    <option value="today">Today</option>
-                    <option value="weekly">This Week</option>
-                    <option value="monthly">This Month</option>
-                    <option value="yearly">This Year</option>
-                    <option value="all">All Time</option>
-                </select>
+                <div class="w-36">
+                    <x-select 
+                        id="time_filter" 
+                        :options="['today' => 'Today', 'weekly' => 'This Week', 'monthly' => 'This Month', 'yearly' => 'This Year', 'all' => 'All Time']" 
+                        value="monthly"
+                        x-model="$store.dashboard.timeFilter" 
+                        @change="$store.dashboard.refresh()"
+                        size="sm"
+                        class="border-0 shadow-none font-bold text-slate-800 dark:text-white"
+                    />
+                </div>
                 <div x-show="$store.dashboard.loading" class="ml-1">
                     <svg class="animate-spin h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                 </div>

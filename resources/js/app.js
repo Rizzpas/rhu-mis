@@ -78,9 +78,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     revealObserver.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+        }, { threshold: 0.01, rootMargin: '50px 0px 50px 0px' });
 
-        document.querySelectorAll('[data-reveal]').forEach(el => revealObserver.observe(el));
+        document.querySelectorAll('[data-reveal]').forEach(el => {
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight) {
+                el.classList.add('is-visible');
+            } else {
+                revealObserver.observe(el);
+            }
+        });
 
         // Re-observe after Alpine live-update refreshes content
         const announcementsContainer = document.querySelector('#announcements-container');

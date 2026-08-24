@@ -1,55 +1,49 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-transparent py-12" x-data="manageAppointment()">
+<div class="min-h-screen bg-transparent py-10 sm:py-12" x-data="manageAppointment()">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Back to Home -->
-        <div class="mb-6" data-reveal>
-            <a href="{{ route('welcome') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 dark:bg-gray-900/70 border border-white/80 dark:border-gray-800 backdrop-blur-xl shadow-xs text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:scale-105 transition-all">
+        <div class="mb-6">
+            <a href="{{ route('welcome') }}" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-2xs text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back to Home
             </a>
         </div>
 
-        <!-- Status Showcase Card (21st.dev Frosted Glass) -->
-        <div class="relative rounded-3xl p-6 sm:p-8 mb-8 bg-white/80 dark:bg-gray-900/80 border border-white/90 dark:border-gray-800/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] overflow-hidden" data-reveal>
-            
-            {{-- Ambient Glow --}}
-            <div class="absolute -top-10 -right-10 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-30
-                @if($appointment->status === 'pending') bg-yellow-500
-                @elseif($appointment->status === 'rescheduled') bg-blue-500
-                @elseif($appointment->status === 'cancelled') bg-red-500
-                @else bg-emerald-500 @endif"></div>
-
-            <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <!-- Status Showcase Card -->
+        <div class="rounded-3xl p-6 sm:p-8 mb-6 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2
-                        @if($appointment->status === 'pending') bg-yellow-500/10 text-yellow-800 dark:text-yellow-300 border border-yellow-500/20
-                        @elseif($appointment->status === 'rescheduled') bg-blue-500/10 text-blue-800 dark:text-blue-300 border border-blue-500/20
-                        @elseif($appointment->status === 'cancelled') bg-red-500/10 text-red-800 dark:text-red-300 border border-red-500/20
-                        @else bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 @endif">
-                        <span class="w-1.5 h-1.5 rounded-full
-                            @if($appointment->status === 'pending') bg-yellow-500
-                            @elseif($appointment->status === 'rescheduled') bg-blue-500
-                            @elseif($appointment->status === 'cancelled') bg-red-500
-                            @else bg-emerald-500 @endif"></span>
-                        {{ ucfirst($appointment->status) }}
-                    </span>
-                    <h2 class="font-display text-2xl font-extrabold text-gray-900 dark:text-white">Appointment Status</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Reference: <span class="font-mono font-bold text-gray-800 dark:text-gray-200 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60">{{ $appointment->reference_number }}</span></p>
+                    <div class="mb-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider
+                            @if($appointment->status === 'pending') bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60
+                            @elseif($appointment->status === 'rescheduled') bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300/60
+                            @elseif($appointment->status === 'cancelled') bg-red-100 text-red-900 dark:bg-red-950/60 dark:text-red-300 border border-red-300/60
+                            @else bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/60 @endif">
+                            <span class="w-1.5 h-1.5 rounded-full
+                                @if($appointment->status === 'pending') bg-amber-600
+                                @elseif($appointment->status === 'rescheduled') bg-blue-600
+                                @elseif($appointment->status === 'cancelled') bg-red-600
+                                @else bg-emerald-600 @endif"></span>
+                            {{ ucfirst($appointment->status) }}
+                        </span>
+                    </div>
+                    <h2 class="font-display text-2xl font-extrabold text-slate-900 dark:text-white">Appointment Record</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Reference No: <span class="font-mono font-bold text-slate-900 dark:text-white px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600">{{ $appointment->reference_number }}</span></p>
                 </div>
             </div>
         </div>
 
         <!-- Appointment Details Bento Card -->
-        <div class="relative rounded-3xl p-6 sm:p-8 bg-white/80 dark:bg-gray-900/80 border border-white/90 dark:border-gray-800/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] mb-8" data-reveal style="transition-delay: 80ms">
-            <div class="pb-4 mb-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs mb-8">
+            <div class="pb-4 mb-6 border-b border-slate-100 dark:border-slate-700/70 flex items-center justify-between">
+                <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-700 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Booking Information
                 </h3>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 capitalize">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-700/50 capitalize">
                     {{ $appointment->type }} Consultation
                 </span>
             </div>

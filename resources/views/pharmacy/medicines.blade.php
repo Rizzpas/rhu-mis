@@ -35,15 +35,20 @@
                         class="pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl text-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full dark:text-white shadow-sm transition-colors">
                 </div>
                 <div>
-                    <select name="form_filter" onchange="this.form.submit()" 
-                        class="w-full sm:w-auto py-2 pl-3 pr-8 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl text-sm focus:ring-emerald-500 focus:border-emerald-500 dark:text-white shadow-sm transition-colors cursor-pointer">
-                        <option value="all">All Forms</option>
-                        @foreach($forms as $formItem)
-                            <option value="{{ $formItem }}" {{ request('form_filter') == $formItem ? 'selected' : '' }}>
-                                {{ ucfirst($formItem) }}
-                            </option>
-                        @endforeach
-                    </select>
+                    @php
+                        $formFilterOptions = ['all' => 'All Forms'];
+                        foreach($forms as $formItem) {
+                            $formFilterOptions[$formItem] = ucfirst($formItem);
+                        }
+                    @endphp
+                    <x-select 
+                        name="form_filter" 
+                        :options="$formFilterOptions" 
+                        :value="request('form_filter', 'all')"
+                        @change="$el.closest('form').submit()"
+                        size="sm"
+                        containerClass="w-full sm:w-44"
+                    />
                 </div>
                 <!-- Hidden inputs to preserve pagination -->
                 <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">

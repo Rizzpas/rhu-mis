@@ -129,16 +129,20 @@
                 </div>
                 <div>
                     <label
-                        class="block text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Action
+                        class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Action
                         Category</label>
-                    <select name="type" @change="submitForm"
-                        class="w-full rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 py-2.5 transition-all text-sm shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
-                        <option value="all">All Actions</option>
-                        <option value="Created" {{ request('type') == 'Created' ? 'selected' : '' }}>Creation</option>
-                        <option value="Updated" {{ request('type') == 'Updated' ? 'selected' : '' }}>Updates</option>
-                        <option value="Deleted" {{ request('type') == 'Deleted' ? 'selected' : '' }}>Deletions</option>
-                        <option value="Accessed" {{ request('type') == 'Accessed' ? 'selected' : '' }}>History Access</option>
-                    </select>
+                    <x-select 
+                        name="type" 
+                        :options="[
+                            'all' => 'All Actions',
+                            'Created' => 'Creation',
+                            'Updated' => 'Updates',
+                            'Deleted' => 'Deletions',
+                            'Accessed' => 'History Access'
+                        ]" 
+                        :value="request('type', 'all')"
+                        @change="submitForm"
+                    />
                 </div>
                 <div>
                     <button type="button"

@@ -1,58 +1,57 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="bg-transparent min-h-screen py-12" x-data="appointmentForm()">
+    <div class="bg-transparent min-h-screen py-8 sm:py-12" x-data="appointmentForm()">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="mb-8 flex justify-start">
+            <div class="mb-6 flex justify-start">
                 <a href="{{ route('welcome') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 dark:bg-gray-900/70 border border-white/80 dark:border-gray-800 backdrop-blur-xl shadow-xs text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:scale-105 transition-all">
+                    class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-2xs text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     Back to Home
                 </a>
             </div>
 
-            <!-- Modern Progress Indicator (21st.dev Style) -->
-            <div class="mb-10 w-full max-w-3xl mx-auto" x-data="{ stepLabels: ['Service', 'Patient Info', 'Date & Slot', 'Verification', 'Confirmation'] }">
+            <!-- Modern Progress Indicator -->
+            <div class="mb-8 w-full max-w-3xl mx-auto" x-data="{ stepLabels: ['Service', 'Patient Info', 'Date & Slot', 'Verification', 'Confirmation'] }">
                 <div class="flex items-start justify-between relative">
                     <!-- Progress Bar Background Track -->
-                    <div class="absolute left-0 top-5 transform -translate-y-1/2 w-full h-1 bg-gray-200/80 dark:bg-gray-700/80 rounded-full z-0"></div>
+                    <div class="absolute left-0 top-5 transform -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full z-0"></div>
                     <!-- Progress Bar Fill Track -->
-                    <div class="absolute left-0 top-5 transform -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full z-0 transition-all duration-300"
+                    <div class="absolute left-0 top-5 transform -translate-y-1/2 h-1 bg-emerald-700 rounded-full z-0 transition-all duration-300"
                         :style="'width: ' + progress + '%'"></div>
 
                     <!-- Steps 1-5 Bubbles -->
                     <template x-for="i in 5">
                         <div class="relative z-10 flex flex-col items-center w-1/5">
                             <button type="button" @click="goToStep(i)"
-                                class="w-10 h-10 rounded-2xl flex items-center justify-center font-display font-extrabold text-sm transition-all duration-300 focus:outline-none cursor-pointer"
-                                :class="step >= i ? 'bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-md shadow-emerald-500/20 scale-105 ring-4 ring-emerald-500/15' : 'bg-white dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-700'" 
+                                class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-display font-bold text-xs sm:text-sm transition-all duration-300 focus:outline-none cursor-pointer"
+                                :class="step >= i ? 'bg-emerald-700 text-white shadow-xs scale-105' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'" 
                                 x-text="'0' + i"
                                 :disabled="i > step && i > maxStepReached + 1"></button>
-                            <span class="text-[10px] md:text-xs font-bold mt-2 text-center uppercase tracking-wider transition-colors"
-                                  :class="step >= i ? 'text-emerald-700 dark:text-emerald-400 font-extrabold' : 'text-gray-400 dark:text-gray-500'" 
+                            <span class="text-[10px] sm:text-xs font-bold mt-2 text-center uppercase tracking-wider transition-colors"
+                                  :class="step >= i ? 'text-emerald-800 dark:text-emerald-400 font-extrabold' : 'text-slate-400 dark:text-slate-500'" 
                                   x-text="stepLabels[i-1]"></span>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <div class="relative rounded-3xl p-6 sm:p-10 bg-white/80 dark:bg-gray-900/80 border border-white/90 dark:border-gray-800/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] overflow-hidden">
+            <div class="rounded-3xl p-6 sm:p-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs">
                 
-                {{-- Ambient radial background glow --}}
-                <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-25 bg-emerald-500"></div>
-
                 <!-- Loading Overlay -->
                 <div x-show="isLoading"
-                    class="absolute inset-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm z-60 flex items-center justify-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+                    class="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs z-60 flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-700"></div>
                 </div>
 
                 <div class="text-center mb-8">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 mb-2">
-                        Online Consultation Portal
-                    </span>
-                    <h2 class="font-display text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Book an Appointment</h2>
+                    <div class="mb-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-widest rounded-md border border-emerald-300/50 dark:border-emerald-700/50">
+                            Republic of the Philippines • RHU Silang
+                        </span>
+                    </div>
+                    <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Public Health Consultation Booking</h2>
                 </div>
 
                 <form id="appointment-form" action="{{ route('appointment.store') }}" method="POST"

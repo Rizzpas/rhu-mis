@@ -127,62 +127,46 @@
                 <div class="w-full lg:w-48">
                     <label
                         class="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Role</label>
-                    <div class="relative">
-                        <select name="role"
-                            class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 py-3.5 px-5 text-sm appearance-none font-bold">
-                            <option value="all">All Roles</option>
-                            @can('promote-admin')
-                                <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>Super Admin
-                                </option>
-                                <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            @endcan
-                            <option value="regular_doctor" {{ request('role') == 'regular_doctor' ? 'selected' : '' }}>Regular
-                                Doctor</option>
-                            <option value="pedia_doctor" {{ request('role') == 'pedia_doctor' ? 'selected' : '' }}>Pedia
-                                Doctor</option>
-                            <option value="laboratory" {{ request('role') == 'laboratory' ? 'selected' : '' }}>Laboratory
-                            </option>
-                            <option value="radiology" {{ request('role') == 'radiology' ? 'selected' : '' }}>Radiology
-                            </option>
-                            <option value="clinical_nurse" {{ request('role') == 'clinical_nurse' ? 'selected' : '' }}>
-                                Clinical Nurse</option>
-                            <option value="vitals_nurse" {{ request('role') == 'vitals_nurse' ? 'selected' : '' }}>Vitals
-                                Nurse</option>
-                            <option value="pharmacy" {{ request('role') == 'pharmacy' ? 'selected' : '' }}>Pharmacist</option>
-                            <option value="information_desk" {{ request('role') == 'information_desk' ? 'selected' : '' }}>
-
-                                Front Desk</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
+                    @php
+                        $roleOptions = ['all' => 'All Roles'];
+                        if (auth()->user()->can('promote-admin')) {
+                            $roleOptions['super_admin'] = 'Super Admin';
+                            $roleOptions['admin'] = 'Admin';
+                        }
+                        $roleOptions += [
+                            'regular_doctor' => 'Regular Doctor',
+                            'pedia_doctor' => 'Pedia Doctor',
+                            'laboratory' => 'Laboratory',
+                            'radiology' => 'Radiology',
+                            'clinical_nurse' => 'Clinical Nurse',
+                            'vitals_nurse' => 'Vitals Nurse',
+                            'pharmacy' => 'Pharmacist',
+                            'information_desk' => 'Front Desk',
+                        ];
+                    @endphp
+                    <x-select 
+                        name="role" 
+                        :options="$roleOptions" 
+                        :value="request('role', 'all')"
+                        class="py-3 px-4 font-bold"
+                    />
                 </div>
 
                 <!-- Status Filter -->
                 <div class="w-full lg:w-48">
                     <label
                         class="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Availability</label>
-                    <div class="relative">
-                        <select name="status"
-                            class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 py-3.5 px-5 text-sm appearance-none font-bold">
-                            <option value="all">All Status</option>
-                            <option value="Present" {{ request('status') == 'Present' ? 'selected' : '' }}>Present (Active)
-                            </option>
-                            <option value="Seminar" {{ request('status') == 'Seminar' ? 'selected' : '' }}>On Seminar</option>
-                            <option value="Out of Office" {{ request('status') == 'Out of Office' ? 'selected' : '' }}>Out of
-                                Office</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
+                    <x-select 
+                        name="status" 
+                        :options="[
+                            'all' => 'All Status',
+                            'Present' => 'Present (Active)',
+                            'Seminar' => 'On Seminar',
+                            'Out of Office' => 'Out of Office',
+                        ]" 
+                        :value="request('status', 'all')"
+                        class="py-3 px-4 font-bold"
+                    />
                 </div>
 
                 <!-- Actions -->

@@ -119,31 +119,37 @@
     </div>
 
     @include('partials.skeleton-app')
-    <!-- Top Bar -->
-    <div
-        class="bg-green-700 text-white text-xs py-2 px-4 md:px-8 flex md:flex-row justify-center items-center font-medium gap-4 md:gap-7 text-center relative z-10">
-        <span><span class="hidden sm:inline">Clinic Hours: </span>{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</span>
-        <span><span class="hidden sm:inline">Emergency Hotlines: </span>{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span>
+    <!-- Top Bar — Official Republic & Municipal Header -->
+    <div class="bg-emerald-900 text-white text-[11px] sm:text-xs py-2 px-4 md:px-8 flex flex-wrap justify-between items-center font-medium gap-2 sm:gap-4 relative z-10 border-b border-emerald-800/60">
+        <div class="flex items-center gap-2 mx-auto md:mx-0">
+            <span class="font-bold tracking-wide uppercase">Republic of the Philippines</span>
+            <span class="text-emerald-400 opacity-60">•</span>
+            <span class="text-emerald-200">Province of Cavite</span>
+            <span class="text-emerald-400 opacity-60">•</span>
+            <span class="text-emerald-200 font-semibold">Municipality of Silang</span>
+        </div>
+        <div class="flex items-center gap-4 text-emerald-100/90 mx-auto md:mx-0">
+            <span><span class="hidden sm:inline text-emerald-300/80">Clinic Hours: </span>{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</span>
+            <span class="text-emerald-400 opacity-60">•</span>
+            <span><span class="hidden sm:inline text-emerald-300/80">Hotlines: </span><span class="font-bold text-white">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span></span>
+        </div>
     </div>
 
     <!-- Main Navigation -->
-    <nav
-        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md sticky w-full z-50 top-0 start-0 border-b border-gray-200/80 dark:border-gray-700/80 shadow-xs">
-        <div class="flex flex-wrap justify-between items-center mx-auto max-w-7xl px-4 py-4 md:px-8">
+    <nav class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md sticky w-full z-50 top-0 start-0 border-b border-slate-200/90 dark:border-slate-800/90 shadow-2xs">
+        <div class="flex flex-wrap justify-between items-center mx-auto max-w-7xl px-4 py-3.5 md:px-8">
             <a href="{{ route('welcome') }}" class="flex items-center gap-3 rtl:space-x-reverse">
                 <div class="shrink-0">
-                    <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Logo"
-                        class="w-10 h-10 object-contain bg-white dark:bg-gray-800 rounded-full p-0.5" />
+                    <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Official Seal"
+                        class="w-11 h-11 object-contain bg-white dark:bg-slate-800 rounded-full p-0.5 shadow-2xs border border-slate-200/80 dark:border-slate-700/80" />
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg leading-tight text-gray-900 dark:text-white">RURAL HEALTH UNIT
-                    </h1>
-                    <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold tracking-wider uppercase">of
-                        Silang, Cavite</p>
+                    <h1 class="font-extrabold text-base sm:text-lg leading-tight text-slate-900 dark:text-white tracking-tight">RURAL HEALTH UNIT</h1>
+                    <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold tracking-widest uppercase">Municipality of Silang, Cavite</p>
                 </div>
             </a>
             <button data-collapse-toggle="mega-menu-full" type="button"
-                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 dark:text-gray-400 rounded-lg md:hidden hover:bg-green-50 dark:bg-green-900/30 hover:text-green-700 dark:text-green-400 focus:outline-none focus:ring-2 focus:ring-green-200"
+                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-slate-500 dark:text-slate-400 rounded-lg md:hidden hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 aria-controls="mega-menu-full" aria-expanded="false">
                 <span class="sr-only">Open main menu</span>
                 <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -156,13 +162,13 @@
                     class="flex flex-col mt-4 font-medium md:flex-row md:mt-0 md:space-x-8 rtl:space-x-reverse items-center">
                     <li>
                         <a href="{{ route('welcome') }}"
-                            class="block py-2 px-3 text-gray-900 dark:text-white hover:text-green-600 hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition"
+                            class="block py-2 px-3 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-400 font-semibold md:p-0 transition text-sm"
                             aria-current="page">Home</a>
                     </li>
                     <li>
                         <button id="mega-menu-full-dropdown-button" data-collapse-toggle="mega-menu-full-dropdown"
-                            class="flex items-center justify-between w-full py-2 px-3 font-medium text-gray-900 dark:text-white md:w-auto hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">
-                            RHU Units
+                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm">
+                            RHU Facilities
                             <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
                             </svg>
@@ -170,8 +176,8 @@
                     </li>
                     <li>
                         <button id="mega-menu-appointment-dropdown-button" data-collapse-toggle="mega-menu-appointment-dropdown"
-                            class="flex items-center justify-between w-full py-2 px-3 font-medium text-gray-900 dark:text-white md:w-auto hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">
-                            Appointment
+                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm">
+                            Appointments
                             <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
                             </svg>
@@ -180,8 +186,8 @@
 
                     <li>
                         <button id="mega-menu-updates-dropdown-button" data-collapse-toggle="mega-menu-updates-dropdown"
-                            class="flex items-center justify-between w-full py-2 px-3 font-medium text-gray-900 dark:text-white md:w-auto hover:bg-green-50 md:hover:bg-transparent md:border-0 md:hover:text-green-600 md:p-0 transition">
-                            About & Updates
+                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm">
+                            About & Bulletins
                             <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
                             </svg>
@@ -191,7 +197,7 @@
                     <!-- Theme Toggle -->
                     <li>
                         <button id="theme-toggle" type="button"
-                            class="relative inline-flex h-6 w-[42px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-gray-200 dark:bg-slate-600 transition-colors duration-200 ease-in-out">
+                            class="relative inline-flex h-6 w-[42px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out">
                             <span class="sr-only">Toggle theme</span>
                             <span
                                 class="pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-[18px]">
@@ -211,11 +217,11 @@
                     <!-- Book an Appointment CTA -->
                     <li class="w-full md:w-auto">
                         <a href="{{ route('appointment.create') }}"
-                            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-xl shadow-sm hover:shadow transition-all duration-200 w-full md:w-auto">
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 rounded-xl shadow-xs transition-all duration-200 w-full md:w-auto">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                             </svg>
-                            <span>Book an Appointment</span>
+                            <span>Book Appointment</span>
                         </a>
                     </li>
                 </ul>
@@ -238,57 +244,57 @@
 
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <a href="{{ route('units.show', 'main-health-center') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition border border-transparent hover:border-green-100 dark:hover:border-green-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </span>
                         <span>
-                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">Main Health Center</span>
-                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Check-ups, diagnostics & general consultations</span>
+                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Main Health Center</span>
+                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">Check-ups, diagnostics & general consultations</span>
                         </span>
                     </a>
 
                     <a href="{{ route('units.show', 'lying-in-clinic') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-900/10 transition border border-transparent hover:border-pink-100 dark:hover:border-pink-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400 group-hover:bg-pink-600 group-hover:text-white transition-colors">
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
                         </span>
                         <span>
-                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-pink-700 dark:group-hover:text-pink-400 transition-colors">Lying-in Clinic</span>
-                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">24/7 maternity care, delivery & newborn screening</span>
+                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Lying-in Birthing Clinic</span>
+                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">24/7 maternity care, delivery & newborn screening</span>
                         </span>
                     </a>
 
                     <a href="{{ route('units.show', 'dental-clinic') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-900/10 transition border border-transparent hover:border-sky-100 dark:hover:border-sky-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:bg-sky-600 group-hover:text-white transition-colors">
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
                         </span>
                         <span>
-                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">Dental Clinic</span>
-                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Extraction, prophylaxis & dental hygiene</span>
+                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Dental Clinic</span>
+                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">Extraction, prophylaxis & dental hygiene</span>
                         </span>
                     </a>
 
                     <a href="{{ route('units.show', 'tb-dots-facility') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/10 transition border border-transparent hover:border-amber-100 dark:hover:border-amber-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
                         </span>
                         <span>
-                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">TB DOTS Facility</span>
-                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">TB screening, medication & treatment monitoring</span>
+                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">TB DOTS Center</span>
+                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">TB screening, direct observation therapy & monitoring</span>
                         </span>
                     </a>
 
                     <a href="{{ route('units.show', 'animal-bite-center') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition border border-transparent hover:border-red-100 dark:hover:border-red-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
+                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285zm0 13.036h.008v.008H12v-.008z"/></svg>
                         </span>
                         <span>
-                            <span class="block font-semibold text-gray-900 dark:text-white text-sm group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors">Animal Bite Center</span>
-                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">Immediate care & rabies vaccination</span>
+                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Animal Bite Treatment Center</span>
+                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">Immediate wound care & anti-rabies vaccination</span>
                         </span>
                     </a>
                 </div>

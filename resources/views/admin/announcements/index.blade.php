@@ -51,40 +51,40 @@
             <!-- Search In -->
             <div>
                 <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Search In</label>
-                <div class="relative">
-                    <select name="search_by" class="block w-full rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 py-3.5 px-5 text-sm appearance-none font-bold">
-                        <option value="all" {{ request('search_by') == 'all' ? 'selected' : '' }}>All Fields</option>
-                        <option value="title" {{ request('search_by') == 'title' ? 'selected' : '' }}>Title</option>
-                        <option value="subheading" {{ request('search_by') == 'subheading' ? 'selected' : '' }}>Subheading</option>
-                        <option value="content" {{ request('search_by') == 'content' ? 'selected' : '' }}>Main Content</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
+                <x-select 
+                    name="search_by" 
+                    :options="[
+                        'all' => 'All Fields',
+                        'title' => 'Title',
+                        'subheading' => 'Subheading',
+                        'content' => 'Main Content'
+                    ]" 
+                    :value="request('search_by', 'all')"
+                    class="py-3 px-4 font-bold"
+                />
             </div>
 
             <!-- Date Posted -->
             <div>
                 <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Date Posted</label>
                 <input type="date" name="date_posted" value="{{ request('date_posted') }}" 
-                    class="block w-full rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 py-3.5 px-4 text-sm transition-all font-medium">
+                    class="block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/40 py-2.5 px-4 text-sm transition-all font-medium">
             </div>
 
             <!-- Status -->
             <div>
                 <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Status</label>
-                <div class="relative">
-                    <select name="status" class="block w-full rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 py-3.5 px-5 text-sm appearance-none font-bold">
-                        <option value="all">All Status</option>
-                        <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Published</option>
-                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
+                <x-select 
+                    name="status" 
+                    :options="[
+                        'all' => 'All Status',
+                        'published' => 'Published',
+                        'pending' => 'Pending',
+                        'draft' => 'Draft'
+                    ]" 
+                    :value="request('status', 'all')"
+                    class="py-3 px-4 font-bold"
+                />
             </div>
 
             <!-- Action Buttons -->
