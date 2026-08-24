@@ -1,15 +1,11 @@
 @extends('layouts.admin')
 
 @section('header')
-<div class="flex justify-between items-center">
-    <div class="flex items-center gap-3">
-        <a href="{{ route('admin.archive.index') }}" class="text-gray-400 hover:text-teal-600 transition">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        </a>
-        <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-teal-800">
-            {{ $title }}
-        </h2>
-    </div>
+<div class="flex items-center gap-2">
+    <a href="{{ route('admin.archive.index') }}" class="text-white/80 hover:text-white transition-colors mr-1 inline-flex items-center" title="Back to System Archive">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+    </a>
+    <span class="text-white font-bold text-xl tracking-tight">{{ $title }}</span>
 </div>
 @endsection
 

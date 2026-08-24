@@ -88,7 +88,7 @@
             <div class="flex items-center gap-3">
                 <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Logo" class="w-9 h-9 object-contain shrink-0">
                 <div>
-                    <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight uppercase">Rural Health Unit</p>
+                    <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight uppercase whitespace-nowrap">Rural Health Unit</p>
                     <p class="text-xs text-gray-400 leading-tight">Front Desk</p>
                 </div>
             </div>
@@ -131,10 +131,10 @@
                 Patient Master List
             </a>
 
-            @if(auth()->check() && auth()->user()->hasRole('admin'))
+            @if(auth()->check() && auth()->user()->hasRole('admin', 'super_admin'))
                 <a href="{{ route('admin.dashboard') }}"
-                    class="text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group flex items-center px-3 py-2.5 rounded-lg transition-colors mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
-                    <svg class="mr-3 h-4 w-4 text-gray-900 dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    class="text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group flex items-center px-3 py-2.5 rounded-lg transition-colors mt-4 border-t border-gray-100 dark:border-gray-700 pt-4 font-semibold">
+                    <svg class="mr-3 h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     Back to Admin

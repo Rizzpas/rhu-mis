@@ -89,7 +89,7 @@
             <div class="flex items-center gap-3">
                 <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Logo" class="w-9 h-9 object-contain shrink-0">
                 <div>
-                    <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight uppercase">Rural Health Unit</p>
+                    <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight uppercase whitespace-nowrap">Rural Health Unit</p>
                     <p class="text-xs text-gray-400 leading-tight">Pharmacy Portal</p>
                 </div>
             </div>
@@ -121,12 +121,22 @@
                 </svg>
                 Medicine List
             </a>
+
+            @if(auth()->check() && auth()->user()->hasRole('admin', 'super_admin'))
+                <a href="{{ route('admin.dashboard') }}"
+                    class="text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group flex items-center px-3 py-2.5 rounded-lg transition-colors mt-2">
+                    <svg class="mr-3 h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Admin Portal
+                </a>
+            @endif
         </nav>
 
         <!-- Bottom User Panel -->
-        <div class="border-t border-gray-100 dark:border-gray-700 px-6 py-8">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0 overflow-hidden border border-emerald-200 dark:border-emerald-800">
+        <div class="border-t border-gray-100 dark:border-gray-700 px-5 py-4">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0 overflow-hidden border border-emerald-200 dark:border-emerald-800">
                     @if(auth()->user()->avatar_url)
                         <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
                     @else
@@ -134,7 +144,7 @@
                     @endif
                 </div>
                 <div class="min-w-0">
-                    <p class="text-base font-semibold text-gray-800 dark:text-white truncate">{{ auth()->user()->name }}</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">{{ auth()->user()->name }}</p>
                     <p class="text-xs text-gray-400 truncate capitalize">{{ ucfirst(str_replace('_', ' ', auth()->user()->role)) }}</p>
                 </div>
             </div>

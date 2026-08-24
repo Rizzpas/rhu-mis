@@ -206,156 +206,132 @@
         ============================================================ --}}
         @php
             $displayAnnouncements = $announcements->take(6);
-            $featured = $displayAnnouncements->first();
-            $remainingAnnouncements = $displayAnnouncements->skip(1);
             $totalPublished = \App\Models\Announcement::where('status', 'published')->count();
 
             // Semantic category tag inference
             function inferAnnouncementTag($announcement) {
-                $text = strtolower($announcement->title . ' ' . strip_tags($announcement->content));
+                $text = strtolower(($announcement->title ?? '') . ' ' . strip_tags($announcement->content ?? ''));
                 if (preg_match('/health alert|outbreak|dengue|covid|virus|disease|warning/i', $text)) {
-                    return ['label' => 'Health Alert', 'class' => 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300 dark:border-rose-800'];
+                    return ['label' => 'Health Alert', 'class' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 border-rose-200 dark:border-rose-800/60', 'dot' => 'bg-rose-500'];
                 }
-                if (preg_match('/event|celebration|program|fiesta|activity|campaign|drive/i', $text)) {
-                    return ['label' => 'Health Program', 'class' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'];
+                if (preg_match('/event|celebration|program|fiesta|activity|campaign|drive|mission/i', $text)) {
+                    return ['label' => 'Health Program', 'class' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border-blue-200 dark:border-blue-800/60', 'dot' => 'bg-blue-500'];
                 }
                 if (preg_match('/advisory|notice|schedule|closure|suspend|update|memo/i', $text)) {
-                    return ['label' => 'Advisory', 'class' => 'bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300 dark:border-amber-800'];
+                    return ['label' => 'Advisory', 'class' => 'bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-200 dark:border-amber-800/60', 'dot' => 'bg-amber-500'];
                 }
-                return ['label' => 'Public Bulletin', 'class' => 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700'];
+                return ['label' => 'Public Bulletin', 'class' => 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60', 'dot' => 'bg-emerald-500'];
             }
         @endphp
 
         <div id="announcements" class="bg-slate-50/80 dark:bg-slate-900/60 border-y border-slate-200/80 dark:border-slate-800/80 px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
             <div class="max-w-7xl mx-auto">
                 {{-- Section Header --}}
-                <div class="text-center mb-12" data-reveal>
+                <div class="text-center mb-10 sm:mb-12" data-reveal>
                     <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Public Information</span>
                     <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">{{ __('Municipal Health Bulletins') }}</h2>
                     <p class="text-slate-500 dark:text-slate-400 mt-2 text-base sm:text-lg max-w-xl mx-auto">{{ __('Official advisories, immunization drives, and healthcare notices from RHU Silang') }}</p>
                 </div>
 
                 <div id="announcements-container">
-                    @if($featured)
-                        {{-- Featured announcement — large card --}}
-                        @php
-                            $featuredImage = $featured->image_path;
-                            if (!$featuredImage && $featured->images->count() > 0) {
-                                $featuredImage = $featured->images->first()->image_path;
-                            }
-                            $featuredTag = inferAnnouncementTag($featured);
-                        @endphp
-                        <div data-reveal class="mb-8">
-                            <a href="{{ route('announcements.show', $featured) }}"
-                               class="block bg-white dark:bg-slate-800/95 rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-700/80 card-hover group shadow-sm">
-                                <div class="grid grid-cols-1 md:grid-cols-12">
-                                    {{-- Image side (5 cols) --}}
-                                    <div class="md:col-span-5 relative overflow-hidden aspect-[16/10] md:aspect-auto">
-                                        @if($featuredImage)
-                                            @if(\Illuminate\Support\Str::endsWith($featuredImage, '.mp4'))
-                                                <video src="{{ asset('uploads/' . $featuredImage) }}" class="w-full h-full object-cover" muted loop autoplay></video>
-                                            @else
-                                                <img src="{{ asset('uploads/' . $featuredImage) }}" alt="{{ $featured->title }}"
-                                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
-                                            @endif
-                                        @else
-                                            <div class="w-full h-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center min-h-[220px]">
-                                                <svg class="w-14 h-14 text-emerald-300 dark:text-emerald-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                                </svg>
-                                            </div>
-                                        @endif
-                                        <div class="absolute top-4 left-4">
-                                            <span class="inline-flex items-center px-2.5 py-1 {{ $featuredTag['class'] }} text-[11px] font-bold rounded-md uppercase tracking-wider border backdrop-blur-xs">
-                                                {{ $featuredTag['label'] }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Text side (7 cols) --}}
-                                    <div class="md:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
-                                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-slate-500 mb-2.5">
-                                            <svg class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg>
-                                            Published {{ $featured->created_at->diffForHumans() }}
-                                        </div>
-                                        <h3 class="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
-                                            {{ $featured->title }}
-                                        </h3>
-                                        @if($featured->subheading)
-                                            <p class="text-emerald-800 dark:text-emerald-400 font-medium text-sm mb-2.5">{{ $featured->subheading }}</p>
-                                        @endif
-                                        <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed line-clamp-3 mb-5 font-normal">
-                                            {{ Str::limit(strip_tags($featured->content), 220) }}
-                                        </p>
-                                        <span class="inline-flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-sm group-hover:gap-3 transition-all">
-                                            {{ __('Read full bulletin') }}
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                                        </span>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    @endif
-
-                    {{-- Remaining announcements grid --}}
-                    @if($remainingAnnouncements->isNotEmpty())
+                    @if($displayAnnouncements->isNotEmpty())
+                        {{-- Uniform, balanced 3-column grid pattern --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach($remainingAnnouncements as $index => $event)
+                            @foreach($displayAnnouncements as $index => $event)
                                 @php
                                     $cardImage = $event->image_path;
-                                    if (!$cardImage && $event->images->count() > 0) {
+                                    if (!$cardImage && $event->images && $event->images->count() > 0) {
                                         $cardImage = $event->images->first()->image_path;
                                     }
+                                    $cardImageUrl = null;
+                                    if ($cardImage) {
+                                        $cardImageUrl = \Illuminate\Support\Str::startsWith($cardImage, ['http://', 'https://', '/']) 
+                                            ? $cardImage 
+                                            : (\Illuminate\Support\Str::startsWith($cardImage, 'uploads/') ? asset($cardImage) : asset('uploads/' . $cardImage));
+                                    }
+                                    $isVideo = $cardImage && \Illuminate\Support\Str::endsWith(strtolower($cardImage), ['.mp4', '.webm', '.ogg']);
                                     $tag = inferAnnouncementTag($event);
+                                    $rawContent = strip_tags($event->content ?? '');
                                 @endphp
-                                <div data-reveal style="transition-delay: {{ $index * 60 }}ms">
+                                <div data-reveal style="transition-delay: {{ $index * 50 }}ms" class="h-full">
                                     <a href="{{ route('announcements.show', $event) }}"
-                                       class="block bg-white dark:bg-slate-800/95 rounded-xl overflow-hidden border border-slate-200/90 dark:border-slate-700/80 card-hover group h-full shadow-2xs">
+                                       class="flex flex-col h-full bg-white dark:bg-slate-800/95 rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-700/80 card-hover group shadow-2xs transition-all duration-300">
                                         
-                                        {{-- Image container --}}
-                                        <div class="relative overflow-hidden aspect-[16/9]">
-                                            @if($cardImage)
-                                                @if(\Illuminate\Support\Str::endsWith($cardImage, '.mp4'))
-                                                    <video src="{{ asset('uploads/' . $cardImage) }}" class="w-full h-full object-cover" muted loop autoplay></video>
+                                        {{-- Standard 16:9 Thumbnail --}}
+                                        <div class="relative overflow-hidden aspect-[16/9] w-full bg-slate-900 shrink-0">
+                                            @if($cardImageUrl)
+                                                @if($isVideo)
+                                                    <video src="{{ $cardImageUrl }}" class="w-full h-full object-cover" muted loop autoplay playsinline></video>
                                                 @else
-                                                    <img src="{{ asset('uploads/' . $cardImage) }}" alt="{{ $event->title }}"
+                                                    <img src="{{ $cardImageUrl }}" alt="{{ $event->title }}"
                                                          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
                                                 @endif
                                             @else
-                                                <div class="w-full h-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
-                                                    <svg class="w-10 h-10 text-emerald-300 dark:text-emerald-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                                    </svg>
+                                                <div class="w-full h-full bg-gradient-to-br from-slate-100 via-slate-50 to-emerald-50/40 dark:from-slate-900 dark:via-slate-850 dark:to-slate-800 flex flex-col items-center justify-center p-4 text-center">
+                                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-2xs border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 mb-1.5">
+                                                        <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">RHU Bulletin</span>
                                                 </div>
                                             @endif
-                                            <div class="absolute top-3 left-3">
-                                                <span class="inline-block px-2.5 py-0.5 {{ $tag['class'] }} text-[10px] font-bold rounded-md uppercase tracking-wide border backdrop-blur-xs">{{ $tag['label'] }}</span>
+
+                                            {{-- Subtle vignette --}}
+                                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/15 to-transparent pointer-events-none"></div>
+
+                                            {{-- Category Tag Pill --}}
+                                            <div class="absolute top-3 left-3 z-10">
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 {{ $tag['class'] }} text-[10px] font-bold rounded-md uppercase tracking-wider border shadow-2xs backdrop-blur-md">
+                                                    <span class="w-1.5 h-1.5 rounded-full {{ $tag['dot'] }}"></span>
+                                                    {{ $tag['label'] }}
+                                                </span>
+                                            </div>
+
+                                            {{-- Date / Relative Tag on image --}}
+                                            <div class="absolute bottom-2.5 left-3 z-10 text-[10px] font-semibold text-slate-200 tracking-wide">
+                                                {{ $event->created_at ? $event->created_at->diffForHumans() : '' }}
                                             </div>
                                         </div>
 
-                                        {{-- Card body --}}
-                                        <div class="p-5 flex flex-col flex-1">
-                                            <div class="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mb-2">
-                                                <svg class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg>
-                                                {{ $event->created_at->diffForHumans() }}
+                                        {{-- Card body with uniform height & line-clamps --}}
+                                        <div class="p-5 flex flex-col flex-1 justify-between">
+                                            <div>
+                                                <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                                    <span class="inline-flex items-center gap-1 font-medium">
+                                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                        {{ $event->created_at ? $event->created_at->format('M d, Y') : '' }}
+                                                    </span>
+                                                    @if($event->event_date)
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300">
+                                                            Event: {{ $event->event_date->format('M d') }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+
+                                                <h3 class="font-display text-base font-bold text-slate-900 dark:text-white leading-snug mb-1.5 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
+                                                    {{ $event->title }}
+                                                </h3>
+
+                                                <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm line-clamp-2 leading-relaxed font-normal">
+                                                    {{ \Illuminate\Support\Str::limit($rawContent, 130) }}
+                                                </p>
                                             </div>
-                                            <h3 class="font-bold text-base text-slate-900 dark:text-white mb-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
-                                                {{ $event->title }}
-                                            </h3>
-                                            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-3 leading-relaxed font-normal">
-                                                {{ Str::limit(strip_tags($event->content), 120) }}
-                                            </p>
-                                            <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/60">
-                                                <span class="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-semibold text-xs group-hover:gap-2.5 transition-all">
+
+                                            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                                                <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 group-hover:gap-2 transition-all">
                                                     {{ __('Read details') }}
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                                 </span>
                                             </div>
                                         </div>
                                     </a>
                                 </div>
                             @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8">
+                            <p class="text-sm text-slate-500 dark:text-slate-400">No announcements published at this time.</p>
                         </div>
                     @endif
                 </div>

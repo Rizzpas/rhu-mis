@@ -80,8 +80,7 @@
             <div class="flex items-center gap-3">
                 <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Logo" class="w-9 h-9 object-contain shrink-0">
                 <div>
-                    <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight uppercase">Rural Health Unit
-                    </p>
+                    <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight uppercase whitespace-nowrap">Rural Health Unit</p>
                     <p class="text-xs text-gray-400 leading-tight">Silang, Cavite</p>
                 </div>
             </div>

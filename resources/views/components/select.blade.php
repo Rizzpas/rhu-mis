@@ -39,10 +39,16 @@
     ][$size] ?? 'py-2.5 pl-3.5 pr-9 text-sm font-medium';
 
     $chevronSize = [
-        'sm' => 'w-3.5 h-3.5 right-2.5',
-        'md' => 'w-4 h-4 right-3',
-        'lg' => 'w-4 h-4 right-3.5',
-    ][$size] ?? 'w-4 h-4 right-3';
+        'sm' => 'w-3.5 h-3.5',
+        'md' => 'w-4 h-4',
+        'lg' => 'w-4 h-4',
+    ][$size] ?? 'w-4 h-4';
+
+    $chevronRight = [
+        'sm' => 'right-2.5',
+        'md' => 'right-3',
+        'lg' => 'right-3.5',
+    ][$size] ?? 'right-3';
 @endphp
 
 <div class="relative custom-dropdown-container inline-block w-full {{ $containerClass }}"
@@ -167,9 +173,9 @@
         <span class="truncate block pr-2" x-text="selectedLabel"></span>
 
         {{-- Custom SVG Chevron --}}
-        <span class="absolute inset-y-0 {{ $chevronSize }} flex items-center pointer-events-none transition-transform duration-200"
+        <span class="absolute inset-y-0 {{ $chevronRight }} flex items-center pointer-events-none transition-transform duration-200"
               :class="open ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-400'">
-            <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="{{ $chevronSize }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
             </svg>
         </span>

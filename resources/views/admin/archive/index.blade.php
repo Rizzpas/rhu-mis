@@ -1,12 +1,6 @@
 @extends('layouts.admin')
 
-@section('header')
-<div class="flex justify-between items-center">
-    <h2 class="text-xl font-bold text-white">
-        {{ __('System Archive') }}
-    </h2>
-</div>
-@endsection
+@section('header', __('System Archive'))
 
 @section('content')
 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden mb-6">
