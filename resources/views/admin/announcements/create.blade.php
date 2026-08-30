@@ -381,12 +381,13 @@
                 </label>
             </div>
             
-            <div class="flex items-center gap-4 w-full md:w-auto">
-                <button type="button" @click="window.location.href='{{ route('admin.announcements.index') }}'" class="flex-1 md:flex-none px-8 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <button type="button" @click="window.location.href='{{ route('admin.announcements.index') }}'" class="flex-1 md:flex-none h-11 px-6 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-sm shadow-2xs cursor-pointer">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 md:flex-none px-10 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-xl shadow-emerald-900/20 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all active:scale-95">
-                    Save Announcement
+                <button type="submit" class="flex-1 md:flex-none h-11 px-8 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Save Announcement</span>
                 </button>
             </div>
         </div>

@@ -83,50 +83,50 @@
             <div class="flex items-center gap-3">
                 <div x-show="selectedIds.length > 0" x-cloak>
                     <button @click="showBulkModal = true"
-                        class="bg-red-600 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-red-700 transition-colors flex items-center gap-2">
+                        class="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                             </path>
                         </svg>
-                        Archive Selected (<span x-text="selectedIds.length"></span>)
+                        <span>Archive Selected (<span x-text="selectedIds.length"></span>)</span>
                     </button>
                 </div>
                 <button @click="showAddDoctor = true"
-                    class="bg-teal-600 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors flex items-center gap-2">
+                    class="h-11 px-5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold text-sm shadow-md shadow-teal-600/25 hover:shadow-teal-600/35 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    Add Staff
+                    <span>Add Staff</span>
                 </button>
             </div>
         </div>
 
         <!-- Advanced Search and Filter Bar -->
-        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-            <form method="GET" action="{{ route('admin.staff.index') }}" class="flex flex-col lg:flex-row gap-4 items-end">
+        <div class="px-6 py-4 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
+            <form method="GET" action="{{ route('admin.staff.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
                 <!-- Search Input -->
-                <div class="flex-1 w-full">
-                    <label
-                        class="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Search
-                        Staff Members</label>
+                <div class="sm:col-span-2 lg:col-span-5">
+                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                        Search Staff Members
+                    </label>
                     <div class="relative group">
-                        <div
-                            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-teal-500 transition-colors">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-teal-600 dark:group-focus-within:text-teal-400 transition-colors">
+                            <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                         <input type="text" name="q" value="{{ request('q') }}" placeholder="Search by name or email..."
-                            class="pl-12 pr-4 block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 py-3.5 text-sm transition-all font-medium">
+                            class="h-11 pl-10 pr-4 block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-sm font-medium transition-all placeholder:text-slate-400">
                     </div>
                 </div>
 
                 <!-- Role Filter -->
-                <div class="w-full lg:w-48">
-                    <label
-                        class="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Role</label>
+                <div class="sm:col-span-1 lg:col-span-3">
+                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                        Role & Department
+                    </label>
                     @php
                         $roleOptions = ['all' => 'All Roles'];
                         if (auth()->user()->can('promote-admin')) {
@@ -148,14 +148,15 @@
                         name="role" 
                         :options="$roleOptions" 
                         :value="request('role', 'all')"
-                        class="py-3 px-4 font-bold"
+                        class="!h-11 !py-0 flex items-center font-semibold"
                     />
                 </div>
 
                 <!-- Status Filter -->
-                <div class="w-full lg:w-48">
-                    <label
-                        class="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Availability</label>
+                <div class="sm:col-span-1 lg:col-span-2">
+                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                        Availability Status
+                    </label>
                     <x-select 
                         name="status" 
                         :options="[
@@ -165,21 +166,27 @@
                             'Out of Office' => 'Out of Office',
                         ]" 
                         :value="request('status', 'all')"
-                        class="py-3 px-4 font-bold"
+                        class="!h-11 !py-0 flex items-center font-semibold"
                     />
                 </div>
 
                 <!-- Actions -->
-                <div class="flex items-center gap-2 w-full lg:w-auto">
+                <div class="sm:col-span-2 lg:col-span-2 flex items-center gap-2">
                     @if(request()->anyFilled(['q', 'role', 'status']) && (request('q') || request('role') != 'all' || request('status') != 'all'))
                         <a href="{{ route('admin.staff.index') }}"
-                            class="flex-1 lg:flex-none px-6 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm text-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700">
-                            Reset Filters
+                            title="Reset Filters"
+                            class="h-11 px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm border border-slate-300 dark:border-slate-600 transition-all flex items-center justify-center shrink-0 shadow-2xs cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                         </a>
                     @endif
                     <button type="submit"
-                        class="flex-1 lg:flex-none px-6 py-3 bg-slate-900 dark:bg-teal-600 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-slate-800 dark:hover:bg-teal-700 transition-all active:scale-95">
-                        Apply Filters
+                        class="flex-1 h-11 px-4 bg-slate-900 dark:bg-teal-600 hover:bg-slate-800 dark:hover:bg-teal-700 text-white rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        <span>Apply Filters</span>
                     </button>
                 </div>
             </form>
@@ -378,41 +385,50 @@
                                 <!-- Step 2: Role & Schedule -->
                                 <div x-show="step === 2" style="display: none;" class="space-y-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Role
-                                            <span class="text-red-500">*</span></label>
-                                        <select name="role" x-ref="roleSelect" :required="step === 2"
-                                            class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
-                                            <option value="" disabled {{ !old('role') ? 'selected' : '' }}>Select Role
-                                            </option>
-                                            @can('promote-admin')
-                                                <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>
-                                                    Super Admin</option>
-                                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin
-                                                </option>
-                                            @endcan
-                                            <option value="regular_doctor" {{ old('role') == 'regular_doctor' ? 'selected' : '' }}>Regular Doctor</option>
-                                            <option value="pedia_doctor" {{ old('role') == 'pedia_doctor' ? 'selected' : '' }}>Pedia Doctor</option>
-                                            <option value="laboratory" {{ old('role') == 'laboratory' ? 'selected' : '' }}>
-                                                Laboratory</option>
-                                            <option value="radiology" {{ old('role') == 'radiology' ? 'selected' : '' }}>
-                                                Radiology</option>
-                                            <option value="clinical_nurse" {{ old('role') == 'clinical_nurse' ? 'selected' : '' }}>Clinical Nurse</option>
-                                            <option value="vitals_nurse" {{ old('role') == 'vitals_nurse' ? 'selected' : '' }}>Vitals Nurse (Triage)</option>
-                                            <option value="pharmacy" {{ old('role') == 'pharmacy' ? 'selected' : '' }}>Pharmacist</option>
-                                            <option value="information_desk" {{ old('role') == 'information_desk' ? 'selected' : '' }}>Front Desk / Information Desk</option>
-                                        </select>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Role & Access Level <span class="text-red-500">*</span>
+                                        </label>
+                                        <div class="relative">
+                                            <select name="role" x-ref="roleSelect" :required="step === 2"
+                                                class="appearance-none block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 pr-10 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer">
+                                                <option value="" disabled {{ !old('role') ? 'selected' : '' }}>Select Role</option>
+                                                @can('promote-admin')
+                                                    <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                                                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                                @endcan
+                                                <option value="regular_doctor" {{ old('role') == 'regular_doctor' ? 'selected' : '' }}>Regular Doctor</option>
+                                                <option value="pedia_doctor" {{ old('role') == 'pedia_doctor' ? 'selected' : '' }}>Pedia Doctor</option>
+                                                <option value="laboratory" {{ old('role') == 'laboratory' ? 'selected' : '' }}>Laboratory</option>
+                                                <option value="radiology" {{ old('role') == 'radiology' ? 'selected' : '' }}>Radiology</option>
+                                                <option value="clinical_nurse" {{ old('role') == 'clinical_nurse' ? 'selected' : '' }}>Clinical Nurse</option>
+                                                <option value="vitals_nurse" {{ old('role') == 'vitals_nurse' ? 'selected' : '' }}>Vitals Nurse (Triage)</option>
+                                                <option value="pharmacy" {{ old('role') == 'pharmacy' ? 'selected' : '' }}>Pharmacist</option>
+                                                <option value="information_desk" {{ old('role') == 'information_desk' ? 'selected' : '' }}>Front Desk / Information Desk</option>
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 dark:text-slate-400">
+                                                <svg class="w-4 h-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Initial
-                                            Status</label>
-                                        <select name="status"
-                                            class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
-                                            <option value="Present" {{ old('status') == 'Present' ? 'selected' : '' }}>Present
-                                                (Active)</option>
-                                            <option value="Seminar" {{ old('status') == 'Seminar' ? 'selected' : '' }}>On
-                                                Seminar</option>
-                                            <option value="Out of Office" {{ old('status') == 'Out of Office' ? 'selected' : '' }}>Out of Office</option>
-                                        </select>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Initial Status
+                                        </label>
+                                        <div class="relative">
+                                            <select name="status"
+                                                class="appearance-none block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 pr-10 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer">
+                                                <option value="Present" {{ old('status') == 'Present' ? 'selected' : '' }}>Present (Active)</option>
+                                                <option value="Seminar" {{ old('status') == 'Seminar' ? 'selected' : '' }}>On Seminar</option>
+                                                <option value="Out of Office" {{ old('status') == 'Out of Office' ? 'selected' : '' }}>Out of Office (Unavailable)</option>
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 dark:text-slate-400">
+                                                <svg class="w-4 h-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div>
@@ -550,295 +566,634 @@
         </div>
         
         <!-- Edit Staff Modal -->
-                <div x-show="showEditStaff" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto">
-                    <div class="flex items-center justify-center min-h-screen px-4 py-8">
-                        <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
-                            @click="showEditStaff = false">
+        <div x-show="showEditStaff" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             x-data="{
+                editMember: {},
+                firstName: '',
+                middleName: '',
+                lastName: '',
+                suffix: '',
+                role: 'regular_doctor',
+                status: 'Present',
+                days: {Mon: false, Tue: false, Wed: false, Thu: false, Fri: false, Sat: false, Sun: false},
+                timeIn: '08:00',
+                timeOut: '17:00',
+                editAvatarFileName: '',
+                editAvatarPreview: null,
+                dragCounter: 0,
+                isDragging: false,
+                isProcessingAvatar: false,
+                avatarUploadSuccess: false,
+                openRoleDropdown: false,
+                openStatusDropdown: false,
+                
+                availableRoles: [
+                    @can('promote-admin')
+                    { value: 'super_admin', label: 'Super Admin' },
+                    { value: 'admin', label: 'Admin' },
+                    @endcan
+                    { value: 'regular_doctor', label: 'Regular Doctor' },
+                    { value: 'pedia_doctor', label: 'Pedia Doctor' },
+                    { value: 'laboratory', label: 'Laboratory' },
+                    { value: 'radiology', label: 'Radiology' },
+                    { value: 'clinical_nurse', label: 'Clinical Nurse' },
+                    { value: 'vitals_nurse', label: 'Vitals Nurse (Triage)' },
+                    { value: 'pharmacy', label: 'Pharmacist' },
+                    { value: 'information_desk', label: 'Front Desk / Information Desk' }
+                ],
+
+                availableStatuses: [
+                    { value: 'Present', label: 'Present (Active)', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
+                    { value: 'Seminar', label: 'On Seminar', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' },
+                    { value: 'Out of Office', label: 'Out of Office (Unavailable)', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
+                ],
+
+                getRoleLabel(val) {
+                    const found = this.availableRoles.find(r => r.value === val);
+                    return found ? found.label : (val ? val.replace(/_/g, ' ') : 'Select Role');
+                },
+
+                getStatusLabel(val) {
+                    const found = this.availableStatuses.find(s => s.value === val);
+                    return found ? found.label : (val || 'Select Status');
+                },
+
+                get fullName() {
+                    return `${this.firstName} ${this.middleName} ${this.lastName} ${this.suffix}`.replace(/\s+/g, ' ').trim();
+                },
+                get formattedSchedule() {
+                    const selected = Object.keys(this.days).filter(d => this.days[d]);
+                    if (selected.length === 0) return '';
+                    const formatTime = (t) => {
+                        if(!t) return '';
+                        let [h, m] = t.split(':');
+                        const ap = h >= 12 ? 'PM' : 'AM';
+                        h = h % 12 || 12;
+                        return `${h}:${m} ${ap}`;
+                    };
+                    return `${selected.join(', ')} (${formatTime(this.timeIn)} - ${formatTime(this.timeOut)})`;
+                },
+                get schedulePayload() {
+                    const selected = Object.keys(this.days).filter(d => this.days[d]);
+                    if (selected.length === 0) return '';
+                    return JSON.stringify(selected.map(day => ({
+                        day: day,
+                        time_in: this.timeIn,
+                        time_out: this.timeOut
+                    })));
+                },
+
+                init() {
+                    if (this.editMember && this.editMember.id) {
+                        this.loadMember(this.editMember);
+                    }
+                },
+
+                loadMember(member) {
+                    if (!member || !member.id) return;
+                    this.editMember = member;
+                    this.editAvatarPreview = null;
+                    this.editAvatarFileName = '';
+                    this.dragCounter = 0;
+                    this.isDragging = false;
+                    this.isProcessingAvatar = false;
+                    this.avatarUploadSuccess = false;
+                    this.openRoleDropdown = false;
+                    this.openStatusDropdown = false;
+                    this.role = member.role || 'regular_doctor';
+                    this.status = member.status || 'Present';
+                    
+                    // Clean Name parsing
+                    let cleanName = (member.name || '').replace(/^(Dr\.|Nurse|MedTech|RadTech)\s+/i, '').trim();
+                    let parts = cleanName.split(/\s+/).filter(Boolean);
+                    let suffixes = ['Jr.', 'Sr.', 'III', 'IV', 'II', 'Jr', 'Sr'];
+
+                    if (parts.length > 0 && suffixes.includes(parts[parts.length - 1])) {
+                        this.suffix = parts.pop();
+                    } else {
+                        this.suffix = '';
+                    }
+
+                    if (parts.length === 0) {
+                        this.firstName = '';
+                        this.middleName = '';
+                        this.lastName = '';
+                    } else if (parts.length === 1) {
+                        this.firstName = parts[0];
+                        this.middleName = '';
+                        this.lastName = '';
+                    } else if (parts.length === 2) {
+                        this.firstName = parts[0];
+                        this.middleName = '';
+                        this.lastName = parts[1];
+                    } else {
+                        this.firstName = parts.shift();
+                        this.lastName = parts.pop();
+                        this.middleName = parts.join(' ');
+                    }
+
+                    // Schedule parsing
+                    Object.keys(this.days).forEach(d => this.days[d] = false);
+                    this.timeIn = '08:00';
+                    this.timeOut = '17:00';
+                    if (member.schedule) {
+                        const s = member.schedule;
+                        ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => {
+                            if (s.includes(d)) this.days[d] = true;
+                        });
+                        const tMatch = s.match(/\((.*?) - (.*?)\)/);
+                        if (tMatch) {
+                            const to24 = (t) => {
+                                const p = t.trim().split(' ');
+                                const ap = p[1];
+                                let [h, m] = p[0].split(':').map(Number);
+                                if (ap === 'PM' && h !== 12) h += 12;
+                                if (ap === 'AM' && h === 12) h = 0;
+                                return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+                            };
+                            try {
+                                this.timeIn = to24(tMatch[1]);
+                                this.timeOut = to24(tMatch[2]);
+                            } catch(e) {}
+                        }
+                    }
+                },
+
+                handleDragEnter(e) {
+                    if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                        this.dragCounter++;
+                        this.isDragging = true;
+                    }
+                },
+
+                handleDragLeave(e) {
+                    if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                        this.dragCounter--;
+                        if (this.dragCounter <= 0) {
+                            this.isDragging = false;
+                            this.dragCounter = 0;
+                        }
+                    }
+                },
+
+                handleDrop(e) {
+                    this.isDragging = false;
+                    this.dragCounter = 0;
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                        const file = e.dataTransfer.files[0];
+                        if (file && file.type.startsWith('image/')) {
+                            this.handleStaffEditAvatar(file);
+                        }
+                    }
+                },
+
+                handleStaffEditAvatar(file) {
+                    if (!file || !file.type.startsWith('image/')) return;
+                    this.isProcessingAvatar = true;
+                    this.avatarUploadSuccess = false;
+                    const input = document.getElementById('staff_edit_avatar_input');
+                    $store.imageCropper.open(file, {
+                        aspectRatio: 1,
+                        circular: true,
+                        subtitle: 'Square crop (1:1) — Staff Avatar',
+                        onApply: (blob, previewUrl) => {
+                            this.isProcessingAvatar = true;
+                            setTimeout(() => {
+                                this.editAvatarPreview = previewUrl;
+                                this.editAvatarFileName = file.name;
+                                setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                this.isProcessingAvatar = false;
+                                this.avatarUploadSuccess = true;
+                                setTimeout(() => { this.avatarUploadSuccess = false; }, 4000);
+                            }, 350);
+                        },
+                        onCancel: () => {
+                            this.isProcessingAvatar = false;
+                        }
+                    });
+                }
+             }"
+             @open-edit-staff.window="loadMember($event.detail)">
+            <div class="flex items-center justify-center min-h-screen px-4 py-8">
+                <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
+                    @click="showEditStaff = false">
+                </div>
+                
+                <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl transform transition-all sm:max-w-2xl lg:max-w-3xl w-full z-10 max-h-[92vh] flex flex-col border border-slate-200/80 dark:border-slate-800 overflow-hidden"
+                     @dragenter.prevent="handleDragEnter($event)"
+                     @dragleave.prevent="handleDragLeave($event)"
+                     @dragover.prevent
+                     @drop.prevent="handleDrop($event)">
+                    
+                    <!-- Full Modal Drag & Drop Overlay (Whole Box Dropzone) -->
+                    <div x-show="isDragging"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-98"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-98"
+                         style="display: none;"
+                         class="absolute inset-0 z-50 rounded-3xl bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center pointer-events-none border-4 border-dashed border-teal-400">
+                        <div class="w-20 h-20 rounded-full bg-teal-500/20 ring-8 ring-teal-500/30 flex items-center justify-center text-teal-400 animate-bounce mb-4">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
                         </div>
-                        <div
-                            class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-2xl transform transition-all sm:max-w-lg w-full z-10 max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
-                            <form :action="'/admin/staff/' + editMember.id" method="POST" enctype="multipart/form-data">
-                                @csrf
-                                @method('PUT')
-                                <div
-                                    class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-                                    <div>
-                                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Edit Staff Member</h3>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1"
-                                            x-text="'Updating access for ' + (editMember.name || '')"></p>
-                                    </div>
-                                    <button type="button" @click="showEditStaff = false"
-                                        class="text-slate-400 hover:text-slate-600">
-                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="px-6 py-5">
-                                    <div class="space-y-4">
-                                        <div x-data="{
-                                        firstName: '',
-                                        middleName: '',
-                                        lastName: '',
-                                        suffix: '',
-                                        initializedFor: null,
-                                        get fullName() {
-                                            return `${this.firstName} ${this.middleName} ${this.lastName} ${this.suffix}`.replace(/\s+/g, ' ').trim();
-                                        }
-                                    }">
-                                            <div x-effect='
-                                            if (showEditStaff && editMember.name && initializedFor !== editMember.id) {
-                                                // Strip any potential prefixes from the raw name if they somehow got in there
-                                                let cleanName = editMember.name.replace(/^(Dr\.|Nurse|MedTech|RadTech)\s+/i, "").trim();
-                                                let parts = cleanName.split(" ");
-                                                let suffixes = ["Jr.", "Sr.", "III", "IV", "II"];
-
-                                                if (parts.length > 0 && suffixes.includes(parts[parts.length - 1])) {
-                                                    suffix = parts.pop();
-                                                } else {
-                                                    suffix = "";
-                                                }
-
-                                                if (parts.length === 1) {
-                                                    firstName = parts[0];
-                                                    middleName = "";
-                                                    lastName = "";
-                                                } else if (parts.length === 2) {
-                                                    firstName = parts[0];
-                                                    middleName = "";
-                                                    lastName = parts[1];
-                                                } else if (parts.length >= 3) {
-                                                    firstName = parts.shift();
-                                                    lastName = parts.pop();
-                                                    middleName = parts.join(" ");
-                                                }
-                                                initializedFor = editMember.id;
-                                            }
-                                        '></div>
-                                            <input type="hidden" name="name" :value="fullName">
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300">First
-                                                        Name <span class="text-red-500">*</span></label>
-                                                    <input type="text" x-model="firstName" required
-                                                        class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-amber-500 focus:ring-amber-500 border p-2 text-sm">
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300">Middle
-                                                        Name</label>
-                                                    <input type="text" x-model="middleName"
-                                                        class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-amber-500 focus:ring-amber-500 border p-2 text-sm">
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300">Last
-                                                        Name <span class="text-red-500">*</span></label>
-                                                    <input type="text" x-model="lastName" required
-                                                        class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-amber-500 focus:ring-amber-500 border p-2 text-sm">
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300">Suffix
-                                                        (e.g. Jr., Sr.)</label>
-                                                    <input type="text" x-model="suffix"
-                                                        class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-amber-500 focus:ring-amber-500 border p-2 text-sm">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300">Email
-                                                Address <span class="text-red-500">*</span></label>
-                                            <input type="email" name="email" :value="editMember.email" required
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-amber-500 focus:ring-amber-500 border p-2 text-sm">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">New
-                                                Password <span class="text-slate-400 font-normal text-xs">(leave blank to
-                                                    keep
-                                                    current)</span></label>
-                                            <input type="password" name="password" placeholder="••••••••"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Role
-                                                <span class="text-red-500">*</span></label>
-                                            <select name="role" x-effect="$el.value = editMember.role" required
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-amber-500 focus:ring-amber-500 border p-2 text-sm">
-                                                @can('promote-admin')
-                                                    <option value="super_admin">Super Admin</option>
-                                                    <option value="admin">Admin</option>
-                                                @endcan
-                                                <option value="regular_doctor">Regular Doctor</option>
-                                                <option value="pedia_doctor">Pedia Doctor</option>
-                                                <option value="laboratory">Laboratory</option>
-                                                <option value="radiology">Radiology</option>
-                                                <option value="clinical_nurse">Clinical Nurse</option>
-                                                <option value="vitals_nurse">Vitals Nurse (Triage)</option>
-                                                <option value="pharmacy">Pharmacist</option>
-                                                <option value="information_desk">Front Desk / Information Desk</option>
-                                            </select>
-                                        </div>
-                                        <div x-data="{
-                                            days: {Mon: false, Tue: false, Wed: false, Thu: false, Fri: false, Sat: false, Sun: false},
-                                            timeIn: '08:00',
-                                            timeOut: '17:00',
-                                            init() {
-                                                this.$watch('$root.editMember', (member) => {
-                                                    Object.keys(this.days).forEach(d => this.days[d] = false);
-                                                    this.timeIn = '08:00';
-                                                    this.timeOut = '17:00';
-                                                    if (!member || !member.schedule) return;
-                                                    const s = member.schedule;
-                                                    ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => {
-                                                        if (s.includes(d)) this.days[d] = true;
-                                                    });
-                                                    const tMatch = s.match(/\((.*?) - (.*?)\)/);
-                                                    if (tMatch) {
-                                                        const to24 = (t) => {
-                                                            const parts = t.trim().split(' ');
-                                                            const ap = parts[1];
-                                                            let [h, m] = parts[0].split(':').map(Number);
-                                                            if (ap === 'PM' && h !== 12) h += 12;
-                                                            if (ap === 'AM' && h === 12) h = 0;
-                                                            return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
-                                                        };
-                                                        this.timeIn = to24(tMatch[1]);
-                                                        this.timeOut = to24(tMatch[2]);
-                                                    }
-                                                });
-                                            },
-                                            get formattedSchedule() {
-                                                const selected = Object.keys(this.days).filter(d => this.days[d]);
-                                                if (selected.length === 0) return '';
-                                                const formatTime = (t) => {
-                                                    if(!t) return '';
-                                                    let [h, m] = t.split(':');
-                                                    const ap = h >= 12 ? 'PM' : 'AM';
-                                                    h = h % 12 || 12;
-                                                    return `${h}:${m} ${ap}`;
-                                                };
-                                                return `${selected.join(', ')} (${formatTime(this.timeIn)} - ${formatTime(this.timeOut)})`;
-                                            },
-                                            get schedulePayload() {
-                                                const selected = Object.keys(this.days).filter(d => this.days[d]);
-                                                if (selected.length === 0) return '';
-                                                return JSON.stringify(selected.map(day => ({
-                                                    day: day,
-                                                    time_in: this.timeIn,
-                                                    time_out: this.timeOut
-                                                })));
-                                            }
-                                        }">
-                                            <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Schedule
-                                                (Optional)</label>
-                                            <input type="hidden" name="schedule" :value="schedulePayload">
-                                            <div class="flex flex-wrap gap-2 mb-3">
-                                                <template x-for="(isActive, day) in days" :key="day">
-                                                    <button type="button" @click="days[day] = !days[day]"
-                                                        :class="isActive ? 'bg-teal-600 text-white border-teal-600' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
-                                                        class="px-3 py-1.5 border rounded-md text-xs font-medium transition-colors focus:outline-none"
-                                                        x-text="day">
-                                                    </button>
-                                                </template>
-                                            </div>
-                                            <div class="flex items-center gap-3">
-                                                <div class="flex-1">
-                                                    <label
-                                                        class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Time
-                                                        In</label>
-                                                    <input type="time" x-model="timeIn"
-                                                        class="block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm">
-                                                </div>
-                                                <div class="text-slate-400 mt-5">-</div>
-                                                <div class="flex-1">
-                                                    <label
-                                                        class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Time
-                                                        Out</label>
-                                                    <input type="time" x-model="timeOut"
-                                                        class="block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm">
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                                                <svg class="w-4 h-4 text-teal-500 shrink-0" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                                                    </path>
-                                                </svg>
-                                                <span
-                                                    x-text="formattedSchedule ? 'Preview: ' + formattedSchedule : 'No schedule selected'"></span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300">Status</label>
-                                            <select name="status" x-effect="$el.value = editMember.status"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-amber-500 focus:ring-amber-500 border p-2 text-sm">
-                                                <option value="Present">Present (Active)</option>
-                                                <option value="Seminar">On Seminar</option>
-                                                <option value="Out of Office">Out of Office</option>
-                                            </select>
-                                        </div>
-                                        <div x-data="{
-                                            editAvatarFileName: '',
-                                            editAvatarPreview: null,
-                                            isDragging: false,
-                                            handleStaffEditAvatar(file) {
-                                                if (!file || !file.type.startsWith('image/')) return;
-                                                const input = document.getElementById('staff_edit_avatar_input');
-                                                $store.imageCropper.open(file, {
-                                                    aspectRatio: 1,
-                                                    circular: true,
-                                                    subtitle: 'Square crop (1:1) — Staff Avatar',
-                                                    onApply: (blob, previewUrl) => {
-                                                        this.editAvatarPreview = previewUrl;
-                                                        this.editAvatarFileName = file.name;
-                                                        setCroppedFile(input, blob, file.name || 'avatar.jpg');
-                                                    }
-                                                });
-                                            }
-                                        }">
-                                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Update Profile Photo</label>
-                                            <input type="file" id="staff_edit_avatar_input" name="avatar" accept="image/*" class="hidden"
-                                                @change="if ($event.target.files.length) handleStaffEditAvatar($event.target.files[0])">
-                                            
-                                            <div class="flex items-center gap-3">
-                                                <template x-if="editAvatarPreview">
-                                                    <div class="h-12 w-12 rounded-full overflow-hidden border-2 border-amber-500 flex-shrink-0 shadow-sm">
-                                                        <img :src="editAvatarPreview" class="h-full w-full object-cover">
-                                                    </div>
-                                                </template>
-                                                <div @dragover.prevent="isDragging = true"
-                                                     @dragleave.prevent="isDragging = false"
-                                                     @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) handleStaffEditAvatar($event.dataTransfer.files[0])"
-                                                     @click="document.getElementById('staff_edit_avatar_input').click()"
-                                                     :class="isDragging ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/20' : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-650'"
-                                                     class="flex-1 border border-dashed rounded-lg p-2.5 text-center cursor-pointer transition-all flex items-center justify-center gap-2">
-                                                    <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                    <span class="text-xs text-slate-600 dark:text-slate-300 truncate" x-text="editAvatarFileName || 'Drag & drop avatar or browse (1:1 crop)'"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="px-8 py-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                                    <button type="button" @click="showEditStaff = false"
-                                        class="px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-xl shadow-sm transition-all">Cancel</button>
-                                    <button type="submit"
-                                        class="px-6 py-2 bg-teal-600 text-sm font-bold text-white hover:bg-teal-700 border border-transparent rounded-xl shadow-lg transition-all">Save
-                                        Changes</button>
-                                </div>
-                            </form>
+                        <h4 class="text-xl font-black text-white tracking-tight mb-1">Drop Image to Update Photo</h4>
+                        <p class="text-sm text-teal-200/90 max-w-sm font-medium">
+                            Release your photo anywhere inside this box to open the 1:1 image cropper
+                        </p>
+                        <div class="mt-4 px-4 py-1.5 rounded-full bg-teal-500/20 text-xs font-bold text-teal-300 border border-teal-400/30 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span>Supports JPG, PNG, WEBP, GIF</span>
                         </div>
                     </div>
+
+                    <form :action="'/admin/staff/' + editMember.id" method="POST" enctype="multipart/form-data" class="flex flex-col h-full">
+                        @csrf
+                        @method('PUT')
+                        
+                        <!-- Modal Header -->
+                        <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 flex justify-between items-center shrink-0 rounded-t-3xl">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-xs">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Edit Staff Member</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        Updating credentials & schedule for <span class="font-semibold text-teal-600 dark:text-teal-400" x-text="editMember.name || 'Staff Member'"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" @click="showEditStaff = false"
+                                class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Scrollable Body -->
+                        <div class="px-6 sm:px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                            
+                            <!-- Profile Picture & Identity Banner -->
+                            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 dark:from-slate-800/70 dark:to-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row items-center gap-5">
+                                <div class="relative group shrink-0">
+                                    <div class="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl ring-4 shadow-md overflow-hidden bg-gradient-to-br from-teal-500 to-emerald-700 flex items-center justify-center text-white text-2xl font-black relative"
+                                         :class="avatarUploadSuccess ? 'ring-emerald-400 dark:ring-emerald-500 ring-offset-2' : 'ring-white dark:ring-slate-700'">
+                                        
+                                        <!-- Dynamic Avatar Preview or Existing URL or Initials -->
+                                        <template x-if="editAvatarPreview">
+                                            <img :src="editAvatarPreview" class="w-full h-full object-cover" alt="Avatar Preview">
+                                        </template>
+                                        <template x-if="!editAvatarPreview && editMember.avatar_url">
+                                            <img :src="editMember.avatar_url" class="w-full h-full object-cover" alt="Staff Avatar">
+                                        </template>
+                                        <template x-if="!editAvatarPreview && !editMember.avatar_url">
+                                            <span x-text="editMember.initials || 'ST'"></span>
+                                        </template>
+
+                                        <!-- Processing / Loading Overlay -->
+                                        <div x-show="isProcessingAvatar"
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:enter-end="opacity-100"
+                                             x-transition:leave="transition ease-in duration-100"
+                                             x-transition:leave-start="opacity-100"
+                                             x-transition:leave-end="opacity-0"
+                                             style="display: none;"
+                                             class="absolute inset-0 bg-slate-900/80 rounded-2xl flex flex-col items-center justify-center text-white z-20">
+                                            <svg class="w-6 h-6 animate-spin text-teal-400" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span class="text-[10px] font-bold text-teal-200 mt-1">Processing...</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Quick Hover Change Overlay -->
+                                    <button type="button" 
+                                            @click="document.getElementById('staff_edit_avatar_input').click()"
+                                            class="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[11px] font-bold gap-1 cursor-pointer z-10">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        <span>Change</span>
+                                    </button>
+                                </div>
+
+                                <div class="flex-1 w-full space-y-2 text-center sm:text-left">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                        <div>
+                                            <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                                                <h4 class="text-base font-bold text-slate-900 dark:text-white" x-text="editMember.name || 'Staff Member'"></h4>
+                                                
+                                                <!-- Success Finished Animation Badge -->
+                                                <div x-show="avatarUploadSuccess"
+                                                     x-transition:enter="transition ease-out duration-300"
+                                                     x-transition:enter-start="opacity-0 scale-90 translate-y-1"
+                                                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                                     x-transition:leave="transition ease-in duration-300"
+                                                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                                     x-transition:leave-end="opacity-0 scale-90 translate-y-1"
+                                                     style="display: none;"
+                                                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold shadow-2xs">
+                                                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                    <span>Photo ready!</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400" x-text="editMember.email"></p>
+                                        </div>
+                                        <div>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider capitalize"
+                                                  :class="{
+                                                      'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300': role && role.includes('doctor'),
+                                                      'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300': role && role.includes('nurse'),
+                                                      'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300': role && (role === 'laboratory' || role === 'radiology'),
+                                                      'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300': role && role.includes('admin'),
+                                                      'bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300': role === 'pharmacy',
+                                                      'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300': !role || role === 'information_desk'
+                                                  }"
+                                                  x-text="getRoleLabel(role)"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Upload Input & Quick Browse / Drop Action -->
+                                    <input type="file" id="staff_edit_avatar_input" name="avatar" accept="image/*" class="hidden"
+                                           @change="if ($event.target.files.length) handleStaffEditAvatar($event.target.files[0])">
+                                    
+                                    <div class="pt-1 flex items-center gap-2">
+                                        <div @click="document.getElementById('staff_edit_avatar_input').click()"
+                                             class="flex-1 border border-dashed rounded-xl px-3.5 py-2 cursor-pointer transition-all flex items-center justify-center gap-2 group border-slate-300/80 dark:border-slate-600/80 bg-white dark:bg-slate-900/60 hover:border-teal-500 hover:bg-teal-50/30 dark:hover:bg-slate-800">
+                                            <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate" 
+                                                  x-text="editAvatarFileName ? 'Selected: ' + editAvatarFileName : 'Click to browse or drop photo anywhere in modal (1:1 crop)'"></span>
+                                        </div>
+
+                                        <template x-if="editAvatarPreview">
+                                            <button type="button" 
+                                                    @click="editAvatarPreview = null; editAvatarFileName = ''; document.getElementById('staff_edit_avatar_input').value = ''"
+                                                    class="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all border border-slate-200 dark:border-slate-700 cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold"
+                                                    title="Revert photo changes">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                <span class="hidden sm:inline">Revert</span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Section 1: Personal Information -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    <span>Personal Information</span>
+                                </div>
+
+                                <input type="hidden" name="name" :value="fullName">
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            First Name <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" x-model="firstName" required
+                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Middle Name
+                                        </label>
+                                        <input type="text" x-model="middleName"
+                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Last Name <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" x-model="lastName" required
+                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Suffix
+                                        </label>
+                                        <input type="text" x-model="suffix" placeholder="Jr., Sr., III"
+                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Email Address <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="email" name="email" :value="editMember.email" required
+                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                                            <span>New Password</span>
+                                            <span class="text-slate-400 font-normal lowercase">(leave blank to keep current)</span>
+                                        </label>
+                                        <input type="password" name="password" placeholder="••••••••"
+                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Section 2: Role & Availability (Custom Floating Rounded Dropdowns) -->
+                            <div class="space-y-4 pt-2">
+                                <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                    <span>Role & Availability Status</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- Custom Floating Role Dropdown -->
+                                    <div class="relative" @click.outside="openRoleDropdown = false">
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Role & Access Level <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="hidden" name="role" :value="role">
+                                        
+                                        <button type="button" 
+                                                @click="openRoleDropdown = !openRoleDropdown; openStatusDropdown = false"
+                                                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                :class="openRoleDropdown ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                            <span class="truncate" x-text="getRoleLabel(role)"></span>
+                                            <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0 ml-2"
+                                                 :class="openRoleDropdown ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Custom Floating Menu with rounded-2xl -->
+                                        <div x-show="openRoleDropdown" 
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                             x-transition:leave="transition ease-in duration-100"
+                                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                             style="display: none;"
+                                             class="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 custom-scrollbar backdrop-blur-md">
+                                            <template x-for="item in availableRoles" :key="item.value">
+                                                <div @click="role = item.value; openRoleDropdown = false"
+                                                     class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors"
+                                                     :class="role === item.value 
+                                                        ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
+                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                    <span x-text="item.label"></span>
+                                                    <svg x-show="role === item.value" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Custom Floating Status Dropdown -->
+                                    <div class="relative" @click.outside="openStatusDropdown = false">
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Current Status <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="hidden" name="status" :value="status">
+
+                                        <button type="button" 
+                                                @click="openStatusDropdown = !openStatusDropdown; openRoleDropdown = false"
+                                                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                :class="openStatusDropdown ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2.5 h-2.5 rounded-full"
+                                                      :class="{
+                                                          'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Present',
+                                                          'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Seminar',
+                                                          'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Out of Office'
+                                                      }"></span>
+                                                <span class="truncate" x-text="getStatusLabel(status)"></span>
+                                            </div>
+                                            <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0 ml-2"
+                                                 :class="openStatusDropdown ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Custom Floating Menu with rounded-2xl -->
+                                        <div x-show="openStatusDropdown" 
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                             x-transition:leave="transition ease-in duration-100"
+                                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                             style="display: none;"
+                                             class="absolute left-0 right-0 z-50 mt-1.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 backdrop-blur-md">
+                                            <template x-for="item in availableStatuses" :key="item.value">
+                                                <div @click="status = item.value; openStatusDropdown = false"
+                                                     class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors"
+                                                     :class="status === item.value 
+                                                        ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
+                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="w-2.5 h-2.5 rounded-full" :class="item.dot"></span>
+                                                        <span x-text="item.label"></span>
+                                                    </div>
+                                                    <svg x-show="status === item.value" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Section 3: Work Schedule -->
+                            <div class="space-y-4 pt-2">
+                                <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span>Work Schedule (Optional)</span>
+                                </div>
+
+                                <input type="hidden" name="schedule" :value="schedulePayload">
+                                
+                                <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 space-y-4">
+                                    <div>
+                                        <span class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Duty Days</span>
+                                        <div class="flex flex-wrap gap-2">
+                                            <template x-for="(isActive, day) in days" :key="day">
+                                                <button type="button" @click="days[day] = !days[day]"
+                                                    :class="isActive 
+                                                        ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/30 font-bold border-teal-600' 
+                                                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium'"
+                                                    class="px-3.5 py-1.5 border rounded-xl text-xs transition-all focus:outline-none cursor-pointer"
+                                                    x-text="day">
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                                                Duty Time In
+                                            </label>
+                                            <input type="time" x-model="timeIn"
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                                                Duty Time Out
+                                            </label>
+                                            <input type="time" x-model="timeOut"
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                        </div>
+                                    </div>
+
+                                    <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1">
+                                        <svg class="w-4 h-4 text-teal-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="font-medium" x-text="formattedSchedule ? 'Current Schedule: ' + formattedSchedule : 'No schedule days selected'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="px-8 py-4 bg-slate-50/70 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0 rounded-b-3xl">
+                            <button type="button" @click="showEditStaff = false"
+                                class="px-5 py-2.5 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-sm font-bold text-white rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all cursor-pointer flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Save Changes</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
+            </div>
+        </div>
                 <div class="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar">
                     <table class="min-w-full divide-y dark:divide-slate-600 relative">
                         <thead class="dark:bg-slate-800 bg-slate-100 sticky top-0 z-10 shadow-sm">
@@ -879,9 +1234,9 @@
                                         <div class="flex items-center">
                                             <div class="shrink-0 h-10 w-10">
                                                 <div
-                                                    class="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold overflow-hidden border border-slate-300">
-                                                    @if($member->avatar_path)
-                                                        <img src="{{ asset('storage/' . $member->avatar_path) }}" alt=""
+                                                    class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 font-bold overflow-hidden border border-slate-300 dark:border-slate-600 shadow-2xs">
+                                                    @if($member->avatar_url)
+                                                        <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}"
                                                             class="h-full w-full object-cover">
                                                     @else
                                                         {{ $member->initials }}
@@ -938,35 +1293,59 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                            class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    {{ $member->status === 'Present' ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200' : '' }}
-                                                    {{ $member->status === 'Seminar' ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' : '' }}
-                                                    {{ str_contains(strtolower($member->status), 'out') || str_contains(strtolower($member->status), 'absent') ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' : '' }}">
-                                            {{ $member->status ?: 'Unknown' }}
-                                        </span>
+                                        @if($member->status === 'Present')
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]"></span>
+                                                <span>Present</span>
+                                            </span>
+                                        @elseif($member->status === 'Seminar')
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]"></span>
+                                                <span>On Seminar</span>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 shadow-2xs">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]"></span>
+                                                <span>{{ $member->status ?: 'Out of Office' }}</span>
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex space-x-2" x-data>
+                                        <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/70 gap-1 shadow-2xs" x-data>
                                             <button
                                                 @click="updateStatus({{ $member->id }}, 'Present', '{{ addslashes($member->formatted_name) }}')"
-                                                class="text-green-600 dark:text-green-400 border hover:bg-green-200 dark:hover:bg-green-800 border-green-400 px-2 py-1 rounded bg-white dark:bg-gray-800 dark:bg-green-900/30 text-xs shadow-sm transition-colors">Present</button>
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $member->status === 'Present' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-800' }}">
+                                                Present
+                                            </button>
                                             <button
                                                 @click="updateStatus({{ $member->id }}, 'Seminar', '{{ addslashes($member->formatted_name) }}')"
-                                                class="text-yellow-500 border hover:bg-yellow-200 dark:hover:bg-yellow-800 border-yellow-400 px-2 py-1 rounded bg-white dark:bg-gray-800 text-xs shadow-sm transition-colors">Seminar</button>
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $member->status === 'Seminar' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-800' }}">
+                                                Seminar
+                                            </button>
                                             <button
                                                 @click="updateStatus({{ $member->id }}, 'Out of Office', '{{ addslashes($member->formatted_name) }}')"
-                                                class="text-red-500 border hover:bg-red-200 dark:hover:bg-red-800 border-red-400 px-2 py-1 rounded bg-white dark:bg-gray-800 text-xs shadow-sm transition-colors">Unavailable</button>
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ str_contains(strtolower($member->status), 'out') || str_contains(strtolower($member->status), 'absent') ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-white dark:hover:bg-slate-800' }}">
+                                                Unavailable
+                                            </button>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex justify-end gap-3 items-center">
+                                        <div class="flex justify-end gap-1.5 items-center">
                                             <!-- Edit Button -->
                                             <button
-                                                @click="$dispatch('open-edit-staff', {{ json_encode(['id' => $member->id, 'name' => $member->name, 'email' => $member->email, 'role' => $member->role, 'status' => $member->status, 'schedule' => $member->schedule]) }})"
-                                                class="text-slate-400 hover:text-amber-600 transition-colors p-1 rounded hover:bg-amber-50"
-                                                title="Edit Staff">
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                @click="$dispatch('open-edit-staff', {{ json_encode([
+                                                    'id' => $member->id, 
+                                                    'name' => $member->name, 
+                                                    'email' => $member->email, 
+                                                    'role' => $member->role, 
+                                                    'status' => $member->status, 
+                                                    'schedule' => $member->schedule,
+                                                    'avatar_url' => $member->avatar_url,
+                                                    'initials' => $member->initials,
+                                                ]) }})"
+                                                class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-all cursor-pointer"
+                                                title="Edit Staff Member">
+                                                <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
@@ -980,9 +1359,9 @@
                                                         action: '{{ route('admin.staff.destroy', $member->id) }}',
                                                         method: 'DELETE'
                                                     })"
-                                                class="text-slate-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
-                                                title="Archive">
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer"
+                                                title="Archive Staff Member">
+                                                <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -999,9 +1378,9 @@
                                                                 action: '{{ route('admin.staff.promote', $member->id) }}',
                                                                 method: 'POST'
                                                             })"
-                                                        class="text-slate-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30"
-                                                        title="Promote to Admin">
-                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all cursor-pointer"
+                                                        title="Promote to Administrator">
+                                                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                                 d="M5 10l7-7m0 0l7 7m-7-7v18" />
                                                         </svg>

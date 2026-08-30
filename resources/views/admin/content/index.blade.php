@@ -10,7 +10,7 @@
     </div>
 
     <!-- Main Navigation Tabs -->
-    <div class="bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-lg flex flex-wrap gap-1 border border-slate-200 dark:border-slate-800">
+    <div class="bg-slate-100 dark:bg-slate-800/60 p-1.5 rounded-2xl flex flex-wrap gap-1.5 border border-slate-200 dark:border-slate-800 shadow-2xs">
         <template x-for="tab in [
             { id: 'topbar', name: 'Top Bar' },
             { id: 'hero', name: 'Hero Section' },
@@ -24,21 +24,21 @@
         ]">
             <button @click.prevent="activeTab = tab.id"
                 :class="{
-                    'bg-white dark:bg-slate-950 text-slate-950 dark:text-slate-50 shadow-sm': activeTab === tab.id,
-                    'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50': activeTab !== tab.id
+                    'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold': activeTab === tab.id,
+                    'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold': activeTab !== tab.id
                 }"
-                class="whitespace-nowrap px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex-1 text-center"
+                class="whitespace-nowrap px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all duration-200 flex-1 text-center cursor-pointer"
                 x-text="tab.name">
             </button>
         </template>
     </div>
 
-    <form x-data="{ showConfirmModal: false }" @submit.prevent="showConfirmModal = true" action="{{ route('admin.content.update') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-slate-950 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 relative">
+    <form x-data="{ showConfirmModal: false }" @submit.prevent="showConfirmModal = true" action="{{ route('admin.content.update') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 relative">
         @csrf
         @method('PUT')
 
         <!-- Confirmation Modal -->
-        <div x-show="showConfirmModal" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4">
+        <div x-show="showConfirmModal" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
             <div @click.away="showConfirmModal = false" 
                  x-transition:enter="transition ease-out duration-200" 
                  x-transition:enter-start="opacity-0 scale-95" 
@@ -46,19 +46,19 @@
                  x-transition:leave="transition ease-in duration-150" 
                  x-transition:leave-start="opacity-100 scale-100" 
                  x-transition:leave-end="opacity-0 scale-95" 
-                 class="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-4 mb-4">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center">
                         <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Save Changes?</h3>
+                        <h3 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Save Changes?</h3>
                     </div>
                 </div>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to update the landing page content? These changes will be reflected publicly right away.</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Are you sure you want to update the landing page content? These changes will be reflected publicly right away.</p>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" @click="showConfirmModal = false" class="px-4 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700 shadow-sm">Cancel</button>
-                    <button type="button" @click="$el.closest('form').submit()" class="px-4 py-2 rounded-md text-sm font-medium bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">Yes, Save Changes</button>
+                    <button type="button" @click="showConfirmModal = false" class="h-11 px-5 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer">Cancel</button>
+                    <button type="button" @click="$el.closest('form').submit()" class="h-11 px-5 rounded-xl text-sm font-bold bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white transition-all shadow-md shadow-teal-600/25 cursor-pointer">Yes, Save Changes</button>
                 </div>
             </div>
         </div>
@@ -738,10 +738,10 @@
 
         </div>
 
-        <div class="px-6 md:px-8 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 rounded-b-xl flex justify-end">
-            <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-50 bg-teal-600 text-white hover:bg-teal-700 h-10 px-6 py-2 shadow-sm gap-2">
+        <div class="px-6 md:px-8 py-4 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 rounded-b-2xl flex justify-end">
+            <button type="submit" class="h-11 px-6 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold text-sm rounded-xl shadow-md shadow-teal-600/25 hover:shadow-teal-600/35 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                Save Changes
+                <span>Save Changes</span>
             </button>
         </div>
     </form>

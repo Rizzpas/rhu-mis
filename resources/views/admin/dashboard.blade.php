@@ -11,13 +11,13 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button onclick="window.print()" class="hidden md:flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl shadow-sm transition-colors text-sm">
+            <button onclick="window.print()" class="hidden md:flex items-center gap-2 h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                Print Report
+                <span>Print Report</span>
             </button>
-            <div x-data class="flex items-center gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-xl shadow-xs border border-slate-200 dark:border-slate-700">
+            <div x-data class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700">
                 <label for="time_filter"
-                    class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest pl-2">Timeframe:</label>
+                    class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Timeframe:</label>
                 <div class="w-36">
                     <x-select 
                         id="time_filter" 
@@ -26,7 +26,7 @@
                         x-model="$store.dashboard.timeFilter" 
                         @change="$store.dashboard.refresh()"
                         size="sm"
-                        class="border-0 shadow-none font-bold text-slate-800 dark:text-white"
+                        class="border-0 shadow-none font-bold text-slate-800 dark:text-white !py-0"
                     />
                 </div>
                 <div x-show="$store.dashboard.loading" class="ml-1">

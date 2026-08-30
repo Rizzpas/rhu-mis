@@ -221,16 +221,17 @@
         }, 4000);
     }
 
-    // Dismiss on initial page load / interactive ready
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    // Dismiss only when ALL resources (CSS, JS, images) are fully loaded
+    // Never dismiss on 'interactive' — the inline script runs while DOM is still parsing,
+    // which would hide the skeleton before the page content is visually ready.
+    if (document.readyState === 'complete') {
         hideSkeleton();
     } else {
-        document.addEventListener('DOMContentLoaded', hideSkeleton, { once: true });
         window.addEventListener('load', hideSkeleton, { once: true });
     }
 
-    // Safety dismissal
-    setTimeout(hideSkeleton, 2500);
+    // Safety dismissal (prevents skeleton from staying forever on slow pages)
+    setTimeout(hideSkeleton, 5000);
 
     // Instant trigger when clicking any internal link (Pagination, Sidebar, Topbar, Table links)
     document.addEventListener('click', function(e) {

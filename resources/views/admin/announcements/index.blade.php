@@ -21,36 +21,36 @@
 
         <div class="flex items-center gap-3 relative z-10">
             <div x-show="selectedAnnouncements.length > 0" x-cloak x-transition>
-                <button @click="showBulkModal = true" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 backdrop-blur-md">
+                <button @click="showBulkModal = true" class="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    Archive Selected (<span x-text="selectedAnnouncements.length"></span>)
+                    <span>Archive Selected (<span x-text="selectedAnnouncements.length"></span>)</span>
                 </button>
             </div>
-            <a href="{{ route('admin.announcements.create') }}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-900/20 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Post New
+            <a href="{{ route('admin.announcements.create') }}" class="h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                <span>Post New</span>
             </a>
         </div>
     </div>
     
     <!-- Advanced Search and Filter Bar -->
-    <div class="px-8 py-6 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800">
-        <form method="GET" action="{{ route('admin.announcements.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 items-end">
+    <div class="px-6 py-4 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
+        <form method="GET" action="{{ route('admin.announcements.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
             <!-- Search Keyword -->
-            <div class="xl:col-span-2">
-                <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Search Keyword</label>
+            <div class="sm:col-span-2 lg:col-span-4">
+                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Search Keyword</label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Enter keywords..." 
-                        class="pl-12 pr-4 block w-full rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 py-3.5 text-sm transition-all font-medium">
+                        class="h-11 pl-10 pr-4 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium transition-all placeholder:text-slate-400">
                 </div>
             </div>
 
             <!-- Search In -->
-            <div>
-                <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Search In</label>
+            <div class="sm:col-span-1 lg:col-span-2">
+                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Search In</label>
                 <x-select 
                     name="search_by" 
                     :options="[
@@ -60,20 +60,20 @@
                         'content' => 'Main Content'
                     ]" 
                     :value="request('search_by', 'all')"
-                    class="py-3 px-4 font-bold"
+                    class="!h-11 !py-0 flex items-center font-semibold"
                 />
             </div>
 
             <!-- Date Posted -->
-            <div>
-                <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Date Posted</label>
+            <div class="sm:col-span-1 lg:col-span-2">
+                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Date Posted</label>
                 <input type="date" name="date_posted" value="{{ request('date_posted') }}" 
-                    class="block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/40 py-2.5 px-4 text-sm transition-all font-medium">
+                    class="h-11 px-3.5 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium transition-all">
             </div>
 
             <!-- Status -->
-            <div>
-                <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Status</label>
+            <div class="sm:col-span-1 lg:col-span-2">
+                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Status</label>
                 <x-select 
                     name="status" 
                     :options="[
@@ -83,20 +83,24 @@
                         'draft' => 'Draft'
                     ]" 
                     :value="request('status', 'all')"
-                    class="py-3 px-4 font-bold"
+                    class="!h-11 !py-0 flex items-center font-semibold"
                 />
             </div>
 
             <!-- Action Buttons -->
-            <div class="col-span-full pt-4 mt-2 border-t border-slate-200 dark:border-slate-800/50 flex flex-col md:flex-row justify-end items-center gap-3">
+            <div class="sm:col-span-1 lg:col-span-2 flex items-center gap-2">
                 @if(request()->anyFilled(['q', 'search_by', 'date_posted', 'status']) && (request('q') || request('search_by', 'all') !== 'all' || request('date_posted') || request('status', 'all') !== 'all'))
-                    <a href="{{ route('admin.announcements.index') }}" class="w-full md:w-auto px-6 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm text-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-all border border-slate-300 dark:border-slate-700">
-                        Clear All Filters
+                    <a href="{{ route('admin.announcements.index') }}" 
+                        title="Clear All Filters"
+                        class="h-11 px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm border border-slate-300 dark:border-slate-700 transition-all flex items-center justify-center shrink-0 shadow-2xs cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </a>
                 @endif
-                <button type="submit" class="w-full md:w-auto px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center gap-2">
+                <button type="submit" class="flex-1 h-11 px-4 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                    Apply Filters
+                    <span>Filter</span>
                 </button>
             </div>
         </form>
@@ -106,14 +110,14 @@
     <div class="overflow-x-auto">
         <table class="w-full border-collapse">
             <thead>
-                <tr class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                <tr class="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
                     <th class="px-6 py-4 text-left w-12">
                         <input type="checkbox" @change="if($event.target.checked) { selectedAnnouncements = Array.from(document.querySelectorAll('.announcement-checkbox')).map(cb => cb.value) } else { selectedAnnouncements = [] }" class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-800">
                     </th>
-                    <th class="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Title & Content</th>
-                    <th class="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center">Engagement</th>
-                    <th class="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center">Status</th>
-                    <th class="px-6 py-4 text-right text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Manage</th>
+                    <th class="px-6 py-4 text-left text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title & Content</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Engagement</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-right text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Manage</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
@@ -125,7 +129,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-4">
                                 @if($announcement->image_path)
-                                    <div class="h-14 w-14 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <div class="h-14 w-14 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300">
                                         <img src="{{ asset('uploads/' . $announcement->image_path) }}" class="h-full w-full object-cover">
                                     </div>
                                 @else
@@ -152,22 +156,27 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            @php
-                                $statusColors = [
-                                    'published' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-                                    'pending' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
-                                    'draft' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                                ];
-                                $color = $statusColors[$announcement->status] ?? $statusColors['draft'];
-                            @endphp
-                            <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border {{ $color }}">
-                                {{ $announcement->status }}
-                            </span>
+                            @if($announcement->status === 'published')
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]"></span>
+                                    <span>Published</span>
+                                </span>
+                            @elseif($announcement->status === 'pending')
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]"></span>
+                                    <span>Pending</span>
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                    <span>Draft</span>
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <div class="flex justify-end items-center gap-2">
-                                <a href="{{ route('admin.announcements.edit', $announcement) }}" class="p-2 text-slate-400 hover:text-emerald-500 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all border border-transparent hover:border-emerald-100 dark:hover:border-emerald-900/50" title="Edit Announcement">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            <div class="flex justify-end items-center gap-1.5">
+                                <a href="{{ route('admin.announcements.edit', $announcement) }}" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all cursor-pointer" title="Edit Announcement">
+                                    <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </a>
                                 <button type="button" @click="$dispatch('open-confirmation', {
                                     action: '{{ route('admin.announcements.destroy', $announcement) }}',
@@ -176,8 +185,11 @@
                                     message: 'This will move the announcement to the system archive.',
                                     confirmText: 'Yes, Archive',
                                     type: 'danger'
-                                })" class="p-2 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all border border-transparent hover:border-red-100 dark:hover:border-red-900/50" title="Archive">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                })" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer" title="Archive Announcement">
+                                    <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </td>
                                 </button>
                             </div>
                         </td>

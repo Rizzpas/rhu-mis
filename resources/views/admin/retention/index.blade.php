@@ -25,25 +25,25 @@
             }
         }
     }">
-    <div class="p-6 border-b border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 flex justify-between items-center">
+    <div class="px-6 py-5 border-b border-rose-100 dark:border-rose-950/60 bg-rose-50/60 dark:bg-rose-950/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h3 class="text-lg font-bold text-red-900 dark:text-red-400">Records Pending Deletion</h3>
-            <p class="text-sm text-red-700 dark:text-red-300 mt-1">The following patient records have reached their data expiration policy benchmark. You must either extend their retention or permanently delete them.</p>
+            <h3 class="text-lg font-bold text-rose-900 dark:text-rose-400">Records Pending Deletion</h3>
+            <p class="text-xs text-rose-700 dark:text-rose-300/80 mt-0.5">Patient records that have reached their data expiration benchmark. Extend retention or permanently delete.</p>
         </div>
         <div class="flex items-center gap-3">
             <div x-show="selectedIds.length > 0" x-cloak class="flex items-center gap-2">
-                <button @click="showBulkExtendModal = true" class="bg-blue-600 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-blue-700 transition flex items-center gap-2 text-sm">
+                <button @click="showBulkExtendModal = true" class="h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Extend (<span x-text="selectedIds.length"></span>)
+                    <span>Extend (<span x-text="selectedIds.length"></span>)</span>
                 </button>
                 @can('force-delete')
-                <button @click="showBulkDeleteModal = true" class="bg-red-600 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-red-700 transition flex items-center gap-2 text-sm">
+                <button @click="showBulkDeleteModal = true" class="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    Delete (<span x-text="selectedIds.length"></span>)
+                    <span>Delete (<span x-text="selectedIds.length"></span>)</span>
                 </button>
                 @endcan
             </div>
-            <span class="bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 font-bold px-3 py-1 rounded-full text-sm">
+            <span class="bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800 font-bold px-3.5 py-1.5 rounded-full text-xs shadow-2xs">
                 {{ $inactivePatients->total() }} Records
             </span>
         </div>
@@ -52,43 +52,46 @@
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700 text-xs uppercase text-gray-500 dark:text-gray-400 font-bold tracking-wider">
-                    <th class="p-4 w-12">
-                        <input type="checkbox" x-model="selectAll" @change="toggleAll" class="rounded border-gray-300 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
+                <tr class="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase text-slate-500 dark:text-slate-400 font-extrabold tracking-wider">
+                    <th class="px-6 py-4 w-12">
+                        <input type="checkbox" x-model="selectAll" @change="toggleAll" class="rounded border-slate-300 dark:border-slate-700 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
                     </th>
-                    <th class="p-4">Patient Name</th>
-                    <th class="p-4">Classification</th>
-                    <th class="p-4">Expiration Date</th>
-                    <th class="p-4 text-center">Actions</th>
+                    <th class="px-6 py-4">Patient Name</th>
+                    <th class="px-6 py-4">Classification</th>
+                    <th class="px-6 py-4">Expiration Date</th>
+                    <th class="px-6 py-4 text-center">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 @forelse($inactivePatients as $patient)
-                    <tr class="hover:bg-red-50 dark:hover:bg-red-900/20 transition">
-                        <td class="p-4">
-                            <input type="checkbox" value="{{ $patient->patient_id }}" x-model="selectedIds" @change="if(!selectedIds.includes('{{ $patient->patient_id }}')) selectAll = false" class="rowCheckbox rounded border-gray-300 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
+                    <tr class="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                        <td class="px-6 py-4">
+                            <input type="checkbox" value="{{ $patient->patient_id }}" x-model="selectedIds" @change="if(!selectedIds.includes('{{ $patient->patient_id }}')) selectAll = false" class="rowCheckbox rounded border-slate-300 dark:border-slate-700 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
                         </td>
-                        <td class="p-4">
+                        <td class="px-6 py-4">
                             <div class="flex items-center">
-                                <div class="bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3 flex-shrink-0">
+                                <div class="bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3 shrink-0 shadow-2xs">
                                     {{ substr($patient->first_name, 0, 1) }}{{ substr($patient->last_name, 0, 1) }}
                                 </div>
                                 <div>
-                                    <p class="font-bold text-gray-900 dark:text-white">{{ $patient->full_name }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $patient->patient_id ?? 'No ID' }}</p>
+                                    <p class="font-bold text-slate-900 dark:text-white text-sm">{{ $patient->full_name }}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">ID: {{ $patient->patient_id ?? 'No ID' }}</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="p-4">
-                            <span class="px-2 py-1 bg-{{ $patient->classification == 'Pediatric' ? 'pink' : ($patient->classification == 'Senior Citizen' ? 'purple' : 'gray') }}-100 text-{{ $patient->classification == 'Pediatric' ? 'pink' : ($patient->classification == 'Senior Citizen' ? 'purple' : 'gray') }}-800 text-xs font-bold rounded">
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-full border shadow-2xs
+                                @if($patient->classification == 'Pediatric') bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-950/50 dark:text-pink-300 dark:border-pink-800/60
+                                @elseif($patient->classification == 'Senior Citizen') bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60
+                                @else bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 @endif">
                                 {{ $patient->classification }}
                             </span>
                         </td>
-                        <td class="p-4">
-                            <p class="font-semibold text-red-600">{{ $patient->expires_at->format('M d, Y') }}</p>
-                            <p class="text-xs text-red-400">{{ $patient->expires_at->diffForHumans() }}</p>
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-rose-600 dark:text-rose-400 text-xs">{{ $patient->expires_at->format('M d, Y') }}</p>
+                            <p class="text-[11px] text-slate-400">{{ $patient->expires_at->diffForHumans() }}</p>
                         </td>
-                        <td class="p-4">
+                        <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
                                 <!-- Extend Retention Form -->
                                 <button type="button" 
@@ -100,9 +103,9 @@
                                         confirmText: 'Yes, Extend',
                                         type: 'info'
                                     })"
-                                    class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 font-bold px-3 py-1.5 rounded text-xs transition flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Extend 1yr
+                                    class="h-8 px-3 rounded-lg inline-flex items-center gap-1 text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800/60 shadow-2xs transition-all cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span>Extend 1yr</span>
                                 </button>
 
                                 <!-- Permanent Delete Form -->
@@ -116,9 +119,9 @@
                                         confirmText: 'Permanently Delete',
                                         type: 'danger'
                                     })"
-                                    class="bg-red-600 text-white hover:bg-red-700 font-bold px-3 py-1.5 rounded text-xs transition flex items-center gap-1 shadow-sm">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    Permanently Delete
+                                    class="h-8 px-3 rounded-lg inline-flex items-center gap-1 text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/60 shadow-2xs transition-all cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    <span>Delete</span>
                                 </button>
                                 @endcan
                             </div>

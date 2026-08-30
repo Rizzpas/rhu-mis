@@ -23,103 +23,105 @@
             }
         }
     }">
-    <div class="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
+    <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Deleted Records</h3>
-            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $records->count() }} total {{ strtolower($title) }}</span>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Deleted Records</h3>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $records->count() }} total archived {{ strtolower($title) }}</span>
         </div>
-        <div class="flex items-center gap-3" x-show="selectedIds.length > 0" x-cloak>
-            <button @click="showBulkRestoreModal = true" class="bg-teal-600 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-teal-700 transition-colors flex items-center gap-2 text-sm">
+        <div class="flex items-center gap-2.5" x-show="selectedIds.length > 0" x-cloak>
+            <button @click="showBulkRestoreModal = true" class="h-11 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md shadow-teal-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                Restore Selected (<span x-text="selectedIds.length"></span>)
+                <span>Restore Selected (<span x-text="selectedIds.length"></span>)</span>
             </button>
             @can('force-delete')
-            <button @click="showBulkDeleteModal = true" class="bg-red-600 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-red-700 transition-colors flex items-center gap-2 text-sm">
+            <button @click="showBulkDeleteModal = true" class="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                Delete Selected (<span x-text="selectedIds.length"></span>)
+                <span>Delete Selected (<span x-text="selectedIds.length"></span>)</span>
             </button>
             @endcan
         </div>
     </div>
     
     @if(session('success'))
-        <div class="p-4 mx-6 mt-6 rounded-md bg-green-50 dark:bg-green-900/30 border-l-4 border-green-400 text-sm text-green-700 dark:text-green-400 font-medium">
+        <div class="p-4 mx-6 mt-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-sm text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs">
             {{ session('success') }}
         </div>
     @endif
     
-    <div class="p-6 overflow-x-auto">
+    <div class="overflow-x-auto">
         @if($records->isEmpty())
             <div class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Archive is empty</h3>
-                <p class="mt-1 text-gray-500 dark:text-gray-400">No deleted {{ strtolower($type) }} found.</p>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Archive is empty</h3>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">No deleted {{ strtolower($type) }} found.</p>
             </div>
         @else
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                        <th class="p-4 w-12">
-                            <input type="checkbox" x-model="selectAll" @change="toggleAll" class="rounded border-gray-300 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
+                    <tr class="bg-slate-50/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <th class="px-6 py-4 w-12">
+                            <input type="checkbox" x-model="selectAll" @change="toggleAll" class="rounded border-slate-300 dark:border-slate-700 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
                         </th>
-                        <th class="p-4 font-semibold">ID</th>
-                        <th class="p-4 font-semibold">Name / Title</th>
-                        <th class="p-4 font-semibold">Deleted At</th>
-                        <th class="p-4 font-semibold">Prune Date</th>
-                        <th class="p-4 font-semibold text-right">Actions</th>
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Name / Title</th>
+                        <th class="px-6 py-4">Deleted At</th>
+                        <th class="px-6 py-4">Prune Date</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                     @foreach($records as $record)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-900/50 transition">
-                            <td class="p-4">
-                                <input type="checkbox" value="{{ $record->id }}" x-model="selectedIds" @change="if(!selectedIds.includes('{{ $record->id }}')) selectAll = false" class="rowCheckbox rounded border-gray-300 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="px-6 py-4">
+                                <input type="checkbox" value="{{ $record->id }}" x-model="selectedIds" @change="if(!selectedIds.includes('{{ $record->id }}')) selectAll = false" class="rowCheckbox rounded border-slate-300 dark:border-slate-700 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
                             </td>
-                            <td class="p-4 text-sm text-gray-600 dark:text-gray-400 font-mono">#{{ $record->id }}</td>
-                            <td class="p-4 text-sm text-gray-900 dark:text-white font-medium whitespace-nowrap">
+                            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 font-mono font-bold">#{{ $record->id }}</td>
+                            <td class="px-6 py-4 text-sm text-slate-900 dark:text-white font-semibold whitespace-nowrap">
                                 {{ Str::limit($record->{$nameField}, 40) }}
                             </td>
-                            <td class="p-4 text-sm text-gray-500 dark:text-gray-400">
+                            <td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">
                                 {{ $record->deleted_at->format('M d, Y h:i A') }}
                             </td>
-                            <td class="p-4 text-sm text-gray-500 dark:text-gray-400">
-                                <span class="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 font-medium" title="Record will be permanently deleted on this date.">
+                            <td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-2xs" title="Record will be permanently deleted on this date.">
                                     {{ $record->deleted_at->copy()->addMonths(6)->format('M d, Y') }}
                                 </span>
                             </td>
-                            <td class="p-4 text-right space-x-2">
-                                <!-- Restore Form -->
-                                <button type="button" 
-                                    @click="$dispatch('open-confirmation', {
-                                        action: '{{ route('admin.archive.restore', ['type' => $type, 'id' => $record->id]) }}',
-                                        method: 'POST',
-                                        title: 'Restore Record?',
-                                        message: 'Are you sure you want to restore this record? It will be moved back to the active list.',
-                                        confirmText: 'Yes, Restore',
-                                        type: 'info'
-                                    })"
-                                    class="inline-flex items-center px-3 py-1.5 bg-white dark:bg-gray-800 border border-teal-200 rounded-lg text-xs font-medium text-teal-600 hover:bg-teal-50 hover:text-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors shadow-sm">
-                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                                    Restore
-                                </button>
-                                <!-- Force Delete Form -->
-                                @can('force-delete')
-                                <button type="button" 
-                                    @click="$dispatch('open-confirmation', {
-                                        action: '{{ route('admin.archive.force-delete', ['type' => $type, 'id' => $record->id]) }}',
-                                        method: 'DELETE',
-                                        title: 'Permanently Delete?',
-                                        message: 'Are you sure you want to permanently delete record #{{ $record->id }}? This action cannot be undone.',
-                                        confirmText: 'Delete Permanently',
-                                        type: 'danger'
-                                    })"
-                                    class="inline-flex items-center px-3 py-1.5 bg-white dark:bg-gray-800 border border-red-200 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors shadow-sm">
-                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    Delete
-                                </button>
-                                @endcan
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end items-center gap-1.5">
+                                    <!-- Restore Button -->
+                                    <button type="button" 
+                                        @click="$dispatch('open-confirmation', {
+                                            action: '{{ route('admin.archive.restore', ['type' => $type, 'id' => $record->id]) }}',
+                                            method: 'POST',
+                                            title: 'Restore Record?',
+                                            message: 'Are you sure you want to restore this record? It will be moved back to the active list.',
+                                            confirmText: 'Yes, Restore',
+                                            type: 'info'
+                                        })"
+                                        class="h-8 px-3 rounded-lg inline-flex items-center gap-1 text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800/60 shadow-2xs transition-all cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                        <span>Restore</span>
+                                    </button>
+                                    <!-- Force Delete Button -->
+                                    @can('force-delete')
+                                    <button type="button" 
+                                        @click="$dispatch('open-confirmation', {
+                                            action: '{{ route('admin.archive.force-delete', ['type' => $type, 'id' => $record->id]) }}',
+                                            method: 'DELETE',
+                                            title: 'Permanently Delete?',
+                                            message: 'Are you sure you want to permanently delete record #{{ $record->id }}? This action cannot be undone.',
+                                            confirmText: 'Delete Permanently',
+                                            type: 'danger'
+                                        })"
+                                        class="h-8 px-3 rounded-lg inline-flex items-center gap-1 text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/60 shadow-2xs transition-all cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        <span>Delete</span>
+                                    </button>
+                                    @endcan
+                                </div>
                             </td>
                         </tr>
                     @endforeach

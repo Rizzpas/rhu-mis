@@ -79,29 +79,29 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-        <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-t-xl">
-            <h2 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Search & Filter</h2>
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 mb-6 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40">
+            <h2 class="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Search & Filter</h2>
         </div>
         <div class="p-6">
-            <form x-ref="filterForm" action="{{ route('admin.patients.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-5 items-end">
+            <form x-ref="filterForm" action="{{ route('admin.patients.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
                 
                 <!-- Search -->
-                <div class="md:col-span-2">
-                    <label class="block text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Search Patient</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <div class="sm:col-span-2 lg:col-span-7">
+                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Search Patient</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                            <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Name, Patient ID..." 
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by patient name, ID, or contact..." 
                             @input.debounce.300ms="submitForm"
-                            class="w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5 transition-colors dark:bg-gray-900 dark:text-white">
+                            class="h-11 pl-10 pr-4 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium transition-all placeholder:text-slate-400">
                     </div>
                 </div>
 
                 <!-- Classification -->
-                <div class="md:col-span-1">
-                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Classification</label>
+                <div class="sm:col-span-1 lg:col-span-3">
+                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Classification</label>
                     <x-select 
                         name="classification" 
                         :options="[
@@ -113,14 +113,15 @@
                         ]" 
                         :value="request('classification', 'all')"
                         @change="submitForm"
+                        class="!h-11 !py-0 flex items-center font-semibold"
                     />
                 </div>
 
                 <!-- Clear -->
-                <div class="md:col-span-1">
-                    <button type="button" @click="clearFilters()" title="Clear all filters" class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-4 py-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm font-bold text-sm shrink-0 flex items-center justify-center gap-2">
+                <div class="sm:col-span-1 lg:col-span-2">
+                    <button type="button" @click="clearFilters()" title="Clear all filters" class="w-full h-11 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-4 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-2xs font-bold text-sm shrink-0 flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        Clear Filter
+                        <span>Clear</span>
                     </button>
                 </div>
             </form>
@@ -128,9 +129,9 @@
     </div>
 
     <!-- Main List Container -->
-    <div id="patient-table-container" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative min-h-[400px]">
+    <div id="patient-table-container" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden relative min-h-[400px]">
         <!-- Loading Overlay -->
-        <div x-show="loading" class="absolute inset-0 bg-white/70 dark:bg-gray-800/70 z-50 flex flex-col items-center justify-center backdrop-blur-[1px] transition-opacity duration-300" style="display: none;">
+        <div x-show="loading" class="absolute inset-0 bg-white/70 dark:bg-slate-900/70 z-50 flex flex-col items-center justify-center backdrop-blur-[1px] transition-opacity duration-300" style="display: none;">
             <div class="w-8 h-8 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin mb-2"></div>
             <span class="text-sm font-bold text-blue-800 dark:text-blue-400">Updating...</span>
         </div>
@@ -139,55 +140,57 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
-                            <th class="p-4">Patient Name</th>
-                            <th class="p-4">Demographics</th>
-                            <th class="p-4">Classification</th>
-                            <th class="p-4 text-center">Total Visits</th>
-                            <th class="p-4">Last Activity</th>
-                            <th class="p-4 text-right">Actions</th>
+                        <tr class="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">
+                            <th class="px-6 py-4">Patient Name</th>
+                            <th class="px-6 py-4">Demographics</th>
+                            <th class="px-6 py-4">Classification</th>
+                            <th class="px-6 py-4 text-center">Total Visits</th>
+                            <th class="px-6 py-4">Last Activity</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                         @forelse($patients as $patient)
-                        <tr class="hover:bg-blue-50/30 dark:hover:bg-gray-700/30 transition">
-                            <td class="p-4">
+                        <tr class="hover:bg-blue-50/30 dark:hover:bg-slate-800/40 transition">
+                            <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800 shadow-2xs">
                                         {{ substr($patient->first_name, 0, 1) }}{{ substr($patient->last_name, 0, 1) }}
                                     </div>
                                     <div>
-                                        <div class="font-bold text-gray-900 dark:text-white text-base">{{ $patient->full_name }}</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">ID: {{ $patient->patient_id }}</div>
+                                        <div class="font-bold text-slate-900 dark:text-white text-sm">{{ $patient->full_name }}</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">ID: {{ $patient->patient_id }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="p-4">
-                                <div class="text-gray-900 dark:text-white">{{ $patient->sex ?? 'N/A' }}, {{ $patient->dob ? $patient->dob->age . ' yrs' : 'N/A' }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $patient->blood_type ? 'Type '.$patient->blood_type : '' }} | {{ $patient->civil_status ?? '' }}</div>
+                            <td class="px-6 py-4">
+                                <div class="text-slate-900 dark:text-white font-medium">{{ $patient->sex ?? 'N/A' }}, {{ $patient->dob ? $patient->dob->age . ' yrs' : 'N/A' }}</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">{{ $patient->blood_type ? 'Type '.$patient->blood_type : '' }} | {{ $patient->civil_status ?? '' }}</div>
                             </td>
-                            <td class="p-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border
-                                    @if($patient->classification == 'Pediatric') bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800
-                                    @elseif($patient->classification == 'Senior Citizen') bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800
-                                    @elseif($patient->classification == 'PWD') bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800
-                                    @else bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 @endif">
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border shadow-2xs
+                                    @if($patient->classification == 'Pediatric') bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:border-orange-800/60
+                                    @elseif($patient->classification == 'Senior Citizen') bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60
+                                    @elseif($patient->classification == 'PWD') bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60
+                                    @else bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 @endif">
                                     {{ $patient->classification }}
                                 </span>
                             </td>
-                            <td class="p-4 text-center">
-                                <span class="text-sm font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-900 px-3 py-1 rounded-lg">
+                            <td class="px-6 py-4 text-center">
+                                <span class="text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-xl shadow-2xs">
                                     {{ $patient->consultations_count }}
                                 </span>
                             </td>
-                            <td class="p-4 text-gray-600 dark:text-gray-400">
+                            <td class="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">
                                 {{ $patient->updated_at->diffForHumans() }}
                             </td>
-                            <td class="p-4 text-right">
-                                <a href="{{ route('admin.patients.show', $patient) }}" class="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-md text-sm shadow-sm transition font-medium">
-                                    View Full Records
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                </a>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end">
+                                    <a href="{{ route('admin.patients.show', $patient) }}" class="h-9 px-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold shadow-2xs transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                                        <span>View Records</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         @empty

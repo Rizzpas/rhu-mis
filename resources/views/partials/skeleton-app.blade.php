@@ -153,14 +153,15 @@
         }, 4000);
     }
 
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    // Dismiss only when ALL resources (CSS, JS, images) are fully loaded
+    if (document.readyState === 'complete') {
         hideSkeleton();
     } else {
-        document.addEventListener('DOMContentLoaded', hideSkeleton, { once: true });
         window.addEventListener('load', hideSkeleton, { once: true });
     }
 
-    setTimeout(hideSkeleton, 2500);
+    // Safety dismissal (prevents skeleton from staying forever on slow pages)
+    setTimeout(hideSkeleton, 5000);
 
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('button');

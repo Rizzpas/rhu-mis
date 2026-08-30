@@ -541,13 +541,13 @@
             </button>
         </div>
 
-        <div class="pt-10 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-end gap-4">
-            <a href="{{ route('admin.announcements.index') }}" class="px-8 py-3.5 border border-slate-300 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition text-center">
+        <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-end gap-3.5">
+            <a href="{{ route('admin.announcements.index') }}" class="h-11 px-6 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-center flex items-center justify-center shadow-2xs cursor-pointer text-sm">
                 Discard Changes
             </a>
-            <button type="submit" class="bg-emerald-600 text-white font-bold py-3.5 px-10 rounded-2xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                Save Announcement
+            <button type="submit" class="h-11 px-8 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-md shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                <span>Save Announcement</span>
             </button>
         </div>
     </form>
