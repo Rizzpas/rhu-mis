@@ -98,188 +98,221 @@
         </div>
 
         {{-- =====================================================
-             PRE-TRIAGE WAITING POOL (from Vitals Nurse)
+             PRE-TRIAGE WAITING POOL & APPOINTMENTS (Real-time Dynamic Auto-Refresh)
              ===================================================== --}}
-        @if(isset($preTriageWaiting) && $preTriageWaiting->count() > 0)
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-teal-400 overflow-hidden">
-            <div class="px-5 py-3 bg-teal-500 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse inline-block"></span>
-                    <h3 class="text-white font-bold text-sm">Vitals Station Queue</h3>
-                </div>
-                <span class="text-xs font-bold bg-white/20 text-white px-2 py-0.5 rounded-full">{{ $preTriageWaiting->count() }} waiting</span>
-            </div>
-            <p class="px-4 py-2 text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 border-b border-teal-100">
-                Select a patient to process. Vitals auto-carry — no re-entry needed.
-            </p>
-            <div class="divide-y divide-gray-100 dark:divide-gray-700 max-h-72 overflow-y-auto">
-                @foreach($preTriageWaiting as $pt)
-                @if($pt->patient_id)
-                    {{-- RETURNING PATIENT: goes straight to generate queue --}}
-                    <div class="relative group">
-                        <a href="?selected_id={{ $pt->patient_id }}&pre_triage_id={{ $pt->id }}"
-                           class="block px-4 py-3 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition cursor-pointer pr-10">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                                        <span class="text-sm font-bold text-teal-600">#{{ $loop->iteration }}</span>
-                                        <span class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ $pt->patient_name }}</span>
-                                        <span class="text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">Returning</span>
-                                        @if($pt->appointment_id)
-                                            <span class="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">Appointment</span>
-                                        @endif
-                                        @if($pt->patient && $pt->patient->is_follow_up)
-                                            <span class="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">Follow-up</span>
-                                        @endif
-                                        <span class="text-xs px-1.5 py-0.5 rounded-full font-bold shrink-0 {{ $pt->classification === 'Senior' ? 'bg-blue-100 text-blue-700' : ($pt->classification === 'Pediatric' ? 'bg-purple-100 text-purple-700' : ($pt->classification === 'PWD' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600')) }}">{{ $pt->classification }}</span>
-                                    </div>
-                                    <p class="text-xs text-gray-500">
-                                        @if($pt->dob)DOB: {{ \Carbon\Carbon::parse($pt->dob)->format('M d, Y') }}&nbsp;&nbsp;@endif
-                                        @if($pt->blood_pressure)BP: {{ $pt->blood_pressure }}&nbsp;&nbsp;@endif
-                                        @if($pt->temperature)T: {{ $pt->temperature }}°C&nbsp;&nbsp;@endif
-                                        @if($pt->spo2)SpO₂: {{ $pt->spo2 }}%@endif
-                                    </p>
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ $pt->created_at->diffForHumans() }} · <span class="text-teal-600 font-semibold">Click to generate queue →</span></p>
-                                </div>
-                            </div>
-                        </a>
-                        <form action="{{ route('triage.cancel', $pt->id) }}" method="POST" class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            @csrf
-                            <button type="button" 
-                                    @click.prevent="window.dispatchEvent(new CustomEvent('open-confirmation', { 
-                                        detail: { 
-                                            title: 'Reject Patient', 
-                                            message: 'Are you sure you want to remove this patient from the queue?', 
-                                            action: $el.closest('form').action, 
-                                            method: 'POST', 
-                                            confirmText: 'Yes, Remove' 
-                                        } 
-                                    }))"
-                                    class="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg" title="Reject / Patient Left">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </form>
-                    </div>
-                @else
-                    {{-- NEW PATIENT: goes to register + queue form --}}
-                    <div class="relative group">
-                        <a href="?new_from_triage={{ $pt->id }}"
-                           class="block px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition cursor-pointer pr-10">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                                        <span class="text-sm font-bold text-teal-600">#{{ $loop->iteration }}</span>
-                                        <span class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ $pt->patient_name }}</span>
-                                        @if($pt->appointment_id)
-                                            <span class="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">Appointment</span>
-                                        @else
-                                            <span class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">New Patient</span>
-                                        @endif
-                                        <span class="text-xs px-1.5 py-0.5 rounded-full font-bold shrink-0 {{ $pt->classification === 'Senior' ? 'bg-blue-100 text-blue-700' : ($pt->classification === 'Pediatric' ? 'bg-purple-100 text-purple-700' : ($pt->classification === 'PWD' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600')) }}">{{ $pt->classification }}</span>
-                                    </div>
-                                    <p class="text-xs text-gray-500">
-                                        @if($pt->dob)DOB: {{ \Carbon\Carbon::parse($pt->dob)->format('M d, Y') }}&nbsp;&nbsp;@endif
-                                        @if($pt->blood_pressure)BP: {{ $pt->blood_pressure }}&nbsp;&nbsp;@endif
-                                        @if($pt->temperature)T: {{ $pt->temperature }}°C&nbsp;&nbsp;@endif
-                                        @if($pt->symptoms){{ Str::limit($pt->symptoms, 35) }}@endif
-                                    </p>
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ $pt->created_at->diffForHumans() }} · <span class="text-blue-600 font-semibold">Click to register & queue →</span></p>
-                                </div>
-                            </div>
-                        </a>
-                        <form action="{{ route('triage.cancel', $pt->id) }}" method="POST" class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            @csrf
-                            <button type="button" 
-                                    @click.prevent="window.dispatchEvent(new CustomEvent('open-confirmation', { 
-                                        detail: { 
-                                            title: 'Reject Patient', 
-                                            message: 'Are you sure you want to remove this patient from the queue?', 
-                                            action: $el.closest('form').action, 
-                                            method: 'POST', 
-                                            confirmText: 'Yes, Remove' 
-                                        } 
-                                    }))"
-                                    class="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg" title="Reject / Patient Left">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </form>
-                    </div>
-                @endif
-                @endforeach
-            </div>
-        </div>
-        @endif
+        <div x-data="{
+            preTriageWaiting: {{ Js::from($preTriageWaiting->map(function($pt) {
+                return [
+                    'id'            => $pt->id,
+                    'patient_id'    => $pt->patient_id,
+                    'patient_name'  => $pt->patient_name,
+                    'classification'=> $pt->classification,
+                    'dob'           => $pt->dob ? \Carbon\Carbon::parse($pt->dob)->format('M d, Y') : null,
+                    'blood_pressure'=> $pt->blood_pressure,
+                    'temperature'   => $pt->temperature,
+                    'spo2'          => $pt->spo2,
+                    'symptoms'      => $pt->symptoms ? \Illuminate\Support\Str::limit($pt->symptoms, 35) : null,
+                    'appointment_id'=> $pt->appointment_id,
+                    'is_follow_up'  => $pt->patient?->is_follow_up ?? false,
+                    'created_at_human' => $pt->created_at->diffForHumans(),
+                    'select_url'    => $pt->patient_id
+                        ? url('/frontdesk/registration?selected_id='.$pt->patient_id.'&pre_triage_id='.$pt->id)
+                        : url('/frontdesk/registration?new_from_triage='.$pt->id),
+                    'cancel_url'    => route('triage.cancel', $pt->id),
+                    'is_new'        => !$pt->patient_id,
+                ];
+            })) }},
+            todayAppointments: {{ Js::from($todayAppointments->map(function($apt) {
+                return [
+                    'id'               => $apt->id,
+                    'name'             => trim($apt->last_name.', '.$apt->first_name.' '.($apt->middle_name ?? '').' '.($apt->suffix ?? '')),
+                    'dob'              => $apt->dob ? \Carbon\Carbon::parse($apt->dob)->format('M d, Y') : 'N/A',
+                    'contact'          => $apt->contact_number,
+                    'reference_number' => $apt->reference_number,
+                    'preferred_time'   => $apt->preferred_time,
+                    'status'           => $apt->status,
+                    'type'             => $apt->type,
+                    'is_follow_up'     => (bool) $apt->is_follow_up,
+                    'checkin_url'      => route('frontdesk.appointments.check-in', $apt),
+                    'register_url'     => url('/frontdesk/registration?prefill_apt='.$apt->id.'&new_patient=1'),
+                ];
+            })) }},
+            searchApt: '',
+            async fetchLiveQueue() {
+                try {
+                    const res = await fetch('{{ route('frontdesk.registration.queue-json') }}');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.pre_triage) this.preTriageWaiting = data.pre_triage;
+                        if (data.appointments) this.todayAppointments = data.appointments;
+                    }
+                } catch (e) {
+                    console.error('Queue poll error:', e);
+                }
+            },
+            init() {
+                setInterval(() => this.fetchLiveQueue(), 3500);
+            }
+        }" class="space-y-6">
 
-
-        @if(isset($todayAppointments) && $todayAppointments->count() > 0)
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 overflow-hidden"
-             x-data="{ searchApt: '' }">
-            <div class="px-5 py-3 bg-teal-600 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <h3 class="text-white font-bold text-sm">Today's Appointments</h3>
-                </div>
-                <span class="text-xs font-bold bg-white/20 text-white px-2 py-0.5 rounded-full">{{ $todayAppointments->count() }} total</span>
-            </div>
-            <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                <input type="text" x-model="searchApt" placeholder="Search by name..." class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-3 py-1.5 focus:ring-teal-500 focus:border-teal-500">
-            </div>
-            <div class="divide-y divide-gray-100 dark:divide-gray-700 max-h-80 overflow-y-auto">
-                @foreach($todayAppointments as $apt)
-                <div class="px-4 py-3 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition"
-                     x-show="!searchApt || '{{ strtolower($apt->first_name . ' ' . $apt->last_name) }}'.includes(searchApt.toLowerCase())"
-                     x-cloak>
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                                <span class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ $apt->last_name }}, {{ $apt->first_name }} {{ $apt->middle_name }} {{ $apt->suffix }}</span>
-                                @if($apt->type === 'pedia')
-                                    <span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">PEDIA</span>
-                                @endif
-                                @if($apt->is_follow_up)
-                                    <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">FOLLOW-UP</span>
-                                @endif
-                            </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                DOB: {{ $apt->dob ? \Carbon\Carbon::parse($apt->dob)->format('M d, Y') : 'N/A' }}
-                                @if($apt->contact_number) · {{ $apt->contact_number }}@endif
-                            </p>
-                            <p class="text-[10px] text-gray-400 mt-0.5">Ref: <span class="font-mono font-bold">{{ $apt->reference_number }}</span>
-                            @if($apt->preferred_time)
-                                <span class="ml-1 text-teal-600 font-medium">· Time: {{ $apt->preferred_time }}</span>
-                            @endif
-                            </p>
+            <!-- Vitals Station Queue Card -->
+            <template x-if="preTriageWaiting.length > 0">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-teal-400 overflow-hidden">
+                    <div class="px-5 py-3 bg-teal-500 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse inline-block"></span>
+                            <h3 class="text-white font-bold text-sm">Vitals Station Queue</h3>
                         </div>
-                        <div class="flex flex-col items-end gap-1.5 shrink-0">
-                            @if($apt->status === 'approved' || $apt->status === 'rescheduled')
-                                {{-- Patient hasn't arrived yet → Check-in --}}
-                                <form action="{{ route('frontdesk.appointments.check-in', $apt) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="text-[10px] font-bold bg-teal-600 text-white px-2.5 py-1 rounded hover:bg-teal-700 transition shadow-sm whitespace-nowrap">
-                                        Check-In
+                        <span class="text-xs font-bold bg-white/20 text-white px-2 py-0.5 rounded-full" x-text="preTriageWaiting.length + ' waiting'"></span>
+                    </div>
+                    <p class="px-4 py-2 text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 border-b border-teal-100">
+                        Select a patient to process. Vitals auto-carry — no re-entry needed.
+                    </p>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-700 max-h-72 overflow-y-auto">
+                        <template x-for="(pt, idx) in preTriageWaiting" :key="pt.id">
+                            <div class="relative group">
+                                <a :href="pt.select_url"
+                                   class="block px-4 py-3 transition cursor-pointer pr-10"
+                                   :class="pt.patient_id ? 'hover:bg-teal-50 dark:hover:bg-teal-900/20' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                                <span class="text-sm font-bold text-teal-600" x-text="'#' + (idx + 1)"></span>
+                                                <span class="text-sm font-bold text-gray-900 dark:text-white truncate" x-text="pt.patient_name"></span>
+                                                
+                                                <template x-if="pt.patient_id">
+                                                    <span class="text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">Returning</span>
+                                                </template>
+                                                <template x-if="!pt.patient_id">
+                                                    <template x-if="pt.appointment_id">
+                                                        <span class="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">Appointment</span>
+                                                    </template>
+                                                    <template x-if="!pt.appointment_id">
+                                                        <span class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">New Patient</span>
+                                                    </template>
+                                                </template>
+                                                
+                                                <template x-if="pt.is_follow_up">
+                                                    <span class="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">Follow-up</span>
+                                                </template>
+                                                
+                                                <span class="text-xs px-1.5 py-0.5 rounded-full font-bold shrink-0"
+                                                      :class="{
+                                                          'bg-blue-100 text-blue-700': pt.classification === 'Senior',
+                                                          'bg-purple-100 text-purple-700': pt.classification === 'Pediatric',
+                                                          'bg-orange-100 text-orange-700': pt.classification === 'PWD',
+                                                          'bg-gray-100 text-gray-600': !['Senior', 'Pediatric', 'PWD'].includes(pt.classification)
+                                                      }"
+                                                      x-text="pt.classification"></span>
+                                            </div>
+                                            <p class="text-xs text-gray-500">
+                                                <template x-if="pt.dob"><span x-text="'DOB: ' + pt.dob + '  '"></span></template>
+                                                <template x-if="pt.blood_pressure"><span x-text="'BP: ' + pt.blood_pressure + '  '"></span></template>
+                                                <template x-if="pt.temperature"><span x-text="'T: ' + pt.temperature + '°C  '"></span></template>
+                                                <template x-if="pt.spo2"><span x-text="'SpO₂: ' + pt.spo2 + '%  '"></span></template>
+                                                <template x-if="pt.symptoms"><span x-text="pt.symptoms"></span></template>
+                                            </p>
+                                            <p class="text-xs text-gray-400 mt-0.5">
+                                                <span x-text="pt.created_at_human"></span> · 
+                                                <span :class="pt.patient_id ? 'text-teal-600' : 'text-blue-600'" class="font-semibold" x-text="pt.patient_id ? 'Click to generate queue →' : 'Click to register & queue →'"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                                <form :action="pt.cancel_url" method="POST" class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <button type="button" 
+                                            @click.prevent="window.dispatchEvent(new CustomEvent('open-confirmation', { 
+                                                detail: { 
+                                                    title: 'Reject Patient', 
+                                                    message: 'Are you sure you want to remove this patient from the queue?', 
+                                                    action: pt.cancel_url, 
+                                                    method: 'POST', 
+                                                    confirmText: 'Yes, Remove' 
+                                                } 
+                                            }))"
+                                            class="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg" title="Reject / Patient Left">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </button>
                                 </form>
-                            @elseif($apt->status === 'arrived')
-                                {{-- Patient arrived → Waiting for Vitals --}}
-                                <span class="text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">Waiting for Vitals</span>
-                            @elseif($apt->status === 'triaged')
-                                {{-- Vitals done → Ready to Register --}}
-                                <div class="flex flex-col items-end gap-1">
-                                    <span class="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Vitals Done ✓</span>
-                                    <a href="?prefill_apt={{ $apt->id }}&new_patient=1" class="text-[10px] font-bold text-teal-600 hover:text-teal-800 hover:underline whitespace-nowrap">
-                                        Register & Queue →
-                                    </a>
-                                </div>
-                            @elseif($apt->status === 'registered')
-                                <span class="text-[10px] bg-teal-100 text-teal-700 font-bold px-2 py-0.5 rounded-full">Registered ✓</span>
-                            @endif
-                        </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
-                @endforeach
-            </div>
+            </template>
+
+            <!-- Today's Appointments Card -->
+            <template x-if="todayAppointments.length > 0">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-5 py-3 bg-teal-600 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <h3 class="text-white font-bold text-sm">Today's Appointments</h3>
+                        </div>
+                        <span class="text-xs font-bold bg-white/20 text-white px-2 py-0.5 rounded-full" x-text="todayAppointments.length + ' total'"></span>
+                    </div>
+                    <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                        <input type="text" x-model="searchApt" placeholder="Search by name..." class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-3 py-1.5 focus:ring-teal-500 focus:border-teal-500">
+                    </div>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-700 max-h-80 overflow-y-auto">
+                        <template x-for="apt in todayAppointments" :key="apt.id">
+                            <div class="px-4 py-3 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition"
+                                 x-show="!searchApt || apt.name.toLowerCase().includes(searchApt.toLowerCase())">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                            <span class="text-sm font-bold text-gray-900 dark:text-white truncate" x-text="apt.name"></span>
+                                            <template x-if="apt.type === 'pedia'">
+                                                <span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">PEDIA</span>
+                                            </template>
+                                            <template x-if="apt.is_follow_up">
+                                                <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">FOLLOW-UP</span>
+                                            </template>
+                                        </div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            <span x-text="'DOB: ' + apt.dob"></span>
+                                            <template x-if="apt.contact">
+                                                <span x-text="' · ' + apt.contact"></span>
+                                            </template>
+                                        </p>
+                                        <p class="text-[10px] text-gray-400 mt-0.5">
+                                            Ref: <span class="font-mono font-bold" x-text="apt.reference_number"></span>
+                                            <template x-if="apt.preferred_time">
+                                                <span class="ml-1 text-teal-600 font-medium" x-text="'· Time: ' + apt.preferred_time"></span>
+                                            </template>
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                                        <template x-if="apt.status === 'approved' || apt.status === 'rescheduled'">
+                                            <form :action="apt.checkin_url" method="POST">
+                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="text-[10px] font-bold bg-teal-600 text-white px-2.5 py-1 rounded hover:bg-teal-700 transition shadow-sm whitespace-nowrap">
+                                                    Check-In
+                                                </button>
+                                            </form>
+                                        </template>
+                                        <template x-if="apt.status === 'arrived'">
+                                            <span class="text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">Waiting for Vitals</span>
+                                        </template>
+                                        <template x-if="apt.status === 'triaged'">
+                                            <div class="flex flex-col items-end gap-1">
+                                                <span class="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Vitals Done ✓</span>
+                                                <a :href="apt.register_url" class="text-[10px] font-bold text-teal-600 hover:text-teal-800 hover:underline whitespace-nowrap">
+                                                    Register & Queue →
+                                                </a>
+                                            </div>
+                                        </template>
+                                        <template x-if="apt.status === 'registered'">
+                                            <span class="text-[10px] bg-teal-100 text-teal-700 font-bold px-2 py-0.5 rounded-full">Registered ✓</span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
         </div>
-        @endif
 
         <!-- Live Queue Summary for Doctors -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-6" x-data="{ qTab: 'ped' }">
@@ -1665,14 +1698,33 @@
         @endif
 
 @if(session('print_queue_id'))
-    <!-- Queue Slip Print Modal -->
-    <div x-data="{ showSlipModal: true }" 
+    <!-- Queue Slip Print Modal (Protected Workflow) -->
+    <div x-data="{ 
+            showSlipModal: true, 
+            hasPrinted: false, 
+            confirmedHandover: false,
+            doPrint() {
+                this.hasPrinted = true;
+                printSlip();
+            },
+            canProceed() {
+                return this.hasPrinted || this.confirmedHandover;
+            },
+            closeModal() {
+                if (!this.canProceed()) {
+                    alert('Please print the queue slip or check the confirmation box before proceeding.');
+                    return;
+                }
+                this.showSlipModal = false;
+            }
+         }" 
          x-show="showSlipModal"
          class="fixed inset-0 z-50 overflow-y-auto" 
-         aria-labelledby="modal-title" role="dialog" aria-modal="true">
+         aria-labelledby="modal-title" role="dialog" aria-modal="true"
+         @keydown.escape.window.prevent="">
          
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay -->
+            <!-- Background overlay (non-clickable to prevent accidental dismiss) -->
             <div x-show="showSlipModal" 
                  x-transition:enter="ease-out duration-300" 
                  x-transition:enter-start="opacity-0" 
@@ -1680,7 +1732,7 @@
                  x-transition:leave="ease-in duration-200" 
                  x-transition:leave-start="opacity-100" 
                  x-transition:leave-end="opacity-0" 
-                 class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                 class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity" aria-hidden="true"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             
@@ -1692,34 +1744,52 @@
                  x-transition:leave="ease-in duration-200" 
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                 class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left shadow-2xl transform transition-all sm:my-8 sm:align-middle w-full max-w-sm overflow-hidden">
+                 class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left shadow-2xl transform transition-all sm:my-8 sm:align-middle w-full max-w-sm overflow-hidden border border-slate-200 dark:border-gray-700">
                 
-                <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 sm:px-6 flex justify-between items-center">
-                    <h3 class="text-lg leading-6 font-bold text-slate-800 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Queue Slip Generated
+                <div class="bg-slate-50 dark:bg-gray-900/60 border-b border-slate-200 dark:border-gray-700 px-5 py-3.5 flex justify-between items-center">
+                    <h3 class="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                        <span class="p-1.5 bg-teal-100 text-teal-700 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        </span>
+                        Queue Slip Ready
                     </h3>
-                    <button @click="showSlipModal = false" type="button" class="text-slate-400 hover:text-slate-500 focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
+                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                          :class="canProceed() ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'">
+                        <span x-text="canProceed() ? '✓ Ready' : '⚠️ Action Required'"></span>
+                    </span>
                 </div>
 
-                <div class="bg-gray-200 p-4 flex justify-center">
+                <div class="bg-slate-100 dark:bg-gray-900 p-4 flex flex-col items-center">
                     <!-- The visually embedded slip. iframe allows isolating the styles easily -->
                     @if(session('print_queue_id') && \App\Models\Consultation::find(session('print_queue_id')))
-                    <iframe id="queueSlipIframe" src="{{ route('frontdesk.queue-slip', session('print_queue_id')) }}" class="bg-white dark:bg-gray-800 rounded shadow-sm w-[300px] h-[450px] overflow-hidden border-none" style="pointer-events: none;"></iframe>
+                    <iframe id="queueSlipIframe" src="{{ route('frontdesk.queue-slip', session('print_queue_id')) }}" class="bg-white rounded-lg shadow-md w-[260px] h-[380px] overflow-hidden border border-slate-200" style="pointer-events: none;"></iframe>
                     @else
-                    <div class="bg-white dark:bg-gray-800 rounded shadow-sm w-[300px] h-[450px] flex items-center justify-center text-gray-400 text-sm">Queue slip not available.</div>
+                    <div class="bg-white rounded-lg shadow-md w-[260px] h-[380px] flex items-center justify-center text-gray-400 text-sm">Queue slip not available.</div>
                     @endif
+
+                    <!-- Safety Confirmation Checkbox -->
+                    <div class="mt-3 w-full max-w-[260px] bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-slate-200 dark:border-gray-700 flex items-start gap-2 text-left shadow-xs">
+                        <input type="checkbox" id="slipConfirmed" x-model="confirmedHandover" class="mt-0.5 rounded text-teal-600 focus:ring-teal-500 cursor-pointer">
+                        <label for="slipConfirmed" class="text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer select-none leading-tight">
+                            Queue slip has been printed and handed to patient.
+                        </label>
+                    </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 px-4 py-4 sm:px-6 flex flex-col sm:flex-row-reverse gap-3 rounded-b-xl border-t border-slate-200">
-                    <button type="button" onclick="printSlip()" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-5 py-2.5 bg-teal-600 text-base font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:w-auto sm:text-sm transition-colors">
-                        <svg class="w-5 h-5 mr-2 -ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Print Slip
+                <div class="bg-white dark:bg-gray-800 px-5 py-4 flex flex-col sm:flex-row-reverse gap-2.5 border-t border-slate-200 dark:border-gray-700">
+                    <button type="button" 
+                            @click="doPrint()" 
+                            class="w-full inline-flex justify-center items-center rounded-xl shadow-sm px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        <span x-text="hasPrinted ? 'Reprint Slip' : 'Print Queue Slip'"></span>
                     </button>
-                    <button type="button" @click="showSlipModal = false" class="w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-5 py-2.5 bg-white dark:bg-gray-800 text-base font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:w-auto sm:text-sm transition-colors">
-                        Close
+                    
+                    <button type="button" 
+                            @click="closeModal()" 
+                            :disabled="!canProceed()"
+                            :class="canProceed() ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-gray-700 dark:text-gray-200 cursor-pointer' : 'bg-slate-50 text-slate-300 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed border-dashed'"
+                            class="w-full inline-flex justify-center items-center rounded-xl border border-slate-200 dark:border-gray-700 px-4 py-2.5 text-sm font-bold transition-all">
+                        Done / Next Patient
                     </button>
                 </div>
             </div>
@@ -1729,17 +1799,20 @@
     <script>
         function printSlip() {
             var iframe = document.getElementById('queueSlipIframe');
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }
         }
         
         // Auto-print popup on load optionally
         document.addEventListener('DOMContentLoaded', function() {
             var iframe = document.getElementById('queueSlipIframe');
-            iframe.onload = function() {
-                // We show the modal immediately, and invoke the print dialog!
-                setTimeout(printSlip, 500); // Tiny delay to ensure styles rendered inside iframe
-            };
+            if (iframe) {
+                iframe.onload = function() {
+                    setTimeout(printSlip, 500);
+                };
+            }
         });
     </script>
 @endif

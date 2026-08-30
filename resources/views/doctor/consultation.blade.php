@@ -174,42 +174,16 @@
                     </span>
                 </button>
                 
-                <!-- Past Case Tabs (show first 3) -->
+                <!-- Past Case Tabs -->
                 @forelse($pastConsultations as $past)
-                    @if($loop->index < 3)
-                        <button type="button" @click="activeTab = 'past_{{ $past->id }}'" 
-                                :class="activeTab === 'past_{{ $past->id }}' ? 'bg-white dark:bg-gray-800 text-teal-800 border-teal-600 border-2 border-b-white font-bold pb-3 pt-2 shadow-[0_-4px_6px_-2px_rgba(20,184,166,0.1)] z-20 relative' : 'bg-slate-100 text-slate-400 border-slate-200 border border-b-0 hover:bg-slate-50 pb-2 pt-1.5 mt-1 hover:text-slate-600 font-medium'"
-                                class="px-4 rounded-t-xl transition-all whitespace-nowrap shrink-0 text-sm">
-                            Past: {{ \Carbon\Carbon::parse($past->consultation_date)->format('M d, Y') }}
-                        </button>
-                    @endif
+                    <button type="button" @click="activeTab = 'past_{{ $past->id }}'" 
+                            :class="activeTab === 'past_{{ $past->id }}' ? 'bg-white dark:bg-gray-800 text-teal-800 border-teal-600 border-2 border-b-white font-bold pb-3 pt-2 shadow-[0_-4px_6px_-2px_rgba(20,184,166,0.1)] z-20 relative' : 'bg-slate-100 text-slate-400 border-slate-200 border border-b-0 hover:bg-slate-50 pb-2 pt-1.5 mt-1 hover:text-slate-600 font-medium'"
+                            class="px-4 rounded-t-xl transition-all whitespace-nowrap shrink-0 text-sm">
+                        Past: {{ \Carbon\Carbon::parse($past->consultation_date)->format('M d, Y') }}
+                    </button>
                 @empty
                     <span class="pb-2 pt-2 px-3 text-xs text-slate-400 italic">No past history.</span>
                 @endforelse
-
-                <!-- "More History" dropdown for 4th+ records -->
-                @if($pastConsultations->count() > 3)
-                    <div class="relative shrink-0" x-data="{ moreOpen: false }" @click.away="moreOpen = false">
-                        <button type="button" @click="moreOpen = !moreOpen"
-                                :class="moreOpen || {{ json_encode($pastConsultations->slice(3)->pluck('id')->map(fn($id) => 'past_'.$id)->toArray()) }}.includes(activeTab) ? 'bg-white dark:bg-gray-800 text-teal-800 border-teal-600 border-2 border-b-white font-bold pb-3 pt-2 z-20 relative' : 'bg-slate-100 text-slate-400 border-slate-200 border border-b-0 hover:bg-slate-50 pb-2 pt-1.5 mt-1 hover:text-slate-600 font-medium'"
-                                class="px-4 rounded-t-xl transition-all whitespace-nowrap text-sm flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-                            More History ({{ $pastConsultations->count() - 3 }})
-                            <svg class="w-3 h-3 transition-transform" :class="moreOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div x-show="moreOpen" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;"
-                             class="absolute right-0 top-full mt-1 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-slate-200 dark:border-gray-700 z-50 max-h-64 overflow-y-auto py-1">
-                            @foreach($pastConsultations->slice(3) as $older)
-                                <button type="button" @click="activeTab = 'past_{{ $older->id }}'; moreOpen = false"
-                                        :class="activeTab === 'past_{{ $older->id }}' ? 'bg-teal-50 text-teal-800 font-bold' : 'text-slate-600 hover:bg-slate-50'"
-                                        class="w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between gap-2 border-b border-slate-100 dark:border-gray-700 last:border-0">
-                                    <span>{{ \Carbon\Carbon::parse($older->consultation_date)->format('M d, Y') }}</span>
-                                    <span class="text-[10px] text-slate-400 font-mono">{{ $older->diagnosis ? Str::limit($older->diagnosis, 20) : '—' }}</span>
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
             </div>
 
             <!-- Tab Content Container -->
@@ -639,7 +613,23 @@
                                 placeholder="Add observations, patient counseling notes..."></textarea>
                         </div>
 
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-2" x-data="{ isFollowUp: false }">
+                        @php
+                            $hasPendingDiagnostics = $consultation->ancillaryRequests && $consultation->ancillaryRequests->where('status', 'Pending')->count() > 0;
+                        @endphp
+
+                        @if($hasPendingDiagnostics)
+                            <div class="mb-4 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-xl p-4 flex items-start gap-3">
+                                <div class="p-2 bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 rounded-lg shrink-0">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                                <div class="text-xs">
+                                    <p class="font-extrabold text-sky-900 dark:text-sky-200">Patient has pending Laboratory / Radiology tests.</p>
+                                    <p class="text-sky-700 dark:text-sky-400 mt-0.5">Ending or completing this consultation now is allowed. The patient will automatically be flagged for a <strong>Follow-up Visit</strong> to review results once they are ready.</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-2" x-data="{ isFollowUp: {{ $hasPendingDiagnostics ? 'true' : 'false' }} }">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h4 class="font-black text-amber-900 text-sm">Require Follow-up Visit?</h4>

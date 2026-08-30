@@ -70,8 +70,7 @@
                 this.open = true;
             }
         }" @open-confirmation.window="show($event.detail)">
-    
-    <!-- Skeleton loader removed to prevent flashing on non-dashboard pages -->
+    @include('partials.skeleton-dashboard')
 
     <!-- Mobile Backdrop -->
     <div x-show="sidebarOpen" @click="sidebarOpen = false"
@@ -306,10 +305,10 @@
     @include('partials.idle-timeout')
     @include('partials.heartbeat')
     
-    <!-- Dynamic SPA & Polling Script -->
+    <!-- Polling Engine Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const dynamicBlocks = document.querySelectorAll('[data-dynamic-block=\"true\"]');
+            const dynamicBlocks = document.querySelectorAll('[data-dynamic-block="true"]');
             
             if (dynamicBlocks.length > 0) {
                 setInterval(async () => {
@@ -330,52 +329,6 @@
                         });
                     } catch (error) {}
                 }, 15000);
-            }
-
-            document.addEventListener('click', async function(e) {
-                const link = e.target.closest('a');
-                if (!link) return;
-                
-                const dynamicBlock = link.closest('[data-dynamic-block=\"true\"]');
-                if (dynamicBlock && link.href && link.hostname === window.location.hostname && link.pathname === window.location.pathname && link.href.includes('page=')) {
-                    e.preventDefault();
-                    await fetchDynamicContent(link.href, dynamicBlock);
-                }
-            });
-
-            document.addEventListener('submit', async function(e) {
-                const form = e.target;
-                const dynamicBlock = form.closest('[data-dynamic-block=\"true\"]');
-                if (dynamicBlock && form.method.toLowerCase() === 'get' && new URL(form.action).pathname === window.location.pathname) {
-                    e.preventDefault();
-                    const url = new URL(form.action);
-                    new FormData(form).forEach((v, k) => url.searchParams.set(k, v));
-                    await fetchDynamicContent(url.toString(), dynamicBlock);
-                }
-            });
-
-            async function fetchDynamicContent(targetUrl, block) {
-                const originalOpacity = block.style.opacity;
-                block.style.opacity = '0.5';
-                block.style.pointerEvents = 'none';
-                
-                try {
-                    const response = await fetch(targetUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                    if (!response.ok) return;
-                    const html = await response.text();
-                    const doc = new DOMParser().parseFromString(html, 'text/html');
-                    
-                    const newBlock = doc.getElementById(block.id);
-                    if (newBlock) {
-                        block.innerHTML = newBlock.innerHTML;
-                    }
-                    window.history.pushState({}, '', targetUrl);
-                } catch (error) {
-                    window.location.href = targetUrl;
-                } finally {
-                    block.style.opacity = originalOpacity;
-                    block.style.pointerEvents = 'auto';
-                }
             }
         });
     </script>

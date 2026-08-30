@@ -12,9 +12,11 @@ class LabController extends Controller
         $user = Auth::user();
         $type = $user->role === 'radiology' ? 'Radiology' : 'Laboratory';
 
+        // ── Tab 1: PENDING — Active unfulfilled requests ──────────────────
         $allPendingRequests = \App\Models\AncillaryRequest::with(['consultation.patient', 'consultation.doctor'])
             ->where('type', $type)
             ->where('status', 'Pending')
+            ->whereNull('archived_at')
             ->orderBy('id', 'asc')
             ->get();
 
@@ -30,7 +32,7 @@ class LabController extends Controller
         // Merge: same-day first, then backlog
         $pendingRequests = $sameDayRequests->merge($backlogRequests);
 
-        // 1-Week History of Completed Requests
+        // ── Tab 2: FINISHED — Completed in last 7 days ────────────────────
         $completedRequests = \App\Models\AncillaryRequest::with(['consultation.patient', 'consultation.doctor', 'technician'])
             ->where('type', $type)
             ->where('status', 'Done')
@@ -38,7 +40,29 @@ class LabController extends Controller
             ->orderBy('completed_at', 'desc')
             ->get();
 
-        return view('lab.dashboard', compact('user', 'pendingRequests', 'completedRequests', 'type', 'sameDayRequests', 'backlogRequests'));
+        // ── Tab 3: ARCHIVE — No-shows & manually archived (last 7 days) ──
+        $archivedRequests = \App\Models\AncillaryRequest::with(['consultation.patient', 'consultation.doctor'])
+            ->where('type', $type)
+            ->where(function ($q) {
+                // Explicitly archived
+                $q->whereNotNull('archived_at');
+                // OR: pending requests from past days (auto no-show)
+                $q->orWhere(function ($sub) {
+                    $sub->where('status', 'Pending')
+                        ->whereNull('archived_at')
+                        ->whereHas('consultation', function ($cq) {
+                            $cq->whereDate('consultation_date', '<', now()->toDateString());
+                        });
+                });
+            })
+            ->where('created_at', '>=', now()->subDays(7))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('lab.dashboard', compact(
+            'user', 'pendingRequests', 'completedRequests', 'archivedRequests',
+            'type', 'sameDayRequests', 'backlogRequests'
+        ));
     }
 
     public function completeRequest(Request $request, \App\Models\AncillaryRequest $ancillary)
@@ -80,5 +104,31 @@ class LabController extends Controller
         broadcast(new \App\Events\QueueUpdated('Diagnostic results submitted', 'laboratory'));
 
         return back()->with('success', 'Diagnostic results submitted successfully. The attending physician has been notified.');
+    }
+
+    /**
+     * Manually archive a pending request (mark as no-show).
+     */
+    public function archiveRequest(\App\Models\AncillaryRequest $ancillary)
+    {
+        $ancillary->update([
+            'archived_at' => now(),
+            'archived_reason' => 'manual',
+        ]);
+
+        return back()->with('success', 'Request has been archived as no-show.');
+    }
+
+    /**
+     * Restore an archived request back to pending queue.
+     */
+    public function restoreRequest(\App\Models\AncillaryRequest $ancillary)
+    {
+        $ancillary->update([
+            'archived_at' => null,
+            'archived_reason' => null,
+        ]);
+
+        return back()->with('success', 'Request has been restored to the pending queue.');
     }
 }

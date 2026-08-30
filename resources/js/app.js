@@ -48,8 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Close when clicking outside navbar
     document.addEventListener('click', (e) => {
-        const nav = document.querySelector('nav');
-        if (nav && !nav.contains(e.target)) {
+        const nav = document.getElementById('main-navbar');
+        const isInsideDropdown = dropdowns.some(({ menu }) => menu && menu.contains(e.target));
+        if (nav && !nav.contains(e.target) && !isInsideDropdown) {
             dropdowns.forEach(({ btn, menu }) => {
                 if (menu && !menu.classList.contains('hidden')) {
                     menu.classList.add('hidden');

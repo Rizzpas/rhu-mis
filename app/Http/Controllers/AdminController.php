@@ -781,10 +781,6 @@ class AdminController extends Controller
         $perPage = $request->input('per_page', 10);
         $logs = $query->latest()->paginate($perPage)->withQueryString();
 
-        if ($request->ajax()) {
-            return view('admin.audit.index', compact('logs'))->renderSections()['content'];
-        }
-
         return view('admin.audit.index', compact('logs'));
     }
 
@@ -1384,10 +1380,6 @@ class AdminController extends Controller
 
         AuditLog::record('Viewed Patient Master List');
 
-        if ($request->ajax()) {
-            return view('admin.patients.index', compact('patients'))->renderSections()['content'];
-        }
-
         return view('admin.patients.index', compact('patients'));
     }
 
@@ -1493,7 +1485,9 @@ class AdminController extends Controller
             $settings[$group] = \App\Models\SiteSetting::where('group', $group)->get()->keyBy('key');
         }
 
-        return view('admin.content.index', compact('settings'));
+        $facilityUnits = \App\Models\FacilityUnit::ordered()->get();
+
+        return view('admin.content.index', compact('settings', 'facilityUnits'));
     }
 
     public function contentUpdate(Request $request)

@@ -14,6 +14,7 @@
         <template x-for="tab in [
             { id: 'topbar', name: 'Top Bar' },
             { id: 'hero', name: 'Hero Section' },
+            { id: 'facilities', name: 'Facilities & Units' },
             { id: 'about', name: 'Mission & Vision' },
             { id: 'steps', name: 'Process Steps' },
             { id: 'faq', name: 'FAQs' },
@@ -80,6 +81,245 @@
                         <label class="text-sm font-medium leading-none text-slate-900 dark:text-slate-300">Emergency Hotlines</label>
                         <input type="text" name="settings[emergency_hotlines]" value="{{ old('settings.emergency_hotlines', $settings['topbar']['emergency_hotlines']->value ?? '') }}" class="flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent dark:text-slate-50 transition-colors">
                         <p class="text-xs text-slate-500">Displayed in the top-right of the navigation bar.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Facilities & Units Management Tab -->
+            <div x-show="activeTab === 'facilities'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" style="display: none;" class="space-y-6" x-data="{
+                showAddModal: false,
+                showEditModal: false,
+                editUnit: { id: null, name: '', category: '', description: '', operating_hours: '', contact_number: '', location: '', services_offered: '', sort_order: 0, is_active: true },
+                openEdit(unit) {
+                    this.editUnit = {
+                        id: unit.id,
+                        name: unit.name,
+                        category: unit.category || '',
+                        description: unit.description || '',
+                        operating_hours: unit.operating_hours || '',
+                        contact_number: unit.contact_number || '',
+                        location: unit.location || '',
+                        services_offered: Array.isArray(unit.services_offered) ? unit.services_offered.join('\n') : '',
+                        sort_order: unit.sort_order || 0,
+                        is_active: Boolean(unit.is_active)
+                    };
+                    this.showEditModal = true;
+                }
+            }">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Health Facilities & Specialized Units</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Add, reorder, or customize municipal health departments and clinical units (e.g. OB-GYN, Dental, TB DOTS).</p>
+                    </div>
+                    <button type="button" @click="showAddModal = true" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add Facility / Unit
+                    </button>
+                </div>
+
+                <!-- Units Table Grid -->
+                <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">
+                                <th class="p-4 w-12 text-center">Order</th>
+                                <th class="p-4">Facility Name & Category</th>
+                                <th class="p-4">Operating Hours & Contact</th>
+                                <th class="p-4">Services Count</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            @forelse($facilityUnits as $fUnit)
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                    <td class="p-4 text-center font-mono font-bold text-slate-400">
+                                        {{ $fUnit->sort_order }}
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="font-bold text-slate-900 dark:text-white text-sm">{{ $fUnit->name }}</div>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/50">
+                                                {{ $fUnit->category ?: 'General' }}
+                                            </span>
+                                            <span class="text-[11px] text-slate-400 font-mono">/units/{{ $fUnit->slug }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="text-slate-700 dark:text-slate-300 font-medium">{{ $fUnit->operating_hours ?: 'N/A' }}</div>
+                                        <div class="text-[11px] text-slate-400">{{ $fUnit->contact_number ?: $fUnit->location }}</div>
+                                    </td>
+                                    <td class="p-4">
+                                        <span class="font-semibold text-slate-600 dark:text-slate-400">
+                                            {{ is_array($fUnit->services_offered) ? count($fUnit->services_offered) : 0 }} offered
+                                        </span>
+                                    </td>
+                                    <td class="p-4">
+                                        @if($fUnit->is_active)
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/50">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                                                Hidden
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="p-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button type="button" @click="openEdit({{ json_encode($fUnit) }})" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg transition" title="Edit Facility">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            </button>
+                                            <a href="{{ route('units.show', $fUnit->slug) }}" target="_blank" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-lg transition" title="Preview Public Page">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="p-8 text-center text-slate-400 italic">No facility units configured. Click "Add Facility / Unit" above.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ADD FACILITY MODAL -->
+                <div x-show="showAddModal" style="display: none;" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div @click.away="showAddModal = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800 p-6">
+                        <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
+                            <h4 class="text-lg font-bold text-slate-900 dark:text-white">Add New Health Facility / Unit</h4>
+                            <button type="button" @click="showAddModal = false" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                        </div>
+                        <form action="{{ route('admin.facilities.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Unit / Facility Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="name" required placeholder="e.g. OB-GYN Unit, Physical Therapy" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Category / Discipline</label>
+                                    <input type="text" name="category" placeholder="e.g. Women's Health, Diagnostic, Surgery" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Clinical Overview / Description</label>
+                                <textarea name="description" rows="3" placeholder="Overview of healthcare services provided by this facility..." class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent p-3 text-slate-900 dark:text-white"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Operating Hours</label>
+                                    <input type="text" name="operating_hours" placeholder="e.g. Mon - Fri: 8AM - 5PM" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Contact Number</label>
+                                    <input type="text" name="contact_number" placeholder="(046) 414-XXXX" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Location / Room</label>
+                                    <input type="text" name="location" placeholder="e.g. 2nd Floor, Room 204" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Services Offered (1 per line or comma-separated)</label>
+                                <textarea name="services_offered" rows="3" placeholder="Pap Smear&#10;Prenatal Care&#10;Gynecological Exam" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent p-3 text-slate-900 dark:text-white font-mono"></textarea>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="is_active" value="1" checked class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Active (Visible on public website)</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs font-bold text-slate-500">Sort Order:</label>
+                                    <input type="number" name="sort_order" value="10" class="w-16 text-xs rounded border border-slate-300 dark:border-slate-700 bg-transparent px-2 py-1 text-center text-slate-900 dark:text-white">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                <button type="button" @click="showAddModal = false" class="px-4 py-2 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">Cancel</button>
+                                <button type="submit" class="px-5 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition">Save Facility</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- EDIT FACILITY MODAL -->
+                <div x-show="showEditModal" style="display: none;" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div @click.away="showEditModal = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800 p-6">
+                        <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
+                            <h4 class="text-lg font-bold text-slate-900 dark:text-white">Edit Facility Unit</h4>
+                            <button type="button" @click="showEditModal = false" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                        </div>
+                        <form :action="'{{ url('admin/facilities') }}/' + editUnit.id" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            @method('PUT')
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Unit / Facility Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="name" x-model="editUnit.name" required class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Category / Discipline</label>
+                                    <input type="text" name="category" x-model="editUnit.category" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Clinical Overview / Description</label>
+                                <textarea name="description" x-model="editUnit.description" rows="3" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent p-3 text-slate-900 dark:text-white"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Operating Hours</label>
+                                    <input type="text" name="operating_hours" x-model="editUnit.operating_hours" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Contact Number</label>
+                                    <input type="text" name="contact_number" x-model="editUnit.contact_number" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Location / Room</label>
+                                    <input type="text" name="location" x-model="editUnit.location" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-slate-900 dark:text-white">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Services Offered (1 per line or comma-separated)</label>
+                                <textarea name="services_offered" x-model="editUnit.services_offered" rows="3" class="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent p-3 text-slate-900 dark:text-white font-mono"></textarea>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="is_active" value="1" x-model="editUnit.is_active" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Active (Visible on public website)</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs font-bold text-slate-500">Sort Order:</label>
+                                    <input type="number" name="sort_order" x-model="editUnit.sort_order" class="w-16 text-xs rounded border border-slate-300 dark:border-slate-700 bg-transparent px-2 py-1 text-center text-slate-900 dark:text-white">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-800">
+                                <button type="button" @click="if(confirm('Are you sure you want to delete this facility?')) { $refs.deleteForm.submit() }" class="text-xs font-bold text-red-600 hover:underline">
+                                    Delete Facility
+                                </button>
+                                <div class="flex gap-2">
+                                    <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">Cancel</button>
+                                    <button type="submit" class="px-5 py-2 rounded-lg text-xs font-bold bg-teal-600 text-white hover:bg-teal-700 transition">Update Facility</button>
+                                </div>
+                            </div>
+                        </form>
+                        <form x-ref="deleteForm" :action="'{{ url('admin/facilities') }}/' + editUnit.id" method="POST" class="hidden">
+                            @csrf
+                            @method('DELETE')
+                        </form>
                     </div>
                 </div>
             </div>

@@ -21,8 +21,28 @@
                     console.error('Failed to sync stats:', e);
                 }
             },
+            async fetchQueues() {
+                try {
+                    const res = await fetch('{{ route('triage.dashboard') }}');
+                    if (res.ok) {
+                        const html = await res.text();
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+                        const newRightPanel = tempDiv.querySelector('#right-panel-queues');
+                        const currentRightPanel = document.querySelector('#right-panel-queues');
+                        if (newRightPanel && currentRightPanel) {
+                            currentRightPanel.innerHTML = newRightPanel.innerHTML;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to sync queues:', e);
+                }
+            },
             init() {
-                setInterval(() => this.fetchStats(), 5000);
+                setInterval(() => {
+                    this.fetchStats();
+                    this.fetchQueues();
+                }, 3500);
             }
          }">
 
@@ -1183,21 +1203,4 @@
 
         </div>
     </div>
-    <script>
-        setInterval(() => {
-            fetch('{{ route('triage.dashboard') }}')
-                .then(res => res.text())
-                .then(html => {
-                    let tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-                    let newRightPanel = tempDiv.querySelector('#right-panel-queues');
-                    let currentRightPanel = document.querySelector('#right-panel-queues');
-                    if (newRightPanel && currentRightPanel) {
-                        currentRightPanel.innerHTML = newRightPanel.innerHTML;
-                    }
-                    // Update cards instantly
-                    this.fetchStats();
-                });
-        }, 30000);
-    </script>
 @endsection

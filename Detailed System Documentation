@@ -1,733 +1,916 @@
 # Detailed System Documentation: Silang RHU Management Information System
 
-> **Document Version:** 1.0  
-> **System Version:** Laravel 12  
-> **Date Generated:** April 21, 2026  
+> **Document Version:** 2.1  
+> **System Version:** Laravel 12.x / MySQL 8.x / PHP 8.2+  
+> **Date Updated:** August 30, 2026  
 > **Authors:** Conchas, Isuga, Ripas, Takeuchi  
+> **Target Audience:** System Architects, Software Engineers, Database Administrators, Capstone Defense Panelists  
 
 ---
 
 ## Table of Contents
 
-1. [System Overview](#1-system-overview)
-2. [Technology Stack](#2-technology-stack)
-3. [Authentication & Security Module](#3-authentication--security-module)
-4. [Role-Based Access Control (RBAC)](#4-role-based-access-control-rbac)
-5. [Public-Facing Portal Module](#5-public-facing-portal-module)
-6. [Appointment Scheduling Module](#6-appointment-scheduling-module)
-7. [Vitals Nurse / Pre-Triage Module](#7-vitals-nurse--pre-triage-module)
-8. [Front Desk & Registration Module](#8-front-desk--registration-module)
-9. [Intelligent Queueing Engine](#9-intelligent-queueing-engine)
-10. [Doctor / Clinical Consultation Module](#10-doctor--clinical-consultation-module)
-11. [Clinical Nurse Module](#11-clinical-nurse-module)
-12. [Ancillary Services Module (Laboratory & Radiology)](#12-ancillary-services-module-laboratory--radiology)
-13. [Content Management System (CMS)](#13-content-management-system-cms)
-14. [Administration & Analytics Module](#14-administration--analytics-module)
-15. [Archive & Data Retention Module](#15-archive--data-retention-module)
-16. [Audit Logging System](#16-audit-logging-system)
-17. [Database Schema Reference](#17-database-schema-reference)
-18. [Data Privacy & Compliance](#18-data-privacy--compliance)
+1. [Executive Summary & System Scope](#1-executive-summary--system-scope)
+2. [Technology Stack & System Architecture](#2-technology-stack--system-architecture)
+3. [User Roles & Role-Based Access Control (RBAC)](#3-user-roles--role-based-access-control-rbac)
+4. [Functional Modules & Operational Workflows](#4-functional-modules--operational-workflows)
+   - 4.1 [Authentication, Session & Presence Module](#41-authentication-session--presence-module)
+   - 4.2 [Public Portal & Content Management System (CMS)](#42-public-portal--content-management-system-cms)
+   - 4.3 [Online Appointment Scheduling & Management Module](#43-online-appointment-scheduling--management-module)
+   - 4.4 [Vitals Nurse / Pre-Triage Module](#44-vitals-nurse--pre-triage-module)
+   - 4.5 [Front Desk & Registration Module](#45-front-desk--registration-module)
+   - 4.6 [Intelligent Queueing Engine](#46-intelligent-queueing-engine)
+   - 4.7 [Doctor Clinical Consultation & EHR Module](#47-doctor-clinical-consultation--ehr-module)
+   - 4.8 [Clinical Nurse & Escalation Module](#48-clinical-nurse--escalation-module)
+   - 4.9 [Ancillary Services Module (Laboratory & Radiology)](#49-ancillary-services-module-laboratory--radiology)
+   - 4.10 [Pharmacy & Medicine Inventory Module](#410-pharmacy--medicine-inventory-module)
+   - 4.11 [Administration, Analytics & Productivity Module](#411-administration-analytics--productivity-module)
+   - 4.12 [Archive, Data Retention & Audit Logging Module](#412-archive-data-retention--audit-logging-module)
+5. [Data Flow Diagram (DFD) Specification & Blueprint](#5-data-flow-diagram-dfd-specification--blueprint)
+   - 5.1 [DFD Concepts, Symbols, and Structural Rules](#51-dfd-concepts-symbols-and-structural-rules)
+   - 5.2 [How to Construct DFDs from this Documentation (Step-by-Step Guide)](#52-how-to-construct-dfds-from-this-documentation-step-by-step-guide)
+   - 5.3 [External Entities Inventory](#53-external-entities-inventory)
+   - 5.4 [Data Stores Inventory (D1 – D15)](#54-data-stores-inventory-d1--d15)
+   - 5.5 [Process Decomposition Hierarchy (Levels 0, 1, and 2)](#55-process-decomposition-hierarchy-levels-0-1-and-2)
+   - 5.6 [Context Diagram (Level 0 DFD)](#56-context-diagram-level-0-dfd)
+   - 5.7 [Level 1 DFD (Subsystem Decomposition)](#57-level-1-dfd-subsystem-decomposition)
+   - 5.8 [Level 2 DFDs (Detailed Sub-Processes)](#58-level-2-dfds-detailed-sub-processes)
+   - 5.9 [Process-to-Data Store CRUD & Data Flow Matrix](#59-process-to-data-store-crud--data-flow-matrix)
+6. [Entity Relationship Diagram (ERD) Specification](#6-entity-relationship-diagram-erd-specification)
+   - 6.1 [Entity Inventory & Business Rules](#61-entity-inventory--business-rules)
+   - 6.2 [Relational Cardinality & Integrity Rules](#62-relational-cardinality--integrity-rules)
+   - 6.3 [Complete Mermaid Entity-Relationship Diagram](#63-complete-mermaid-entity-relationship-diagram)
+   - 6.4 [Comprehensive Data Dictionary & Physical Schema](#64-comprehensive-data-dictionary--physical-schema)
+7. [Technical, Hardware, Software & Environmental Specifications](#7-technical-hardware-software--environmental-specifications)
+   - 7.1 [Software Specification](#71-software-specification)
+   - 7.2 [Hardware Specification](#72-hardware-specification)
+   - 7.3 [Program Specification](#73-program-specification)
+   - 7.4 [Programming Environment](#74-programming-environment)
+     - 7.4.1 [Front End Environment & Tooling](#741-front-end-environment--tooling)
+     - 7.4.2 [Back End Environment & Architecture](#742-back-end-environment--architecture)
+8. [Security, Privacy, and Regulatory Compliance](#8-security-privacy-and-regulatory-compliance)
+9. [System Changelog & Recent Enhancements](#9-system-changelog--recent-enhancements)
 
 ---
 
-## 1. System Overview
+## 1. Executive Summary & System Scope
 
-The Silang RHU Management Information System (MIS) is a web-based, cloud-hosted application developed to digitize and streamline the end-to-end patient care workflow of the Rural Health Unit of Silang, Cavite. The system replaces paper-based processes including manual logbook registration, manila folder retrieval, handwritten prescriptions, and verbal queue management with a fully integrated digital platform.
+The **Silang RHU Management Information System (RHU-MIS)** is an enterprise-grade, cloud-ready healthcare management platform engineered to automate and unify the clinical, operational, and administrative workflows of the Rural Health Unit of Silang, Cavite.
 
-The system serves **seven distinct user roles** and manages the complete patient lifecycle from online appointment booking through consultation, ancillary services (laboratory/radiology), to pharmacy fulfillment and medical certificate generation.
+### 1.1 The Operational Bottlenecks Solved
+Prior to RHU-MIS, the facility operated on decentralized paper logbooks, manual index card lookup, and handwritten paper prescriptions:
+- **Prolonged Waiting Times:** Average patient turnaround exceeded **2.5 hours**, largely driven by physical folder retrieval taking up to **15 minutes per patient**.
+- **Data Fragmentation & Record Duplication:** Lack of centralized identity matching caused duplicate medical folders across different visits.
+- **Uncontrolled Queuing:** Patient bottlenecks at triage and doctor stations occurred due to unstratified, verbal callouts.
+- **Prescription Inefficiency & Stock Blindness:** Doctors prescribed medications without real-time inventory visibility, causing pharmacy stockouts and patient redirection.
 
-**Key Problem Solved:** The existing manual workflow results in an average patient wait time of **2.5 hours**, with staff spending up to **15 minutes** physically searching for patient folders. The MIS eliminates these bottlenecks through automated duplicate detection, intelligent practitioner-specific queueing, and centralized electronic health records.
-
----
-
-## 2. Technology Stack
-
-### 2.1 Backend Framework
-- **Language:** PHP 8.2+
-- **Framework:** Laravel 12.0 (MVC Architecture)
-- **ORM:** Eloquent with InnoDB transaction-safe table locking
-- **Queue Worker:** Laravel Queue (database driver) for background job processing
-- **Mail:** Laravel Mail with Mailable classes (`AppointmentConfirmation`, `OtpMail`)
-
-### 2.2 Frontend
-- **Templating:** Laravel Blade
-- **CSS Framework:** Tailwind CSS
-- **JavaScript:** Vanilla JS with Alpine.js for reactive UI components
-- **Asset Bundler:** Vite (Hot Module Replacement in dev, optimized chunks in production)
-- **Calendar Library:** FullCalendar.js (for appointment management views)
-
-### 2.3 Database
-- **Engine:** MySQL 8.x (InnoDB storage engine)
-- **Migrations:** Laravel Schema Builder (version-controlled schema)
-- **Key Feature:** `lockForUpdate()` pessimistic locking for race-condition-safe ID generation
-
-### 2.4 Development Tools
-- **IDE:** Visual Studio Code with Antigravity AI Assistant
-- **Version Control:** Git
-- **Local Server:** `php artisan serve` + Vite dev server
-- **Concurrent Dev Script:** `npx concurrently` running server, queue worker, log tail, and Vite simultaneously
+### 1.2 The RHU-MIS Solution Architecture
+The RHU-MIS digitizes the end-to-end patient lifecycle:
+1. **Public Web Portal & Self-Service Booking:** Online appointment scheduling with automated email OTP verification and progressive rate limiting.
+2. **Pre-Triage & Vitals Acquisition:** Systematic capture of physiological parameters, chief complaints, allergies, and encoding duration.
+3. **Pessimistic-Locked Registration:** Automatic duplicate detection and race-condition-safe generation of unique Patient IDs (`RHU-YYYY-XXXXX`).
+4. **Intelligent Algorithmic Queueing:** Auto-routing based on patient classification (Pediatric/Adult), symptom severity (`light`, `mild`, `severe`), load balancing across active practitioners, and priority interleaving.
+5. **Electronic Health Records (EHR) & Consultation:** Unified clinical documentation, state locking upon completion, and generation of permanent `MedicalCase` archives.
+6. **Integrated Ancillary Workflow:** Bi-directional laboratory and radiology requests with live 3-tab queuing (Pending, Finished, Archive) and automated follow-up tagging.
+7. **Closed-Loop Pharmacy & Inventory:** Automatic structured prescription transmission, batch tracking with expiration dates, and automated stock deduction upon dispensing.
+8. **Compliance & Analytics:** Masking of PhilHealth identifiers (RA 10173), 10-year rolling data retention, peak-hours heatmaps, and role-segregated productivity telemetry.
 
 ---
 
-## 3. Authentication & Security Module
-
-**Controller:** `AuthController.php` (84 lines)
-
-### 3.1 Login System
-- Staff members authenticate via email/password through a centralized login form.
-- Upon successful authentication, sessions are regenerated (`$request->session()->regenerate()`) to prevent session fixation attacks.
-- Users are automatically redirected to their role-specific dashboard via a `match()` expression mapping roles to routes.
-
-### 3.2 Brute-Force Protection
-The login system implements **dual-layer rate limiting**:
-- **Per-Email Rate Limit:** 5 attempts per 10 minutes. After exceeding, the specific email account is locked with a countdown timer displayed to the user.
-- **Per-IP Rate Limit:** 5 attempts per 5 minutes. Prevents distributed attacks from a single network.
-- Rate limiters are cleared upon successful authentication.
-
-### 3.3 Session Management
-- Laravel's built-in session management handles persistent authentication.
-- Logout invalidates the session and regenerates the CSRF token to prevent token reuse.
-
----
-
-## 4. Role-Based Access Control (RBAC)
-
-**Model:** `User.php` — implements `hasRole(...$roles)` for inline permission checks.
-
-The system defines **9 distinct user roles**, each mapped to a dedicated dashboard and set of permissions:
-
-| Role | Dashboard Route | Primary Responsibilities |
-|---|---|---|
-| `super_admin` | Admin Dashboard | Full system control, CMS approval authority |
-| `admin` | Admin Dashboard | Staff management, analytics, retention |
-| `information_desk` | Front Desk Dashboard | Appointment calendar, patient registration |
-| `regular_doctor` | Doctor Dashboard | Adult consultations, prescriptions, lab requests |
-| `pedia_doctor` | Doctor Dashboard | Pediatric consultations (isolated queue) |
-| `clinical_nurse` | Nurse Dashboard | Light/mild severity consultations, doctor forwarding |
-| `vitals_nurse` | Triage Dashboard | Pre-triage vitals recording |
-| `laboratory` | Lab Dashboard | Ancillary lab request fulfillment |
-| `radiology` | Lab Dashboard | Ancillary imaging request fulfillment |
-
-### 4.1 Staff Attributes
-Each user record contains:
-- `name`, `email`, `password` (hashed via `bcrypt`)
-- `role` — determines dashboard and data access scope
-- `status` — tracking presence (`Present` / `Absent` / `On Leave`)
-- `schedule` — optional text field for shift display
-- `avatar_path` — profile photo stored in `public/uploads/staff/`
-
-### 4.2 Soft Deletion
-Staff accounts use Laravel's `SoftDeletes` trait, meaning deleted accounts are not physically removed from the database. They are moved to an archive and can be restored by an administrator.
-
----
-
-## 5. Public-Facing Portal Module
-
-**Controller:** `PublicController.php` (476 lines)
-
-### 5.1 Welcome / Landing Page
-- Displays up to **7 latest published announcements** in a hero carousel.
-- Shows all registered doctors with their roles and availability statuses.
-- Features a dynamic announcement marquee scrolling live titles.
-
-### 5.2 Facility Units Directory
-The system provides static informational pages for the five RHU sub-units:
-1. Main Health Center
-2. Lying-in Clinic
-3. Dental Clinic
-4. TB DOTS Facility
-5. Animal Bite Center
-
-Each unit is routed via a human-readable slug (e.g., `/units/tb-dots-facility`).
-
-### 5.3 Live Content Updates
-- An AJAX endpoint (`checkHomeUpdates`) allows the frontend to poll for changes in announcements or doctor statuses without full page reloads.
-- Announcement detail pages also support live update detection via `checkAnnouncementUpdate`.
-
----
-
-## 6. Appointment Scheduling Module
-
-**Controller:** `PublicController.php` (appointment methods)  
-**Model:** `Appointment.php` (67 lines)
-
-### 6.1 Booking Types
-The appointment portal supports two booking categories:
-1. **Pedia Consultation** — For patients aged 12 and below. Requires guardian information.
-2. **Adult Follow-Up Consultation** — For returning patients with an active follow-up flag from a previous doctor visit.
-
-### 6.2 Booking Workflow
+## 2. Technology Stack & System Architecture
 
 ```
-Patient visits portal → Selects type (Pedia/Adult) → Fills personal info → 
-Verifies email via OTP → Submits → System validates → Auto-approved → 
-Email confirmation sent with Reference Number (APT-XXXXXXXX)
++-------------------------------------------------------------------------+
+|                              PRESENTATION LAYER                         |
+|   Blade Templates  |  Tailwind CSS  |  Alpine.js  |  Chart.js / Cropper |
++-------------------------------------------------------------------------+
+                                    | HTTP / HTTPS / WebSockets / AJAX
++-------------------------------------------------------------------------+
+|                              APPLICATION LAYER                          |
+|   Laravel 12.x MVC Core  |  Role Middleware  |  Rate Limiters (Throttles)|
+|   Controllers: Public, Auth, Triage, FrontDesk, Doctor, Nurse, Lab,     |
+|                Pharmacy, Admin, Archive, Profile, Heartbeat, Facilities |
+|   Queues & Notifications (Database Driver) | Mailables (OTP, Confirms)   |
++-------------------------------------------------------------------------+
+                                    | Eloquent ORM (InnoDB Locks)
++-------------------------------------------------------------------------+
+|                               DATA LAYER                                |
+|   MySQL 8.x Database Engine (Pessimistic `lockForUpdate()`, Foreign     |
+|   Keys, JSON Check Constraints, Soft Deletes, Rolling Retention TTL)   |
++-------------------------------------------------------------------------+
 ```
 
-### 6.3 Anti-Abuse Protections
-- **Email OTP Verification:** A 6-digit one-time password is sent to the patient's email and must be verified before submission. OTPs expire after 10 minutes.
-- **Progressive Rate Limiting:** OTP requests trigger escalating lockout penalties: 5min → 10min → 15min → 30min → 1hr → 2hr → 5hr → 24hr.
-- **Duplicate Booking Prevention:** The system checks for existing `pending`, `approved`, or `rescheduled` appointments matching the same email + name combination.
-- **IP Rate Limiting:** Maximum 5 booking attempts per IP address within a 5-minute window.
+### 2.1 Backend Architecture
+- **Language & Framework:** PHP 8.2+ / Laravel 12.0 (Model-View-Controller)
+- **Database ORM:** Eloquent ORM utilizing transactional row-level pessimistic locking (`lockForUpdate()`) for concurrency control.
+- **Asynchronous Processing:** Laravel Database Queue Worker handling transactional emails and notification dispatches.
+- **Security Middleware:** Custom `RoleMiddleware` enforcing multi-role route gating, session fixation guards, and rate limiters.
 
-### 6.4 Follow-Up Verification
-When a patient marks their appointment as a follow-up:
-1. The system queries the `patients` table to find a matching record (First Name + Last Name + DOB).
-2. It then checks the `consultations` table for a completed consultation with `is_followup_needed = true`.
-3. Follow-ups expire 3 months after their target date.
+### 2.2 Frontend Stack
+- **Templating Engine:** Laravel Blade with modular components and layout inheritance.
+- **Styling:** Tailwind CSS with dedicated print media stylesheets (`@media print`) for clinical forms and queue slips.
+- **Reactive UI:** Alpine.js for lightweight client-side state, modal manipulation, live search, and dynamic forms.
+- **Bundler:** Vite 5.x enabling optimized module bundling and Hot Module Replacement (HMR).
 
-### 6.5 Slot Availability
-- For Pedia appointments, a daily calendar shows slot availability by querying appointment counts per date.
-- Walk-in Pedia patients are **hard-capped at 5 per day** to protect appointment holders.
+### 2.3 Persistence & Storage
+- **Relational Database:** MySQL 8.x with InnoDB Storage Engine.
+- **File System Storage:** Laravel Storage subsystem managing public uploads (`/uploads/staff/`, `/uploads/announcements/`, `/uploads/lab_results/`, `/uploads/facilities/`).
 
-### 6.6 Appointment Management Portal
-Patients can manage their appointments post-booking through a Reference Number + Email login system:
-- **View Status** — See current appointment status (pending/approved/rescheduled/registered/done)
-- **Reschedule** — Change preferred date (status changes to `rescheduled`)
-- **Cancel** — Cancel appointment (triggers 12-hour prunable auto-deletion)
+---
 
-### 6.7 Appointment Status Lifecycle
+## 3. User Roles & Role-Based Access Control (RBAC)
 
+The system enforces strict principle-of-least-privilege access across **10 distinct user roles**:
+
+| Role Code | Role Title | Dashboard / Landing Route | Core Operational Scope |
+|---|---|---|---|
+| `super_admin` | Super Administrator | `/admin/dashboard` | Unrestricted system control, CMS publication authority, audit trail, user role elevation, database retention management. |
+| `admin` | Administrator | `/admin/dashboard` | Staff account provisioning, operational analytics, CMS drafting & facility management, patient master list review, retention extensions. |
+| `information_desk` | Front Desk Officer | `/frontdesk/dashboard` | Patient identity verification, master registration, appointment check-in, severity assessment, queue assignment, slip generation. |
+| `vitals_nurse` | Triage / Vitals Nurse | `/triage/dashboard` | Pre-triage vitals recording, clinical history intake, allergy logging, walk-in/appointment identification. |
+| `regular_doctor` | General / Adult Physician | `/doctor/dashboard` | Adult consultation queue management, clinical diagnosis, structured prescription generation, lab/imaging orders, follow-up flags. |
+| `pedia_doctor` | Pediatrician | `/doctor/dashboard` | Dedicated pediatric queue consultation, guardian-linked clinical documentation, pediatric dosage ordering. |
+| `clinical_nurse` | Clinical / Treatment Nurse | `/nurse/dashboard` | Low-to-mild acuity consultations, minor treatments, triage escalation / forwarding to attending physicians. |
+| `laboratory` | Laboratory Technician | `/lab/dashboard` | Processing ancillary lab orders (CBC, Urinalysis, Fecalysis, Blood Chemistry, Blood Typing), result attachment, 3-tab queuing. |
+| `radiology` | Radiologic Technologist | `/lab/dashboard` | Processing imaging orders (X-ray, Ultrasound), recording radiology findings, diagnostic image uploads. |
+| `pharmacy` | Pharmacist / Dispenser | `/pharmacy/dashboard` | Reviewing pending electronic prescriptions, batch-level stock allocation, dispensing validation, medicine inventory management. |
+
+---
+
+## 4. Functional Modules & Operational Workflows
+
+### 4.1 Authentication, Session & Presence Module
+- **Dual-Tier Rate Limiting:**
+  - *Per-Email Throttle:* 5 failed attempts per 10 minutes (locks individual target account).
+  - *Per-IP Throttle:* 5 attempts per 5 minutes (mitigates distributed brute-force attacks).
+- **Session Security:** Session IDs are regenerated upon login (`$request->session()->regenerate()`) to neutralize session fixation. Logout invalidates sessions and regenerates CSRF tokens.
+- **Real-Time Staff Presence Tracking:** Client-side JavaScript dispatches an authenticated heartbeat ping every 60 seconds (`/heartbeat`). A user is evaluated as `Present` if manually flagged or if heartbeat activity occurred within the active threshold window.
+
+### 4.2 Public Portal & Content Management System (CMS)
+- **Public Directory:** Displays published municipal health announcements, operating unit profiles (Main Health Center, Lying-in Clinic, Dental Clinic, TB DOTS Facility, Animal Bite Center, OB-GYN Unit), and active doctor schedules.
+- **Dynamic Facilities CMS:** Full administrative CRUD in CMS allows adding and updating municipal health units and specialty clinics dynamically (`FacilityUnit` model).
+- **Two-Tier CMS Publication:** Standard administrators can author announcements in `draft` or `pending` status. Only `super_admin` accounts hold the authorization to change status to `published`.
+- **Rich Media & Infographics:** Announcements support structured gallery slides, multi-section content layouts (`left`, `right`, `middle`), direct MP4 video hosting, and external video embedding.
+
+### 4.3 Online Appointment Scheduling & Management Module
+- **Service Streams:**
+  - *Pediatric Booking:* For patients aged 0–12; mandates guardian identification and PhilHealth routing.
+  - *Adult Follow-Up Booking:* Enforces historical validation by verifying that the patient has a prior consultation record flagged with `is_followup_needed = true` within a valid 3-month window.
+- **Email OTP Verification:** Cryptographic 6-digit one-time PIN sent via email, cached for 10 minutes.
+- **Capacity Throttling:** Enforces configurable clinic-wide caps (default 20 slots/day for Pedia) with doctor schedule validation.
+
+### 4.4 Vitals Nurse / Pre-Triage Module
+- **Physiological Parameter Capture:** Temperature (°C), Blood Pressure (systolic/diastolic mmHg), Weight (kg), Height (cm), Heart Rate (bpm), Respiratory Rate (cpm), Pulse Rate (bpm), and Oxygen Saturation ($SpO_2$ %).
+- **Clinical Intake:** Chief complaint, descriptive symptoms, past medical history, current medications, known drug/food allergies.
+- **Efficiency Telemetry:** Tracks encoding duration in seconds (`encoding_duration_seconds`) to calculate nurse workflow performance.
+
+### 4.5 Front Desk & Registration Module
+- **Identity Matching:** Searches existing records by first name, last name, date of birth, and contact number.
+- **Pessimistic-Locked ID Generation:** Wraps `Patient::max('id')` within `DB::transaction()` and `lockForUpdate()` to guarantee atomic formatting (`RHU-YYYY-XXXXX`).
+- **Severity Stratification:** Front desk classifies patients into `light`, `mild`, or `severe` to dictate algorithmic queue routing.
+
+### 4.6 Intelligent Queueing Engine
+- **Prefix Conventions:**
+  - `REG-XXX`: Regular Adult walk-ins
+  - `PRI-XXX`: Senior Citizen and PWD priority walk-ins
+  - `PED-XXX`: Pediatric walk-ins
+  - `APED-XXX`: Booked Pediatric appointments
+  - `PED-E-XXX`: Pediatric emergencies
+- **Interleaving Ratios:**
+  - *Adult Queue:* 2 Priority (Senior/PWD) : 1 Regular
+  - *Pediatric Queue:* 1 Emergency (top priority) &rarr; 2 Appointments (`APED`) : 1 Walk-in (`PED`)
+- **Load Balancing:** Automatically distributes patients across logged-in physicians (`Present` status).
+- **Wait-Time Conversion:** Queue indicators dynamically convert minutes to hours (`1h 15m wait`) when waiting exceeds 60 minutes.
+
+### 4.7 Doctor Clinical Consultation & EHR Module
+- **Clinical Interface:** Displays patient demographics, pre-triage vitals, historical visit records, and active lab orders.
+- **Result-Ready Queue Priority:** Consultations waiting for diagnostic results move to the front of the queue with an animated `✓ Results Ready` badge upon lab submission.
+- **Auto Follow-Up on Pending Ancillary:** Completing a consultation while diagnostic orders remain pending automatically flags the patient for a **Follow-up Visit** (`is_followup_needed = true`).
+- **Legal EHR Immutability:** Completing a consultation locks clinical fields and generates a permanent `MedicalCase` record.
+
+### 4.8 Clinical Nurse & Escalation Module
+- **Minor Treatment Protocol:** Nurse consultation room allows recording treatment notes, diagnoses, and OTC medicine recommendations for mild complaints.
+- **Doctor Escalation:** Acuity worsening allows immediate escalation to the active Doctor queue.
+
+### 4.9 Ancillary Services Module (Laboratory & Radiology)
+- **3-Tab Queue Interface:**
+  - *Pending:* Active diagnostic requests (same-day prioritized over backlog) with 1-click No-Show Archive.
+  - *Finished:* Completed requests (last 7 days) with structured modal viewer and file download.
+  - *Archive:* Manually archived no-shows and unfulfilled past-date requests with **Restore to Pending** capability.
+- **Standardized Diagnostic Form Entry:**
+  - *Hematology / CBC:* Full parameter suite (RBC, Hemoglobin with M/F ranges, Hematocrit, MCV, MCH, MCHC, WBC, Differential Count: Neutrophil, Lymphocyte, Monocyte, Eosinophil, Basophil, Nucleated RBC, ESR, Bleeding/Clotting time, Platelet Count).
+  - *Blood Typing:* ABO group and Rh factor determination.
+  - *Clinical Urinalysis:* Physical, chemical, and microscopic examination fields.
+  - *Routine Fecalysis:* Color, consistency, microscopic pus/RBC, ova/parasites, occult blood.
+  - *Blood Chemistry Profile:* Fasting blood sugar (FBS), cholesterol, triglycerides, uric acid, creatinine, SGPT/ALT.
+  - *Radiology (X-Ray):* Views, 1-click **Normal Chest Template**, radiological impressions, and DICOM/imaging uploads.
+
+### 4.10 Pharmacy & Medicine Inventory Module
+- **Closed-Loop E-Prescribing:** Prescriptions authored by doctors automatically appear in real-time on the Pharmacy dashboard.
+- **Batch-Level FIFO Tracking:** Medicines tracked with batch numbers and expiration dates to enforce First-In, First-Out dispensing.
+- **Inventory Audit Trail:** Logs additions, dispenses, expirations, and manual adjustments in `inventory_logs`.
+
+### 4.11 Administration, Analytics & Productivity Module
+- **Interactive Telemetry:** Peak arrival heatmaps, diagnostic volume graphs, and epidemiological disease trends via Chart.js.
+- **Staff Productivity:** Average consultation durations, triage turnaround, and dispensing counts per staff member.
+
+### 4.12 Archive, Data Retention & Audit Logging Module
+- **10-Year Rolling Data Retention:** RA 10173 and DOH compliance; every patient record update resets `expires_at` 10 years forward.
+- **Soft Deletion & Vault Recovery:** Soft-deleted accounts and CMS items are restorable via the Archive Vault.
+- **Comprehensive Audit Trail:** Logs user actions, models touched, IP addresses, user agents, and JSON diffs.
+
+---
+
+## 5. Data Flow Diagram (DFD) Specification & Blueprint
+
+### 5.1 DFD Concepts, Symbols, and Structural Rules
+- **External Entities (Squares):** Originators and terminators of data outside system boundaries (`E1`–`E8`).
+- **Processes (Rounded Rectangles):** Data transformation functions (`P1.0`–`P8.0`).
+- **Data Stores (Open Rectangles):** Persistent repositories (`D1`–`D15`).
+- **Data Flows (Arrows):** Named vectors transferring specific data attributes.
+
+### 5.2 How to Construct DFDs from this Documentation (Step-by-Step Guide)
+1. **Level 0 (Context Diagram):** Place the central `0.0 Silang RHU-MIS` process, surrounded by external entities (`E1`–`E8`), connecting input/output data flows.
+2. **Level 1 (Subsystem Decomposition):** Expand `0.0` into 8 major processes (`1.0` to `8.0`) connected to data stores `D1` through `D15`.
+3. **Level 2 (Functional Deep-Dives):** Decompose complex subsystems (e.g., `P2.0 Registration`, `P4.0 Clinical Consultation`, `P6.0 Ancillary`) into child processes (`P2.1`–`P2.4`, `P6.1`–`P6.4`).
+
+### 5.3 External Entities Inventory
+- `E1`: Patient / Public User
+- `E2`: Vitals / Triage Nurse
+- `E3`: Front Desk Officer
+- `E4`: Attending Physician (Regular & Pedia Doctor)
+- `E5`: Clinical Treatment Nurse
+- `E6`: Laboratory Technician / Radiologist
+- `E7`: Pharmacist / Dispenser
+- `E8`: Administrator / Super Administrator
+
+### 5.4 Data Stores Inventory (D1 – D15)
+- `D1`: Patients Master Index (`patients`)
+- `D2`: Appointments Repository (`appointments`, `capacities`)
+- `D3`: Pre-Triage Clinical Vitals (`pre_triages`)
+- `D4`: Daily Physical Queue (`queues`)
+- `D5`: Consultations Active State (`consultations`)
+- `D6`: Medical Cases Vault (`medical_cases`)
+- `D7`: Ancillary Diagnostic Requests (`ancillary_requests`)
+- `D8`: Electronic Prescriptions (`prescriptions`, `prescription_items`)
+- `D9`: Pharmaceutical Inventory (`medicines`, `medicine_batches`, `inventory_logs`)
+- `D10`: User Accounts & RBAC (`users`)
+- `D11`: Practitioner Shift Schedules (`practitioner_schedules`)
+- `D12`: Public CMS & Announcements (`announcements`, `announcement_images`)
+- `D13`: System Configuration & Settings (`site_settings`)
+- `D14`: Dynamic Health Facility Units (`facility_units`)
+- `D15`: Security Audit Logs (`audit_logs`)
+
+### 5.5 Process Decomposition Hierarchy
 ```
-pending → approved (auto) → arrived (check-in at Front Desk) → 
-triaged (vitals recorded) → registered (linked to patient record) → done
+0.0 Silang RHU Management Information System
+  ├── 1.0 Online Appointment Scheduling & Management
+  │     ├── 1.1 OTP Email Verification
+  │     ├── 1.2 Capacity & Schedule Evaluation
+  │     ├── 1.3 Follow-up Eligibility Validation
+  │     └── 1.4 Appointment Booking & Confirmation Dispatch
+  ├── 2.0 Patient Intake, Pre-Triage & Master Registration
+  │     ├── 2.1 Pre-Triage Vitals Acquisition
+  │     ├── 2.2 Master Patient Search & Identity Matching
+  │     ├── 2.3 Pessimistic-Locked Master Registration
+  │     └── 2.4 Acuity Classification & Ticket Generation
+  ├── 3.0 Intelligent Queue Routing & Load Balancing
+  │     ├── 3.1 Practitioner Presence Verification
+  │     ├── 3.2 Algorithmic Queue Sorting & Interleaving
+  │     └── 3.3 Dynamic Wait-Time Calculation
+  ├── 4.0 Clinical Consultation & Electronic Health Records (EHR)
+  │     ├── 4.1 Medical History & Vitals Evaluation
+  │     ├── 4.2 Diagnostic & Ancillary Test Ordering
+  │     ├── 4.3 Electronic Prescription Authoring
+  │     └── 4.4 Consultation Completion & Medical Case Archiving
+  ├── 5.0 Clinical Nurse Treatment & Acuity Escalation
+  │     ├── 5.1 Minor Clinical Care & Documentation
+  │     └── 5.2 Physician Escalation Protocol
+  ├── 6.0 Ancillary Diagnostic Processing (Lab & Radiology)
+  │     ├── 6.1 3-Tab Queue Partitioning (Pending/Finished/Archive)
+  │     ├── 6.2 Standardized Clinical Result Entry & File Upload
+  │     ├── 6.3 No-Show Request Archiving & Restoration
+  │     └── 6.4 Consultation Status Update (Results Ready)
+  ├── 7.0 Pharmaceutical Inventory & E-Prescription Dispensing
+  │     ├── 7.1 Prescription Validation & Queueing
+  │     ├── 7.2 FIFO Batch Selection & Stock Deduction
+  │     └── 7.3 Inventory Reorder & Expiration Logging
+  └── 8.0 System Administration, CMS & Compliance
+        ├── 8.1 Staff Provisioning & Role Management
+        ├── 8.2 CMS Announcements & Facility Units Management
+        ├── 8.3 Operational Analytics & Telemetry Reporting
+        └── 8.4 10-Year Rolling Data Retention & Audit Logging
 ```
 
-Alternative paths: `cancelled` (by patient) | `rescheduled` (by patient)
+### 5.6 Context Diagram (Level 0 DFD)
+```mermaid
+flowchart TD
+    E1([E1: Patient / Public User]) -->|Booking Request, Demographics, OTP| P0[0.0 Silang RHU Management Information System]
+    P0 -->|Appointment Confirmation, Queue Slip, Prescription| E1
 
-### 6.8 Data Auto-Pruning
-Cancelled appointments are automatically purged from the database 12 hours after cancellation via Laravel's `Prunable` trait, keeping the index size optimized.
+    E2([E2: Vitals Nurse]) -->|Vitals, Symptoms, Allergies, Complaint| P0
+    P0 -->|Patient Vitals Intake Queue| E2
 
----
+    E3([E3: Front Desk]) -->|Patient Verification, Acuity, Queue Ticket| P0
+    P0 -->|Search Match, Unregistered Pre-Triage Records| E3
 
-## 7. Vitals Nurse / Pre-Triage Module
+    E4([E4: Attending Physician]) -->|Diagnosis, Lab Orders, Rx, Follow-up| P0
+    P0 -->|Assigned Queue, Patient EHR, Lab Results| E4
 
-**Controller:** `TriageController.php` (266 lines)  
-**Model:** `PreTriage.php` (52 lines)
+    E5([E5: Clinical Nurse]) -->|Treatment Notes, Acuity Escalation| P0
+    P0 -->|Nurse Queue, Pre-Triage Records| E5
 
-### 7.1 Purpose
-The Vitals Nurse station is the **first physical contact point** inside the clinic. Before a patient can be registered or queued, their baseline vital signs must be captured. This module creates a `PreTriage` record that flows downstream to the Front Desk and eventually into the consultation.
+    E6([E6: Lab / Radiologist]) -->|Lab/X-Ray Results, DICOM Files| P0
+    P0 -->|Pending Diagnostic Orders| E6
 
-### 7.2 Vitals Capture Fields
-| Field | Type | Validation Range |
-|---|---|---|
-| Blood Pressure | String | e.g., "120/80" |
-| Temperature (°C) | Numeric | 30–45 |
-| Weight (kg) | Numeric | 1–300 |
-| Height (cm) | Numeric | 30–250 |
-| Heart Rate (bpm) | Integer | 30–250 |
-| Respiratory Rate | Integer | 1–100 |
-| Pulse Rate (bpm) | Integer | 30–250 |
-| SpO2 / Oxygen Saturation (%) | Integer | 50–100 |
+    E7([E7: Pharmacist]) -->|Dispense Confirmation, Batch Adjustments| P0
+    P0 -->|Pending Prescriptions, Low-Stock Warnings| E7
 
-### 7.3 Additional Clinical Intake
-- **Chief Complaint** — Free-text description of the patient's primary issue
-- **Symptoms** — Detailed symptom description (required)
-- **Past Medical History** — Previous conditions and surgeries (required)
-- **Medicine Taken** — Current medications (required)
-- **Known Allergies** — Drug/food/environmental allergies (required)
-
-### 7.4 Patient Identification at Triage
-The Vitals Nurse can process patients in three ways:
-1. **Returning Patient (Search):** The nurse searches by name, patient ID, or PhilHealth number. The system returns the patient's full history including last visit date, last diagnosis, and last medications.
-2. **New Patient (Walk-in):** The nurse enters first/last name manually. A duplicate check runs against the `patients` table to prevent creating ghost records.
-3. **Appointment Patient:** The dashboard shows a list of patients with `arrived` status who haven't yet been triaged. The nurse selects them to pre-fill demographics.
-
-### 7.5 Duplicate & Conflict Prevention
-- If a patient already has a `waiting` PreTriage record today, a second entry is blocked.
-- If a patient already has an active consultation today (status not `completed`/`cancelled`), re-entry is blocked.
-
-### 7.6 Encoding Duration Tracking
-The system captures `vitals_started_at` (a frontend timestamp) and calculates `encoding_duration_seconds` on submission. This metric can be used for performance analytics on triage throughput.
-
-### 7.7 PreTriage Status Lifecycle
-
-```
-waiting → claimed (picked up by Front Desk) → completed (consultation finished)
-                                             → cancelled (patient left)
+    E8([E8: Administrator]) -->|Staff Accounts, CMS Content, Facilities, Retention Rules| P0
+    P0 -->|Analytics Telemetry, Audit Logs, Staff Metrics| E8
 ```
 
-Cancelled entries can be **restored** to the end of the queue by the Vitals Nurse.
-
 ---
 
-## 8. Front Desk & Registration Module
-
-**Controllers:** `FrontDeskController.php` (143 lines), `RegistrationController.php` (841 lines)
-
-### 8.1 Front Desk Dashboard
-The Front Desk Dashboard provides:
-- **FullCalendar Integration:** A visual calendar showing all approved/rescheduled appointments color-coded by status (teal = approved, violet = rescheduled, yellow = registered/triaged, green = done).
-- **Present Staff Panel:** Real-time display of which doctors, clinical nurses, and vitals nurses are currently marked `Present`.
-- **Queue Overview:** A dedicated page showing all active consultations for today, grouped by assigned staff member, with priority patients (Senior/PWD) sorted to the top via SQL `CASE WHEN` ordering.
-
-### 8.2 Patient Registration
-
-#### 8.2.1 New Patient Registration
-**Validation Rules:**
-- Names: Letters, spaces, periods, hyphens, ñ/Ñ only (`regex:/^[A-Za-z\s\.\-ñÑ]+$/`)
-- All name fields auto-converted to Title Case on submission
-- PhilHealth Number: Must match format `XX-XXXXXXXXX-X` (required for non-Pediatric)
-- Contact Number: Must match Philippine mobile format `09XXXXXXXXX` (required for non-Pediatric)
-- Email: RFC + DNS validation
-- Date of Birth: Must be before today
-
-**Age-Based Classification Enforcement:**
-| Classification | Age Rule |
-|---|---|
-| Pediatric | ≤ 12 years old |
-| Regular Adult | ≥ 13 years old |
-| Senior Citizen | ≥ 60 years old |
-| PWD | Any age |
-
-**Pediatric Data Branching:**
-When classification is `Pediatric`:
-- PhilHealth number is automatically re-routed to the `guardian_philhealth` field (the child doesn't have their own PhilHealth).
-- `occupation` and `civil_status` are nullified.
-- Guardian fields become mandatory: `guardian_name`, `guardian_relation`, `guardian_contact`, `guardian_philhealth`.
-
-#### 8.2.2 Patient ID Generation
-Each patient receives a unique identifier in the format: **`RHU-YYYY-XXXXX`**
-
-**Race-Condition-Safe Algorithm:**
-1. A database transaction begins with `DB::transaction()`.
-2. The system queries the latest patient created this year with `lockForUpdate()` (pessimistic locking).
-3. The 5-digit sequence is extracted and incremented.
-4. The new ID is formatted as `RHU-2026-00001`, `RHU-2026-00002`, etc.
-5. The transaction commits, releasing the lock.
-
-This ensures that even if two Front Desk terminals register patients simultaneously, no duplicate IDs are generated.
-
-#### 8.2.3 Duplicate Detection
-Before creating any new patient record, the system checks for an existing match on:
-- First Name + Last Name + Date of Birth
-
-If a match is found, the registration is blocked with an error message directing staff to use the "Old Patient" flow instead.
-
-#### 8.2.4 Appointment Auto-Linking
-When registering a patient, the system automatically searches for a matching appointment by:
-1. Checking if an `appointment_id` was explicitly provided (from the appointment queue).
-2. If not, querying today's approved/rescheduled appointments matching First Name + Last Name + DOB.
-3. If a match is found, the appointment status is updated to `registered`.
-
-### 8.3 Visit/Consultation Queuing (Returning Patients)
-For existing patients, the `storeVisit()` method handles:
-1. **Pre-Triage Linkage:** A `pre_triage_id` is always required — vitals must be recorded before queuing.
-2. **Symptom Severity Assessment:** The Front Desk selects `light`, `mild`, or `severe`.
-3. **Auto-Triage Routing:** The system automatically assigns the patient to a practitioner (see Section 9).
-4. **Queue Number Generation:** A transaction-safe, prefix-based sequence number is generated.
-5. **Duplicate Visit Prevention:** If the patient already has an active/queued consultation today, the request is rejected.
-
-### 8.4 Combined Register-and-Queue (New Patients from Triage)
-The `registerAndQueue()` method is a single-step operation for new patients who:
-1. Had their vitals recorded at the Vitals Station (creating a PreTriage record).
-2. Are now at the Front Desk for the first time.
-
-This method atomically: creates the Patient record → creates the Consultation → creates the Queue entry → marks the PreTriage as claimed → links any matching appointment.
-
-### 8.5 Appointment Check-In
-When an appointment patient physically arrives at the facility:
-- The Front Desk clicks "Check In" on the appointment card.
-- The appointment status changes to `arrived`.
-- The patient is directed to the Vitals Station.
-
-### 8.6 Queue Slip Generation
-After queuing, the system triggers `queueSlip()` which renders a print-optimized Blade view containing:
-- Patient Name
-- Queue Number (e.g., `PED-003`)
-- Assigned Practitioner Name
-- Date and Time
-- Priority Badge (if Senior/PWD/Emergency)
-
----
-
-## 9. Intelligent Queueing Engine
-
-### 9.1 Queue Number Prefix System
-The system generates queue numbers using a **Prefix + Zero-Padded Daily Sequence** format:
-
-| Prefix | Meaning | Example |
-|---|---|---|
-| `REG-` | Regular Adult Walk-in | `REG-001` |
-| `PRI-` | Priority Lane (Senior Citizen / PWD) | `PRI-001` |
-| `PED-` | Pediatric Walk-in | `PED-001` |
-| `APED-` | Pediatric Appointment (Pre-scheduled) | `APED-001` |
-| `PED-E-` | Pediatric Emergency | `PED-E-001` |
-
-### 9.2 Daily Sequence Reset
-The sequence counter resets to `001` each day automatically. The system queries only today's consultations matching the specific prefix pattern (`WHERE queue_number LIKE 'PED-%' AND DATE(consultation_date) = TODAY`). At midnight, this query returns zero results, so the next patient becomes `PED-001`.
-
-**No cron job or database truncation is required.**
-
-### 9.3 Severity-Based Auto-Triage Routing
-
-#### For Pediatric Patients:
-- **Always routed to a `pedia_doctor`** regardless of severity.
-- The system selects the Pediatrician with the fewest consultations today (load-balanced).
-- If no Pediatrician is available (`Present`), the queue is blocked with an error.
-
-#### For Adult Patients:
-| Severity | Primary Assignment | Fallback |
-|---|---|---|
-| Light | Clinical Nurse (least busy today) | Regular Doctor |
-| Mild | Load-balanced: whoever has fewer consultations today | — |
-| Severe | Regular Doctor (least busy today) | Clinical Nurse |
-
-#### For Follow-Up Patients:
-- The system checks if the patient's original follow-up doctor (stored in `followup_doctor_id`) is `Present`.
-- If present → routed to the same doctor.
-- If absent → the Front Desk receives a warning with the doctor's name and can override.
-
-### 9.4 Pediatric Walk-In Cap
-To protect appointment holders, the system enforces a **hard cap of 5 walk-in Pedia patients per day**. If the cap is reached, the Front Desk is instructed to advise the patient to book an online appointment.
-
-### 9.5 Priority Lane Interleaving (Doctor Dashboard)
-
-#### Pedia Doctor Queue Order:
-1. Active consultations (currently being seen)
-2. Emergencies (`PED-E-*`) — always first
-3. Interleaved: **2 Appointments** (`APED-*`) then **1 Walk-in** (`PED-*`), repeating
-
-#### Regular Doctor / Clinical Nurse Queue Order:
-1. Active consultations
-2. Interleaved: **2 Regular** then **1 Priority** (Senior/PWD), repeating
-
-This interleaving algorithm ensures priority patients are seen faster without completely blocking regular patients.
-
----
-
-## 10. Doctor / Clinical Consultation Module
-
-**Controller:** `DoctorController.php` (245 lines)
-
-### 10.1 Dashboard
-The Doctor Dashboard displays:
-- **Filtered Queue:** Only patients assigned to the logged-in doctor (`WHERE doctor_id = auth()->id()`).
-- **Practitioner Isolation:** A `pedia_doctor` sees only `PED-*`, `APED-*`, and `PED-E-*` queues. A `regular_doctor` sees only `REG-*` and `PRI-*` queues.
-- **Three Queue Sections:** Active (in-progress), Waiting (queued), and Awaiting Labs (paused for ancillary results).
-- **Recently Handled:** Up to 20 unique recently completed patients for quick reference.
-
-### 10.2 Starting a Consultation
-When the doctor clicks "Start Consultation":
-1. The consultation status changes from `queued` to `active`.
-2. `consultation_start_time` is recorded as `now()`.
-3. The Pre-Triage vitals are loaded and displayed alongside the patient demographics.
-4. Full **consultation history** is loaded — all previous completed consultations ordered by date descending, including their vitals snapshots.
-
-### 10.3 Clinical Documentation
-During the consultation, the doctor records:
-- **Diagnosis** (required) — Free-text diagnostic assessment
-- **Prescription** — Medications prescribed
-- **Medical Notes** — Additional observations, treatment plan
-- **Follow-Up Decision:**
-  - `is_followup_needed` (boolean checkbox)
-  - `followup_date` (required if follow-up is needed, must be today or later)
-  - `followup_reason` (required if follow-up is needed)
-  - `followup_doctor_id` — automatically set to the current doctor
-
-### 10.4 Completing a Consultation
-When the doctor submits the completed consultation:
-1. All clinical fields are saved to the `consultations` table.
-2. Vitals are **snapshotted** from the linked PreTriage record into the consultation record itself (denormalized for historical integrity even if the PreTriage record is later modified).
-3. `consultation_end_time` is recorded as `now()`.
-4. Status changes to `completed` — **this is the EHR lock point**. After this, the record becomes read-only to non-admin staff.
-5. A **MedicalCase** record is created with a unique case number (`CASE-YYYYMMDD-XXXXX`), preserving the diagnosis, prescription, and a JSON vitals snapshot as a permanent clinical archive.
-6. The linked PreTriage record status changes to `completed`.
-7. The Queue entry status changes to `Completed`.
-8. Multiple audit log entries are created tracking the completion, diagnosis, and any follow-up scheduling.
-
-### 10.5 Ancillary Request Routing
-If the doctor needs lab or imaging results mid-consultation:
-1. The doctor selects `Laboratory` or `Radiology` and enters the test name + remarks.
-2. An `AncillaryRequest` is created with status `Pending`.
-3. The consultation status changes to `awaiting_results` — the patient is paused in the doctor's queue.
-4. The patient reappears under the "Awaiting Labs" section until the ancillary staff completes the request.
-
-### 10.6 Patient History Access Control
-Doctors can only view the full historical record of a patient if that patient has an **active consultation** in the doctor's queue today. This prevents unauthorized browsing of patient data.
-
----
-
-## 11. Clinical Nurse Module
-
-**Controller:** `NurseController.php` (206 lines)
-
-### 11.1 Shared Architecture
-The Clinical Nurse module mirrors the Doctor module with near-identical functionality:
-- Same queue display logic (interleaved priority)
-- Same consultation start/complete workflow
-- Same clinical documentation fields
-- Same MedicalCase creation on completion (with case number prefix `CASE-N` to distinguish nurse-handled cases)
-- Same ancillary request capability
-
-### 11.2 Unique Capability: Forward to Doctor
-Clinical Nurses have an exclusive ability to **escalate a patient to a doctor** mid-consultation:
-1. The nurse selects a doctor from the available list.
-2. The consultation's `doctor_id` is set to the selected doctor, `nurse_id` is cleared.
-3. Status resets to `queued` and `consultation_start_time` is cleared.
-4. The patient appears fresh in the selected doctor's queue.
-
-This supports the clinical reality where a nurse assesses a patient and determines they need physician-level care.
-
----
-
-## 12. Ancillary Services Module (Laboratory & Radiology)
-
-**Controller:** `LabController.php` (36 lines)  
-**Model:** `AncillaryRequest.php` (26 lines)
-
-### 12.1 Ancillary Dashboard
-Both Laboratory and Radiology staff share the same dashboard, which displays all ancillary requests created today, ordered by most recent first. Each request shows:
-- Patient name (via `consultation.patient`)
-- Requesting doctor/nurse name
-- Test name and type (`Laboratory` or `Radiology`)
-- Current status (`Pending` or `Completed`)
-- Remarks from the requesting clinician
-
-### 12.2 Request Completion
-When the lab/radiology staff completes a test:
-1. They enter the result text.
-2. The request status changes to `completed`.
-3. The requesting doctor/nurse is notified (the consultation re-appears in their "Awaiting Labs" section, ready to be resumed).
-
-### 12.3 AncillaryRequest Schema
-| Field | Type | Description |
-|---|---|---|
-| `consultation_id` | FK | Links to the originating consultation |
-| `type` | String | `Laboratory` or `Radiology` |
-| `test_name` | String | Name of the test ordered |
-| `status` | String | `Pending` → `completed` |
-| `remarks` | Text | Doctor's notes for the lab staff |
-| `result_text` | Text | Lab/Radiology results |
-| `result_file_path` | String | Path to uploaded result image/PDF |
-
----
-
-## 13. Content Management System (CMS)
-
-**Controller:** `AdminController.php` (CMS methods)  
-**Models:** `Announcement.php`, `AnnouncementImage.php`
-
-### 13.1 Announcement Structure
-Each announcement contains:
-- **Title** and optional **Subheading**
-- **Event Date** and **Start Time** (for event-type announcements)
-- **Content** — Rich text body
-- **Main Image** — Primary hero/thumbnail image
-- **Display Type:** `list` (standard) or `carousel` (slideshow)
-- **Display Mode:** `standard` or `infographic`
-- **Status:** `draft` → `pending` → `published`
-
-### 13.2 Two-Tier Approval Flow
-1. Regular admins create announcements with default status `pending`.
-2. Only users with `super_admin` role can set status directly to `published`.
-3. Regular admins can submit for review; super admins approve.
-
-### 13.3 Rich Media Support
-Announcements support a gallery system via the `AnnouncementImage` model:
-- **Slides:** Additional images for carousel display
-- **Sections:** Content blocks with individual images, text, and layout options (`left`, `right`, `middle`)
-- **Video Support:** Both direct MP4 uploads (up to 50MB) and external video URL links
-- **Media Types:** `image`, `video_upload`, `video_link`
-
-### 13.4 Gallery Management
-- Bulk image upload on creation
-- Individual section CRUD (create, update, delete) during editing
-- Bulk section deletion with physical file cleanup
-- Sort order tracking for consistent display sequencing
-
-### 13.5 Soft Deletion & Auto-Pruning
-- Deleted announcements are soft-deleted (recoverable from Archive).
-- Announcements in trash for over 6 months are automatically pruned via the `Prunable` trait.
-
-### 13.6 Re-posting Logic
-When republishing a previously drafted/pending announcement to `published`:
-- The `created_at` timestamp is reset to `now()`, pushing it to the top of the public feed.
-
----
-
-## 14. Administration & Analytics Module
-
-**Controller:** `AdminController.php` (552 lines)
-
-### 14.1 Admin Dashboard Widgets
-The admin dashboard displays real-time operational metrics:
-- **Total Doctors** and **Present Doctors** count
-- **Present Nurses** count
-- **Today's Appointments** count
-- **Pending Data Deletion** count (expired patient records)
-- **Recent Audit Logs** — Last 10 system actions with user attribution
-
-### 14.2 Analytics Visualizations
-
-#### Visit Volume Chart (Last 7 Days)
-- Bar/line chart showing daily consultation counts.
-- Labels formatted as `Day, Month Date` (e.g., "Mon, Apr 21").
-
-#### Peak Hours Heatmap (8 AM – 5 PM)
-- Aggregates 30 days of consultation creation timestamps.
-- Groups by hour (Manila timezone) to identify the busiest periods.
-- Directly addresses the paper's 2.5-hour wait time problem by enabling data-driven staff scheduling.
-
-### 14.3 Staff Management
-Full CRUD operations for staff accounts:
-- **Create:** Name, email, password, role selection, status, schedule, optional avatar upload.
-- **Update:** All fields editable, password optional (only updated if provided).
-- **Delete:** Soft-delete (moved to archive).
-- **Status Toggle:** Quick status updates (`Present`/`Absent`/`On Leave`).
-- **Promote to Admin:** Elevate any staff member to administrator role.
-
-### 14.4 Patient Records Browser
-Administrators can browse and search the full patient registry:
-- **Search:** By first name, last name, or patient ID.
-- **Filter:** By classification (`Regular Adult`, `Senior Citizen`, `PWD`, `Pediatric`).
-- **Detail View:** Full patient profile with all historical consultations, medical cases, and linked vitals.
-- **Audit Logging:** Every access to the patient master list or individual record is logged.
-
----
-
-## 15. Archive & Data Retention Module
-
-**Controller:** `ArchiveController.php` (114 lines)
-
-### 15.1 Archive Categories
-The archive system manages two categories of soft-deleted records:
-1. **Announcements** — Soft-deleted CMS content
-2. **Staff Accounts** — Soft-deleted user accounts
-
-### 15.2 Archive Operations
-| Operation | Description |
-|---|---|
-| **View** | Browse soft-deleted records by category |
-| **Restore** | Recover a soft-deleted record to active status |
-| **Force Delete** | Permanently remove with physical file cleanup |
-
-Force deletion of announcements also removes:
-- The main image file from storage
-- All associated gallery images (physical files + database records)
-
-Force deletion of staff accounts removes the avatar image.
-
-### 15.3 Patient Data Retention
-**Controller:** `AdminController.php` (retention methods)
-
-Patient records follow a **10-year rolling retention policy**:
-- Every time a patient record is saved/updated, `expires_at` is reset to 10 years in the future.
-- The Admin Dashboard shows a count of patients whose `expires_at` has passed.
-- Administrators can:
-  - **Extend Retention:** Touch the record to push `expires_at` forward.
-  - **Force Delete:** Permanently remove the patient and all cascading records.
-
----
-
-## 16. Audit Logging System
-
-**Model:** `AuditLog.php` (35 lines)
-
-### 16.1 Log Structure
-Every audit entry captures:
-| Field | Description |
-|---|---|
-| `user_id` | The authenticated user who performed the action |
-| `action` | Human-readable action description |
-| `model_type` | The Eloquent model class affected |
-| `model_id` | The primary key of the affected record |
-| `changes` | JSON payload with relevant metadata |
-| `ip_address` | Client IP address |
-| `user_agent` | Client browser/device identifier |
-
-### 16.2 Tracked Actions
-The system silently logs the following events:
-- `Vitals Recorded` — When a Vitals Nurse captures pre-triage data
-- `Consultation Queued` — When a patient is added to the queue
-- `Consultation Completed` — When a doctor/nurse finalizes a consultation
-- `Completed Consultation (Follow-up Scheduled)` — With follow-up date metadata
-- `Patient Registered` — When a new patient record is created
-- `Viewed Patient Master List` — When an admin browses patient records
-- `Viewed Full Patient Record` — When an admin opens a specific patient's full history
-
----
-
-## 17. Database Schema Reference
-
-### 17.1 Entity Relationship Summary
+## 6. Entity Relationship Diagram (ERD) Specification
+
+### 6.1 Entity Inventory & Business Rules
+1. **`patients`**: Master demographic and medical identity record indexed by unique `patient_id`.
+2. **`consultations`**: Clinical examination records linked to attending physician, vitals, and queue.
+3. **`pre_triages`**: Physiological vitals snapshots recorded during initial nurse triage.
+4. **`medical_cases`**: Permanent, immutable legal medical case records.
+5. **`appointments`**: Online patient bookings with reference tokens.
+6. **`queues`**: Daily physical queue sequencing tickets.
+7. **`ancillary_requests`**: Diagnostic test requests with 3-tab lifecycle (`Pending`, `Done`, `archived_at`).
+8. **`prescriptions` & `prescription_items`**: Electronic prescription orders with line items.
+9. **`medicines`, `medicine_batches` & `inventory_logs`**: Multi-batch inventory with FIFO expiration enforcement.
+10. **`facility_units`**: Dynamic municipal health facilities and specialty clinics.
+11. **`announcements` & `announcement_images`**: CMS content articles and gallery sections.
+12. **`users` & `practitioner_schedules`**: Staff accounts, roles, presence heartbeat, and shift hours.
+13. **`site_settings` & `audit_logs`**: System key-value configuration and tamper-evident audit trail.
+
+### 6.2 Relational Cardinality & Integrity Rules
+- **`patients` to `consultations` (1 : N):** One patient holds many historical consultation records.
+- **`patients` to `medical_cases` (1 : N):** One patient holds many permanent case archives.
+- **`consultations` to `pre_triages` (1 : 1):** Each consultation links to exactly one pre-triage record.
+- **`consultations` to `medical_cases` (1 : 1):** Completing a consultation generates exactly one immutable medical case.
+- **`consultations` to `ancillary_requests` (1 : N):** One consultation can order multiple diagnostic tests.
+- **`consultations` to `prescriptions` (1 : 1):** One consultation produces zero or one electronic prescription.
+- **`prescriptions` to `prescription_items` (1 : N):** One prescription contains one or many prescribed drugs.
+- **`medicines` to `medicine_batches` (1 : N):** A medicine has multiple stock batches with expiration dates.
+- **`medicines` to `inventory_logs` (1 : N):** All stock movements are logged against the parent medicine.
+- **`announcements` to `announcement_images` (1 : N):** CMS articles contain multiple media sections.
+- **`users` to `audit_logs` (1 : N):** User actions generate security audit logs.
+
+### 6.3 Complete Mermaid Entity-Relationship Diagram
 
 ```mermaid
 erDiagram
-    patients ||--o{ consultations : "has many"
-    patients ||--o{ medical_cases : "has many"
-    patients ||--o{ queues : "has many"
-    users ||--o{ consultations : "doctor_id"
-    users ||--o{ consultations : "nurse_id"
-    consultations ||--o{ ancillary_requests : "has many"
-    consultations ||--|| pre_triages : "belongs to"
-    consultations ||--|| medical_cases : "creates"
-    announcements ||--o{ announcement_images : "has many"
-    users ||--o{ audit_logs : "has many"
-    appointments }|--|| pre_triages : "links to"
+    users ||--o{ consultations : "assigned_doctor"
+    users ||--o{ consultations : "assigned_nurse"
+    users ||--o{ pre_triages : "recorded_by"
+    users ||--o{ audit_logs : "performed_by"
+    users ||--o{ inventory_logs : "logged_by"
+    users ||--o{ practitioner_schedules : "has_schedule"
+    users ||--o{ ancillary_requests : "completed_by"
+
+    patients ||--o{ consultations : "attends"
+    patients ||--o{ medical_cases : "owns_cases"
+    patients ||--o{ queues : "queued_as"
+    patients ||--o{ prescriptions : "receives"
+
+    appointments }o--|| pre_triages : "links_to"
+
+    pre_triages ||--o| consultations : "provides_vitals"
+    consultations ||--|| medical_cases : "spawns_archive"
+    consultations ||--o{ ancillary_requests : "orders_tests"
+    consultations ||--o| prescriptions : "generates"
+
+    prescriptions ||--|{ prescription_items : "contains"
+    medicines ||--o{ prescription_items : "references"
+    medicines ||--|{ medicine_batches : "stocked_in"
+    medicines ||--o{ inventory_logs : "tracked_via"
+    medicine_batches ||--o{ inventory_logs : "batch_logged"
+
+    announcements ||--o{ announcement_images : "contains_media"
+
+    patients {
+        bigint id PK
+        string patient_id UK "RHU-YYYY-XXXXX"
+        string first_name
+        string middle_name
+        string last_name
+        string suffix
+        enum sex "Male, Female"
+        date dob
+        string civil_status
+        string blood_type
+        text known_allergies
+        text address
+        string barangay
+        string city_province
+        string contact_number
+        string email
+        string philhealth_number "Encrypted/Masked"
+        string classification "Adult, Senior, PWD, Pediatric"
+        string guardian_name
+        string guardian_relation
+        string guardian_contact
+        text guardian_philhealth
+        timestamp expires_at "10-Year Rolling"
+        timestamp deleted_at "SoftDeletes"
+    }
+
+    consultations {
+        bigint id PK
+        string patient_id FK
+        bigint doctor_id FK
+        bigint nurse_id FK
+        bigint pre_triage_id FK
+        date consultation_date
+        string queue_number
+        string status "queued, active, awaiting_results, results_ready, completed"
+        string severity "light, mild, severe"
+        text diagnosis
+        text prescription
+        text medical_notes
+        boolean is_followup_needed
+        date followup_date
+        string followup_reason
+        bigint followup_doctor_id FK
+        timestamp consultation_start_time
+        timestamp consultation_end_time
+        string blood_pressure
+        string temperature
+        string weight
+        string height
+        string heart_rate
+        string respiratory_rate
+        string pulse_rate
+        string spo2
+    }
+
+    pre_triages {
+        bigint id PK
+        string patient_name
+        string patient_id FK
+        bigint appointment_id FK
+        bigint recorded_by FK
+        decimal temperature
+        string blood_pressure
+        decimal weight
+        decimal height
+        int heart_rate
+        int respiratory_rate
+        int pulse_rate
+        int oxygen_saturation
+        string chief_complaint
+        text symptoms
+        text past_medical_history
+        text medicine_taken
+        text known_allergies
+        string classification
+        enum status "waiting, claimed, cancelled, completed"
+        int encoding_duration_seconds
+        boolean is_emergency
+    }
+
+    medical_cases {
+        bigint id PK
+        string case_number UK "CASE-YYYYMMDD-XXXXX"
+        string patient_id FK
+        bigint consultation_id FK
+        bigint pre_triage_id FK
+        text diagnosis
+        text prescription
+        json vitals_snapshot "Immutable Snapshot"
+        timestamp closed_at
+    }
+
+    appointments {
+        bigint id PK
+        string reference_number UK "APT-XXXXXXXX"
+        string first_name
+        string last_name
+        string email
+        string contact_number
+        enum type "pedia, adult"
+        datetime preferred_date
+        string preferred_time
+        boolean is_follow_up
+        enum status "pending, approved, rescheduled, cancelled, arrived, triaged, registered, done"
+        boolean data_privacy_agreed
+    }
+
+    queues {
+        bigint id PK
+        string patient_id FK
+        string queue_number "REG-001, PRI-001, PED-001, PED-E-001"
+        string priority_type "Regular, Senior, PWD, Emergency"
+        string service_type
+        enum status "Waiting, Called, Serving, Completed"
+        timestamp called_at
+    }
+
+    ancillary_requests {
+        bigint id PK
+        bigint consultation_id FK
+        enum type "Laboratory, Radiology"
+        string test_name
+        enum status "Pending, Done"
+        text remarks
+        json result_data "Structured Clinical Findings"
+        string result_file_path
+        bigint completed_by FK
+        timestamp completed_at
+        timestamp archived_at "No-Show Archive"
+        string archived_reason "manual, auto"
+    }
+
+    prescriptions {
+        bigint id PK
+        bigint consultation_id FK
+        string patient_id FK
+        bigint doctor_id FK
+        enum status "pending, dispensed"
+    }
+
+    prescription_items {
+        bigint id PK
+        bigint prescription_id FK
+        bigint medicine_id FK
+        string medicine_name
+        string dosage
+        string frequency
+        string duration
+        int quantity
+    }
+
+    medicines {
+        bigint id PK
+        string name
+        string generic_name
+        string form "Tablet, Syrup, Capsule"
+        string category
+        string unit
+    }
+
+    medicine_batches {
+        bigint id PK
+        bigint medicine_id FK
+        string batch_number
+        date expiration_date
+        int quantity
+        int original_quantity
+    }
+
+    inventory_logs {
+        bigint id PK
+        bigint medicine_id FK
+        bigint batch_id FK
+        string action "Added, Dispensed, Expired, Adjusted"
+        int quantity_changed
+        string remarks
+        bigint performed_by FK
+    }
+
+    facility_units {
+        bigint id PK
+        string name
+        string slug UK
+        text description
+        string category
+        string operating_hours
+        string contact_number
+        string location
+        string image_path
+        json services_offered
+        boolean is_active
+        int sort_order
+    }
+
+    users {
+        bigint id PK
+        string name
+        string email UK
+        string password
+        string role "super_admin, admin, regular_doctor, pedia_doctor, clinical_nurse, vitals_nurse, information_desk, laboratory, radiology, pharmacy"
+        string status "Present, Absent, On Leave"
+        string avatar_path
+        timestamp last_activity_at "Heartbeat Telemetry"
+        timestamp deleted_at "SoftDeletes"
+    }
+
+    announcements {
+        bigint id PK
+        string title
+        string subheading
+        date event_date
+        time start_time
+        longtext content
+        string image_path
+        string display_type "list, carousel"
+        enum display_mode "standard, infographic"
+        enum status "draft, pending, published"
+        timestamp deleted_at "SoftDeletes"
+    }
+
+    announcement_images {
+        bigint id PK
+        bigint announcement_id FK
+        string image_path
+        text video_url
+        enum layout "left, right, middle"
+        enum media_type "image, video_upload, video_link"
+        longtext content
+        int sort_order
+    }
+
+    audit_logs {
+        bigint id PK
+        bigint user_id FK
+        string action
+        string model_type
+        string model_id
+        json changes
+        string ip_address
+        text user_agent
+    }
 ```
 
-### 17.2 Complete Table Listing
+---
 
-| Table | Primary Model | Key Attributes |
+### 6.4 Comprehensive Data Dictionary & Physical Schema
+
+#### 6.4.1 Table: `patients`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary internal database ID. |
+| `patient_id` | `VARCHAR(255)` | No | Unique Index | Human-readable ID formatted as `RHU-YYYY-XXXXX`. |
+| `first_name` | `VARCHAR(255)` | No | — | First name of the patient (Title Cased). |
+| `middle_name` | `VARCHAR(255)` | Yes | — | Middle name (optional). |
+| `last_name` | `VARCHAR(255)` | No | — | Last name of the patient. |
+| `suffix` | `VARCHAR(20)` | Yes | — | Name suffix (Jr., Sr., III, etc.). |
+| `sex` | `ENUM('Male','Female')` | Yes | — | Biological sex. |
+| `dob` | `DATE` | No | — | Date of birth. |
+| `civil_status` | `VARCHAR(255)` | Yes | — | Single, Married, Widowed, etc. |
+| `blood_type` | `VARCHAR(255)` | Yes | — | A+, B+, O+, AB+, etc. |
+| `known_allergies` | `TEXT` | Yes | — | Drug, food, and environmental allergies. |
+| `address` | `TEXT` | No | — | Full street and residential address. |
+| `barangay` | `VARCHAR(255)` | Yes | — | Barangay of residence in Silang. |
+| `city_province` | `VARCHAR(255)` | No | Default: `'Silang, Cavite'` | Municipality and province. |
+| `contact_number` | `VARCHAR(255)` | Yes | — | 11-digit mobile contact number (`09XXXXXXXXX`). |
+| `email` | `VARCHAR(255)` | Yes | — | Validated email address. |
+| `philhealth_number` | `TEXT` | Yes | — | Masked/Encrypted PhilHealth ID (`XX-XXXXXXXXX-X`). |
+| `classification` | `VARCHAR(255)` | Yes | — | `Regular Adult`, `Senior Citizen`, `PWD`, `Pediatric`. |
+| `guardian_name` | `VARCHAR(255)` | Yes | — | Full name of guardian (mandatory for Pediatric). |
+| `guardian_relation` | `VARCHAR(255)` | Yes | — | Parent, Grandparent, Relative, etc. |
+| `guardian_contact` | `VARCHAR(255)` | Yes | — | Guardian mobile phone number. |
+| `guardian_philhealth` | `TEXT` | Yes | — | Guardian PhilHealth ID for pediatric coverage. |
+| `registered_by` | `BIGINT UNSIGNED` | Yes | FK &rarr; `users.id` | Front desk officer who registered the record. |
+| `expires_at` | `TIMESTAMP` | Yes | Index | 10-year rolling data retention expiration timestamp. |
+| `deleted_at` | `TIMESTAMP` | Yes | — | Soft-delete timestamp. |
+| `created_at` / `updated_at` | `TIMESTAMP` | Yes | — | Standard Laravel timestamps. |
+
+#### 6.4.2 Table: `consultations`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `patient_id` | `VARCHAR(255)` | No | FK &rarr; `patients.patient_id` | Foreign key linking patient. |
+| `doctor_id` | `BIGINT UNSIGNED` | Yes | FK &rarr; `users.id` | Attending physician ID. |
+| `nurse_id` | `BIGINT UNSIGNED` | Yes | FK &rarr; `users.id` | Attending clinical nurse ID. |
+| `pre_triage_id` | `BIGINT UNSIGNED` | Yes | FK &rarr; `pre_triages.id` | Originating pre-triage vitals record. |
+| `consultation_date` | `DATE` | Yes | Index | Calendar date of consultation. |
+| `queue_number` | `VARCHAR(255)` | No | — | Assigned ticket number (e.g., `REG-001`). |
+| `status` | `VARCHAR(255)` | No | Default: `'queued'` | `queued`, `active`, `awaiting_results`, `results_ready`, `completed`. |
+| `severity` | `VARCHAR(255)` | Yes | — | `light`, `mild`, `severe`. |
+| `diagnosis` | `TEXT` | Yes | — | Free-text clinical diagnosis. |
+| `prescription` | `TEXT` | Yes | — | Clinical prescription summary. |
+| `medical_notes` | `TEXT` | Yes | — | Treatment notes and physician observations. |
+| `is_followup_needed` | `TINYINT(1)` | No | Default: `0` | Flag indicating follow-up requirement (auto-flagged on pending labs). |
+| `followup_date` | `DATE` | Yes | — | Target return date. |
+| `followup_reason` | `VARCHAR(255)` | Yes | — | Clinical rationale for follow-up consult. |
+| `followup_doctor_id` | `BIGINT UNSIGNED` | Yes | FK &rarr; `users.id` | Doctor specified for follow-up consult. |
+| `consultation_start_time` | `TIMESTAMP` | Yes | — | Timestamp when consultation began. |
+| `consultation_end_time` | `TIMESTAMP` | Yes | — | Timestamp when consultation was completed. |
+| `blood_pressure` | `VARCHAR(255)` | Yes | — | Denormalized vitals snapshot. |
+| `temperature` | `VARCHAR(255)` | Yes | — | Denormalized vitals snapshot (°C). |
+| `weight` / `height` | `VARCHAR(255)` | Yes | — | Weight (kg) / Height (cm) snapshot. |
+| `heart_rate` / `pulse_rate` | `VARCHAR(255)` | Yes | — | Cardiac rate snapshots. |
+| `spo2` | `VARCHAR(255)` | Yes | — | Oxygen saturation snapshot. |
+
+#### 6.4.3 Table: `ancillary_requests`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `consultation_id` | `BIGINT UNSIGNED` | No | FK &rarr; `consultations.id` | Parent clinical consultation. |
+| `type` | `ENUM('Laboratory','Radiology')` | No | Index | Service diagnostic division. |
+| `test_name` | `VARCHAR(255)` | No | — | CBC, Urinalysis, Fecalysis, Blood Chemistry, X-Ray, etc. |
+| `status` | `ENUM('Pending','Done')` | No | Default: `'Pending'` | Fulfillment state. |
+| `remarks` | `TEXT` | Yes | — | Physician clinical instructions. |
+| `result_data` | `JSON` | Yes | — | Structured findings (e.g. Hemoglobin, RBC, WBC, Protein, Glucose). |
+| `result_file_path` | `VARCHAR(255)` | Yes | — | Uploaded medical scan/PDF path. |
+| `completed_by` | `BIGINT UNSIGNED` | Yes | FK &rarr; `users.id` | Laboratory/Radiology technician ID. |
+| `completed_at` | `TIMESTAMP` | Yes | Index | Time when results were submitted. |
+| `archived_at` | `TIMESTAMP` | Yes | Index | Timestamp when archived as no-show. |
+| `archived_reason` | `VARCHAR(255)` | Yes | — | `manual`, `no_show`, `expired`. |
+
+#### 6.4.4 Table: `facility_units`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `name` | `VARCHAR(255)` | No | — | Facility/Unit title (e.g., OB-GYN Unit, Lying-in Clinic). |
+| `slug` | `VARCHAR(255)` | No | Unique Index | URL slug identifier (e.g., `ob-gyn-unit`). |
+| `description` | `TEXT` | Yes | — | Detailed clinical scope and overview. |
+| `category` | `VARCHAR(255)` | Yes | — | General Medicine, Maternity, Women's Health, Dental, etc. |
+| `operating_hours` | `VARCHAR(255)` | Yes | — | e.g. "Mon - Fri: 8:00 AM - 5:00 PM" or "24/7". |
+| `contact_number` | `VARCHAR(255)` | Yes | — | Direct phone/extension number. |
+| `location` | `VARCHAR(255)` | Yes | — | Physical building location / room number. |
+| `image_path` | `VARCHAR(255)` | Yes | — | Photo banner asset path. |
+| `services_offered` | `JSON` | Yes | — | Structured list of clinical services. |
+| `is_active` | `TINYINT(1)` | No | Default: `1` | Visibility toggle on public web portal. |
+| `sort_order` | `INT` | No | Default: `0` | Display sorting priority. |
+
+#### 6.4.5 Table: `prescriptions` & `prescription_items`
+| Table | Column | Type | Constraints | Description |
+|---|---|---|---|---|
+| `prescriptions` | `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `prescriptions` | `consultation_id` | `BIGINT UNSIGNED` | FK &rarr; `consultations.id` | Linked consultation visit. |
+| `prescriptions` | `patient_id` | `VARCHAR(255)` | FK &rarr; `patients.patient_id` | Patient reference. |
+| `prescriptions` | `doctor_id` | `BIGINT UNSIGNED` | FK &rarr; `users.id` | Authoring physician. |
+| `prescriptions` | `status` | `ENUM('pending','dispensed')` | Default: `'pending'` | Pharmacy fulfillment state. |
+| `prescription_items` | `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `prescription_items` | `prescription_id` | `BIGINT UNSIGNED` | FK &rarr; `prescriptions.id` | Parent prescription record. |
+| `prescription_items` | `medicine_id` | `BIGINT UNSIGNED` | FK &rarr; `medicines.id` | Master medicine catalog link. |
+| `prescription_items` | `medicine_name` | `VARCHAR(255)` | — | Prescribed drug name. |
+| `prescription_items` | `dosage` | `VARCHAR(255)` | — | e.g., "500mg". |
+| `prescription_items` | `frequency` | `VARCHAR(255)` | — | e.g., "3x daily after meals". |
+| `prescription_items` | `duration` | `VARCHAR(255)` | — | e.g., "7 days". |
+| `prescription_items` | `quantity` | `INT` | — | Total unit count prescribed. |
+
+#### 6.4.6 Table: `medicines`, `medicine_batches` & `inventory_logs`
+| Table | Column | Type | Constraints | Description |
+|---|---|---|---|---|
+| `medicines` | `id` | `BIGINT UNSIGNED` | PK | Catalog item identifier. |
+| `medicines` | `name` | `VARCHAR(255)` | — | Brand / Trade name. |
+| `medicines` | `generic_name` | `VARCHAR(255)` | — | Official generic pharmacological name. |
+| `medicines` | `form` | `VARCHAR(255)` | — | Tablet, Syrup, Capsule, Ampule, etc. |
+| `medicines` | `category` / `unit` | `VARCHAR(255)` | — | Classification and unit of measurement. |
+| `medicine_batches` | `id` | `BIGINT UNSIGNED` | PK | Batch identifier. |
+| `medicine_batches` | `medicine_id` | `BIGINT UNSIGNED` | FK &rarr; `medicines.id` | Master catalog reference. |
+| `medicine_batches` | `batch_number` | `VARCHAR(255)` | — | Manufacturer batch/lot code. |
+| `medicine_batches` | `expiration_date` | `DATE` | Index | Expiration date for FIFO enforcement. |
+| `medicine_batches` | `quantity` | `INT` | — | Current remaining available units. |
+| `medicine_batches` | `original_quantity` | `INT` | — | Initial stock upon receipt. |
+| `inventory_logs` | `id` | `BIGINT UNSIGNED` | PK | Inventory log entry ID. |
+| `inventory_logs` | `medicine_id` | `BIGINT UNSIGNED` | FK &rarr; `medicines.id` | Target medicine item. |
+| `inventory_logs` | `batch_id` | `BIGINT UNSIGNED` | FK &rarr; `medicine_batches.id` | Affected batch record. |
+| `inventory_logs` | `action` | `VARCHAR(255)` | — | `Added`, `Dispensed`, `Expired`, `Adjusted`. |
+| `inventory_logs` | `quantity_changed` | `INT` | — | Signed integer count delta (+/-). |
+| `inventory_logs` | `performed_by` | `BIGINT UNSIGNED` | FK &rarr; `users.id` | Staff member executing action. |
+
+---
+
+## 7. Technical, Hardware, Software & Environmental Specifications
+
+### 7.1 Software Specification
+
+The system operates across production and client layers requiring the following software environments:
+
+| Software Category | Specification / Component | Version / Requirement | Function & Scope |
+|---|---|---|---|
+| **Server Operating System** | Ubuntu Server LTS / Debian GNU Linux / Windows Server | Ubuntu 22.04+ / Windows Server 2022+ | Primary server host operating system. |
+| **Client Operating System** | Windows / macOS / Linux / Android / iOS | Windows 10/11, macOS 12+, iOS 15+, Android 10+ | Departmental workstations and patient mobile browsers. |
+| **Web Server** | Nginx / Apache HTTP Server / Caddy | Nginx 1.22+ or Apache 2.4+ with `mod_rewrite` | Reverse proxy, SSL/TLS termination, HTTP/2 gateway. |
+| **Database Server** | MySQL Community Server / MariaDB Enterprise | MySQL 8.0.30+ / MariaDB 10.6+ | Relational engine utilizing InnoDB row-level locking. |
+| **PHP Runtime Environment** | PHP Engine (CLI & FPM) | PHP 8.2.0 – PHP 8.3.x | Core back-end script execution engine. |
+| **Mandatory PHP Extensions** | `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `gd` / `imagick`, `json`, `mbstring`, `openssl`, `pcre`, `pdo_mysql`, `session`, `tokenizer`, `xml` | Standard PHP Core Extensions | Cryptography, image manipulation, XML parsing, database abstraction. |
+| **Package / Dependency Managers** | Composer & Node.js / NPM | Composer 2.7+, Node.js 18.x/20.x LTS, NPM 10.x | PHP package resolution and frontend asset compilation. |
+| **Supported Web Browsers** | Google Chrome, Mozilla Firefox, Microsoft Edge, Apple Safari | Chromium 110+, Firefox 115+ ESR, Safari 16+ | HTML5, CSS Grid, Alpine.js, WebSockets compatibility. |
+| **Developer / DevOps Tools** | Git, VS Code, Postman, Vite 5.x, Artisan CLI | Latest Stable | Source control, API testing, build optimization. |
+
+---
+
+### 7.2 Hardware Specification
+
+#### 7.2.1 Central On-Premise / Cloud Server Hardware
+To comfortably sustain municipal load during peak hours (300+ daily patient visits, concurrent diagnostic uploads, and real-time queue broadcasting):
+
+| Hardware Component | Minimum System Requirements | Recommended Production Specifications |
 |---|---|---|
-| `patients` | Patient | `patient_id` (RHU-YYYY-XXXXX), classification, PhilHealth, guardian info, expires_at |
-| `consultations` | Consultation | queue_number, status lifecycle, diagnosis, prescription, vitals snapshot, follow-up fields |
-| `queues` | Queue | queue_number, priority_type, service_type, status |
-| `pre_triages` | PreTriage | patient_name, all vitals, symptoms, history, status, encoding_duration |
-| `appointments` | Appointment | reference_number, type (pedia/adult), preferred_date, status lifecycle, is_follow_up |
-| `medical_cases` | MedicalCase | case_number, diagnosis, prescription, vitals_snapshot (JSON) |
-| `ancillary_requests` | AncillaryRequest | type (Lab/Radiology), test_name, status, result_text |
-| `users` | User | role (9 types), status (Present/Absent), avatar_path, schedule |
-| `announcements` | Announcement | title, content, status (draft/pending/published), display_type, display_mode |
-| `announcement_images` | AnnouncementImage | image_path, content, layout, sort_order, type, media_type |
-| `medicines` | Medicine | name, generic_name, form |
-| `services` | Service | name, slug, description, steps (JSON) |
-| `audit_logs` | AuditLog | action, model_type, model_id, changes (JSON), ip_address |
+| **Processor (CPU)** | Quad-Core 2.4 GHz (Intel Xeon / AMD EPYC / Core i5) | Octa-Core 3.2 GHz+ (Intel Xeon Silver / AMD EPYC 7002 series) |
+| **System Memory (RAM)** | 8 GB DDR4 ECC RAM | 16 GB – 32 GB DDR4/DDR5 ECC RAM |
+| **Storage Subsystem** | 256 GB SATA SSD | 512 GB – 1 TB NVMe M.2 SSD (RAID 1 Mirroring for redundancy) |
+| **Network Interface Card (NIC)** | 1x 100/1000 Mbps Gigabit Ethernet | 2x 1 Gbps / 10 Gbps Redundant Gigabit LAN |
+| **Power Supply & Backup** | Standard ATX with 650VA UPS | Dual Redundant Hot-Swap PSU + 1500VA Online Smart UPS (2-hr runtime) |
+| **Backup Storage** | External 1 TB USB 3.0 HDD | Automated Daily Network-Attached Storage (NAS) / Off-site Cloud S3 |
+
+#### 7.2.2 Departmental Client Workstations & Peripherals
+
+| Department / Station | Hardware Specifications | Required Peripherals & Interfaces |
+|---|---|---|
+| **Front Desk & Registration** | Intel Core i3 / Ryzen 3, 8 GB RAM, 256 GB SSD, 21.5" Full HD Display | USB Thermal Queue Slip Printer (80mm), 2D QR/Barcode Scanner, High-speed LAN. |
+| **Vitals & Triage Station** | Intel Core i3, 8 GB RAM, 128 GB SSD, All-in-One Touch Terminal | USB Digital BP Interface, Pulse Oximeter, Medical Document Scanner. |
+| **Doctor Consultation Rooms** | Intel Core i5, 8 GB RAM, 256 GB SSD, Dual Monitor Setup (24" IPS) | Laser Prescription / Medical Certificate Printer, Quiet Keyboard/Mouse. |
+| **Clinical Nurse Stations** | Intel Core i3 / i5, 8 GB RAM, 256 GB SSD, 21.5" Display | Thermal Slip Printer, Local LAN Connection. |
+| **Laboratory Diagnostic Desk** | Intel Core i5 / i7, 16 GB RAM, 512 GB SSD, 24" Color-Calibrated Display | Automated Hematology Analyzer Serial/USB interface, Barcode Label Printer. |
+| **Radiology / Imaging Suite** | Intel Core i7, 16 GB RAM, 512 GB NVMe SSD, High-Resolution 2K/4K Medical Display | DICOM/PACS Gateway interface, Flatbed Medical Film Scanner. |
+| **Pharmacy & Dispensary** | Intel Core i3, 8 GB RAM, 256 GB SSD, 21.5" Display | Handheld Barcode Scanner, Thermal Medicine Label Printer. |
+| **Waiting Area Public Displays** | Mini PC / Raspberry Pi 4 / Intel NUC (4GB RAM) | 55"–65" 4K Smart TV / HDMI Digital Signage Monitor for Queue Calling. |
 
 ---
 
-## 18. Data Privacy & Compliance
+### 7.3 Program Specification
 
-### 18.1 PhilHealth ID Masking (RA 10173)
-The system dynamically masks PhilHealth numbers on all non-essential displays using a Laravel accessor:
-- **Input:** `12-123456789-0`
-- **Masked Output:** `12-*****6789-0`
+#### 7.3.1 Architectural Paradigm & Design Patterns
+- **Layered Model-View-Controller (MVC):** Strict segregation of concerns where Models encapsulate data logic and ORM relations, Controllers handle HTTP requests and validation, and Blade Views render clean presentation markup.
+- **Event-Driven Asynchronous Architecture:** Utilizes Laravel Events & Broadcasting (`QueueUpdated`) paired with database queue workers for non-blocking notifications.
+- **Transactional Pessimistic Locking:** Critical sections (Patient ID generation, daily queue numbering, inventory dispensing) execute inside database transactions (`DB::transaction()`) using `lockForUpdate()` to prevent race conditions.
 
-For Pediatric patients, the guardian's PhilHealth number is used instead of the child's (who typically doesn't have one).
+#### 7.3.2 Security, Encryption & Integrity Subsystem
+- **Password Cryptography:** Enforces Bcrypt algorithm with work factor 12 (`$2y$12$`).
+- **CSRF Defense:** Cross-Site Request Forgery tokens validated on all `POST`, `PUT`, `PATCH`, and `DELETE` requests.
+- **SQL Injection Immunization:** 100% of database queries route through Eloquent ORM or parameterized PDO prepared statements.
+- **XSS Neutralization:** Blade auto-escaping (`{{ $data }}`) cleanses user input; raw HTML rendered only where sanitized.
+- **Role-Based Access Control (RBAC):** Middleware-enforced route guards (`RoleMiddleware::class . ':doctor,admin'`) prevent horizontal and vertical privilege escalation.
 
-### 18.2 Patient Record Expiration
-All patient records carry an `expires_at` timestamp, initially set to 10 years from the most recent interaction. This complies with standard healthcare data retention policies.
+#### 7.3.3 Core Subsystem & Algorithmic Specifications
 
-### 18.3 EHR State Locking
-Once a consultation status reaches `completed`, the clinical data (diagnosis, prescription, vitals) becomes functionally immutable to non-admin users. This ensures the legal integrity of the medical record for audit purposes.
-
-### 18.4 Session Security
-- Session regeneration on login prevents session fixation.
-- CSRF token regeneration on logout prevents token reuse.
-- Progressive rate limiting prevents brute-force credential attacks.
-
----
-
-## 19. Recent System Updates (Version 1.1)
-
-The following updates were recently implemented to improve system stability, user experience, and accuracy for the capstone defense:
-
-1. **Staff Presence & Management Enhancements**
-   - **Manual Presence Override:** Updated the `User` model's presence logic (`isPresent()`) to prioritize a manual `Present` status over strict schedule checks. This fixes the issue where staff members appeared as "absent" outside their scheduled operating hours.
-   - **Demo Mode Synchronization:** Ensured that the `Presence` logic properly acknowledges "System Demo Mode" when evaluating heartbeat timestamps, avoiding timeouts during presentations.
-   - **Staff Modal Scope Fix:** Audited and corrected Alpine.js scoping issues within the Staff Management `index.blade.php` to ensure the "Add Staff" modal properly instantiates data and renders fields correctly.
-
-2. **User Interface & Analytics**
-   - **KPI Tooltips:** Integrated custom Alpine.js-powered tooltips on all KPI statistics cards (Dashboard) to provide users with clear contextual explanations on hover.
-   - **Triage Dashboard Layout:** Re-aligned the Triage Dashboard vitals entry grid and corrected the placement of the "Waiting" queue tab to ensure a more intuitive data-entry flow.
-   - **Role-Specific Productivity Metrics:** Refactored the `AdminController` analytics logic to cleanly separate "Average Consultation Duration" (Doctors only) and "Triage Encoding Speed" (Vitals Nurses only), preventing skewed reporting.
-
-3. **Medical Record Management**
-   - **Selective Case Printing:** Enhanced the Patient Record UI (`show.blade.php`) by implementing Alpine.js checkbox selections for individual medical cases.
-   - **Print Formatting:** Implemented robust `@media print` CSS rules to hide interactive sidebars and statistics during print actions, replacing them with a dedicated, professional "Medical Record Header".
-   - ***Upcoming* ITR PDF Template:** Planned the migration of basic window printing to a dedicated Individual Treatment Record (ITR) PDF batch generator route for comprehensive official documentation.
+1. **Patient Master Index (MPI) Algorithm:**
+   - Evaluates composite identity: `first_name` + `last_name` + `dob`.
+   - Generates deterministic, collision-free identifiers: `RHU-YYYY-XXXXX` (e.g. `RHU-2026-00142`).
+2. **Algorithmic Priority Queueing Engine:**
+   - Evaluates patient classification (Adult vs Pediatric), acuity severity (`light`, `mild`, `severe`), and appointment status.
+   - Enforces 2:1 priority interleaving for Senior/PWD and 2:1 appointment-to-walk-in interleaving for Pediatrics.
+   - Priority `PED-E` emergency override bypasses all queues directly to active examination rooms.
+   - Dynamic wait-time computation formats durations in minutes when $< 60$ mins and hours (`1h 15m wait`) when $\ge 60$ mins.
+3. **Closed-Loop Diagnostic Ancillary Engine:**
+   - 3-tab lifecycle management: `Pending` $\rightarrow$ `Done` / `Archived`.
+   - If a consultation finishes with pending lab orders, the system automatically sets `is_followup_needed = true` and logs target return dates.
+   - When lab findings are submitted, waiting consultations transition to `results_ready` and move to the front of the doctor's queue.
+4. **FIFO Pharmaceutical Inventory & E-Prescribing Engine:**
+   - Real-time stock availability lookup during consultation.
+   - Dispensing allocates units against the earliest expiring active batch (`medicine_batches.expiration_date ASC`).
+   - Automated stock decrementing with signed integer audit trail logging (`inventory_logs`).
+5. **Dynamic Health Facility CMS Engine:**
+   - `FacilityUnit` model provides dynamic database-backed routing (`/units/{slug}`).
+   - Admins can provision new health units (e.g., OB-GYN, Physical Therapy) with operating hours, services offered, and contact details via CMS without code changes.
+6. **Regulatory Compliance & Retention Engine:**
+   - Implements 10-year rolling expiration (`patients.expires_at`).
+   - Implements `MedicalCase` legal immutability with immutable JSON vitals snapshots.
 
 ---
 
-*End of Detailed System Documentation*
+### 7.4 Programming Environment
+
+#### 7.4.1 Front End Environment & Tooling
+- **Blade Templating Engine:** Component-driven layout inheritance (`layouts.app`, `layouts.doctor`, `layouts.admin`), slot injection, and server-side view composition.
+- **Tailwind CSS (v3.4+):** Utility-first CSS framework compiled via PostCSS and Vite. Implements custom medical design tokens, dark mode classes (`dark:`), HSL color harmonies, and print stylesheets (`@media print`) for clinical ITRs and queue slips.
+- **Alpine.js (v3.x):** Reactive client-side component framework managing modal lifecycles, real-time input masking, tab switching (e.g. 3-tab Lab dashboard), client-side search filtering, and prescription form builders.
+- **Chart.js (v4.x):** JavaScript charting library powering administrative analytics (epidemiological bar charts, patient hourly heatmaps, staff productivity donuts).
+- **Cropper.js & HTML5 Canvas:** Client-side image cropping and avatar processing prior to multipart upload.
+- **Vite (v5.x):** Next-generation frontend build tool providing Hot Module Replacement (HMR) during development and production minification.
+
+#### 7.4.2 Back End Environment & Architecture
+- **PHP 8.2+ Runtime:** Utilizes modern PHP features including typed class properties, union types, match expressions, constructor property promotion, and readonly classes.
+- **Laravel 12.x Framework:** Enterprise MVC framework providing:
+  - *Eloquent ORM:* Active-record database abstraction with eager loading (`with()`), query scopes (`active()`, `ordered()`), and JSON casting.
+  - *Routing & Middleware:* Clean RESTful route definitions grouped by prefix and protected by role middleware.
+  - *Validation Engine:* Robust server-side request validation with custom regex rules (Philippine mobile numbers `09XXXXXXXXX`, PhilHealth formats `XX-XXXXXXXXX-X`).
+  - *Queue & Job Dispatcher:* Asynchronous worker processing emails and heavy tasks.
+  - *Storage Abstraction:* File storage handling public uploads and diagnostic attachments.
+- **MySQL 8.x Engine:** Relational database configured with InnoDB storage engine, UTF-8 MB4 charset, foreign key constraints with cascade/restrict rules, and B-Tree indexing on query-heavy columns (`patient_id`, `created_at`, `status`, `expires_at`).
+
+---
+
+## 8. Security, Privacy, and Regulatory Compliance
+
+### 8.1 Data Privacy Act of 2012 (RA 10173) Compliance
+- **Dynamic Masking of PhilHealth Numbers:** PhilHealth identifiers are masked on all operational views (`XX-*****XXXX-X`), decryptable only upon authorized administrative inspection.
+- **Pediatric Guardian Association:** Minors do not possess independent PhilHealth accounts; pediatric records route PhilHealth coverage strictly through validated guardian links.
+- **Role-Gated Clinical Access:** Practitioners can view historical patient medical records only when that patient holds an **active, queued consultation** assigned to their station for that day.
+
+### 8.2 Electronic Health Record (EHR) Legal Immutability
+- Once a consultation transitions to `completed`, its clinical data fields (`diagnosis`, `prescription`, `vitals_snapshot`) are locked.
+- A corresponding immutable `MedicalCase` is stamped with a system timestamp (`closed_at`), creating a legally defensible medical audit trail.
+
+### 8.3 Data Retention & Archival Policy
+- **10-Year Rolling Retention:** Complies with Philippine Department of Health (DOH) clinical archiving mandates. Every update touches `expires_at` to extend retention 10 years forward.
+- **Graceful Soft-Deletion:** Staff accounts and CMS articles utilize soft deletion (`deleted_at`), enabling administrator restoration from the Archive vault.
+- **Automated Garbage Collection:** Cancelled appointments are auto-purged after 12 hours, while trashed announcements are purged after 6 months via Laravel's scheduled `Prunable` worker.
+
+---
+
+## 9. System Changelog & Recent Enhancements
+
+### Version 2.1 (August 2026)
+- **Technical & Environmental Specifications:** Full integration of Software, Hardware, Program, and Programming Environment (Front End & Back End) specifications.
+- **Dynamic CMS Health Facility Units:** Database-backed `facility_units` table and CRUD panel allowing dynamic provisioning of municipal health units (e.g. OB-GYN, Dental, Animal Bite Center).
+- **Laboratory / Radiology 3-Tab Interface:** Partitioned workflow into `Pending`, `Finished` (last 7 days), and `Archive` (no-shows) with 1-click restore functionality.
+- **Physical Laboratory Form Parity:** Standardized structured entry for Hematology/CBC, Blood Typing, Urinalysis, Fecalysis, Blood Chemistry, and Radiology Normal Chest Presets.
+- **Queue Wait-Time Format Enhancement:** Auto-conversion of wait-time indicators to hours (`1h 15m wait`) when waiting exceeds 60 minutes.
+- **Consultation & Ancillary Lifecycle Automation:** Premature completion of consultations with pending diagnostic tests automatically flags patients for follow-up and brings them to the front of the queue upon result readiness.
+
+---
+
+*End of Detailed System Documentation — Silang RHU Management Information System*

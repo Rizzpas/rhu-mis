@@ -125,17 +125,30 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             @foreach($units as $index => $unit)
                 @php
-                    $m = $unitMeta[$unit['slug']] ?? [
-                        'category' => 'primary',
+                    $uSlug = is_array($unit) ? $unit['slug'] : $unit->slug;
+                    $uName = is_array($unit) ? $unit['name'] : $unit->name;
+                    $uDesc = is_array($unit) ? ($unit['desc'] ?? $unit['description'] ?? '') : ($unit->description ?? '');
+                    $uCategory = is_array($unit) ? ($unit['category'] ?? 'primary') : ($unit->category ?? 'primary');
+                    $uHours = is_array($unit) ? ($unit['operating_hours'] ?? null) : $unit->operating_hours;
+                    $uServices = is_array($unit) ? ($unit['services_offered'] ?? null) : $unit->services_offered;
+
+                    $m = $unitMeta[$uSlug] ?? [
+                        'category' => strtolower($uCategory) == 'maternity' || strtolower($uCategory) == 'women\'s health' ? 'maternal' : (strtolower($uCategory) == 'general medicine' || strtolower($uCategory) == 'dental care' ? 'primary' : 'specialized'),
                         'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
-                        'badge' => 'Health Facility',
-                        'status' => 'Mon - Fri | 8:00 AM - 5:00 PM',
-                        'tags' => ['Healthcare', 'Checkup'],
+                        'badge' => $uCategory ?: 'Health Facility',
+                        'status' => $uHours ?: 'Mon - Fri | 8:00 AM - 5:00 PM',
+                        'tags' => is_array($uServices) && count($uServices) > 0 ? array_slice($uServices, 0, 4) : ['Healthcare', 'Checkup'],
                         'highlight' => 'Public Service',
                     ];
+                    if ($uHours) {
+                        $m['status'] = $uHours;
+                    }
+                    if (is_array($uServices) && count($uServices) > 0) {
+                        $m['tags'] = array_slice($uServices, 0, 4);
+                    }
                 @endphp
 
-                <div x-show="matchesFilter('{{ $m['category'] }}', '{{ addslashes($unit['name']) }}', '{{ addslashes($unit['desc']) }}', {{ json_encode($m['tags']) }})"
+                <div x-show="matchesFilter('{{ $m['category'] }}', '{{ addslashes($uName) }}', '{{ addslashes($uDesc) }}', {{ json_encode($m['tags']) }})"
                      class="group flex flex-col justify-between rounded-2xl p-7 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:shadow-md transition-all duration-200">
                     
                     <div>
@@ -154,10 +167,10 @@
 
                         {{-- Facility Title & Description --}}
                         <h3 class="font-display text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                            {{ $unit['name'] }}
+                            {{ $uName }}
                         </h3>
                         <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 font-normal">
-                            {{ $unit['desc'] }}
+                            {{ $uDesc }}
                         </p>
 
                         {{-- Key Service Tags --}}
@@ -175,7 +188,7 @@
                         <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">
                             Silang RHU
                         </span>
-                        <a href="{{ route('units.show', $unit['slug']) }}" 
+                        <a href="{{ route('units.show', $uSlug) }}" 
                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-xs transition-colors cursor-pointer">
                             View Clinical Guide
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>

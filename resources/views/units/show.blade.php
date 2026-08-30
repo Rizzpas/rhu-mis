@@ -40,15 +40,31 @@
         ],
     ];
 
-    $m = $unitMeta[$unit['slug']] ?? [
+    $uSlug = is_array($unit) ? $unit['slug'] : $unit->slug;
+    $uName = is_array($unit) ? $unit['name'] : $unit->name;
+    $uDesc = is_array($unit) ? ($unit['desc'] ?? $unit['description'] ?? '') : ($unit->description ?? '');
+    $uCategory = is_array($unit) ? ($unit['category'] ?? null) : $unit->category;
+    $uHours = is_array($unit) ? ($unit['operating_hours'] ?? null) : $unit->operating_hours;
+    $uContact = is_array($unit) ? ($unit['contact_number'] ?? null) : $unit->contact_number;
+    $uLocation = is_array($unit) ? ($unit['location'] ?? null) : $unit->location;
+    $uServices = is_array($unit) ? ($unit['services_offered'] ?? []) : ($unit->services_offered ?? []);
+
+    $m = $unitMeta[$uSlug] ?? [
         'icon' => '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
-        'badge' => 'Silang RHU Facility',
-        'status' => 'Mon - Fri | 8:00 AM - 5:00 PM',
+        'badge' => $uCategory ?: 'Silang RHU Facility',
+        'status' => $uHours ?: 'Mon - Fri | 8:00 AM - 5:00 PM',
         'coverage' => 'Public Healthcare Service',
         'requirements' => ['Valid ID', 'Medical Documents'],
     ];
 
-    $steps = \App\Models\SiteSetting::getJson('steps_data_' . $unit['slug'], [
+    if ($uCategory) {
+        $m['badge'] = $uCategory;
+    }
+    if ($uHours) {
+        $m['status'] = $uHours;
+    }
+
+    $steps = \App\Models\SiteSetting::getJson('steps_data_' . $uSlug, [
         ['title' => 'Admission & Triage Check-in', 'description' => 'Present your records or valid ID at the admission desk. Initial health assessment and digital record retrieval are completed promptly.', 'time' => '~5 mins', 'tip' => 'Bring a valid ID and any previous medical records.'],
         ['title' => 'Clinical Monitoring & Vitals', 'description' => 'Our registered nurses and medical staff will record your vital signs, history, and perform preliminary clinical screening.', 'time' => '~5-10 mins', 'tip' => 'Wear comfortable clothing for quick and accurate examination.'],
         ['title' => 'Doctor / Practitioner Consultation', 'description' => 'Meet with the attending physician or specialist for dedicated diagnosis, treatment execution, and e-prescription issuance.', 'time' => '~15 mins', 'tip' => 'List your current symptoms and maintenance medications beforehand.'],
@@ -96,7 +112,7 @@
                         </div>
                         <div>
                             <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                                {{ $unit['name'] }}
+                                {{ $uName }}
                             </h1>
                             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
                                 Republic of the Philippines • Municipality of Silang, Cavite
@@ -105,7 +121,7 @@
                     </div>
 
                     <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-normal leading-relaxed max-w-3xl">
-                        {{ $unit['desc'] }}
+                        {{ $uDesc }}
                     </p>
                 </div>
 

@@ -76,6 +76,7 @@ use App\Http\Middleware\RoleMiddleware;
 Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class.':admin,information_desk'])->group(function () {
     Route::get('/registration', [RegistrationController::class, 'index'])->name('frontdesk.registration.index');
     Route::get('/registration/search', [RegistrationController::class, 'searchJson'])->name('frontdesk.registration.search');
+    Route::get('/registration/queue-json', [RegistrationController::class, 'queueJson'])->name('frontdesk.registration.queue-json');
     Route::post('/patients', [RegistrationController::class, 'storePatient'])->name('frontdesk.patients.store');
     Route::put('/patients/{patient}', [RegistrationController::class, 'updatePatient'])->name('frontdesk.patients.update');
     Route::post('/patients/{patient}/visits', [RegistrationController::class, 'storeVisit'])->name('frontdesk.visits.store');
@@ -158,6 +159,11 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_
     // Content Management
     Route::get('/content', [AdminController::class, 'contentIndex'])->name('admin.content.index');
     Route::put('/content', [AdminController::class, 'contentUpdate'])->name('admin.content.update');
+
+    // Dynamic Health Facilities / Units CMS
+    Route::post('/facilities', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'store'])->name('admin.facilities.store');
+    Route::put('/facilities/{facility}', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'update'])->name('admin.facilities.update');
+    Route::delete('/facilities/{facility}', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'destroy'])->name('admin.facilities.destroy');
 });
 
 // Doctor Routes (regular_doctor + pedia_doctor)
@@ -214,6 +220,8 @@ use App\Http\Controllers\LabController;
 Route::prefix('lab')->middleware(['auth', RoleMiddleware::class.':laboratory,radiology'])->group(function () {
     Route::get('/dashboard', [LabController::class, 'dashboard'])->name('lab.dashboard');
     Route::post('/ancillary/{ancillary}/complete', [LabController::class, 'completeRequest'])->name('lab.ancillary.complete');
+    Route::post('/ancillary/{ancillary}/archive', [LabController::class, 'archiveRequest'])->name('lab.ancillary.archive');
+    Route::post('/ancillary/{ancillary}/restore', [LabController::class, 'restoreRequest'])->name('lab.ancillary.restore');
 });
 
 // Pharmacy Routes

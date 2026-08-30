@@ -506,12 +506,12 @@
     @include('partials.idle-timeout')
     @include('partials.heartbeat')
 
-        <!-- Dynamic SPA & Polling Script -->
+    <!-- Polling Engine Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const dynamicBlocks = document.querySelectorAll('[data-dynamic-block="true"]');
             
-            // 1. Polling Engine (every 15s)
+            // Polling Engine (every 15s)
             if (dynamicBlocks.length > 0) {
                 setInterval(async () => {
                     try {
@@ -531,56 +531,6 @@
                         });
                     } catch (error) {}
                 }, 15000);
-            }
-
-            // 2. SPA Interceptor for Pagination Links
-            document.addEventListener('click', async function(e) {
-                const link = e.target.closest('a');
-                if (!link) return;
-                
-                const dynamicBlock = link.closest('[data-dynamic-block="true"]');
-                // Check if it's a pagination link pointing to the same route
-                if (dynamicBlock && link.href && link.hostname === window.location.hostname && link.pathname === window.location.pathname && link.href.includes('page=')) {
-                    e.preventDefault();
-                    await fetchDynamicContent(link.href, dynamicBlock);
-                }
-            });
-
-            // 3. SPA Interceptor for Jump To Forms
-            document.addEventListener('submit', async function(e) {
-                const form = e.target;
-                const dynamicBlock = form.closest('[data-dynamic-block="true"]');
-                if (dynamicBlock && form.method.toLowerCase() === 'get' && new URL(form.action).pathname === window.location.pathname) {
-                    e.preventDefault();
-                    const url = new URL(form.action);
-                    new FormData(form).forEach((v, k) => url.searchParams.set(k, v));
-                    await fetchDynamicContent(url.toString(), dynamicBlock);
-                }
-            });
-
-            async function fetchDynamicContent(targetUrl, block) {
-                // Optional: add a slight opacity to show loading state
-                const originalOpacity = block.style.opacity;
-                block.style.opacity = '0.5';
-                block.style.pointerEvents = 'none';
-                
-                try {
-                    const response = await fetch(targetUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                    if (!response.ok) return;
-                    const html = await response.text();
-                    const doc = new DOMParser().parseFromString(html, 'text/html');
-                    
-                    const newBlock = doc.getElementById(block.id);
-                    if (newBlock) {
-                        block.innerHTML = newBlock.innerHTML;
-                    }
-                    window.history.pushState({}, '', targetUrl);
-                } catch (error) {
-                    window.location.href = targetUrl;
-                } finally {
-                    block.style.opacity = originalOpacity;
-                    block.style.pointerEvents = 'auto';
-                }
             }
         });
     </script>

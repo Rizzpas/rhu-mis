@@ -1,90 +1,294 @@
 {{-- Dashboard Layout Loading Skeleton --}}
 <div id="global-skeleton-loader" 
-     class="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 transition-opacity duration-500 ease-in-out pointer-events-none"
+     class="fixed inset-0 z-[9999] bg-gray-100 dark:bg-gray-900 transition-opacity duration-300 ease-in-out pointer-events-none flex overflow-hidden"
      style="opacity: 1;"
 >
-    <!-- Topbar Skeleton -->
-    <div class="h-16 w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 flex items-center justify-between px-4 sm:px-6">
-        <div class="flex items-center gap-4">
-            <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-            <div class="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse hidden sm:block"></div>
+    <!-- Sidebar Skeleton (Desktop) -->
+    <div class="hidden md:flex flex-col w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shrink-0 h-screen animate-pulse">
+        
+        <!-- Sidebar Header -->
+        <div class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-gray-700"></div>
+            <div class="space-y-1.5 flex-1">
+                <div class="h-3.5 w-28 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div class="h-2.5 w-20 bg-gray-100 dark:bg-gray-700/60 rounded"></div>
+            </div>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-            <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+
+        <!-- Navigation Links -->
+        <div class="flex-1 px-4 py-4 space-y-2 overflow-hidden">
+            <!-- Active item -->
+            <div class="h-10 w-full bg-gradient-to-r from-emerald-600/80 to-emerald-800/80 rounded-lg flex items-center px-3 gap-3">
+                <div class="w-4 h-4 rounded bg-white/40"></div>
+                <div class="h-3.5 w-24 bg-white/40 rounded"></div>
+            </div>
+            <!-- Other items -->
+            <div class="h-10 w-full bg-gray-50 dark:bg-gray-700/40 rounded-lg flex items-center px-3 gap-3">
+                <div class="w-4 h-4 rounded bg-gray-200 dark:bg-gray-600"></div>
+                <div class="h-3.5 w-20 bg-gray-200 dark:bg-gray-600 rounded"></div>
+            </div>
+            <div class="h-10 w-full bg-gray-50 dark:bg-gray-700/40 rounded-lg flex items-center px-3 gap-3">
+                <div class="w-4 h-4 rounded bg-gray-200 dark:bg-gray-600"></div>
+                <div class="h-3.5 w-28 bg-gray-200 dark:bg-gray-600 rounded"></div>
+            </div>
+            <div class="h-10 w-full bg-gray-50 dark:bg-gray-700/40 rounded-lg flex items-center px-3 gap-3">
+                <div class="w-4 h-4 rounded bg-gray-200 dark:bg-gray-600"></div>
+                <div class="h-3.5 w-32 bg-gray-200 dark:bg-gray-600 rounded"></div>
+            </div>
+            <div class="h-10 w-full bg-gray-50 dark:bg-gray-700/40 rounded-lg flex items-center px-3 gap-3">
+                <div class="w-4 h-4 rounded bg-gray-200 dark:bg-gray-600"></div>
+                <div class="h-3.5 w-24 bg-gray-200 dark:bg-gray-600 rounded"></div>
+            </div>
+            <div class="h-10 w-full bg-gray-50 dark:bg-gray-700/40 rounded-lg flex items-center px-3 gap-3">
+                <div class="w-4 h-4 rounded bg-gray-200 dark:bg-gray-600"></div>
+                <div class="h-3.5 w-28 bg-gray-200 dark:bg-gray-600 rounded"></div>
+            </div>
+        </div>
+
+        <!-- Bottom User Panel -->
+        <div class="border-t border-gray-100 dark:border-gray-700 p-4 space-y-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-gray-700"></div>
+                <div class="space-y-1 flex-1">
+                    <div class="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div class="h-2.5 w-16 bg-gray-100 dark:bg-gray-700/60 rounded"></div>
+                </div>
+            </div>
+            <div class="h-8 w-full bg-gray-100 dark:bg-gray-700/40 rounded-lg"></div>
         </div>
     </div>
-    
-    <div class="flex h-[calc(100vh-4rem)] overflow-hidden">
-        <!-- Sidebar Skeleton (Hidden on small screens) -->
-        <div class="hidden lg:flex flex-col gap-6 w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 shrink-0">
-            <div class="space-y-4">
-                <div class="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-                <div class="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-                <div class="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-                <div class="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-                <div class="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+
+    <!-- Main View Skeleton -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-100 dark:bg-gray-900 animate-pulse">
+        
+        <!-- Topbar Header -->
+        <div class="h-16 bg-emerald-600 dark:bg-emerald-800 shadow-md flex items-center justify-between px-4 sm:px-6 gap-4 shrink-0">
+            <div class="flex items-center gap-4 flex-1">
+                <div class="h-6 w-36 bg-white/30 rounded-lg hidden sm:block"></div>
+                <div class="h-9 w-full max-w-md bg-white/20 rounded-full sm:ml-4"></div>
             </div>
-            <div class="mt-auto h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="h-6 w-[42px] bg-emerald-700/60 dark:bg-emerald-950/60 rounded-full"></div>
+            </div>
         </div>
 
-        <!-- Main Content Skeleton -->
-        <div class="flex-1 p-4 sm:p-6 lg:p-8 overflow-hidden flex flex-col gap-6">
-            <!-- Header area -->
-            <div class="flex justify-between items-end">
-                <div class="space-y-2 w-1/3">
-                    <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3"></div>
+        <!-- Main Content Body -->
+        <div class="flex-1 p-6 overflow-y-auto space-y-6">
+            
+            <!-- 4 KPI Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="h-32 bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-2">
+                            <div class="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                            <div class="h-7 w-16 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-gray-700"></div>
+                    </div>
+                    <div class="h-3 w-28 bg-gray-100 dark:bg-gray-700/60 rounded"></div>
                 </div>
-                <div class="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse hidden sm:block"></div>
+
+                <div class="h-32 bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between hidden sm:flex">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-2">
+                            <div class="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                            <div class="h-7 w-16 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-gray-700"></div>
+                    </div>
+                    <div class="h-3 w-28 bg-gray-100 dark:bg-gray-700/60 rounded"></div>
+                </div>
+
+                <div class="h-32 bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between hidden lg:flex">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-2">
+                            <div class="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                            <div class="h-7 w-16 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-gray-700"></div>
+                    </div>
+                    <div class="h-3 w-28 bg-gray-100 dark:bg-gray-700/60 rounded"></div>
+                </div>
+
+                <div class="h-32 bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between hidden lg:flex">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-2">
+                            <div class="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                            <div class="h-7 w-16 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-gray-700"></div>
+                    </div>
+                    <div class="h-3 w-28 bg-gray-100 dark:bg-gray-700/60 rounded"></div>
+                </div>
             </div>
 
-            <!-- Stats/Cards Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <div class="h-32 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse"></div>
-                <div class="h-32 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse hidden sm:block"></div>
-                <div class="h-32 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse hidden lg:block"></div>
-                <div class="h-32 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse hidden xl:block"></div>
-            </div>
-
-            <!-- Table/List Area -->
-            <div class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
-                <div class="h-14 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex items-center px-6">
-                    <div class="h-5 w-1/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <!-- Table Card Area -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
+                
+                <!-- Table Action Header -->
+                <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex flex-wrap justify-between items-center gap-4">
+                    <div class="h-6 w-44 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-60 bg-gray-100 dark:bg-gray-700/60 rounded-lg"></div>
+                        <div class="h-9 w-24 bg-gray-100 dark:bg-gray-700/60 rounded-lg"></div>
+                    </div>
                 </div>
-                <div class="p-6 space-y-4">
-                    <div class="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-lg animate-pulse"></div>
-                    <div class="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-lg animate-pulse"></div>
-                    <div class="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-lg animate-pulse"></div>
-                    <div class="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-lg animate-pulse"></div>
-                    <div class="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-lg animate-pulse"></div>
+
+                <!-- Table Rows -->
+                <div class="p-5 space-y-4">
+                    <div class="h-12 w-full bg-gray-50 dark:bg-gray-700/40 rounded-xl flex items-center justify-between px-4">
+                        <div class="h-4 w-1/4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                        <div class="h-4 w-1/5 bg-gray-200 dark:bg-gray-600 rounded hidden sm:block"></div>
+                        <div class="h-6 w-20 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                        <div class="h-8 w-20 bg-gray-200 dark:bg-gray-600 rounded-lg"></div>
+                    </div>
+                    <div class="h-12 w-full bg-gray-50 dark:bg-gray-700/40 rounded-xl flex items-center justify-between px-4">
+                        <div class="h-4 w-1/3 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                        <div class="h-4 w-1/4 bg-gray-200 dark:bg-gray-600 rounded hidden sm:block"></div>
+                        <div class="h-6 w-20 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                        <div class="h-8 w-20 bg-gray-200 dark:bg-gray-600 rounded-lg"></div>
+                    </div>
+                    <div class="h-12 w-full bg-gray-50 dark:bg-gray-700/40 rounded-xl flex items-center justify-between px-4">
+                        <div class="h-4 w-1/4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                        <div class="h-4 w-1/5 bg-gray-200 dark:bg-gray-600 rounded hidden sm:block"></div>
+                        <div class="h-6 w-20 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                        <div class="h-8 w-20 bg-gray-200 dark:bg-gray-600 rounded-lg"></div>
+                    </div>
+                    <div class="h-12 w-full bg-gray-50 dark:bg-gray-700/40 rounded-xl flex items-center justify-between px-4">
+                        <div class="h-4 w-1/3 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                        <div class="h-4 w-1/6 bg-gray-200 dark:bg-gray-600 rounded hidden sm:block"></div>
+                        <div class="h-6 w-20 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                        <div class="h-8 w-20 bg-gray-200 dark:bg-gray-600 rounded-lg"></div>
+                    </div>
+                    <div class="h-12 w-full bg-gray-50 dark:bg-gray-700/40 rounded-xl flex items-center justify-between px-4">
+                        <div class="h-4 w-1/4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                        <div class="h-4 w-1/5 bg-gray-200 dark:bg-gray-600 rounded hidden sm:block"></div>
+                        <div class="h-6 w-20 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                        <div class="h-8 w-20 bg-gray-200 dark:bg-gray-600 rounded-lg"></div>
+                    </div>
+                </div>
+
+                <!-- Pagination Bar Skeleton -->
+                <div class="p-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+                    <div class="h-4 w-36 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="h-8 w-8 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="h-8 w-8 rounded-lg bg-emerald-600 dark:bg-emerald-700"></div>
+                        <div class="h-8 w-8 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="h-8 w-8 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Seamless Navigation & Instant Skeleton Lifecycle Script -->
 <script>
-    // Fades out and removes the skeleton once the page has fully loaded
-    window.addEventListener('load', function() {
-        const loader = document.getElementById('global-skeleton-loader');
-        if (loader) {
-            // Slight delay for smoother visual transition, makes it feel like it worked harder
+(function() {
+    const loader = document.getElementById('global-skeleton-loader');
+    if (!loader) return;
+
+    loader.style.pointerEvents = 'none';
+    const mountTime = performance.now();
+    const minDisplayTime = 300; // Optimal visibility threshold
+    let hideTimer = null;
+
+    function hideSkeleton() {
+        if (hideTimer) clearTimeout(hideTimer);
+        const elapsed = performance.now() - mountTime;
+        const remaining = Math.max(0, minDisplayTime - elapsed);
+
+        hideTimer = setTimeout(() => {
+            loader.style.opacity = '0';
+            loader.style.pointerEvents = 'none';
             setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => {
-                    loader.remove();
-                }, 500); // Wait for transition to finish
-            }, 100); 
+                loader.style.display = 'none';
+            }, 300);
+        }, remaining);
+    }
+
+    function showSkeleton() {
+        if (hideTimer) clearTimeout(hideTimer);
+        loader.style.display = 'flex';
+        loader.style.pointerEvents = 'none';
+        void loader.offsetWidth; // Force reflow
+        loader.style.opacity = '1';
+        // Auto-dismiss failsafe if user cancels navigation
+        setTimeout(() => {
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 300);
+        }, 4000);
+    }
+
+    // Dismiss on initial page load / interactive ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        hideSkeleton();
+    } else {
+        document.addEventListener('DOMContentLoaded', hideSkeleton, { once: true });
+        window.addEventListener('load', hideSkeleton, { once: true });
+    }
+
+    // Safety dismissal
+    setTimeout(hideSkeleton, 2500);
+
+    // Instant trigger when clicking any internal link (Pagination, Sidebar, Topbar, Table links)
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('button');
+        if (btn && (btn.hasAttribute('data-collapse-toggle') || btn.hasAttribute('data-dropdown-toggle') || btn.getAttribute('role') === 'button')) {
+            return;
         }
+
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        // Skip non-navigational links
+        if (
+            link.hasAttribute('download') ||
+            link.target === '_blank' ||
+            !link.href ||
+            link.getAttribute('href').startsWith('#') ||
+            link.getAttribute('href').startsWith('javascript:') ||
+            e.ctrlKey || e.metaKey || e.shiftKey || e.altKey
+        ) {
+            return;
+        }
+
+        // Skip interactive Alpine triggers
+        if (
+            link.hasAttribute('@click') ||
+            link.hasAttribute('x-on:click') ||
+            link.getAttribute('role') === 'button'
+        ) {
+            return;
+        }
+
+        // Trigger skeleton immediately on internal link navigation (including pagination)
+        if (link.href.startsWith(window.location.origin)) {
+            showSkeleton();
+        }
+    }, true);
+
+    // Trigger on form submissions (search, filter, pagination jump, logins)
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!form || form.target === '_blank' || form.dataset.noLoader || form.hasAttribute('x-on:submit')) return;
+
+        showSkeleton();
+    }, true);
+
+    // Trigger on beforeunload right before document switch
+    window.addEventListener('beforeunload', function() {
+        showSkeleton();
     });
 
-    // Failsafe in case 'load' event doesn't fire due to cached resources or weird network states
-    setTimeout(() => {
-        const loader = document.getElementById('global-skeleton-loader');
-        if (loader && loader.style.opacity !== '0') {
+    // Reset when restored from browser cache (Back/Forward)
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
             loader.style.opacity = '0';
-            setTimeout(() => loader.remove(), 500);
+            loader.style.display = 'none';
+            loader.style.pointerEvents = 'none';
         }
-    }, 5000); // 5 seconds max wait
+    });
+})();
 </script>

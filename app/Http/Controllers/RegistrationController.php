@@ -157,6 +157,67 @@ class RegistrationController extends Controller
         }));
     }
 
+    /**
+     * Live queue data for front-desk polling (JSON).
+     * Returns the pre-triage waiting list + today's appointments.
+     */
+    public function queueJson()
+    {
+        $preTriageWaiting = PreTriage::where('status', 'waiting')
+            ->whereDate('created_at', Carbon::today())
+            ->orderBy('created_at', 'asc')
+            ->with('patient')
+            ->get()
+            ->map(function ($pt) {
+                return [
+                    'id'            => $pt->id,
+                    'patient_id'    => $pt->patient_id,
+                    'patient_name'  => $pt->patient_name,
+                    'classification'=> $pt->classification,
+                    'dob'           => $pt->dob ? Carbon::parse($pt->dob)->format('M d, Y') : null,
+                    'blood_pressure'=> $pt->blood_pressure,
+                    'temperature'   => $pt->temperature,
+                    'spo2'          => $pt->spo2,
+                    'symptoms'      => $pt->symptoms ? \Illuminate\Support\Str::limit($pt->symptoms, 35) : null,
+                    'appointment_id'=> $pt->appointment_id,
+                    'is_follow_up'  => $pt->patient?->is_follow_up ?? false,
+                    'created_at_human' => $pt->created_at->diffForHumans(),
+                    // URLs the front-end needs for links
+                    'select_url'    => $pt->patient_id
+                        ? url('/frontdesk/registration?selected_id='.$pt->patient_id.'&pre_triage_id='.$pt->id)
+                        : url('/frontdesk/registration?new_from_triage='.$pt->id),
+                    'cancel_url'    => route('triage.cancel', $pt->id),
+                    'is_new'        => !$pt->patient_id,
+                ];
+            });
+
+        $todayAppointments = \App\Models\Appointment::whereDate('preferred_date', Carbon::today())
+            ->whereIn('status', ['approved', 'rescheduled', 'arrived'])
+            ->orderBy('preferred_date', 'asc')
+            ->get()
+            ->map(function ($apt) {
+                return [
+                    'id'               => $apt->id,
+                    'name'             => trim($apt->last_name.', '.$apt->first_name.' '.($apt->middle_name ?? '').' '.($apt->suffix ?? '')),
+                    'dob'              => $apt->dob ? \Carbon\Carbon::parse($apt->dob)->format('M d, Y') : 'N/A',
+                    'contact'          => $apt->contact_number,
+                    'reference_number' => $apt->reference_number,
+                    'preferred_time'   => $apt->preferred_time,
+                    'status'           => $apt->status,
+                    'type'             => $apt->type,
+                    'is_follow_up'     => (bool) $apt->is_follow_up,
+                    // action URLs
+                    'checkin_url'      => route('frontdesk.appointments.check-in', $apt),
+                    'register_url'     => url('/frontdesk/registration?prefill_apt='.$apt->id.'&new_patient=1'),
+                ];
+            });
+
+        return response()->json([
+            'pre_triage'   => $preTriageWaiting,
+            'appointments' => $todayAppointments,
+        ]);
+    }
+
     public function updatePatient(Request $request, Patient $patient)
     {
         $titleCaseFields = [

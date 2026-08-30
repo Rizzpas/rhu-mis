@@ -136,7 +136,7 @@
     </div>
 
     <!-- Main Navigation -->
-    <nav class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md sticky w-full z-50 top-0 start-0 border-b border-slate-200/90 dark:border-slate-800/90 shadow-2xs">
+    <nav id="main-navbar" class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md sticky w-full z-50 top-0 start-0 border-b border-slate-200/90 dark:border-slate-800/90 shadow-2xs">
         <div class="flex flex-wrap justify-between items-center mx-auto max-w-7xl px-4 py-3.5 md:px-8">
             <a href="{{ route('welcome') }}" class="flex items-center gap-3 rtl:space-x-reverse">
                 <div class="shrink-0">
@@ -167,7 +167,7 @@
                     </li>
                     <li>
                         <button id="mega-menu-full-dropdown-button" data-collapse-toggle="mega-menu-full-dropdown"
-                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm">
+                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm cursor-pointer">
                             RHU Facilities
                             <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
@@ -176,7 +176,7 @@
                     </li>
                     <li>
                         <button id="mega-menu-appointment-dropdown-button" data-collapse-toggle="mega-menu-appointment-dropdown"
-                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm">
+                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm cursor-pointer">
                             Appointments
                             <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
@@ -186,7 +186,7 @@
 
                     <li>
                         <button id="mega-menu-updates-dropdown-button" data-collapse-toggle="mega-menu-updates-dropdown"
-                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm">
+                            class="flex items-center justify-between w-full py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 md:w-auto hover:text-emerald-700 dark:hover:text-emerald-400 md:p-0 transition text-sm cursor-pointer">
                             About & Bulletins
                             <svg class="w-4 h-4 ms-1 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />

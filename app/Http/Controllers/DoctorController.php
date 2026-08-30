@@ -25,10 +25,11 @@ class DoctorController extends Controller
         $active = $rawQueue->where('status', 'active')->values();
         $resultsReady = $rawQueue->where('status', 'results_ready')->values();
         $waiting = $rawQueue->where('status', 'queued')->values();
-        $awaitingLabsCount = Consultation::where('doctor_id', $user->id)
+        $awaitingLabs = Consultation::where('doctor_id', $user->id)
             ->where('status', 'awaiting_results')
             ->whereDate('consultation_date', Carbon::today())
-            ->count();
+            ->with('patient')
+            ->get();
 
         $regular = $waiting->filter(function ($c) {
             return ! in_array($c->classification, ['Senior Citizen', 'PWD']);
@@ -102,7 +103,7 @@ class DoctorController extends Controller
             ->unique('patient_id')
             ->take(20);
 
-        return view('doctor.dashboard', compact('user', 'queue', 'handledPatients', 'awaitingLabsCount'));
+        return view('doctor.dashboard', compact('user', 'queue', 'handledPatients', 'awaitingLabs'));
     }
 
     /**

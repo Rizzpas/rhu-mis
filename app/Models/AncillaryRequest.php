@@ -19,11 +19,14 @@ class AncillaryRequest extends Model
         'result_data',
         'completed_by',
         'completed_at',
+        'archived_at',
+        'archived_reason',
     ];
 
     protected $casts = [
         'result_data' => 'array',
         'completed_at' => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
     public function consultation()

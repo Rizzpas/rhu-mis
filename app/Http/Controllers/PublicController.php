@@ -33,33 +33,14 @@ class PublicController extends Controller
 
     public function units()
     {
-        // We'll define static units for now since there's no dynamic Model for units
-        $units = [
-            ['name' => 'Main Health Center', 'slug' => 'main-health-center', 'desc' => 'Comprehensive check-ups, diagnostics, and general medical consultations.'],
-            ['name' => 'Lying-in Clinic', 'slug' => 'lying-in-clinic', 'desc' => '24/7 maternity care, safe delivery, and newborn screening services.'],
-            ['name' => 'Dental Clinic', 'slug' => 'dental-clinic', 'desc' => 'Tooth extraction, oral prophylaxis, and general dental hygiene.'],
-            ['name' => 'TB DOTS Facility', 'slug' => 'tb-dots-facility', 'desc' => 'Tuberculosis screening, medication, and full treatment monitoring.'],
-            ['name' => 'Animal Bite Center', 'slug' => 'animal-bite-center', 'desc' => 'Immediate care and vaccination for rabies prevention.'],
-        ];
+        $units = \App\Models\FacilityUnit::active()->ordered()->get();
 
         return view('units.index', compact('units'));
     }
 
     public function showUnit($slug)
     {
-        $units = collect([
-            ['name' => 'Main Health Center', 'slug' => 'main-health-center', 'desc' => 'Comprehensive check-ups, diagnostics, and general medical consultations.'],
-            ['name' => 'Lying-in Clinic', 'slug' => 'lying-in-clinic', 'desc' => '24/7 maternity care, safe delivery, and newborn screening services.'],
-            ['name' => 'Dental Clinic', 'slug' => 'dental-clinic', 'desc' => 'Tooth extraction, oral prophylaxis, and general dental hygiene.'],
-            ['name' => 'TB DOTS Facility', 'slug' => 'tb-dots-facility', 'desc' => 'Tuberculosis screening, medication, and full treatment monitoring.'],
-            ['name' => 'Animal Bite Center', 'slug' => 'animal-bite-center', 'desc' => 'Immediate care and vaccination for rabies prevention.'],
-        ]);
-
-        $unit = $units->firstWhere('slug', $slug);
-
-        if (! $unit) {
-            abort(404);
-        }
+        $unit = \App\Models\FacilityUnit::where('slug', $slug)->firstOrFail();
 
         return view('units.show', compact('unit'));
     }
