@@ -26,6 +26,39 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        /* Globally remove focus rings, borders halos, and outlines across all admin pages */
+        *, *::before, *::after {
+            --tw-ring-offset-shadow: 0 0 #0000 !important;
+            --tw-ring-shadow: 0 0 #0000 !important;
+            --tw-ring-color: transparent !important;
+            --tw-ring-offset-width: 0px !important;
+        }
+        
+        *:focus,
+        *:focus-visible,
+        *:focus-within,
+        input:focus,
+        input:focus-visible,
+        input:focus-within,
+        select:focus,
+        select:focus-visible,
+        textarea:focus,
+        textarea:focus-visible,
+        button:focus,
+        button:focus-visible,
+        a:focus,
+        a:focus-visible,
+        [tabindex]:focus,
+        [tabindex]:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+            --tw-ring-offset-shadow: 0 0 #0000 !important;
+            --tw-ring-shadow: 0 0 #0000 !important;
+            --tw-ring-color: transparent !important;
+            --tw-ring-offset-width: 0px !important;
+            ring: 0 !important;
+        }
     </style>
 
     <script>

@@ -14,7 +14,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             <span>Export Full Report</span>
         </button>
-        <form action="{{ route('admin.analytics') }}" method="GET" class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700 focus-within:ring-4 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 transition-all">
+        <form action="{{ route('admin.analytics') }}" method="GET" class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 transition-all">
             <label for="time_filter" class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1 shrink-0">Global Timeframe:</label>
             <div class="w-36">
                 <x-select 
@@ -70,8 +70,8 @@
                     }
                 }" @click.outside="open = false">
                     <button type="button" @click="open = !open"
-                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <span x-text="options[selected] || 'This Month'"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                              :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,8 +107,8 @@
                 <!-- Custom Export Dropdown -->
                 <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                     <button @click="openExport = !openExport" title="Export Chart" 
-                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
-                            :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                            :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                     <div x-show="openExport" 
@@ -176,8 +176,8 @@
                         }
                     }" @click.outside="open = false">
                         <button type="button" @click="open = !open"
-                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <span x-text="options[selected] || 'This Month'"></span>
                             <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                                  :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,8 +212,8 @@
                     <!-- Custom Export Dropdown -->
                     <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                         <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
-                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
                         <div x-show="openExport" 
@@ -277,8 +277,8 @@
                         }
                     }" @click.outside="open = false">
                         <button type="button" @click="open = !open"
-                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <span x-text="options[selected] || 'This Month'"></span>
                             <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                                  :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,8 +313,8 @@
                     <!-- Custom Export Dropdown -->
                     <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                         <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
-                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
                         <div x-show="openExport" 
@@ -380,8 +380,8 @@
                     }
                 }" @click.outside="open = false">
                     <button type="button" @click="open = !open"
-                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <span x-text="options[selected] || 'This Month'"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                              :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -416,8 +416,8 @@
                 <!-- Custom Export Dropdown -->
                 <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                     <button @click="openExport = !openExport" title="Export Chart" 
-                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
-                            :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                            :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                     <div x-show="openExport" 
@@ -482,8 +482,8 @@
                         }
                     }" @click.outside="open = false">
                         <button type="button" @click="open = !open"
-                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <span x-text="options[selected] || 'This Month'"></span>
                             <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                                  :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -518,8 +518,8 @@
                     <!-- Custom Export Dropdown -->
                     <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                         <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
-                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
                         <div x-show="openExport" 
@@ -537,7 +537,7 @@
                                 <span>Download PNG</span>
                             </a>
                             <a href="#" @click.prevent="exportCSV('classification'); openExport = false" 
-                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
                                 <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 <span>Download CSV</span>
                             </a>
@@ -583,8 +583,8 @@
                         }
                     }" @click.outside="open = false">
                         <button type="button" @click="open = !open"
-                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <span x-text="options[selected] || 'This Month'"></span>
                             <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                                  :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -619,8 +619,8 @@
                     <!-- Custom Export Dropdown -->
                     <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                         <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
-                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
                         <div x-show="openExport" 
@@ -686,8 +686,8 @@
                     }
                 }" @click.outside="open = false">
                     <button type="button" @click="open = !open"
-                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <span x-text="options[selected] || 'This Month'"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                              :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -722,8 +722,8 @@
                 <!-- Custom Export Dropdown -->
                 <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                     <button @click="openExport = !openExport" title="Export Chart" 
-                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
-                            :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                            :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                     <div x-show="openExport" 
@@ -799,8 +799,8 @@
                 }" @click.outside="open = false; search = ''">
                     <button type="button" 
                             @click="open = !open; if(open) $nextTick(() => $refs.staffSearchInput?.focus())"
-                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
-                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <span class="max-w-[150px] sm:max-w-[200px] truncate" x-text="selectedLabel"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0"
                              :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -830,7 +830,7 @@
                                        x-ref="staffSearchInput"
                                        @keydown.escape="open = false; search = ''"
                                        placeholder="Search staff by name..."
-                                       class="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+                                       class="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition-all">
                                 <button x-show="search.length > 0" 
                                         @click="search = ''; $refs.staffSearchInput.focus()" 
                                         type="button" 
@@ -885,8 +885,8 @@
                     }
                 }" @click.outside="open = false">
                     <button type="button" @click="open = !open"
-                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
-                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <span x-text="options[productivityTime] || 'This Month'"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                              :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
