@@ -204,8 +204,95 @@
                             lastName: @js(old('last_name', '')),
                             suffix: @js(old('suffix', '')),
                             email: @js(old('email', '')),
+                            role: @js(old('role', '')),
+                            status: @js(old('status', 'Present')),
+                            openRoleDropdown: false,
+                            openStatusDropdown: false,
+                            availableRoles: [
+                                @can('promote-admin')
+                                { value: 'super_admin', label: 'Super Admin' },
+                                { value: 'admin', label: 'Admin' },
+                                @endcan
+                                { value: 'regular_doctor', label: 'Regular Doctor' },
+                                { value: 'pedia_doctor', label: 'Pedia Doctor' },
+                                { value: 'laboratory', label: 'Laboratory' },
+                                { value: 'radiology', label: 'Radiology' },
+                                { value: 'clinical_nurse', label: 'Clinical Nurse' },
+                                { value: 'vitals_nurse', label: 'Vitals Nurse (Triage)' },
+                                { value: 'pharmacy', label: 'Pharmacist' },
+                                { value: 'information_desk', label: 'Front Desk / Information Desk' }
+                            ],
+                            availableStatuses: [
+                                { value: 'Present', label: 'Present (Active)', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
+                                { value: 'Seminar', label: 'On Seminar', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' },
+                                { value: 'Out of Office', label: 'Out of Office (Unavailable)', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
+                            ],
+                            getRoleLabel(val) {
+                                const found = this.availableRoles.find(r => r.value === val);
+                                return found ? found.label : (val ? val.replace(/_/g, ' ') : 'Select Role');
+                            },
+                            getStatusLabel(val) {
+                                const found = this.availableStatuses.find(s => s.value === val);
+                                return found ? found.label : (val || 'Select Status');
+                            },
                             get fullName() {
                                 return `${this.firstName} ${this.middleName} ${this.lastName} ${this.suffix}`.replace(/\s+/g, ' ').trim();
+                            },
+                            avatarFileName: '',
+                            avatarPreview: null,
+                            isDragging: false,
+                            dragCounter: 0,
+                            isProcessingAvatar: false,
+                            avatarUploadSuccess: false,
+                            handleDragEnter(e) {
+                                if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                                    this.dragCounter++;
+                                    this.isDragging = true;
+                                }
+                            },
+                            handleDragLeave(e) {
+                                if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                                    this.dragCounter--;
+                                    if (this.dragCounter <= 0) {
+                                        this.isDragging = false;
+                                        this.dragCounter = 0;
+                                    }
+                                }
+                            },
+                            handleDrop(e) {
+                                this.isDragging = false;
+                                this.dragCounter = 0;
+                                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                                    const file = e.dataTransfer.files[0];
+                                    if (file && file.type.startsWith('image/')) {
+                                        this.handleStaffAvatar(file);
+                                    }
+                                }
+                            },
+                            handleStaffAvatar(file) {
+                                if (!file || !file.type.startsWith('image/')) return;
+                                this.isProcessingAvatar = true;
+                                this.avatarUploadSuccess = false;
+                                const input = document.getElementById('staff_create_avatar_input');
+                                $store.imageCropper.open(file, {
+                                    aspectRatio: 1,
+                                    circular: true,
+                                    subtitle: 'Square crop (1:1) — Staff Avatar',
+                                    onApply: (blob, previewUrl) => {
+                                        this.isProcessingAvatar = true;
+                                        setTimeout(() => {
+                                            this.avatarPreview = previewUrl;
+                                            this.avatarFileName = file.name;
+                                            setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                            this.isProcessingAvatar = false;
+                                            this.avatarUploadSuccess = true;
+                                            setTimeout(() => { this.avatarUploadSuccess = false; }, 4000);
+                                        }, 350);
+                                    },
+                                    onCancel: () => {
+                                        this.isProcessingAvatar = false;
+                                    }
+                                });
                             },
                             password: '', 
                             passwordConfirmation: '',
@@ -260,7 +347,7 @@
                                     alert('Please fill out all required fields in Step 1.');
                                     return;
                                 }
-                                if (this.step === 2 && !this.$refs.roleSelect.value) {
+                                if (this.step === 2 && !this.role) {
                                     alert('Please select a role.');
                                     return;
                                 }
@@ -269,11 +356,41 @@
                             prevStep() {
                                 if (this.step > 1) this.step--;
                             }
-                        }" class="relative z-10 w-full max-w-2xl mx-auto flex flex-col pointer-events-auto">
+                        }" class="relative z-10 w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto flex flex-col pointer-events-auto">
                     <div
-                        class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-2xl transform transition-all w-full max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-800">
+                        class="relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl transform transition-all w-full min-h-[580px] md:min-h-[620px] max-h-[92vh] flex flex-col border border-slate-200/80 dark:border-slate-800"
+                        @dragenter.prevent="handleDragEnter($event)"
+                        @dragleave.prevent="handleDragLeave($event)"
+                        @dragover.prevent
+                        @drop.prevent="handleDrop($event)">
+                        
+                        <!-- Full Modal Drag & Drop Overlay (Whole Box Dropzone) -->
+                        <div x-show="isDragging"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-98"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-98"
+                             style="display: none;"
+                             class="absolute inset-0 z-50 rounded-3xl bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center pointer-events-none border-4 border-dashed border-teal-400">
+                            <div class="w-20 h-20 rounded-full bg-teal-500/20 ring-8 ring-teal-500/30 flex items-center justify-center text-teal-400 animate-bounce mb-4">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="text-xl font-black text-white tracking-tight mb-1">Drop Image to Add Photo</h4>
+                            <p class="text-sm text-teal-200/90 max-w-sm font-medium">
+                                Release your photo anywhere inside this box to open the 1:1 image cropper
+                            </p>
+                            <div class="mt-4 px-4 py-1.5 rounded-full bg-teal-500/20 text-xs font-bold text-teal-300 border border-teal-400/30 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Supports JPG, PNG, WEBP, GIF</span>
+                            </div>
+                        </div>
+
                         <form action="{{ route('admin.staff.store') }}" method="POST" enctype="multipart/form-data"
-                            class="flex flex-col h-full"
+                            class="flex flex-col h-full flex-1"
                             @submit="if(step < 3) { $event.preventDefault(); nextStep(); } else if (password !== passwordConfirmation) { $event.preventDefault(); alert('Passwords do not match'); }">
                             @csrf
                             <input type="hidden" name="_form" value="add_staff">
@@ -281,20 +398,20 @@
                             <input type="hidden" name="schedule" :value="schedulePayload">
 
                             <div
-                                class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center relative overflow-hidden">
+                                class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex justify-between items-center relative overflow-hidden shrink-0">
                                 <!-- Progress Bar -->
-                                <div class="absolute bottom-0 left-0 h-1 bg-teal-500 transition-all duration-300"
+                                <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
                                     :style="`width: ${(step / 3) * 100}%`"></div>
                                 <div class="relative z-10">
-                                    <h3 class="text-lg leading-6 font-semibold text-slate-900 dark:text-white"
+                                    <h3 class="text-xl leading-6 font-bold text-slate-900 dark:text-white tracking-tight"
                                         x-text="step === 1 ? 'Step 1: Personal Info' : (step === 2 ? 'Step 2: Role & Schedule' : 'Step 3: Security & Finish')">
                                         Add New Staff Member</h3>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Adding Staff Member as an
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Adding Staff Member as an
                                         Administrator.</p>
                                 </div>
 
                                 <button type="button" @click="showAddDoctor = false"
-                                    class="text-slate-400 hover:text-slate-600 relative z-10">
+                                    class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer relative z-10">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M6 18L18 6M6 6l12 12" />
@@ -302,165 +419,437 @@
                                 </button>
                             </div>
 
-                            <div class="px-6 py-5 overflow-y-auto">
+                            <div class="px-8 sm:px-10 py-7 overflow-y-auto custom-scrollbar flex-1 space-y-6 min-h-[420px]">
                                 <!-- Step 1: Personal Info -->
-                                <div x-show="step === 1" class="space-y-4">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div x-show="step === 1" class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div>
                                             <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300">First
+                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">First
                                                 Name <span class="text-red-500">*</span></label>
                                             <input type="text" x-model="firstName" name="first_name" :required="step === 1"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                         <div>
                                             <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300">Middle
+                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Middle
                                                 Name</label>
                                             <input type="text" x-model="middleName" name="middle_name"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Last
-                                                Name <span class="text-red-500">*</span></label>
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Last
+                                                 Name <span class="text-red-500">*</span></label>
                                             <input type="text" x-model="lastName" name="last_name" :required="step === 1"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                         <div>
                                             <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300">Suffix
+                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Suffix
                                                 (e.g. Jr., Sr.)</label>
-                                            <input type="text" x-model="suffix" name="suffix"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                            <input type="text" x-model="suffix" name="suffix" placeholder="Jr., Sr., III"
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Email
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Email
                                             Address <span class="text-red-500">*</span></label>
                                         <input type="email" name="email" x-model="email" :required="step === 1"
-                                            class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                     </div>
-                                    <div x-data="{
-                                        avatarFileName: '',
-                                        avatarPreview: null,
-                                        isDragging: false,
-                                        handleStaffAvatar(file) {
-                                            if (!file || !file.type.startsWith('image/')) return;
-                                            const input = document.getElementById('staff_create_avatar_input');
-                                            $store.imageCropper.open(file, {
-                                                aspectRatio: 1,
-                                                circular: true,
-                                                subtitle: 'Square crop (1:1) — Staff Avatar',
-                                                onApply: (blob, previewUrl) => {
-                                                    this.avatarPreview = previewUrl;
-                                                    this.avatarFileName = file.name;
-                                                    setCroppedFile(input, blob, file.name || 'avatar.jpg');
-                                                }
-                                            });
-                                        }
-                                    }">
-                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Profile Photo (Max 2MB)</label>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Profile Photo (Max 2MB)</label>
                                         <input type="file" id="staff_create_avatar_input" name="avatar" accept="image/*" class="hidden"
                                             @change="if ($event.target.files.length) handleStaffAvatar($event.target.files[0])">
                                         
-                                        <div class="flex items-center gap-3">
-                                            <template x-if="avatarPreview">
-                                                <div class="h-12 w-12 rounded-full overflow-hidden border-2 border-teal-500 flex-shrink-0 shadow-sm">
-                                                    <img :src="avatarPreview" class="h-full w-full object-cover">
+                                        <div class="flex items-center gap-4">
+                                            <!-- Preview avatar circle with hover action -->
+                                            <div @click="document.getElementById('staff_create_avatar_input').click()"
+                                                 class="h-16 w-16 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 relative border-2 border-teal-500 shadow-md cursor-pointer group flex-shrink-0 flex items-center justify-center">
+                                                <template x-if="avatarPreview">
+                                                    <img :src="avatarPreview" class="h-full w-full object-cover" alt="Staff Avatar">
+                                                </template>
+                                                <template x-if="!avatarPreview">
+                                                    <div class="h-full w-full flex items-center justify-center bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 font-bold text-xl">
+                                                        <span x-text="((firstName ? firstName[0] : '') + (lastName ? lastName[0] : '')).toUpperCase() || 'ST'"></span>
+                                                    </div>
+                                                </template>
+                                                <div class="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                                 </div>
-                                            </template>
-                                            <div @dragover.prevent="isDragging = true"
-                                                 @dragleave.prevent="isDragging = false"
-                                                 @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) handleStaffAvatar($event.dataTransfer.files[0])"
-                                                 @click="document.getElementById('staff_create_avatar_input').click()"
-                                                 :class="isDragging ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/20' : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-650'"
-                                                 class="flex-1 border border-dashed rounded-lg p-2.5 text-center cursor-pointer transition-all flex items-center justify-center gap-2">
-                                                <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                <span class="text-xs text-slate-600 dark:text-slate-300 truncate" x-text="avatarFileName || 'Drag & drop avatar or browse (1:1 crop)'"></span>
+                                                <!-- Processing spinner -->
+                                                <div x-show="isProcessingAvatar" style="display: none;" class="absolute inset-0 bg-slate-900/80 flex items-center justify-center text-teal-400">
+                                                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                </div>
+                                            </div>
+
+                                            <!-- Dropzone / Browse banner -->
+                                            <div @click="document.getElementById('staff_create_avatar_input').click()"
+                                                 class="flex-1 border-2 border-dashed rounded-xl px-4 py-3 text-center cursor-pointer transition-all flex items-center justify-between gap-3 border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 group">
+                                                <div class="flex items-center gap-3 min-w-0">
+                                                    <div class="w-9 h-9 rounded-lg bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                                                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    </div>
+                                                    <div class="text-left truncate">
+                                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate" x-text="avatarFileName || 'Drag & drop image anywhere or browse'"></p>
+                                                        <p class="text-[11px] text-slate-400">1:1 square crop • Max 2MB</p>
+                                                    </div>
+                                                </div>
+                                                <template x-if="avatarUploadSuccess">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 shrink-0">
+                                                        Ready
+                                                    </span>
+                                                </template>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Step 2: Role & Schedule -->
-                                <div x-show="step === 2" style="display: none;" class="space-y-4">
-                                    <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                                            Role & Access Level <span class="text-red-500">*</span>
-                                        </label>
-                                        <div class="relative">
-                                            <select name="role" x-ref="roleSelect" :required="step === 2"
-                                                class="appearance-none block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 pr-10 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer">
-                                                <option value="" disabled {{ !old('role') ? 'selected' : '' }}>Select Role</option>
-                                                @can('promote-admin')
-                                                    <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                                                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                                @endcan
-                                                <option value="regular_doctor" {{ old('role') == 'regular_doctor' ? 'selected' : '' }}>Regular Doctor</option>
-                                                <option value="pedia_doctor" {{ old('role') == 'pedia_doctor' ? 'selected' : '' }}>Pedia Doctor</option>
-                                                <option value="laboratory" {{ old('role') == 'laboratory' ? 'selected' : '' }}>Laboratory</option>
-                                                <option value="radiology" {{ old('role') == 'radiology' ? 'selected' : '' }}>Radiology</option>
-                                                <option value="clinical_nurse" {{ old('role') == 'clinical_nurse' ? 'selected' : '' }}>Clinical Nurse</option>
-                                                <option value="vitals_nurse" {{ old('role') == 'vitals_nurse' ? 'selected' : '' }}>Vitals Nurse (Triage)</option>
-                                                <option value="pharmacy" {{ old('role') == 'pharmacy' ? 'selected' : '' }}>Pharmacist</option>
-                                                <option value="information_desk" {{ old('role') == 'information_desk' ? 'selected' : '' }}>Front Desk / Information Desk</option>
-                                            </select>
-                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 dark:text-slate-400">
-                                                <svg class="w-4 h-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div x-show="step === 2" style="display: none;" class="space-y-6">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                        <!-- Custom Floating Role Dropdown -->
+                                        <div class="relative" @click.outside="openRoleDropdown = false">
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Role & Access Level <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="hidden" name="role" :value="role">
+                                            
+                                            <button type="button" 
+                                                    @click="openRoleDropdown = !openRoleDropdown; openStatusDropdown = false"
+                                                    class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                    :class="openRoleDropdown ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <span class="truncate" :class="!role ? 'text-slate-400 dark:text-slate-500 font-normal' : ''" x-text="getRoleLabel(role)"></span>
+                                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0 ml-2"
+                                                     :class="openRoleDropdown ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                 </svg>
+                                            </button>
+
+                                            <!-- Custom Floating Menu with rounded-2xl -->
+                                            <div x-show="openRoleDropdown" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute left-0 right-0 z-50 mt-1.5 max-h-56 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 custom-scrollbar backdrop-blur-md">
+                                                <template x-for="item in availableRoles" :key="item.value">
+                                                    <div @click="role = item.value; openRoleDropdown = false"
+                                                         class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors"
+                                                         :class="role === item.value 
+                                                            ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
+                                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                        <span x-text="item.label"></span>
+                                                        <svg x-show="role === item.value" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                        </svg>
+                                                    </div>
+                                                </template>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                                            Initial Status
-                                        </label>
-                                        <div class="relative">
-                                            <select name="status"
-                                                class="appearance-none block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 pr-10 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer">
-                                                <option value="Present" {{ old('status') == 'Present' ? 'selected' : '' }}>Present (Active)</option>
-                                                <option value="Seminar" {{ old('status') == 'Seminar' ? 'selected' : '' }}>On Seminar</option>
-                                                <option value="Out of Office" {{ old('status') == 'Out of Office' ? 'selected' : '' }}>Out of Office (Unavailable)</option>
-                                            </select>
-                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 dark:text-slate-400">
-                                                <svg class="w-4 h-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                        <!-- Custom Floating Status Dropdown -->
+                                        <div class="relative" @click.outside="openStatusDropdown = false">
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Initial Status <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="hidden" name="status" :value="status">
+
+                                            <button type="button" 
+                                                    @click="openStatusDropdown = !openStatusDropdown; openRoleDropdown = false"
+                                                    class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                    :class="openStatusDropdown ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="w-2.5 h-2.5 rounded-full"
+                                                          :class="{
+                                                              'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Present',
+                                                              'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Seminar',
+                                                              'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Out of Office'
+                                                          }"></span>
+                                                    <span class="truncate" x-text="getStatusLabel(status)"></span>
+                                                </div>
+                                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0 ml-2"
+                                                     :class="openStatusDropdown ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                 </svg>
+                                            </button>
+
+                                            <!-- Custom Floating Menu with rounded-2xl -->
+                                            <div x-show="openStatusDropdown" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute left-0 right-0 z-50 mt-1.5 overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 backdrop-blur-md">
+                                                <template x-for="item in availableStatuses" :key="item.value">
+                                                    <div @click="status = item.value; openStatusDropdown = false"
+                                                         class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors"
+                                                         :class="status === item.value 
+                                                            ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
+                                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                        <div class="flex items-center gap-2.5">
+                                                            <span class="w-2.5 h-2.5 rounded-full" :class="item.dot"></span>
+                                                            <span x-text="item.label"></span>
+                                                        </div>
+                                                        <svg x-show="status === item.value" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                        </svg>
+                                                    </div>
+                                                </template>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div>
+                                    <div class="pt-1">
                                         <label
-                                            class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Schedule
+                                            class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Schedule
                                             (Optional)</label>
-                                        <div class="flex flex-wrap gap-2 mb-3">
+                                        <div class="flex flex-wrap gap-2 mb-4">
                                             <template x-for="(isActive, day) in days" :key="day">
                                                 <button type="button" @click="days[day] = !days[day]"
-                                                    :class="isActive ? 'bg-teal-600 text-white border-teal-600' : 'bg-white dark:bg-gray-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-gray-600'"
-                                                    class="px-3 py-1.5 border rounded-md text-xs font-medium transition-colors focus:outline-none"
+                                                    :class="isActive ? 'bg-teal-600 text-white border-teal-600 shadow-xs' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'"
+                                                    class="px-3.5 py-1.5 border rounded-xl text-xs font-bold transition-all cursor-pointer focus:outline-none"
                                                     x-text="day">
                                                 </button>
                                             </template>
                                         </div>
-                                        <div class="flex items-center gap-3">
-                                            <div class="flex-1">
-                                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Time
-                                                    In</label>
-                                                <input type="time" x-model="timeIn"
-                                                    class="block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <!-- Time In Picker -->
+                                            <div class="relative" x-data="{
+                                                open: false,
+                                                selectedHour: 8,
+                                                selectedMinute: '00',
+                                                period: 'AM',
+                                                init() {
+                                                    this.parseTime(timeIn);
+                                                    this.$watch('timeIn', val => this.parseTime(val));
+                                                },
+                                                parseTime(val) {
+                                                    if (!val) return;
+                                                    let [h, m] = val.split(':').map(Number);
+                                                    this.period = h >= 12 ? 'PM' : 'AM';
+                                                    this.selectedHour = h % 12 || 12;
+                                                    this.selectedMinute = String(m || 0).padStart(2, '0');
+                                                },
+                                                setTime(h, m, p) {
+                                                    if (h !== undefined) this.selectedHour = h;
+                                                    if (m !== undefined) this.selectedMinute = m;
+                                                    if (p !== undefined) this.period = p;
+                                                    
+                                                    let hour24 = parseInt(this.selectedHour, 10);
+                                                    if (this.period === 'PM' && hour24 !== 12) hour24 += 12;
+                                                    if (this.period === 'AM' && hour24 === 12) hour24 = 0;
+                                                    timeIn = `${String(hour24).padStart(2, '0')}:${this.selectedMinute}`;
+                                                },
+                                                get displayFormatted() {
+                                                    return `${String(this.selectedHour).padStart(2, '0')}:${this.selectedMinute} ${this.period}`;
+                                                }
+                                            }" @click.outside="open = false">
+                                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">Duty Time In</label>
+                                                
+                                                <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                        :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                    <div class="flex items-center gap-2">
+                                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span x-text="displayFormatted"></span>
+                                                    </div>
+                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Custom Popover Panel -->
+                                                <div x-show="open" 
+                                                     x-transition:enter="transition ease-out duration-150"
+                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave="transition ease-in duration-100"
+                                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     style="display: none;"
+                                                     class="absolute left-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                    
+                                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+                                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
+                                                        <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                            <button type="button" @click="setTime(undefined, undefined, 'AM')"
+                                                                    :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                            <button type="button" @click="setTime(undefined, undefined, 'PM')"
+                                                                    :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
+                                                        <div class="grid grid-cols-6 gap-1.5">
+                                                            <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
+                                                                <button type="button" @click="setTime(h, undefined, undefined)"
+                                                                        :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        x-text="h"></button>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
+                                                        <div class="grid grid-cols-4 gap-1.5">
+                                                            <template x-for="m in ['00', '15', '30', '45']" :key="m">
+                                                                <button type="button" @click="setTime(undefined, m, undefined)"
+                                                                        :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        x-text="':' + m"></button>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
+                                                        <div class="flex flex-wrap gap-1.5">
+                                                            <button type="button" @click="setTime(8, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">8:00 AM</button>
+                                                            <button type="button" @click="setTime(9, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">9:00 AM</button>
+                                                            <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
+                                                            <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <button type="button" @click="open = false"
+                                                            class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                        Done
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div class="text-slate-400 mt-5">-</div>
-                                            <div class="flex-1">
-                                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Time
-                                                    Out</label>
-                                                <input type="time" x-model="timeOut"
-                                                    class="block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+
+                                            <!-- Time Out Picker -->
+                                            <div class="relative" x-data="{
+                                                open: false,
+                                                selectedHour: 5,
+                                                selectedMinute: '00',
+                                                period: 'PM',
+                                                init() {
+                                                    this.parseTime(timeOut);
+                                                    this.$watch('timeOut', val => this.parseTime(val));
+                                                },
+                                                parseTime(val) {
+                                                    if (!val) return;
+                                                    let [h, m] = val.split(':').map(Number);
+                                                    this.period = h >= 12 ? 'PM' : 'AM';
+                                                    this.selectedHour = h % 12 || 12;
+                                                    this.selectedMinute = String(m || 0).padStart(2, '0');
+                                                },
+                                                setTime(h, m, p) {
+                                                    if (h !== undefined) this.selectedHour = h;
+                                                    if (m !== undefined) this.selectedMinute = m;
+                                                    if (p !== undefined) this.period = p;
+                                                    
+                                                    let hour24 = parseInt(this.selectedHour, 10);
+                                                    if (this.period === 'PM' && hour24 !== 12) hour24 += 12;
+                                                    if (this.period === 'AM' && hour24 === 12) hour24 = 0;
+                                                    timeOut = `${String(hour24).padStart(2, '0')}:${this.selectedMinute}`;
+                                                },
+                                                get displayFormatted() {
+                                                    return `${String(this.selectedHour).padStart(2, '0')}:${this.selectedMinute} ${this.period}`;
+                                                }
+                                            }" @click.outside="open = false">
+                                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">Duty Time Out</label>
+                                                
+                                                <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                        :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                    <div class="flex items-center gap-2">
+                                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span x-text="displayFormatted"></span>
+                                                    </div>
+                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Custom Popover Panel -->
+                                                <div x-show="open" 
+                                                     x-transition:enter="transition ease-out duration-150"
+                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave="transition ease-in duration-100"
+                                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     style="display: none;"
+                                                     class="absolute left-0 sm:left-auto right-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                    
+                                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+                                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
+                                                        <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                            <button type="button" @click="setTime(undefined, undefined, 'AM')"
+                                                                    :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                            <button type="button" @click="setTime(undefined, undefined, 'PM')"
+                                                                    :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
+                                                        <div class="grid grid-cols-6 gap-1.5">
+                                                            <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
+                                                                <button type="button" @click="setTime(h, undefined, undefined)"
+                                                                        :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        x-text="h"></button>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
+                                                        <div class="grid grid-cols-4 gap-1.5">
+                                                            <template x-for="m in ['00', '15', '30', '45']" :key="m">
+                                                                <button type="button" @click="setTime(undefined, m, undefined)"
+                                                                        :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        x-text="':' + m"></button>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
+                                                        <div class="flex flex-wrap gap-1.5">
+                                                            <button type="button" @click="setTime(12, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">12:00 PM</button>
+                                                            <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
+                                                            <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
+                                                            <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">6:00 PM</button>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <button type="button" @click="open = false"
+                                                            class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                        Done
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                         <div
-                                            class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                            class="mt-3 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                             <svg class="shrink-0 w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -473,23 +862,23 @@
                                 </div>
 
                                 <!-- Step 3: Security -->
-                                <div x-show="step === 3" style="display: none;" class="space-y-4">
+                                <div x-show="step === 3" style="display: none;" class="space-y-6">
                                     <div
-                                        class="bg-amber-50 dark:bg-amber-900/30 p-4 rounded-md border border-amber-200 dark:border-amber-700 mb-4">
-                                        <p class="text-sm text-amber-800 dark:text-amber-200">
+                                        class="bg-amber-50 dark:bg-amber-950/30 p-4 rounded-2xl border border-amber-200/80 dark:border-amber-800/60">
+                                        <p class="text-xs sm:text-sm text-amber-900 dark:text-amber-200">
                                             <strong>Security Requirements:</strong> Create a temporary password for the
                                             staff member. They will be required to change it upon their first login.
                                         </p>
                                     </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div>
                                             <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300">Temporary
+                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Temporary
                                                 Password <span class="text-red-500">*</span></label>
                                             <input type="password" name="password" x-model="password" :required="step === 3"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                             <!-- Strength Meter -->
-                                            <div class="mt-2 flex items-center gap-2" x-show="password.length > 0">
+                                            <div class="mt-2.5 flex items-center gap-2" x-show="password.length > 0">
                                                 <div class="flex-1 flex gap-1 h-1.5">
                                                     <div class="flex-1 rounded-full transition-colors duration-300"
                                                         :class="strength >= 1 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'">
@@ -504,44 +893,46 @@
                                                         :class="strength >= 4 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'">
                                                     </div>
                                                 </div>
-                                                <span class="text-xs font-semibold"
+                                                <span class="text-xs font-bold"
                                                     :class="{'text-red-500': strength <= 1, 'text-yellow-500': strength === 2, 'text-teal-500': strength === 3, 'text-green-500': strength === 4}"
                                                     x-text="strengthText"></span>
                                             </div>
                                         </div>
                                         <div>
                                             <label
-                                                class="block text-sm font-medium text-slate-700 dark:text-slate-300">Confirm
+                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Confirm
                                                 Password <span class="text-red-500">*</span></label>
                                             <input type="password" name="password_confirmation"
                                                 x-model="passwordConfirmation" :required="step === 3"
-                                                class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm">
+                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                             <p x-show="passwordConfirmation.length > 0 && password !== passwordConfirmation"
-                                                class="text-xs text-red-500 mt-1">Passwords do not match.</p>
+                                                class="text-xs text-red-500 font-semibold mt-1.5">Passwords do not match.</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div
-                                class="px-6 py-4 bg-slate-50 dark:bg-gray-800/80 border-t border-slate-200 dark:border-gray-700 flex justify-between items-center">
+                                class="px-8 py-5 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
                                 <div>
                                     <button type="button" x-show="step > 1" @click="prevStep()"
-                                        class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white focus:outline-none flex items-center gap-1">
+                                        class="h-11 px-4 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 19l-7-7 7-7"></path>
                                         </svg>
-                                        Back
+                                        <span>Back</span>
                                     </button>
                                 </div>
                                 <div class="flex gap-3">
                                     <button type="button" @click="showAddDoctor = false"
-                                        class="px-4 py-2 bg-white dark:bg-gray-700 border border-slate-300 dark:border-gray-600 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gray-600 rounded shadow-sm focus:outline-none">Cancel</button>
+                                        class="h-11 px-5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl shadow-2xs transition-all cursor-pointer">
+                                        Cancel
+                                    </button>
 
                                     <button type="button" x-show="step < 3" @click="nextStep()"
-                                        class="px-5 py-2 bg-teal-600 text-sm font-medium text-white hover:bg-teal-700 rounded shadow-sm focus:outline-none flex items-center gap-1">
-                                        Next
+                                        class="h-11 px-6 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-sm font-bold text-white rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                        <span>Next</span>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 5l7 7-7 7"></path>
@@ -549,13 +940,13 @@
                                     </button>
 
                                     <button type="submit" x-show="step === 3" :disabled="password !== passwordConfirmation"
-                                        :class="password !== passwordConfirmation ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700'"
-                                        class="px-5 py-2 bg-teal-600 text-sm font-medium text-white rounded shadow-sm focus:outline-none flex items-center gap-2">
+                                        :class="password !== passwordConfirmation ? 'opacity-50 cursor-not-allowed' : 'hover:from-teal-700 hover:to-emerald-700 active:scale-95 cursor-pointer shadow-md shadow-teal-600/20'"
+                                        class="h-11 px-6 bg-gradient-to-r from-teal-600 to-emerald-600 text-sm font-bold text-white rounded-xl transition-all flex items-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 13l4 4L19 7"></path>
                                         </svg>
-                                        Create Staff
+                                        <span>Create Staff</span>
                                     </button>
                                 </div>
                             </div>
@@ -1152,19 +1543,230 @@
                                     </div>
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
-                                                Duty Time In
-                                            </label>
-                                            <input type="time" x-model="timeIn"
-                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                        <!-- Time In Picker -->
+                                        <div class="relative" x-data="{
+                                            open: false,
+                                            selectedHour: 8,
+                                            selectedMinute: '00',
+                                            period: 'AM',
+                                            init() {
+                                                this.parseTime(timeIn);
+                                                this.$watch('timeIn', val => this.parseTime(val));
+                                            },
+                                            parseTime(val) {
+                                                if (!val) return;
+                                                let [h, m] = val.split(':').map(Number);
+                                                this.period = h >= 12 ? 'PM' : 'AM';
+                                                this.selectedHour = h % 12 || 12;
+                                                this.selectedMinute = String(m || 0).padStart(2, '0');
+                                            },
+                                            setTime(h, m, p) {
+                                                if (h !== undefined) this.selectedHour = h;
+                                                if (m !== undefined) this.selectedMinute = m;
+                                                if (p !== undefined) this.period = p;
+                                                
+                                                let hour24 = parseInt(this.selectedHour, 10);
+                                                if (this.period === 'PM' && hour24 !== 12) hour24 += 12;
+                                                if (this.period === 'AM' && hour24 === 12) hour24 = 0;
+                                                timeIn = `${String(hour24).padStart(2, '0')}:${this.selectedMinute}`;
+                                            },
+                                            get displayFormatted() {
+                                                return `${String(this.selectedHour).padStart(2, '0')}:${this.selectedMinute} ${this.period}`;
+                                            }
+                                        }" @click.outside="open = false">
+                                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time In</label>
+                                            
+                                            <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                    class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                    :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    <span x-text="displayFormatted"></span>
+                                                </div>
+                                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                     :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </button>
+
+                                            <!-- Custom Popover Panel -->
+                                            <div x-show="open" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute left-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                
+                                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+                                                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
+                                                    <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                        <button type="button" @click="setTime(undefined, undefined, 'AM')"
+                                                                :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click="setTime(undefined, undefined, 'PM')"
+                                                                :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
+                                                    <div class="grid grid-cols-6 gap-1.5">
+                                                        <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
+                                                            <button type="button" @click="setTime(h, undefined, undefined)"
+                                                                    :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="h"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
+                                                    <div class="grid grid-cols-4 gap-1.5">
+                                                        <template x-for="m in ['00', '15', '30', '45']" :key="m">
+                                                            <button type="button" @click="setTime(undefined, m, undefined)"
+                                                                    :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="':' + m"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
+                                                    <div class="flex flex-wrap gap-1.5">
+                                                        <button type="button" @click="setTime(8, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">8:00 AM</button>
+                                                        <button type="button" @click="setTime(9, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">9:00 AM</button>
+                                                        <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
+                                                        <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button type="button" @click="open = false"
+                                                        class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                    Done
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
-                                                Duty Time Out
-                                            </label>
-                                            <input type="time" x-model="timeOut"
-                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+
+                                        <!-- Time Out Picker -->
+                                        <div class="relative" x-data="{
+                                            open: false,
+                                            selectedHour: 5,
+                                            selectedMinute: '00',
+                                            period: 'PM',
+                                            init() {
+                                                this.parseTime(timeOut);
+                                                this.$watch('timeOut', val => this.parseTime(val));
+                                            },
+                                            parseTime(val) {
+                                                if (!val) return;
+                                                let [h, m] = val.split(':').map(Number);
+                                                this.period = h >= 12 ? 'PM' : 'AM';
+                                                this.selectedHour = h % 12 || 12;
+                                                this.selectedMinute = String(m || 0).padStart(2, '0');
+                                            },
+                                            setTime(h, m, p) {
+                                                if (h !== undefined) this.selectedHour = h;
+                                                if (m !== undefined) this.selectedMinute = m;
+                                                if (p !== undefined) this.period = p;
+                                                
+                                                let hour24 = parseInt(this.selectedHour, 10);
+                                                if (this.period === 'PM' && hour24 !== 12) hour24 += 12;
+                                                if (this.period === 'AM' && hour24 === 12) hour24 = 0;
+                                                timeOut = `${String(hour24).padStart(2, '0')}:${this.selectedMinute}`;
+                                            },
+                                            get displayFormatted() {
+                                                return `${String(this.selectedHour).padStart(2, '0')}:${this.selectedMinute} ${this.period}`;
+                                            }
+                                        }" @click.outside="open = false">
+                                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time Out</label>
+                                            
+                                            <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                    class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                    :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    <span x-text="displayFormatted"></span>
+                                                </div>
+                                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                     :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </button>
+
+                                            <!-- Custom Popover Panel -->
+                                            <div x-show="open" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute left-0 sm:left-auto right-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                
+                                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+                                                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
+                                                    <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                        <button type="button" @click="setTime(undefined, undefined, 'AM')"
+                                                                :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click="setTime(undefined, undefined, 'PM')"
+                                                                :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
+                                                    <div class="grid grid-cols-6 gap-1.5">
+                                                        <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
+                                                            <button type="button" @click="setTime(h, undefined, undefined)"
+                                                                    :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="h"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
+                                                    <div class="grid grid-cols-4 gap-1.5">
+                                                        <template x-for="m in ['00', '15', '30', '45']" :key="m">
+                                                            <button type="button" @click="setTime(undefined, m, undefined)"
+                                                                    :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
+                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="':' + m"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
+                                                    <div class="flex flex-wrap gap-1.5">
+                                                        <button type="button" @click="setTime(12, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">12:00 PM</button>
+                                                        <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
+                                                        <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
+                                                        <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">6:00 PM</button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button type="button" @click="open = false"
+                                                        class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                    Done
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 

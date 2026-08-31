@@ -165,9 +165,9 @@
             :aria-expanded="open"
             aria-haspopup="listbox"
             @if($disabled) disabled @endif
-            class="relative w-full flex items-center justify-between text-left rounded-xl border bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-2xs transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed {{ $sizeClasses }} {{ $class }}"
+            class="relative w-full flex items-center justify-between text-left rounded-xl border bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-2xs transition-all duration-150 cursor-pointer focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed {{ $sizeClasses }} {{ $class }}"
             :class="open 
-                ? 'border-emerald-600 ring-2 ring-emerald-500/30 dark:border-emerald-500' 
+                ? 'border-emerald-500 ring-4 ring-emerald-500/20 dark:border-emerald-500' 
                 : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'">
         
         <span class="truncate block pr-2" x-text="selectedLabel"></span>

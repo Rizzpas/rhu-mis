@@ -14,8 +14,8 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             <span>Export Full Report</span>
         </button>
-        <form action="{{ route('admin.analytics') }}" method="GET" class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700">
-            <label for="time_filter" class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Global Timeframe:</label>
+        <form action="{{ route('admin.analytics') }}" method="GET" class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700 focus-within:ring-4 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 transition-all">
+            <label for="time_filter" class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1 shrink-0">Global Timeframe:</label>
             <div class="w-36">
                 <x-select 
                     name="time_filter" 
@@ -24,7 +24,7 @@
                     :value="$timeFilter" 
                     @change="$el.closest('form').submit()"
                     size="sm"
-                    class="border-0 shadow-none font-bold text-slate-800 dark:text-white !py-0"
+                    class="border-0 shadow-none font-bold text-slate-800 dark:text-white !py-0 focus:ring-0"
                 />
             </div>
         </form>
@@ -51,20 +51,85 @@
                 </h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Total consultations over time</p>
             </div>
-            <div class="flex gap-2">
-                <select @change="updateChart('volume', $event.target.value)" class="text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                    <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                    <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                    <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                </select>
-                <div class="relative" x-data="{ openExport: false }">
-                    <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-2 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
+            <div class="flex items-center gap-2">
+                <!-- Custom Timeframe Dropdown -->
+                <div class="relative" x-data="{
+                    open: false,
+                    selected: '{{ $timeFilter }}',
+                    options: {
+                        'today': 'Today',
+                        'weekly': 'This Week',
+                        'monthly': 'This Month',
+                        'yearly': 'This Year',
+                        'all': 'All Time'
+                    },
+                    select(val) {
+                        this.selected = val;
+                        this.open = false;
+                        updateChart('volume', val);
+                    }
+                }" @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                        <span x-text="options[selected] || 'This Month'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                             :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Custom Floating Menu -->
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;"
+                         class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                        <template x-for="(label, key) in options" :key="key">
+                            <button type="button" @click="select(key)"
+                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                    :class="selected === key 
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                <span x-text="label"></span>
+                                <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Custom Export Dropdown -->
+                <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                    <button @click="openExport = !openExport" title="Export Chart" 
+                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                            :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
-                    <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                        <a href="#" @click.prevent="exportChart('visitVolumeChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
-                        <a href="#" @click.prevent="exportCSV('volume'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download CSV</a>
+                    <div x-show="openExport" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;" 
+                         class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                        <a href="#" @click.prevent="exportChart('visitVolumeChart'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span>Download PNG</span>
+                        </a>
+                        <a href="#" @click.prevent="exportCSV('volume'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span>Download CSV</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -92,21 +157,84 @@
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Consultation distribution by hour</p>
                 </div>
-                <div class="flex gap-2">
-                    <select @change="updateChart('peak', $event.target.value)" class="text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                        <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                        <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                        <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                        <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-                    </select>
-                    <div class="relative" x-data="{ openExport: false }">
-                        <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-2 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <!-- Custom Timeframe Dropdown -->
+                    <div class="relative" x-data="{
+                        open: false,
+                        selected: '{{ $timeFilter }}',
+                        options: {
+                            'today': 'Today',
+                            'weekly': 'This Week',
+                            'monthly': 'This Month',
+                            'yearly': 'This Year',
+                            'all': 'All Time'
+                        },
+                        select(val) {
+                            this.selected = val;
+                            this.open = false;
+                            updateChart('peak', val);
+                        }
+                    }" @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <span x-text="options[selected] || 'This Month'"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;"
+                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                            <template x-for="(label, key) in options" :key="key">
+                                <button type="button" @click="select(key)"
+                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                        :class="selected === key 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                    <span x-text="label"></span>
+                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Custom Export Dropdown -->
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
-                        <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                            <a href="#" @click.prevent="exportChart('peakHoursChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
-                            <a href="#" @click.prevent="exportCSV('peak'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download CSV</a>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('peakHoursChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
+                            <a href="#" @click.prevent="exportCSV('peak'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>Download CSV</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -130,21 +258,84 @@
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Consultations per doctor/nurse</p>
                 </div>
-                <div class="flex gap-2">
-                    <select @change="updateChart('workload', $event.target.value)" class="text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                        <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                        <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                        <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                        <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-                    </select>
-                    <div class="relative" x-data="{ openExport: false }">
-                        <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-2 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <!-- Custom Timeframe Dropdown -->
+                    <div class="relative" x-data="{
+                        open: false,
+                        selected: '{{ $timeFilter }}',
+                        options: {
+                            'today': 'Today',
+                            'weekly': 'This Week',
+                            'monthly': 'This Month',
+                            'yearly': 'This Year',
+                            'all': 'All Time'
+                        },
+                        select(val) {
+                            this.selected = val;
+                            this.open = false;
+                            updateChart('workload', val);
+                        }
+                    }" @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <span x-text="options[selected] || 'This Month'"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;"
+                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                            <template x-for="(label, key) in options" :key="key">
+                                <button type="button" @click="select(key)"
+                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                        :class="selected === key 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                    <span x-text="label"></span>
+                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Custom Export Dropdown -->
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
-                        <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                            <a href="#" @click.prevent="exportChart('workloadChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
-                            <a href="#" @click.prevent="exportCSV('workload'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download CSV</a>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('workloadChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
+                            <a href="#" @click.prevent="exportCSV('workload'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>Download CSV</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -170,28 +361,90 @@
                 </h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Age distribution among patients</p>
             </div>
-            <div class="flex gap-2">
-                <select @change="updateChart('demographics', $event.target.value)" class="text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                    <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                    <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                    <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                    <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-                </select>
-                <div class="relative" x-data="{ openExport: false }">
-                    <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-2 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
+            <div class="flex items-center gap-2">
+                <!-- Custom Timeframe Dropdown -->
+                <div class="relative" x-data="{
+                    open: false,
+                    selected: '{{ $timeFilter }}',
+                    options: {
+                        'today': 'Today',
+                        'weekly': 'This Week',
+                        'monthly': 'This Month',
+                        'yearly': 'This Year',
+                        'all': 'All Time'
+                    },
+                    select(val) {
+                        this.selected = val;
+                        this.open = false;
+                        updateChart('demographics', val);
+                    }
+                }" @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                        <span x-text="options[selected] || 'This Month'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                             :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;"
+                         class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                        <template x-for="(label, key) in options" :key="key">
+                            <button type="button" @click="select(key)"
+                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                    :class="selected === key 
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                <span x-text="label"></span>
+                                <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Custom Export Dropdown -->
+                <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                    <button @click="openExport = !openExport" title="Export Chart" 
+                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                            :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
-                    <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                        <a href="#" @click.prevent="exportChart('ageSexChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
-                        <a href="#" @click.prevent="exportCSV('demographics'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download CSV</a>
+                    <div x-show="openExport" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;" 
+                         class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                        <a href="#" @click.prevent="exportChart('ageSexChart'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span>Download PNG</span>
+                        </a>
+                        <a href="#" @click.prevent="exportCSV('demographics'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span>Download CSV</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
         <div class="relative flex-1 w-full min-h-0"><canvas id="ageSexChart"></canvas></div>
     </div>
-
     <!-- Row 4: Classification & Severity (Half/Half Doughnuts) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col h-[400px]">
@@ -210,21 +463,84 @@
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Distribution by sector</p>
                 </div>
-                <div class="flex gap-2">
-                    <select @change="updateChart('classification', $event.target.value)" class="text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                        <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                        <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                        <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                        <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-                    </select>
-                    <div class="relative" x-data="{ openExport: false }">
-                        <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-2 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <!-- Custom Timeframe Dropdown -->
+                    <div class="relative" x-data="{
+                        open: false,
+                        selected: '{{ $timeFilter }}',
+                        options: {
+                            'today': 'Today',
+                            'weekly': 'This Week',
+                            'monthly': 'This Month',
+                            'yearly': 'This Year',
+                            'all': 'All Time'
+                        },
+                        select(val) {
+                            this.selected = val;
+                            this.open = false;
+                            updateChart('classification', val);
+                        }
+                    }" @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <span x-text="options[selected] || 'This Month'"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;"
+                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                            <template x-for="(label, key) in options" :key="key">
+                                <button type="button" @click="select(key)"
+                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                        :class="selected === key 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                    <span x-text="label"></span>
+                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Custom Export Dropdown -->
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
-                        <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                            <a href="#" @click.prevent="exportChart('classificationChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
-                            <a href="#" @click.prevent="exportCSV('classification'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download CSV</a>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('classificationChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
+                            <a href="#" @click.prevent="exportCSV('classification'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>Download CSV</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -248,21 +564,84 @@
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Case priority breakdown</p>
                 </div>
-                <div class="flex gap-2">
-                    <select @change="updateChart('severity', $event.target.value)" class="text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                        <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                        <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                        <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                        <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-                    </select>
-                    <div class="relative" x-data="{ openExport: false }">
-                        <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-2 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <!-- Custom Timeframe Dropdown -->
+                    <div class="relative" x-data="{
+                        open: false,
+                        selected: '{{ $timeFilter }}',
+                        options: {
+                            'today': 'Today',
+                            'weekly': 'This Week',
+                            'monthly': 'This Month',
+                            'yearly': 'This Year',
+                            'all': 'All Time'
+                        },
+                        select(val) {
+                            this.selected = val;
+                            this.open = false;
+                            updateChart('severity', val);
+                        }
+                    }" @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <span x-text="options[selected] || 'This Month'"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;"
+                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                            <template x-for="(label, key) in options" :key="key">
+                                <button type="button" @click="select(key)"
+                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                        :class="selected === key 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                    <span x-text="label"></span>
+                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Custom Export Dropdown -->
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
-                        <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                            <a href="#" @click.prevent="exportChart('severityChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
-                            <a href="#" @click.prevent="exportCSV('severity'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download CSV</a>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('severityChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
+                            <a href="#" @click.prevent="exportCSV('severity'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>Download CSV</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -288,21 +667,84 @@
                 </h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Patient distribution across Silang</p>
             </div>
-            <div class="flex gap-2">
-                <select @change="updateChart('barangay', $event.target.value)" class="text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                    <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                    <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                    <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                    <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-                </select>
-                <div class="relative" x-data="{ openExport: false }">
-                    <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-2 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
+            <div class="flex items-center gap-2">
+                <!-- Custom Timeframe Dropdown -->
+                <div class="relative" x-data="{
+                    open: false,
+                    selected: '{{ $timeFilter }}',
+                    options: {
+                        'today': 'Today',
+                        'weekly': 'This Week',
+                        'monthly': 'This Month',
+                        'yearly': 'This Year',
+                        'all': 'All Time'
+                    },
+                    select(val) {
+                        this.selected = val;
+                        this.open = false;
+                        updateChart('barangay', val);
+                    }
+                }" @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                        <span x-text="options[selected] || 'This Month'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                             :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;"
+                         class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                            <template x-for="(label, key) in options" :key="key">
+                            <button type="button" @click="select(key)"
+                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                    :class="selected === key 
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                <span x-text="label"></span>
+                                <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Custom Export Dropdown -->
+                <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                    <button @click="openExport = !openExport" title="Export Chart" 
+                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                            :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
-                    <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                        <a href="#" @click.prevent="exportChart('barangayChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
-                        <a href="#" @click.prevent="exportCSV('barangay'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download CSV</a>
+                    <div x-show="openExport" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;" 
+                         class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                        <a href="#" @click.prevent="exportChart('barangayChart'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span>Download PNG</span>
+                        </a>
+                        <a href="#" @click.prevent="exportCSV('barangay'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span>Download CSV</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -328,20 +770,152 @@
                 </h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Performance metrics and throughput</p>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <select x-model="productivityStaff" @change="fetchProductivity()" class="text-sm border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                    <option value="all">All Staff</option>
-                    @foreach($staffList as $staff)
-                        <option value="{{ $staff->id }}">{{ $staff->formatted_name }}</option>
-                    @endforeach
-                </select>
-                <select x-model="productivityTime" @change="fetchProductivity()" class="text-sm border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg focus:ring-emerald-500">
-                    <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Today</option>
-                    <option value="weekly" {{ $timeFilter == 'weekly' ? 'selected' : '' }}>This Week</option>
-                    <option value="monthly" {{ $timeFilter == 'monthly' ? 'selected' : '' }}>This Month</option>
-                <option value="yearly" {{ $timeFilter == 'yearly' ? 'selected' : '' }}>This Year</option>
-                    <option value="all" {{ $timeFilter == 'all' ? 'selected' : '' }}>All Time</option>
-                </select>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <!-- Custom Staff Selector Dropdown with Live Search -->
+                <div class="relative" x-data="{
+                    open: false,
+                    search: '',
+                    staffList: [
+                        { id: 'all', name: 'All Staff' },
+                        @foreach($staffList as $staff)
+                            { id: '{{ $staff->id }}', name: '{{ addslashes($staff->formatted_name) }}' },
+                        @endforeach
+                    ],
+                    get filteredStaff() {
+                        if (!this.search.trim()) return this.staffList;
+                        const q = this.search.toLowerCase().trim();
+                        return this.staffList.filter(s => s.name.toLowerCase().includes(q));
+                    },
+                    get selectedLabel() {
+                        const found = this.staffList.find(s => String(s.id) === String(productivityStaff));
+                        return found ? found.name : 'Select Staff';
+                    },
+                    select(val) {
+                        productivityStaff = val;
+                        this.open = false;
+                        this.search = '';
+                        fetchProductivity();
+                    }
+                }" @click.outside="open = false; search = ''">
+                    <button type="button" 
+                            @click="open = !open; if(open) $nextTick(() => $refs.staffSearchInput?.focus())"
+                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
+                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                        <span class="max-w-[150px] sm:max-w-[200px] truncate" x-text="selectedLabel"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0"
+                             :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Panel with Search -->
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;"
+                         class="absolute right-0 z-50 mt-1.5 w-64 sm:w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 overflow-hidden backdrop-blur-md">
+                        
+                        <!-- Search Bar Header -->
+                        <div class="p-2.5 border-b border-slate-100 dark:border-slate-700/80 bg-slate-50/70 dark:bg-slate-800/80">
+                            <div class="relative flex items-center">
+                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <input type="text"
+                                       x-model="search"
+                                       x-ref="staffSearchInput"
+                                       @keydown.escape="open = false; search = ''"
+                                       placeholder="Search staff by name..."
+                                       class="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+                                <button x-show="search.length > 0" 
+                                        @click="search = ''; $refs.staffSearchInput.focus()" 
+                                        type="button" 
+                                        class="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Scrollable Staff Options List -->
+                        <div class="max-h-60 overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
+                            <template x-for="item in filteredStaff" :key="item.id">
+                                <button type="button" @click="select(item.id)"
+                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                        :class="String(productivityStaff) === String(item.id) 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                    <span class="truncate" x-text="item.name"></span>
+                                    <svg x-show="String(productivityStaff) === String(item.id)" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </template>
+
+                            <!-- Empty Search Feedback -->
+                            <div x-show="filteredStaff.length === 0" class="py-5 px-3 text-center text-xs text-slate-400 dark:text-slate-500">
+                                <svg class="w-6 h-6 mx-auto mb-1.5 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                No staff matching "<span x-text="search" class="font-bold text-slate-700 dark:text-slate-300"></span>"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Productivity Timeframe Dropdown -->
+                <div class="relative" x-data="{
+                    open: false,
+                    options: {
+                        'today': 'Today',
+                        'weekly': 'This Week',
+                        'monthly': 'This Month',
+                        'yearly': 'This Year',
+                        'all': 'All Time'
+                    },
+                    select(val) {
+                        productivityTime = val;
+                        this.open = false;
+                        fetchProductivity();
+                    }
+                }" @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
+                            :class="open ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                        <span x-text="options[productivityTime] || 'This Month'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                             :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;"
+                         class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                        <template x-for="(label, key) in options" :key="key">
+                            <button type="button" @click="select(key)"
+                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                    :class="productivityTime === key 
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                <span x-text="label"></span>
+                                <svg x-show="productivityTime === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -463,12 +1037,26 @@
                             <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
                         </div>
                     </h4>
-                    <div class="relative" x-data="{ openExport: false }">
-                        <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-8 w-8 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-lg transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
-                        <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                            <a href="#" @click.prevent="exportChart('durationStaffChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('durationStaffChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-lg transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -489,12 +1077,26 @@
                             <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
                         </div>
                     </h4>
-                    <div class="relative" x-data="{ openExport: false }">
-                        <button @click="openExport = !openExport" @click.away="openExport = false" title="Export Chart" class="p-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 hover:text-emerald-600 rounded-lg transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-8 w-8 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-lg transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
-                        <div x-show="openExport" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20">
-                            <a href="#" @click.prevent="exportChart('encodingSpeedChart'); openExport = false" class="block px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700">Download PNG</a>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('encodingSpeedChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-lg transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
                         </div>
                     </div>
                 </div>
