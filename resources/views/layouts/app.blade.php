@@ -121,7 +121,7 @@
     @include('partials.skeleton-app')
     <!-- Top Bar — Official Republic & Municipal Header -->
     <div class="bg-emerald-900 text-white text-[11px] sm:text-xs py-2 px-4 md:px-8 flex flex-wrap justify-between items-center font-medium gap-2 sm:gap-4 relative z-10 border-b border-emerald-800/60">
-        <div class="flex items-center gap-2 mx-auto md:mx-0">
+        <div class="hidden md:flex items-center gap-2 mx-auto md:mx-0">
             <span class="font-bold tracking-wide uppercase">Republic of the Philippines</span>
             <span class="text-emerald-400 opacity-60">•</span>
             <span class="text-emerald-200">Province of Cavite</span>
@@ -258,52 +258,64 @@
 
                         <!-- Collapsible Facility Links -->
                         <div x-show="open" x-collapse x-transition
-                            class="mt-1 ml-4 pl-3.5 border-l-2 border-emerald-500/20 space-y-1 py-1">
+                            class="mt-1.5 p-1.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800/80 space-y-1">
                             <a href="{{ route('units.show', 'main-health-center') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">Main Health Center</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Check-ups & general consultations</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Main Health Center</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Check-ups & general consultations</span>
                                 </div>
                             </a>
                             <a href="{{ route('units.show', 'lying-in-clinic') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">Lying-in Birthing Clinic</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">24/7 maternity & newborn care</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Lying-in Birthing Clinic</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">24/7 maternity & newborn care</span>
                                 </div>
                             </a>
                             <a href="{{ route('units.show', 'dental-clinic') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-cyan-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">Dental Clinic</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Extraction & oral hygiene</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Dental Clinic</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Extraction & oral hygiene</span>
                                 </div>
                             </a>
                             <a href="{{ route('units.show', 'tb-dots-facility') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">TB DOTS Facility</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Screening & observed therapy</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">TB DOTS Facility</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Screening & observed therapy</span>
                                 </div>
                             </a>
                             <a href="{{ route('units.show', 'animal-bite-center') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">Animal Bite Treatment</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Anti-rabies vaccination</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285zm0 13.036h.008v.008H12v-.008z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Animal Bite Treatment</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Anti-rabies vaccination & wound care</span>
                                 </div>
                             </a>
-                            <a href="{{ route('units.index') }}"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition">
-                                <span>View All Facilities</span>
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                            </a>
+                            <div class="pt-1 px-1 border-t border-slate-200/50 dark:border-slate-700/50">
+                                <a href="{{ route('units.index') }}"
+                                    class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition">
+                                    <span>View All Facilities</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -324,21 +336,25 @@
 
                         <!-- Collapsible Appointment Links -->
                         <div x-show="open" x-collapse x-transition
-                            class="mt-1 ml-4 pl-3.5 border-l-2 border-emerald-500/20 space-y-1 py-1">
+                            class="mt-1.5 p-1.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800/80 space-y-1">
                             <a href="{{ route('appointment.create') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">Book New Appointment</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Schedule your consultation online</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Book New Appointment</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Schedule your consultation online</span>
                                 </div>
                             </a>
                             <a href="{{ route('appointment.manage') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">Manage Appointment</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Check status, reschedule or cancel</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Manage Appointment</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Check status, reschedule or cancel</span>
                                 </div>
                             </a>
                         </div>
@@ -361,21 +377,29 @@
 
                         <!-- Collapsible About Links -->
                         <div x-show="open" x-collapse x-transition
-                            class="mt-1 ml-4 pl-3.5 border-l-2 border-emerald-500/20 space-y-1 py-1">
+                            class="mt-1.5 p-1.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800/80 space-y-1">
                             <a href="{{ route('announcements.index') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">Announcements</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Health advisories & community alerts</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.34 15.84c-.063.046-.129.088-.198.127a3.75 3.75 0 01-4.088-.288L3.25 13.5A2.25 2.25 0 012.25 11.75v-1.5a2.25 2.25 0 011-1.75l2.804-2.179a3.75 3.75 0 014.088-.288c.069.04.135.081.198.127m0 9.68l4.41 4.41a1.5 1.5 0 002.122 0l1.414-1.414a1.5 1.5 0 000-2.122L12 14.004m-1.66 1.836V7.996m0 0a3.75 3.75 0 013.75-3.75h1.5a2.25 2.25 0 012.25 2.25v6a2.25 2.25 0 01-2.25 2.25h-1.5a3.75 3.75 0 01-3.75-3.75z"/>
+                                    </svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Announcements</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Health advisories & community alerts</span>
                                 </div>
                             </a>
                             <a href="{{ route('about') }}"
-                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-                                <span class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
-                                <div>
-                                    <span class="block text-slate-800 dark:text-slate-200">About RHU Silang</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Mission, facilities & healthcare services</span>
+                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253"/>
+                                    </svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">About RHU Silang</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Mission, facilities & healthcare services</span>
                                 </div>
                             </a>
                         </div>

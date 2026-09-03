@@ -115,7 +115,7 @@
                                 {{ $uName }}
                             </h1>
                             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
-                                Republic of the Philippines • Municipality of Silang, Cavite
+                                Municipality of Silang, Cavite
                             </p>
                         </div>
                     </div>
