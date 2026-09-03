@@ -149,17 +149,19 @@
                 </div>
             </a>
             <button data-collapse-toggle="mega-menu-full" type="button"
-                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-slate-500 dark:text-slate-400 rounded-lg md:hidden hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                class="inline-flex items-center justify-center w-10 h-10 text-slate-600 dark:text-slate-300 rounded-xl md:hidden bg-slate-100/80 dark:bg-slate-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all cursor-pointer shadow-2xs"
                 aria-controls="mega-menu-full" aria-expanded="false">
-                <span class="sr-only">Open main menu</span>
-                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                    fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h14" />
+                <span class="sr-only">Toggle navigation</span>
+                <svg class="w-5 h-5 hamburger-open-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg class="w-5 h-5 hamburger-close-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
             <div id="mega-menu-full" class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1">
-                <ul
-                    class="flex flex-col mt-4 font-medium md:flex-row md:mt-0 md:space-x-8 rtl:space-x-reverse items-center">
+                <!-- DESKTOP NAVIGATION (Visible on md screens and up) -->
+                <ul class="hidden md:flex flex-row space-x-8 items-center font-medium">
                     <li>
                         <a href="{{ route('welcome') }}"
                             class="block py-2 px-3 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-400 font-semibold md:p-0 transition text-sm"
@@ -194,18 +196,19 @@
                         </button>
                     </li>
 
-                    <!-- Theme Toggle -->
+                    <!-- Desktop Theme Toggle -->
                     <li>
                         <button id="theme-toggle" type="button"
-                            class="relative inline-flex h-6 w-[42px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out">
+                            class="theme-toggle-btn relative inline-flex h-6 w-[42px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out"
+                            title="Toggle Light/Dark Theme">
                             <span class="sr-only">Toggle theme</span>
                             <span
-                                class="pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-[18px]">
-                                <svg id="theme-toggle-dark-icon" class="hidden w-3 h-3 text-slate-700"
+                                class="theme-toggle-indicator pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-[18px]">
+                                <svg class="theme-toggle-dark-icon hidden w-3 h-3 text-slate-700"
                                     fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                                 </svg>
-                                <svg id="theme-toggle-light-icon" class="hidden w-3 h-3 text-slate-900"
+                                <svg class="theme-toggle-light-icon hidden w-3 h-3 text-slate-900"
                                     fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path
                                         d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
@@ -214,10 +217,10 @@
                             </span>
                         </button>
                     </li>
-                    <!-- Book an Appointment CTA -->
-                    <li class="w-full md:w-auto">
+                    <!-- Desktop Book Appointment CTA -->
+                    <li>
                         <a href="{{ route('appointment.create') }}"
-                            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 rounded-xl shadow-xs transition-all duration-200 w-full md:w-auto">
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 rounded-xl shadow-xs transition-all duration-200">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                             </svg>
@@ -225,6 +228,204 @@
                         </a>
                     </li>
                 </ul>
+
+                <!-- MOBILE NAVIGATION CARD (Visible on mobile screens only) -->
+                <div class="block md:hidden w-full mt-3 p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800/90 shadow-2xl space-y-1.5">
+                    
+                    <!-- Mobile: Home -->
+                    <a href="{{ route('welcome') }}"
+                        class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        </span>
+                        <span>Home</span>
+                    </a>
+
+                    <!-- Mobile: RHU Facilities Accordion -->
+                    <div x-data="{ open: false }">
+                        <button type="button" @click="open = !open"
+                            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                </span>
+                                <span>RHU Facilities</span>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Collapsible Facility Links -->
+                        <div x-show="open" x-collapse x-transition
+                            class="mt-1 ml-4 pl-3.5 border-l-2 border-emerald-500/20 space-y-1 py-1">
+                            <a href="{{ route('units.show', 'main-health-center') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">Main Health Center</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Check-ups & general consultations</span>
+                                </div>
+                            </a>
+                            <a href="{{ route('units.show', 'lying-in-clinic') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">Lying-in Birthing Clinic</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">24/7 maternity & newborn care</span>
+                                </div>
+                            </a>
+                            <a href="{{ route('units.show', 'dental-clinic') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-cyan-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">Dental Clinic</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Extraction & oral hygiene</span>
+                                </div>
+                            </a>
+                            <a href="{{ route('units.show', 'tb-dots-facility') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">TB DOTS Facility</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Screening & observed therapy</span>
+                                </div>
+                            </a>
+                            <a href="{{ route('units.show', 'animal-bite-center') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">Animal Bite Treatment</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Anti-rabies vaccination</span>
+                                </div>
+                            </a>
+                            <a href="{{ route('units.index') }}"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition">
+                                <span>View All Facilities</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mobile: Appointments Accordion -->
+                    <div x-data="{ open: false }">
+                        <button type="button" @click="open = !open"
+                            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </span>
+                                <span>Appointments</span>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Collapsible Appointment Links -->
+                        <div x-show="open" x-collapse x-transition
+                            class="mt-1 ml-4 pl-3.5 border-l-2 border-emerald-500/20 space-y-1 py-1">
+                            <a href="{{ route('appointment.create') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">Book New Appointment</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Schedule your consultation online</span>
+                                </div>
+                            </a>
+                            <a href="{{ route('appointment.manage') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">Manage Appointment</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Check status, reschedule or cancel</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mobile: About & Bulletins Accordion -->
+                    <div x-data="{ open: false }">
+                        <button type="button" @click="open = !open"
+                            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                                </span>
+                                <span>About & Bulletins</span>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Collapsible About Links -->
+                        <div x-show="open" x-collapse x-transition
+                            class="mt-1 ml-4 pl-3.5 border-l-2 border-emerald-500/20 space-y-1 py-1">
+                            <a href="{{ route('announcements.index') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">Announcements</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Health advisories & community alerts</span>
+                                </div>
+                            </a>
+                            <a href="{{ route('about') }}"
+                                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                                <span class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
+                                <div>
+                                    <span class="block text-slate-800 dark:text-slate-200">About RHU Silang</span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal">Mission, facilities & healthcare services</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Section Divider -->
+                    <div class="my-2 border-t border-slate-200/80 dark:border-slate-800/80"></div>
+
+                    <!-- Mobile Theme Appearance Switch -->
+                    <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-slate-700 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            </span>
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800 dark:text-white">Appearance</span>
+                                <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Switch Light / Dark Theme</span>
+                            </div>
+                        </div>
+                        <button id="mobile-theme-toggle" type="button"
+                            class="theme-toggle-btn relative inline-flex h-6 w-[42px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out"
+                            title="Toggle Light/Dark Theme">
+                            <span class="sr-only">Toggle theme</span>
+                            <span
+                                class="theme-toggle-indicator pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-[18px]">
+                                <svg class="theme-toggle-dark-icon hidden w-3 h-3 text-slate-700"
+                                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                                </svg>
+                                <svg class="theme-toggle-light-icon hidden w-3 h-3 text-slate-900"
+                                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                                        fill-rule="evenodd" clip-rule="evenodd"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Mobile Book Appointment Button -->
+                    <div class="pt-1.5">
+                        <a href="{{ route('appointment.create') }}"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] shadow-lg shadow-emerald-700/25 transition-all text-sm">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                            <span>Book Appointment</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -638,47 +839,42 @@
     </div>
 
     <script>
-        var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-        var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
-        if (themeToggleDarkIcon && themeToggleLightIcon) {
-            // Change the icons inside the button based on previous settings
-            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                themeToggleLightIcon.classList.remove('hidden');
-            } else {
-                themeToggleDarkIcon.classList.remove('hidden');
-            }
-
-            var themeToggleBtn = document.getElementById('theme-toggle');
-
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', function () {
-                    // toggle icons inside button
-                    themeToggleDarkIcon.classList.toggle('hidden');
-                    themeToggleLightIcon.classList.toggle('hidden');
-
-                    // if set via local storage previously
-                    if (localStorage.getItem('color-theme')) {
-                        if (localStorage.getItem('color-theme') === 'light') {
-                            document.documentElement.classList.add('dark');
-                            localStorage.setItem('color-theme', 'dark');
-                        } else {
-                            document.documentElement.classList.remove('dark');
-                            localStorage.setItem('color-theme', 'light');
-                        }
-                        // if NOT set via local storage previously
-                    } else {
-                        if (document.documentElement.classList.contains('dark')) {
-                            document.documentElement.classList.remove('dark');
-                            localStorage.setItem('color-theme', 'light');
-                        } else {
-                            document.documentElement.classList.add('dark');
-                            localStorage.setItem('color-theme', 'dark');
-                        }
-                    }
-                });
-            }
+        function updateAllThemeToggles() {
+            var isDark = document.documentElement.classList.contains('dark');
+            document.querySelectorAll('.theme-toggle-dark-icon').forEach(function (icon) {
+                icon.classList.toggle('hidden', isDark);
+            });
+            document.querySelectorAll('.theme-toggle-light-icon').forEach(function (icon) {
+                icon.classList.toggle('hidden', !isDark);
+            });
+            document.querySelectorAll('.theme-toggle-indicator').forEach(function (indicator) {
+                indicator.classList.toggle('translate-x-[18px]', isDark);
+                indicator.classList.toggle('translate-x-0', !isDark);
+            });
         }
+
+        // Initialize state on load
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        updateAllThemeToggles();
+
+        // Bind click events to both desktop and mobile theme toggle buttons
+        document.querySelectorAll('.theme-toggle-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var isDark = document.documentElement.classList.contains('dark');
+                if (isDark) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                }
+                updateAllThemeToggles();
+            });
+        });
     </script>
 
 </html>

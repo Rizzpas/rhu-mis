@@ -746,9 +746,9 @@
                                 
                                 <input type="hidden" name="dob" x-model="selectedDate">
                                 
-                                <div @click="if(editingInfo) showDatepicker = !showDatepicker" :class="editingInfo ? 'border-2 border-slate-300 bg-white dark:bg-gray-800 focus-within:border-teal-600 focus-within:ring-1 focus-within:ring-teal-600 cursor-pointer text-gray-900 dark:text-white' : 'border-0 bg-gray-50 dark:bg-gray-900 cursor-not-allowed text-gray-600 dark:text-gray-400'" class="w-full rounded-lg shadow-sm px-4 py-3 sm:text-sm flex justify-between items-center transition-colors">
-                                    <span x-text="selectedDate ? selectedDate : 'Select Date of Birth'" :class="selectedDate ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'"></span>
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div @click="if(editingInfo) showDatepicker = !showDatepicker" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 cursor-pointer text-slate-900 dark:text-white' : 'border border-transparent bg-gray-50 dark:bg-gray-900 cursor-not-allowed text-gray-400'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-sm font-medium flex justify-between items-center transition-all">
+                                    <span x-text="selectedDate ? selectedDate : 'Select Date of Birth'" :class="selectedDate ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-400'"></span>
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
@@ -1299,9 +1299,9 @@
                                 
                                 <input type="hidden" name="dob" x-model="selectedDate">
                                 
-                                <div @click="showDatepicker = !showDatepicker" class="w-full rounded-lg border-2 border-slate-300 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus-within:border-teal-600 focus-within:ring-1 focus-within:ring-teal-600 px-4 py-3 sm:text-sm cursor-pointer flex justify-between items-center">
-                                    <span x-text="selectedDate ? selectedDate : 'Select Date of Birth'" :class="selectedDate ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'"></span>
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div @click="showDatepicker = !showDatepicker" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 px-3.5 py-2.5 sm:text-sm font-medium cursor-pointer flex justify-between items-center transition-all">
+                                    <span x-text="selectedDate ? selectedDate : 'Select Date of Birth'" :class="selectedDate ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-400'"></span>
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>

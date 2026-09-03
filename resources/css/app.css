@@ -743,11 +743,60 @@ select:disabled,
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
 }
 
+/* Date inputs: match rounded-xl, padding, and sleek styling */
+input[type="date"] {
+    border-radius: 0.75rem !important; /* rounded-xl */
+    padding: 0.625rem 0.875rem !important; /* py-2.5 px-3.5 */
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    border: 1px solid #cbd5e1 !important; /* border-slate-300 */
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.15s ease-in-out;
+}
+
+input[type="date"]:hover {
+    border-color: #0d9488 !important;
+}
+
+input[type="date"]:focus {
+    outline: none !important;
+    border-color: #0d9488 !important;
+    box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2) !important;
+}
+
+:where(.dark, .dark *) input[type="date"] {
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
+    color: #ffffff !important;
+}
+
+:where(.dark, .dark *) input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
 /* Native options styling */
 select option {
     background-color: #ffffff;
     color: #0f172a;
-    padding: 0.5rem 0.75rem;
+    padding: 0.65rem 0.85rem;
+    font-family: "Outfit", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+select option:checked {
+    background: linear-gradient(0deg, #0d9488, #0d9488) !important;
+    background-color: #0d9488 !important;
+    color: #ffffff !important;
+}
+
+select option:hover,
+select option:focus {
+    background-color: #f0fdfa;
+    color: #0f766e;
 }
 
 :where(.dark, .dark *) select option {
@@ -755,6 +804,63 @@ select option {
     color: #f8fafc;
 }
 
+:where(.dark, .dark *) select option:checked {
+    background: linear-gradient(0deg, #0d9488, #0d9488) !important;
+    background-color: #0d9488 !important;
+    color: #ffffff !important;
+}
+
+:where(.dark, .dark *) select option:hover,
+:where(.dark, .dark *) select option:focus {
+    background-color: #134e4a;
+    color: #5eead4;
+}
+
+/* Custom sleek scrollbar for popups, dropdowns, and option lists */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.4);
+    border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(13, 148, 136, 0.7);
+}
+:where(.dark, .dark *) .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(107, 114, 128, 0.4);
+}
+:where(.dark, .dark *) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(20, 184, 166, 0.7);
+}
+
+/* Animated mobile hamburger toggle */
+button[data-collapse-toggle="mega-menu-full"][aria-expanded="true"] .hamburger-open-icon {
+    display: none !important;
+}
+button[data-collapse-toggle="mega-menu-full"][aria-expanded="true"] .hamburger-close-icon {
+    display: block !important;
+}
+
+/* Mobile menu subtle entry animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.animate-fadeInUp {
+    animation: fadeInUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
 @media print {
 

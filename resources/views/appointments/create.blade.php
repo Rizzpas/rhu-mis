@@ -116,14 +116,6 @@
                             </div>
                         </div>
 
-                        {{-- Informational Note --}}
-                        <div class="mt-5 p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 flex items-start gap-2.5">
-                            <svg class="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
-                            <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-                                <strong>Why is online booking only for Pediatrics and Adult Follow-ups?</strong>
-                                Regular adult consultations are accepted as <strong>walk-ins with no daily slot limit</strong>, so there is no need to reserve an appointment in advance. Pediatric consultations have limited specialist slots, and follow-up visits require prior scheduling to ensure continuity of care with your attending physician.
-                            </p>
-                        </div>
                         <input type="hidden" name="type" x-model="formData.type">
 
                         <div class="mt-6" x-show="formData.type === 'pedia'" x-transition>
@@ -187,8 +179,8 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Sex') }} <span class="text-red-500">*</span></label>
                                     <select name="sex" x-model="formData.sex" required
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 transition duration-150"
-                                        :class="errors.sex ? 'border-red-500 ring-red-500' : 'border-gray-300'">
+                                        class="form-select mt-1 block w-full"
+                                        :class="errors.sex ? 'border-red-500! ring-red-500!' : ''">
                                         <option value="">Select Sex</option>
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
@@ -199,12 +191,26 @@
                                 {{-- Date of Birth --}}
                                 <div x-data="{
                                     showDatepicker: false,
+                                    showMonthPicker: false,
+                                    showYearPicker: false,
                                     currentDate: new Date(),
                                     monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
                                     get daysInMonth() { return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate(); },
                                     get startDay() { return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay(); },
-                                    setMonth(monthIndex) { this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, 1); },
-                                    setYear(year) { this.currentDate = new Date(year, this.currentDate.getMonth(), 1); },
+                                    setMonth(monthIndex) { 
+                                        this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, 1); 
+                                        this.showMonthPicker = false;
+                                    },
+                                    setYear(year) { 
+                                        this.currentDate = new Date(year, this.currentDate.getMonth(), 1); 
+                                        this.showYearPicker = false;
+                                    },
+                                    prevMonth() {
+                                        this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+                                    },
+                                    nextMonth() {
+                                        this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+                                    },
                                     isFutureDate(day) {
                                         let dateToCheck = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
                                         let today = new Date(); today.setHours(0,0,0,0);
@@ -217,6 +223,8 @@
                                         date = new Date(date.getTime() - (offset*60*1000));
                                         formData.dob = date.toISOString().split('T')[0];
                                         this.showDatepicker = false;
+                                        this.showMonthPicker = false;
+                                        this.showYearPicker = false;
                                     },
                                     isSelected(day) {
                                         if(!formData.dob) return false;
@@ -229,36 +237,136 @@
                                 }" class="relative">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Date of Birth') }} <span class="text-red-500">*</span></label>
                                     <input type="hidden" name="dob" x-model="formData.dob">
-                                    <div @click="showDatepicker = !showDatepicker"
-                                        class="mt-1 w-full rounded-md shadow-sm border p-2 cursor-pointer flex justify-between items-center bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500 transition duration-150"
-                                        :class="errors.dob ? 'border-red-500 ring-red-500' : 'border-gray-300'">
-                                        <span x-text="formData.dob ? formData.dob : 'Select Date'" :class="formData.dob ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-300'"></span>
-                                        <svg class="h-5 w-5 text-gray-400 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div @click="showDatepicker = !showDatepicker; showMonthPicker = false; showYearPicker = false;"
+                                        class="mt-1 w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                        :class="errors.dob ? 'border-red-500! ring-1 ring-red-500!' : (showDatepicker ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-600')">
+                                        <span x-text="formData.dob ? formData.dob : 'Select Date'" class="truncate" :class="formData.dob ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-400'"></span>
+                                        <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-colors shrink-0 ml-2" :class="showDatepicker ? 'text-teal-600 dark:text-teal-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
                                     <p x-show="errors.dob" class="text-red-500 text-xs mt-1" x-text="errors.dob"></p>
 
                                     <!-- Datepicker Popup -->
-                                    <div x-show="showDatepicker" @click.away="showDatepicker = false" style="display: none;"
-                                        class="absolute z-50 mt-1 w-[300px] p-4 bg-white dark:bg-gray-800 dark:border-gray-600 border border-gray-200 rounded-lg shadow-xl outline-none">
-                                        <div class="flex justify-between items-center mb-4 gap-2">
-                                            <select @change="setMonth($event.target.value)" class="w-1/2 flex-1 rounded-md border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 dark:bg-gray-700 focus:border-teal-500 p-1">
-                                                <template x-for="(month, index) in monthNames" :key="index">
-                                                    <option :value="index" x-text="month" :selected="index === currentDate.getMonth()"></option>
-                                                </template>
-                                            </select>
-                                            <select @change="setYear($event.target.value)" class="w-1/2 flex-1 rounded-md border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 dark:bg-gray-700 focus:border-teal-500 p-1">
-                                                <template x-for="year in Array.from({length: 120}, (_, i) => new Date().getFullYear() - i)" :key="year">
-                                                    <option :value="year" x-text="year" :selected="year === currentDate.getFullYear()"></option>
-                                                </template>
-                                            </select>
+                                    <div x-show="showDatepicker" @click.away="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" style="display: none;"
+                                        class="absolute z-50 mt-1 w-[320px] p-4 bg-white dark:bg-gray-800 dark:border-gray-700 border border-gray-200 rounded-2xl shadow-2xl outline-none">
+                                        
+                                        <!-- Header: Prev, Month & Year Pickers, Next -->
+                                        <div class="flex items-center justify-between mb-4 gap-1.5 relative">
+                                            <!-- Prev Month Arrow -->
+                                            <button type="button" @click="prevMonth()" 
+                                                class="p-1.5 rounded-lg text-gray-500 hover:text-teal-700 hover:bg-teal-50 dark:text-gray-400 dark:hover:text-teal-300 dark:hover:bg-gray-700/60 transition"
+                                                title="Previous Month">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                                            </button>
+
+                                            <!-- Month & Year Custom Selectors -->
+                                            <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                                                <!-- Custom Month Dropdown -->
+                                                <div class="relative w-3/5" @click.away="showMonthPicker = false">
+                                                    <button type="button" 
+                                                        @click="showMonthPicker = !showMonthPicker; showYearPicker = false"
+                                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition-all shadow-xs"
+                                                        :class="showMonthPicker 
+                                                            ? 'border-teal-500 ring-2 ring-teal-500/20 bg-teal-50/70 text-teal-800 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-500' 
+                                                            : 'border-gray-200 dark:border-gray-600 bg-gray-50/90 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200 hover:border-teal-400 hover:bg-white dark:hover:bg-gray-700'">
+                                                        <span x-text="monthNames[currentDate.getMonth()]" class="truncate font-semibold"></span>
+                                                        <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-300 transition-transform duration-200 shrink-0 ml-1"
+                                                            :class="showMonthPicker ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <!-- Month Options Popover -->
+                                                    <div x-show="showMonthPicker" 
+                                                        x-transition:enter="transition ease-out duration-150"
+                                                        x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                        x-transition:leave="transition ease-in duration-100"
+                                                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                        x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                        class="absolute left-0 top-full mt-1.5 w-48 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 z-50 custom-scrollbar backdrop-blur-md"
+                                                        style="display: none;">
+                                                        <div class="space-y-0.5">
+                                                            <template x-for="(month, index) in monthNames" :key="index">
+                                                                <button type="button" 
+                                                                    @click="setMonth(index)"
+                                                                    class="w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors text-left"
+                                                                    :class="currentDate.getMonth() === index 
+                                                                        ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
+                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                                    <span x-text="month"></span>
+                                                                    <svg x-show="currentDate.getMonth() === index" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                </button>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Custom Year Dropdown -->
+                                                <div class="relative w-2/5" @click.away="showYearPicker = false">
+                                                    <button type="button" 
+                                                        @click="showYearPicker = !showYearPicker; showMonthPicker = false"
+                                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition-all shadow-xs"
+                                                        :class="showYearPicker 
+                                                            ? 'border-teal-500 ring-2 ring-teal-500/20 bg-teal-50/70 text-teal-800 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-500' 
+                                                            : 'border-gray-200 dark:border-gray-600 bg-gray-50/90 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200 hover:border-teal-400 hover:bg-white dark:hover:bg-gray-700'">
+                                                        <span x-text="currentDate.getFullYear()" class="truncate font-semibold"></span>
+                                                        <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-300 transition-transform duration-200 shrink-0 ml-1"
+                                                            :class="showYearPicker ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <!-- Year Options Popover -->
+                                                    <div x-show="showYearPicker" 
+                                                        x-transition:enter="transition ease-out duration-150"
+                                                        x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                        x-transition:leave="transition ease-in duration-100"
+                                                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                        x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                        class="absolute right-0 top-full mt-1.5 w-36 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 z-50 custom-scrollbar backdrop-blur-md"
+                                                        style="display: none;">
+                                                        <div class="space-y-0.5">
+                                                            <template x-for="year in Array.from({length: 120}, (_, i) => new Date().getFullYear() - i)" :key="year">
+                                                                <button type="button" 
+                                                                    @click="setYear(year)"
+                                                                    class="w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors text-left"
+                                                                    :class="currentDate.getFullYear() === year 
+                                                                        ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
+                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                                    <span x-text="year"></span>
+                                                                    <svg x-show="currentDate.getFullYear() === year" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                </button>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Next Month Arrow -->
+                                            <button type="button" @click="nextMonth()" 
+                                                class="p-1.5 rounded-lg text-gray-500 hover:text-teal-700 hover:bg-teal-50 dark:text-gray-400 dark:hover:text-teal-300 dark:hover:bg-gray-700/60 transition"
+                                                title="Next Month">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                            </button>
                                         </div>
+
+                                        <!-- Days of Week -->
                                         <div class="grid grid-cols-7 gap-1 mb-2">
                                             <template x-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']">
                                                 <div class="text-center text-xs font-bold text-gray-400 dark:text-gray-500" x-text="day"></div>
                                             </template>
                                         </div>
+
+                                        <!-- Calendar Days Grid -->
                                         <div class="grid grid-cols-7 gap-1">
                                             <template x-for="blank in startDay"><div class="p-1"></div></template>
                                             <template x-for="day in daysInMonth" :key="day">
@@ -285,7 +393,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Civil Status') }}</label>
                                     <select name="civil_status" x-model="formData.civil_status"
-                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2">
+                                        class="form-select mt-1 block w-full">
                                         <option value="">Select Status</option>
                                         <option value="Single">Single</option>
                                         <option value="Married">Married</option>
@@ -300,8 +408,8 @@
                                 }" x-effect="formData.religion = finalReligion">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Religion') }}</label>
                                     <select x-model="selectedReligion" :required="!isFollowUp && formData.type !== 'pedia'"
-                                        class="mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2"
-                                        :class="errors.religion ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'">
+                                        class="form-select mt-1 block w-full"
+                                        :class="errors.religion ? 'border-red-500!' : ''">
                                         <option value="">Select Religion...</option>
                                         <option value="N/A">Not Applicable (N/A)</option>
                                         <option value="Roman Catholic">Roman Catholic</option>
@@ -322,7 +430,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Education') }}</label>
                                     <select name="education" x-model="formData.education"
-                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2">
+                                        class="form-select mt-1 block w-full">
                                         <option value="">Select Highest Attainment</option>
                                         <option value="N/A">Not Applicable (N/A)</option>
                                         <option value="No Formal Education">No Formal Education</option>
@@ -345,7 +453,7 @@
                                     get finalOccupation() { return this.selectedOccupation === 'Others' ? this.customOccupation : this.selectedOccupation; }
                                 }" x-effect="formData.occupation = finalOccupation">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Occupation') }}</label>
-                                    <select x-model="selectedOccupation" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2">
+                                    <select x-model="selectedOccupation" class="form-select mt-1 block w-full">
                                         <option value="">Select Occupation...</option>
                                         <option value="N/A">Not Applicable (N/A)</option>
                                         <option value="Student">Student</option>
@@ -367,8 +475,8 @@
                                 <div class="md:col-span-1">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Blood Type') }} <span class="text-red-500">*</span></label>
                                     <select name="blood_type" x-model="formData.blood_type" :required="!isFollowUp"
-                                        class="mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2"
-                                        :class="errors.blood_type ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'">
+                                        class="form-select mt-1 block w-full"
+                                        :class="errors.blood_type ? 'border-red-500!' : ''">
                                         <option value="">Select Blood Type</option>
                                         <option value="A+">A+</option>
                                         <option value="A-">A-</option>
@@ -517,8 +625,8 @@
                                     </div>
                                     <div class="md:col-span-6">
                                         <select x-model="barangay" :disabled="loadingBrgy" :required="!isFollowUp"
-                                            class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm uppercase"
-                                            :class="errors.address && !barangay ? 'border-red-500' : 'border-gray-300'">
+                                            class="form-select w-full text-sm uppercase"
+                                            :class="errors.address && !barangay ? 'border-red-500!' : ''">
                                             <option value="" x-text="loadingBrgy ? 'Loading barangays...' : 'Select Barangay'"></option>
                                             <template x-for="bg in barangays" :key="bg.code">
                                                 <option :value="bg.name" x-text="bg.name"></option>
@@ -580,7 +688,7 @@
                                 }" x-effect="formData.guardian_relation = finalGuardianRelation">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Relationship to Patient') }} <span class="text-red-500">*</span></label>
                                     <select x-model="selectedGuardianRelation" :required="formData.type === 'pedia' && !isFollowUp"
-                                        class="block w-full rounded-md shadow-sm border p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500">
+                                        class="form-select block w-full">
                                         <option value="">Select Relationship</option>
                                         <option value="Mother">Mother</option>
                                         <option value="Father">Father</option>
