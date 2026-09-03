@@ -2,6 +2,7 @@
 
 > **Document Version:** 2.1  
 > **System Version:** Laravel 12.x / MySQL 8.x / PHP 8.2+  
+> **Total Database Tables:** 22 Application Tables (23 including Laravel Migrations)  
 > **Date Updated:** August 30, 2026  
 > **Authors:** Conchas, Isuga, Ripas, Takeuchi  
 > **Target Audience:** System Architects, Software Engineers, Database Administrators, Capstone Defense Panelists  
@@ -36,11 +37,12 @@
    - 5.7 [Level 1 DFD (Subsystem Decomposition)](#57-level-1-dfd-subsystem-decomposition)
    - 5.8 [Level 2 DFDs (Detailed Sub-Processes)](#58-level-2-dfds-detailed-sub-processes)
    - 5.9 [Process-to-Data Store CRUD & Data Flow Matrix](#59-process-to-data-store-crud--data-flow-matrix)
-6. [Entity Relationship Diagram (ERD) Specification](#6-entity-relationship-diagram-erd-specification)
-   - 6.1 [Entity Inventory & Business Rules](#61-entity-inventory--business-rules)
-   - 6.2 [Relational Cardinality & Integrity Rules](#62-relational-cardinality--integrity-rules)
-   - 6.3 [Complete Mermaid Entity-Relationship Diagram](#63-complete-mermaid-entity-relationship-diagram)
-   - 6.4 [Comprehensive Data Dictionary & Physical Schema](#64-comprehensive-data-dictionary--physical-schema)
+6. [Entity Relationship Diagram (ERD) Specification & Database Schema](#6-entity-relationship-diagram-erd-specification--database-schema)
+   - 6.1 [Database Structure Summary (22 Tables across 5 Functional Domains)](#61-database-structure-summary-22-tables-across-5-functional-domains)
+   - 6.2 [Entity Inventory & Business Rules](#62-entity-inventory--business-rules)
+   - 6.3 [Relational Cardinality & Integrity Rules](#63-relational-cardinality--integrity-rules)
+   - 6.4 [Complete Mermaid Entity-Relationship Diagram](#64-complete-mermaid-entity-relationship-diagram)
+   - 6.5 [Comprehensive Data Dictionary & Physical Schema (All 22 Tables)](#65-comprehensive-data-dictionary--physical-schema-all-22-tables)
 7. [Technical, Hardware, Software & Environmental Specifications](#7-technical-hardware-software--environmental-specifications)
    - 7.1 [Software Specification](#71-software-specification)
    - 7.2 [Hardware Specification](#72-hardware-specification)
@@ -97,6 +99,7 @@ The RHU-MIS digitizes the end-to-end patient lifecycle:
 |                               DATA LAYER                                |
 |   MySQL 8.x Database Engine (Pessimistic `lockForUpdate()`, Foreign     |
 |   Keys, JSON Check Constraints, Soft Deletes, Rolling Retention TTL)   |
+|   Total 22 Application Tables + 1 Migrations Tracking Table             |
 +-------------------------------------------------------------------------+
 ```
 
@@ -113,7 +116,7 @@ The RHU-MIS digitizes the end-to-end patient lifecycle:
 - **Bundler:** Vite 5.x enabling optimized module bundling and Hot Module Replacement (HMR).
 
 ### 2.3 Persistence & Storage
-- **Relational Database:** MySQL 8.x with InnoDB Storage Engine.
+- **Relational Database:** MySQL 8.x with InnoDB Storage Engine (**22 Application Tables**).
 - **File System Storage:** Laravel Storage subsystem managing public uploads (`/uploads/staff/`, `/uploads/announcements/`, `/uploads/lab_results/`, `/uploads/facilities/`).
 
 ---
@@ -246,7 +249,7 @@ The system enforces strict principle-of-least-privilege access across **10 disti
 
 ### 5.4 Data Stores Inventory (D1 – D15)
 - `D1`: Patients Master Index (`patients`)
-- `D2`: Appointments Repository (`appointments`, `capacities`)
+- `D2`: Appointments Repository (`appointments`)
 - `D3`: Pre-Triage Clinical Vitals (`pre_triages`)
 - `D4`: Daily Physical Queue (`queues`)
 - `D5`: Consultations Active State (`consultations`)
@@ -256,10 +259,10 @@ The system enforces strict principle-of-least-privilege access across **10 disti
 - `D9`: Pharmaceutical Inventory (`medicines`, `medicine_batches`, `inventory_logs`)
 - `D10`: User Accounts & RBAC (`users`)
 - `D11`: Practitioner Shift Schedules (`practitioner_schedules`)
-- `D12`: Public CMS & Announcements (`announcements`, `announcement_images`)
+- `D12`: Public CMS & Announcements (`announcements`, `announcement_images`, `services`)
 - `D13`: System Configuration & Settings (`site_settings`)
 - `D14`: Dynamic Health Facility Units (`facility_units`)
-- `D15`: Security Audit Logs (`audit_logs`)
+- `D15`: Security Audit Logs & Notifications (`audit_logs`, `notifications`, `password_reset_tokens`)
 
 ### 5.5 Process Decomposition Hierarchy
 ```
@@ -332,9 +335,29 @@ flowchart TD
 
 ---
 
-## 6. Entity Relationship Diagram (ERD) Specification
+## 6. Entity Relationship Diagram (ERD) Specification & Database Schema
 
-### 6.1 Entity Inventory & Business Rules
+### 6.1 Database Structure Summary (22 Tables across 5 Functional Domains)
+
+The RHU-MIS relational schema is composed of **22 application database tables** (and 1 system migrations table) categorized into 5 distinct operational domains:
+
+```
++---------------------------------------------------------------------------------------------------+
+|                                  DATABASE DOMAIN MATRIX (22 TABLES)                                |
++---------------------------------------------------------------------------------------------------+
+| 1. Clinical Encounters (6)   : patients, pre_triages, consultations, medical_cases,               |
+|                                appointments, queues                                               |
+| 2. Ancillary Diagnostics (1) : ancillary_requests                                                |
+| 3. Pharmacy & Inventory (5)  : prescriptions, prescription_items, medicines,                      |
+|                                medicine_batches, inventory_logs                                   |
+| 4. Facilities & CMS (5)      : facility_units, services, announcements,                           |
+|                                announcement_images, site_settings                                 |
+| 5. Security & System (5)     : users, practitioner_schedules, password_reset_tokens,              |
+|                                notifications, audit_logs                                          |
++---------------------------------------------------------------------------------------------------+
+```
+
+### 6.2 Entity Inventory & Business Rules
 1. **`patients`**: Master demographic and medical identity record indexed by unique `patient_id`.
 2. **`consultations`**: Clinical examination records linked to attending physician, vitals, and queue.
 3. **`pre_triages`**: Physiological vitals snapshots recorded during initial nurse triage.
@@ -345,11 +368,13 @@ flowchart TD
 8. **`prescriptions` & `prescription_items`**: Electronic prescription orders with line items.
 9. **`medicines`, `medicine_batches` & `inventory_logs`**: Multi-batch inventory with FIFO expiration enforcement.
 10. **`facility_units`**: Dynamic municipal health facilities and specialty clinics.
-11. **`announcements` & `announcement_images`**: CMS content articles and gallery sections.
-12. **`users` & `practitioner_schedules`**: Staff accounts, roles, presence heartbeat, and shift hours.
-13. **`site_settings` & `audit_logs`**: System key-value configuration and tamper-evident audit trail.
+11. **`services`**: Public municipal health programs and service procedures.
+12. **`announcements` & `announcement_images`**: CMS content articles and gallery sections.
+13. **`users` & `practitioner_schedules`**: Staff accounts, roles, presence heartbeat, and shift hours.
+14. **`password_reset_tokens` & `notifications`**: Authentication security tokens and system notifications.
+15. **`site_settings` & `audit_logs`**: System key-value configuration and tamper-evident audit trail.
 
-### 6.2 Relational Cardinality & Integrity Rules
+### 6.3 Relational Cardinality & Integrity Rules
 - **`patients` to `consultations` (1 : N):** One patient holds many historical consultation records.
 - **`patients` to `medical_cases` (1 : N):** One patient holds many permanent case archives.
 - **`consultations` to `pre_triages` (1 : 1):** Each consultation links to exactly one pre-triage record.
@@ -362,7 +387,7 @@ flowchart TD
 - **`announcements` to `announcement_images` (1 : N):** CMS articles contain multiple media sections.
 - **`users` to `audit_logs` (1 : N):** User actions generate security audit logs.
 
-### 6.3 Complete Mermaid Entity-Relationship Diagram
+### 6.4 Complete Mermaid Entity-Relationship Diagram
 
 ```mermaid
 erDiagram
@@ -640,9 +665,9 @@ erDiagram
 
 ---
 
-### 6.4 Comprehensive Data Dictionary & Physical Schema
+### 6.5 Comprehensive Data Dictionary & Physical Schema (All 22 Tables)
 
-#### 6.4.1 Table: `patients`
+#### 6.5.1 Table: `patients`
 | Column | Type | Nullable | Key / Constraints | Description |
 |---|---|---|---|---|
 | `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary internal database ID. |
@@ -672,7 +697,33 @@ erDiagram
 | `deleted_at` | `TIMESTAMP` | Yes | — | Soft-delete timestamp. |
 | `created_at` / `updated_at` | `TIMESTAMP` | Yes | — | Standard Laravel timestamps. |
 
-#### 6.4.2 Table: `consultations`
+#### 6.5.2 Table: `pre_triages`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `patient_name` | `VARCHAR(255)` | No | — | Full name recorded at triage. |
+| `patient_id` | `VARCHAR(255)` | Yes | FK &rarr; `patients.patient_id` | Foreign key linking patient master record. |
+| `appointment_id` | `BIGINT UNSIGNED` | Yes | FK &rarr; `appointments.id` | Originating online booking ID. |
+| `recorded_by` | `BIGINT UNSIGNED` | No | FK &rarr; `users.id` | Attending triage nurse ID. |
+| `temperature` | `DECIMAL(4,1)` | Yes | — | Body temperature in Celsius. |
+| `blood_pressure` | `VARCHAR(255)` | Yes | — | Systolic/Diastolic blood pressure (mmHg). |
+| `weight` | `DECIMAL(5,2)` | Yes | — | Body weight in kilograms. |
+| `height` | `DECIMAL(5,2)` | Yes | — | Height in centimeters. |
+| `heart_rate` | `INT` | Yes | — | Heart rate in beats per minute (bpm). |
+| `respiratory_rate` | `INT` | Yes | — | Breaths per minute (cpm). |
+| `pulse_rate` | `INT` | Yes | — | Pulse rate (bpm). |
+| `oxygen_saturation` | `INT` | Yes | — | Blood oxygen saturation ($SpO_2$ %). |
+| `chief_complaint` | `VARCHAR(255)` | Yes | — | Primary clinical complaint. |
+| `symptoms` | `TEXT` | Yes | — | Narrative description of patient symptoms. |
+| `past_medical_history` | `TEXT` | Yes | — | Pre-existing conditions and medical history. |
+| `medicine_taken` | `TEXT` | Yes | — | Current medications consumed by patient. |
+| `known_allergies` | `TEXT` | Yes | — | Reported drug/food allergies. |
+| `classification` | `VARCHAR(255)` | No | Default: `'Adult'` | Pediatric vs Adult triage category. |
+| `status` | `ENUM` | No | Default: `'waiting'` | `waiting`, `claimed`, `cancelled`, `completed`. |
+| `encoding_duration_seconds`| `INT` | Yes | — | Nurse form completion duration in seconds. |
+| `is_emergency` | `TINYINT(1)` | No | Default: `0` | Acute emergency priority override flag. |
+
+#### 6.5.3 Table: `consultations`
 | Column | Type | Nullable | Key / Constraints | Description |
 |---|---|---|---|---|
 | `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
@@ -699,7 +750,46 @@ erDiagram
 | `heart_rate` / `pulse_rate` | `VARCHAR(255)` | Yes | — | Cardiac rate snapshots. |
 | `spo2` | `VARCHAR(255)` | Yes | — | Oxygen saturation snapshot. |
 
-#### 6.4.3 Table: `ancillary_requests`
+#### 6.5.4 Table: `medical_cases`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `case_number` | `VARCHAR(255)` | No | Unique Index | Formatted legal case number (`CASE-YYYYMMDD-XXXXX`). |
+| `patient_id` | `VARCHAR(255)` | No | FK &rarr; `patients.patient_id` | Foreign key linking patient. |
+| `consultation_id` | `BIGINT UNSIGNED` | No | FK &rarr; `consultations.id` | Originating consultation visit. |
+| `pre_triage_id` | `BIGINT UNSIGNED` | No | FK &rarr; `pre_triages.id` | Baseline vitals intake record. |
+| `diagnosis` | `TEXT` | Yes | — | Final physician clinical diagnosis. |
+| `prescription` | `TEXT` | Yes | — | Prescribed medical regimen. |
+| `vitals_snapshot` | `JSON` | Yes | — | Immutable JSON snapshot of all patient vitals. |
+| `closed_at` | `TIMESTAMP` | No | Default: `CURRENT_TIMESTAMP` | Legal case closure timestamp. |
+
+#### 6.5.5 Table: `appointments`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `reference_number` | `VARCHAR(255)` | Yes | Unique Index | Public reference token (`APT-XXXXXXXX`). |
+| `first_name` / `last_name` | `VARCHAR(255)` | No | — | Patient name fields. |
+| `email` | `VARCHAR(255)` | No | — | Patient email for OTP verification. |
+| `contact_number` | `VARCHAR(11)` | Yes | — | Mobile contact number. |
+| `type` | `ENUM('pedia','adult')`| No | — | Clinical service division. |
+| `preferred_date` | `DATETIME` | No | — | Selected appointment date. |
+| `preferred_time` | `VARCHAR(255)` | Yes | — | Selected time slot. |
+| `is_follow_up` | `TINYINT(1)` | No | Default: `0` | Follow-up visit flag. |
+| `status` | `ENUM` | No | Default: `'pending'` | `pending`, `approved`, `rescheduled`, `cancelled`, `arrived`, `triaged`, `registered`, `done`. |
+| `data_privacy_agreed` | `TINYINT(1)` | No | — | RA 10173 legal consent flag. |
+
+#### 6.5.6 Table: `queues`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `patient_id` | `VARCHAR(255)` | No | FK &rarr; `patients.patient_id` | Foreign key linking patient. |
+| `queue_number` | `VARCHAR(255)` | No | — | Formatted ticket number (`REG-001`, `PRI-001`, `PED-001`, `PED-E-001`). |
+| `priority_type` | `VARCHAR(255)` | No | — | `Regular`, `Senior`, `PWD`, `Emergency`. |
+| `service_type` | `VARCHAR(255)` | No | Default: `'Consultation'` | Clinical station service. |
+| `status` | `VARCHAR(255)` | No | Default: `'Waiting'` | `Waiting`, `Called`, `Serving`, `Completed`. |
+| `called_at` | `TIMESTAMP` | Yes | — | Time when ticket was called by clinician. |
+
+#### 6.5.7 Table: `ancillary_requests`
 | Column | Type | Nullable | Key / Constraints | Description |
 |---|---|---|---|---|
 | `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
@@ -715,23 +805,7 @@ erDiagram
 | `archived_at` | `TIMESTAMP` | Yes | Index | Timestamp when archived as no-show. |
 | `archived_reason` | `VARCHAR(255)` | Yes | — | `manual`, `no_show`, `expired`. |
 
-#### 6.4.4 Table: `facility_units`
-| Column | Type | Nullable | Key / Constraints | Description |
-|---|---|---|---|---|
-| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
-| `name` | `VARCHAR(255)` | No | — | Facility/Unit title (e.g., OB-GYN Unit, Lying-in Clinic). |
-| `slug` | `VARCHAR(255)` | No | Unique Index | URL slug identifier (e.g., `ob-gyn-unit`). |
-| `description` | `TEXT` | Yes | — | Detailed clinical scope and overview. |
-| `category` | `VARCHAR(255)` | Yes | — | General Medicine, Maternity, Women's Health, Dental, etc. |
-| `operating_hours` | `VARCHAR(255)` | Yes | — | e.g. "Mon - Fri: 8:00 AM - 5:00 PM" or "24/7". |
-| `contact_number` | `VARCHAR(255)` | Yes | — | Direct phone/extension number. |
-| `location` | `VARCHAR(255)` | Yes | — | Physical building location / room number. |
-| `image_path` | `VARCHAR(255)` | Yes | — | Photo banner asset path. |
-| `services_offered` | `JSON` | Yes | — | Structured list of clinical services. |
-| `is_active` | `TINYINT(1)` | No | Default: `1` | Visibility toggle on public web portal. |
-| `sort_order` | `INT` | No | Default: `0` | Display sorting priority. |
-
-#### 6.4.5 Table: `prescriptions` & `prescription_items`
+#### 6.5.8 Table: `prescriptions` & `prescription_items`
 | Table | Column | Type | Constraints | Description |
 |---|---|---|---|---|
 | `prescriptions` | `id` | `BIGINT UNSIGNED` | PK | Primary key. |
@@ -748,7 +822,7 @@ erDiagram
 | `prescription_items` | `duration` | `VARCHAR(255)` | — | e.g., "7 days". |
 | `prescription_items` | `quantity` | `INT` | — | Total unit count prescribed. |
 
-#### 6.4.6 Table: `medicines`, `medicine_batches` & `inventory_logs`
+#### 6.5.9 Table: `medicines`, `medicine_batches` & `inventory_logs`
 | Table | Column | Type | Constraints | Description |
 |---|---|---|---|---|
 | `medicines` | `id` | `BIGINT UNSIGNED` | PK | Catalog item identifier. |
@@ -768,6 +842,95 @@ erDiagram
 | `inventory_logs` | `action` | `VARCHAR(255)` | — | `Added`, `Dispensed`, `Expired`, `Adjusted`. |
 | `inventory_logs` | `quantity_changed` | `INT` | — | Signed integer count delta (+/-). |
 | `inventory_logs` | `performed_by` | `BIGINT UNSIGNED` | FK &rarr; `users.id` | Staff member executing action. |
+
+#### 6.5.10 Table: `facility_units`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `name` | `VARCHAR(255)` | No | — | Facility/Unit title (e.g., OB-GYN Unit, Lying-in Clinic). |
+| `slug` | `VARCHAR(255)` | No | Unique Index | URL slug identifier (e.g., `ob-gyn-unit`). |
+| `description` | `TEXT` | Yes | — | Detailed clinical scope and overview. |
+| `category` | `VARCHAR(255)` | Yes | — | General Medicine, Maternity, Women's Health, Dental, etc. |
+| `operating_hours` | `VARCHAR(255)` | Yes | — | e.g. "Mon - Fri: 8:00 AM - 5:00 PM" or "24/7". |
+| `contact_number` | `VARCHAR(255)` | Yes | — | Direct phone/extension number. |
+| `location` | `VARCHAR(255)` | Yes | — | Physical building location / room number. |
+| `image_path` | `VARCHAR(255)` | Yes | — | Photo banner asset path. |
+| `services_offered` | `JSON` | Yes | — | Structured list of clinical services. |
+| `is_active` | `TINYINT(1)` | No | Default: `1` | Visibility toggle on public web portal. |
+| `sort_order` | `INT` | No | Default: `0` | Display sorting priority. |
+
+#### 6.5.11 Table: `services`
+| Column | Type | Nullable | Key / Constraints | Description |
+|---|---|---|---|---|
+| `id` | `BIGINT UNSIGNED` | No | PK, Auto Increment | Primary key. |
+| `name` | `VARCHAR(255)` | No | — | Program / Service name. |
+| `slug` | `VARCHAR(255)` | No | Unique Index | URL slug identifier. |
+| `description` | `TEXT` | Yes | — | Overview of healthcare program. |
+| `image_path` | `VARCHAR(255)` | Yes | — | Cover image asset path. |
+| `steps` | `JSON` | Yes | — | Step-by-step procedural guide. |
+
+#### 6.5.12 Table: `announcements` & `announcement_images`
+| Table | Column | Type | Constraints | Description |
+|---|---|---|---|---|
+| `announcements` | `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `announcements` | `title` | `VARCHAR(255)` | — | Article headline. |
+| `announcements` | `subheading` | `VARCHAR(255)` | — | Supporting secondary summary. |
+| `announcements` | `event_date` / `start_time`| `DATE` / `TIME` | — | Optional municipal event schedule. |
+| `announcements` | `content` | `LONGTEXT` | — | Main announcement article body. |
+| `announcements` | `image_path` | `VARCHAR(255)` | — | Hero image banner. |
+| `announcements` | `display_type` | `VARCHAR(255)` | Default: `'list'` | `'list'`, `'carousel'`. |
+| `announcements` | `display_mode` | `ENUM` | Default: `'standard'` | `'standard'`, `'infographic'`. |
+| `announcements` | `status` | `ENUM` | Default: `'draft'` | `'draft'`, `'pending'`, `'published'`. |
+| `announcements` | `deleted_at` | `TIMESTAMP` | SoftDeletes | Soft delete timestamp. |
+| `announcement_images`| `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `announcement_images`| `announcement_id`| `BIGINT UNSIGNED` | FK &rarr; `announcements.id` | Parent announcement link. |
+| `announcement_images`| `image_path` | `VARCHAR(255)` | — | Section image file path. |
+| `announcement_images`| `video_url` | `TEXT` | — | Embedded video URL. |
+| `announcement_images`| `layout` | `ENUM('left','right','middle')` | — | Section visual alignment. |
+| `announcement_images`| `media_type` | `ENUM('image','video_upload','video_link')` | — | Multimedia type. |
+| `announcement_images`| `content` | `LONGTEXT` | — | Section descriptive text. |
+| `announcement_images`| `sort_order` | `INT` | Default: `0` | Order index in gallery. |
+
+#### 6.5.13 Table: `users`, `practitioner_schedules`, `password_reset_tokens` & `notifications`
+| Table | Column | Type | Constraints | Description |
+|---|---|---|---|---|
+| `users` | `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `users` | `name` | `VARCHAR(255)` | — | Staff full name. |
+| `users` | `email` | `VARCHAR(255)` | Unique Index | Login email address. |
+| `users` | `password` | `VARCHAR(255)` | — | Bcrypt hashed password. |
+| `users` | `role` | `VARCHAR(255)` | — | RBAC role code (10 roles). |
+| `users` | `status` | `VARCHAR(255)` | Default: `'Present'` | `'Present'`, `'Absent'`, `'On Leave'`. |
+| `users` | `avatar_path` | `VARCHAR(255)` | — | Staff profile photo path. |
+| `users` | `last_activity_at` | `TIMESTAMP` | Index | Real-time presence heartbeat timestamp. |
+| `users` | `deleted_at` | `TIMESTAMP` | SoftDeletes | Soft delete archive timestamp. |
+| `practitioner_schedules`| `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `practitioner_schedules`| `user_id` | `BIGINT UNSIGNED` | FK &rarr; `users.id` | Associated doctor/nurse ID. |
+| `practitioner_schedules`| `day_of_week` | `VARCHAR(255)` | — | Monday, Tuesday, etc. |
+| `practitioner_schedules`| `start_time` / `end_time` | `TIME` | — | Duty shift hours. |
+| `practitioner_schedules`| `is_available` | `TINYINT(1)` | Default: `1` | Shift availability toggle. |
+| `password_reset_tokens`| `email` | `VARCHAR(255)` | PK | Target user email. |
+| `password_reset_tokens`| `token` | `VARCHAR(255)` | — | Cryptographic reset token. |
+| `notifications` | `id` | `CHAR(36)` | PK | UUID notification key. |
+| `notifications` | `type` | `VARCHAR(255)` | — | Notification class identifier. |
+| `notifications` | `notifiable_type` / `id` | `VARCHAR(255)` / `BIGINT` | Index | Polymorphic target entity link. |
+| `notifications` | `data` | `TEXT` | — | Serialized notification payload. |
+| `notifications` | `read_at` | `TIMESTAMP` | Index | Read status timestamp. |
+
+#### 6.5.14 Table: `site_settings` & `audit_logs`
+| Table | Column | Type | Constraints | Description |
+|---|---|---|---|---|
+| `site_settings` | `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `site_settings` | `group` | `VARCHAR(255)` | Index | Setting category (`topbar`, `hero`, `about`, `footer`, `demo`). |
+| `site_settings` | `key` | `VARCHAR(255)` | Index | Setting configuration identifier. |
+| `site_settings` | `value` | `LONGTEXT` | — | Configured text or serialized value. |
+| `site_settings` | `type` | `VARCHAR(255)` | Default: `'text'` | Data type (`text`, `textarea`, `image`, `toggle`). |
+| `audit_logs` | `id` | `BIGINT UNSIGNED` | PK | Primary key. |
+| `audit_logs` | `user_id` | `BIGINT UNSIGNED` | FK &rarr; `users.id` | Performing staff account ID. |
+| `audit_logs` | `action` | `VARCHAR(255)` | — | Action executed (e.g., `Created`, `Updated`, `Dispensed`). |
+| `audit_logs` | `model_type` / `model_id` | `VARCHAR(255)` | — | Affected Eloquent model and record ID. |
+| `audit_logs` | `changes` | `JSON` | — | JSON diff containing modified attributes. |
+| `audit_logs` | `ip_address` | `VARCHAR(255)` | — | Client IPv4/IPv6 origin. |
+| `audit_logs` | `user_agent` | `TEXT` | — | Client browser / device signature. |
 
 ---
 
@@ -905,6 +1068,7 @@ To comfortably sustain municipal load during peak hours (300+ daily patient visi
 
 ### Version 2.1 (August 2026)
 - **Technical & Environmental Specifications:** Full integration of Software, Hardware, Program, and Programming Environment (Front End & Back End) specifications.
+- **Database Schema Completeness (22 Application Tables):** Full physical data dictionary coverage across all 22 domain tables.
 - **Dynamic CMS Health Facility Units:** Database-backed `facility_units` table and CRUD panel allowing dynamic provisioning of municipal health units (e.g. OB-GYN, Dental, Animal Bite Center).
 - **Laboratory / Radiology 3-Tab Interface:** Partitioned workflow into `Pending`, `Finished` (last 7 days), and `Archive` (no-shows) with 1-click restore functionality.
 - **Physical Laboratory Form Parity:** Standardized structured entry for Hematology/CBC, Blood Typing, Urinalysis, Fecalysis, Blood Chemistry, and Radiology Normal Chest Presets.

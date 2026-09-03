@@ -63,7 +63,7 @@
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                             Step 1: Select Consultation Service
                         </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Pediatrics Tile -->
                             <div @click="setService('pedia')"
                                 class="cursor-pointer rounded-2xl p-6 flex flex-col items-center justify-center transition-all duration-200 border-2 card-hover"
@@ -91,6 +91,38 @@
                                     General Physician
                                 </span>
                             </div>
+
+                            <!-- Regular Adult Consultation Tile (Walk-in Only — Not Selectable) -->
+                            <div class="relative rounded-2xl p-6 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/80 dark:bg-slate-800/40 opacity-80">
+                                {{-- Walk-in Badge --}}
+                                <span class="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300/50 dark:border-amber-700/50">
+                                    Walk-in Only
+                                </span>
+                                <div class="w-14 h-14 rounded-2xl bg-slate-200 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 flex items-center justify-center text-3xl mb-3">
+                                    🏥
+                                </div>
+                                <span class="font-display font-extrabold text-lg text-slate-500 dark:text-slate-400">{{ __('Regular Adult') }}</span>
+                                <span class="text-xs text-slate-400 dark:text-slate-500 text-center mt-1 font-medium">First-time & general consultations for adults, seniors, and PWDs</span>
+                                <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200/80 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 border border-slate-300/50 dark:border-slate-600/50">
+                                    No Appointment Needed
+                                </span>
+                                {{-- Explanation --}}
+                                <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 w-full">
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+                                        <svg class="w-3.5 h-3.5 inline-block mr-0.5 -mt-0.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+                                        Regular adult consultations have <strong>no slot limit</strong> — simply visit the RHU during clinic hours. No prior booking required.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Informational Note --}}
+                        <div class="mt-5 p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 flex items-start gap-2.5">
+                            <svg class="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+                            <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                                <strong>Why is online booking only for Pediatrics and Adult Follow-ups?</strong>
+                                Regular adult consultations are accepted as <strong>walk-ins with no daily slot limit</strong>, so there is no need to reserve an appointment in advance. Pediatric consultations have limited specialist slots, and follow-up visits require prior scheduling to ensure continuity of care with your attending physician.
+                            </p>
                         </div>
                         <input type="hidden" name="type" x-model="formData.type">
 
