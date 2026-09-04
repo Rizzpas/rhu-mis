@@ -4,8 +4,152 @@
 
 @section('content')
 <script>
+    function customDatePicker(initialDate = '') {
+        return {
+            showDatePicker: false,
+            dateValue: initialDate,
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            days: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+            init() {
+                if (this.dateValue) {
+                    let d = new Date(this.dateValue + 'T00:00:00');
+                    if (!isNaN(d.getTime())) {
+                        this.currentMonth = d.getMonth();
+                        this.currentYear = d.getFullYear();
+                    }
+                }
+            },
+            get formattedDate() {
+                if (!this.dateValue) return '';
+                let d = new Date(this.dateValue + 'T00:00:00');
+                if (isNaN(d.getTime())) return this.dateValue;
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            },
+            get daysInMonth() {
+                return new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+            },
+            get startDayOfWeek() {
+                return new Date(this.currentYear, this.currentMonth, 1).getDay();
+            },
+            prevMonth() {
+                if (this.currentMonth === 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                } else {
+                    this.currentMonth--;
+                }
+            },
+            nextMonth() {
+                if (this.currentMonth === 11) {
+                    this.currentMonth = 0;
+                    this.currentYear++;
+                } else {
+                    this.currentMonth++;
+                }
+            },
+            selectDay(day) {
+                let m = String(this.currentMonth + 1).padStart(2, '0');
+                let d = String(day).padStart(2, '0');
+                this.dateValue = `${this.currentYear}-${m}-${d}`;
+                this.showDatePicker = false;
+            },
+            clearDate() {
+                this.dateValue = '';
+                this.showDatePicker = false;
+            },
+            selectToday() {
+                let today = new Date();
+                this.currentMonth = today.getMonth();
+                this.currentYear = today.getFullYear();
+                let m = String(today.getMonth() + 1).padStart(2, '0');
+                let d = String(today.getDate()).padStart(2, '0');
+                this.dateValue = `${today.getFullYear()}-${m}-${d}`;
+                this.showDatePicker = false;
+            },
+            isSelected(day) {
+                if (!this.dateValue) return false;
+                let m = String(this.currentMonth + 1).padStart(2, '0');
+                let d = String(day).padStart(2, '0');
+                return this.dateValue === `${this.currentYear}-${m}-${d}`;
+            },
+            isToday(day) {
+                let today = new Date();
+                return today.getFullYear() === this.currentYear && today.getMonth() === this.currentMonth && today.getDate() === day;
+            }
+        };
+    }
+    window.customDatePicker = customDatePicker;
+
+    function customTimePicker(initialTime = '') {
+        return {
+            showTimePicker: false,
+            timeValue: initialTime,
+            hour: '08',
+            minute: '00',
+            period: 'AM',
+            hoursList: ['01','02','03','04','05','06','07','08','09','10','11','12'],
+            commonMinutes: ['00','05','10','15','20','25','30','35','40','45','50','55'],
+            init() {
+                if (this.timeValue) {
+                    let parts = this.timeValue.split(':');
+                    if (parts.length >= 2) {
+                        let h = parseInt(parts[0], 10);
+                        let m = parts[1].substring(0, 2);
+                        this.period = h >= 12 ? 'PM' : 'AM';
+                        let h12 = h % 12;
+                        if (h12 === 0) h12 = 12;
+                        this.hour = String(h12).padStart(2, '0');
+                        this.minute = m;
+                    }
+                }
+            },
+            get formattedDisplay() {
+                if (!this.timeValue) return '';
+                let h = parseInt(this.hour, 10);
+                return `${h}:${this.minute} ${this.period}`;
+            },
+            updateTime() {
+                let h = parseInt(this.hour, 10);
+                if (this.period === 'AM') {
+                    if (h === 12) h = 0;
+                } else {
+                    if (h !== 12) h += 12;
+                }
+                let hStr = String(h).padStart(2, '0');
+                this.timeValue = `${hStr}:${this.minute}`;
+            },
+            setHour(h) {
+                this.hour = h;
+                this.updateTime();
+            },
+            setMinute(m) {
+                this.minute = m;
+                this.updateTime();
+            },
+            setPeriod(p) {
+                this.period = p;
+                this.updateTime();
+            },
+            setPreset(h, m, p) {
+                this.hour = String(h).padStart(2, '0');
+                this.minute = String(m).padStart(2, '0');
+                this.period = p;
+                this.updateTime();
+                this.showTimePicker = false;
+            },
+            clearTime() {
+                this.timeValue = '';
+                this.showTimePicker = false;
+            }
+        };
+    }
+    window.customTimePicker = customTimePicker;
+
     function announcementForm() {
         return {
+            contentAlign: '{{ old('content_align', 'left') }}',
             sections: [],
             mainImageName: '',
             mainPreviews: [],
@@ -16,7 +160,9 @@
                     id: Date.now(),
                     fileName: '',
                     preview: '',
-                    isDragging: false
+                    isDragging: false,
+                    layout: 'middle',
+                    textAlign: 'left'
                 });
             },
             
@@ -52,6 +198,13 @@
             handleMainImageChange(event) {
                 this.handleMainFiles(event.target.files);
             },
+
+            removeMainImage() {
+                this.mainImageName = '';
+                this.mainPreviews = [];
+                const input = document.getElementById('main_image');
+                if (input) input.value = '';
+            },
             
             handleSectionFiles(files, index) {
                 if (!files || files.length === 0) return;
@@ -60,7 +213,7 @@
                 
                 if (file.type.startsWith('image/')) {
                     window.openImageCropper(file, {
-                        aspectRatio: NaN, // Free crop for gallery / section images
+                        aspectRatio: NaN,
                         subtitle: 'Free crop — Section Media',
                         onApply: (blob, previewUrl) => {
                             this.sections[index].fileName = file.name;
@@ -91,252 +244,368 @@
     });
 </script>
 
-<div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 max-w-4xl mx-auto overflow-hidden" x-data="announcementForm()">
-    <div class="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 relative overflow-hidden">
-        <!-- Subtle background pattern -->
-        <div class="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none">
-            <svg class="h-full w-full" fill="none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path d="M0 100 L100 0" stroke="currentColor" class="text-slate-900 dark:text-white" stroke-width="0.1" />
-                <path d="M0 0 L100 100" stroke="currentColor" class="text-slate-900 dark:text-white" stroke-width="0.1" />
-            </svg>
-        </div>
+<div class="max-w-6xl mx-auto" x-data="announcementForm()">
 
-        <div class="relative z-10">
-            <h3 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Post New Announcement</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Broadcast important news, events, or health advisories.</p>
+    {{-- Top Header Bar --}}
+    <div class="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.announcements.index') }}" 
+               class="w-8 h-8 rounded-lg flex items-center justify-center bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-all"
+               title="Back to Announcements">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </a>
+            <div>
+                <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">Post New Announcement</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Broadcast important municipal advisories, medical missions, and health programs.</p>
+            </div>
         </div>
-        
-        <a href="{{ route('admin.announcements.index') }}" class="relative z-10 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold transition-all border border-slate-200 dark:border-slate-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to List
-        </a>
     </div>
 
-    <form action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-8 bg-white dark:bg-slate-900">
+    {{-- Validation Errors --}}
+    @if ($errors->any())
+        <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl p-3.5 mb-5 shadow-2xs" role="alert">
+            <div class="flex items-center gap-2 text-xs font-bold text-red-700 dark:text-red-400 mb-1">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>Please fix the following validation errors:</span>
+            </div>
+            <ul class="list-disc list-inside text-xs text-red-600 dark:text-red-400/90 space-y-0.5 ml-1">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- Main Form Container (2-Column Architecture) --}}
+    <form id="announcement-form" action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         @csrf
 
-        <!-- Validation Errors -->
-        @if ($errors->any())
-            <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 mb-6" role="alert">
-                <p class="font-bold text-red-700 dark:text-red-400">Please fix the following errors:</p>
-                <ul class="list-disc list-inside text-sm text-red-600 dark:text-red-400 mt-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-        
-        <!-- Main Details -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="col-span-2">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Heading / Title <span class="text-red-500">*</span></label>
-                <input type="text" name="title" value="{{ old('title') }}" placeholder="e.g. Community Health Mission 2026" required class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-lg font-bold transition-all">
-            </div>
+        {{-- ────────────────────────────────────────────────────────────
+             LEFT COLUMN (lg:col-span-8): Core Announcement Content
+        ──────────────────────────────────────────────────────────── --}}
+        <div class="lg:col-span-8 space-y-6">
 
-            <div class="col-span-2 md:col-span-1">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Subheading</label>
-                <input type="text" name="subheading" value="{{ old('subheading') }}" placeholder="Short summary or catchphrase" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 transition-all">
-            </div>
+            {{-- Cover Media Upload Card --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-2xs space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                    <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </span>
+                        <span>Cover Media</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Featured banner image or MP4 video for announcement cards.</p>
+                </div>
 
-            <!-- Event Date & Time Section -->
-            <div class="col-span-2">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Event Schedule (Optional)</label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    
-                    <!-- Custom Calendar UI -->
-                    <div>
-                        <div class="border border-slate-200 dark:border-slate-700 rounded-2xl p-5 bg-slate-50 dark:bg-slate-800/50 shadow-inner" x-data="{ 
-                            currentDate: new Date(),
-                            selectedDate: '{{ old('event_date') }}',
-                            monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-                            get daysInMonth() {
-                                return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate();
-                            },
-                            get startDay() {
-                                return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay();
-                            },
-                            get monthYear() {
-                                return this.monthNames[this.currentDate.getMonth()] + ' ' + this.currentDate.getFullYear();
-                            },
-                            prevMonth() {
-                                this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
-                            },
-                            nextMonth() {
-                                this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
-                            },
-                            selectDate(day) {
-                                let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                let offset = date.getTimezoneOffset();
-                                date = new Date(date.getTime() - (offset*60*1000));
-                                this.selectedDate = date.toISOString().split('T')[0];
-                            },
-                            isSelected(day) {
-                                if(!this.selectedDate) return false;
-                                let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                let offset = date.getTimezoneOffset();
-                                date = new Date(date.getTime() - (offset*60*1000));
-                                return this.selectedDate === date.toISOString().split('T')[0];
-                            },
-                            isPast(day) {
-                                let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                let today = new Date();
-                                today.setHours(0,0,0,0);
-                                return date < today;
-                            }
-                        }">
-                            
-                            <!-- Calendar Header -->
-                            <div class="flex justify-between items-center mb-4">
-                                <button type="button" @click="prevMonth" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                </button>
-                                <h4 class="font-bold text-slate-800 dark:text-white tracking-tight" x-text="monthYear"></h4>
-                                <button type="button" @click="nextMonth" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-                            </div>
+                {{-- Upload Dropzone --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5">Upload Cover</label>
+                    <div class="relative group"
+                         @dragenter.prevent="isMainDragging = true"
+                         @dragover.prevent="isMainDragging = true"
+                         @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; isMainDragging = false"
+                         @drop.prevent="isMainDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleMainFiles($event.dataTransfer.files)">
+                        <input type="file" name="images[]" id="main_image" class="hidden" multiple accept="image/*,video/mp4" @change="handleMainImageChange($event)">
 
-                            <!-- Calendar Grid -->
-                            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
-                                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                        <div @click="document.getElementById('main_image').click()"
+                             :class="isMainDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/70'"
+                             class="flex flex-col items-center justify-center w-full px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-all text-center gap-1.5">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 pointer-events-none">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <div class="grid grid-cols-7 gap-1">
-                                <template x-for="blank in startDay">
-                                    <div></div>
-                                </template>
-                                <template x-for="day in daysInMonth">
-                                    <div 
-                                        @click="!isPast(day) && selectDate(day)"
-                                        class="h-9 md:h-10 rounded-xl flex items-center justify-center text-sm transition-all border border-transparent relative group"
-                                        :class="{
-                                            'bg-emerald-600 text-white font-black shadow-lg shadow-emerald-900/20 scale-105 z-10': isSelected(day),
-                                            'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 cursor-pointer hover:border-emerald-200 dark:hover:border-emerald-800/50': !isSelected(day) && !isPast(day),
-                                            'text-slate-300 dark:text-slate-600 cursor-not-allowed': isPast(day)
-                                        }"
-                                    >
-                                        <span x-text="day"></span>
-                                        <template x-if="!isPast(day) && !isSelected(day)">
-                                            <div class="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full opacity-0 group-hover:opacity-100"></div>
-                                        </template>
-                                    </div>
-                                </template>
-                            </div>
-                            
-                            <!-- Hidden Input -->
-                            <input type="hidden" name="event_date" x-model="selectedDate">
-                            
-                            <div class="mt-4 text-center" x-show="selectedDate">
-                                <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800 uppercase tracking-widest">
-                                    Selected: <span x-text="selectedDate"></span>
-                                </span>
-                            </div>
+                            <span class="text-slate-700 dark:text-slate-200 text-sm font-semibold pointer-events-none" x-text="mainImageName || 'Click or drag to upload cover image'"></span>
+                            <span class="text-xs text-slate-400 pointer-events-none">Supports JPG, PNG, GIF, MP4 · Free crop</span>
                         </div>
                     </div>
 
-                    <!-- Time Picker -->
-                    <div x-data="{ timeValue: '' }">
-                        <div class="relative group">
-                            <!-- Custom Clock Icon (Left Side) -->
-                            <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none group-focus-within:text-emerald-500 text-slate-400 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </div>
+                    {{-- Preview Thumbnail --}}
+                    <div x-show="mainPreviews.length > 0" class="mt-3 relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-2xs aspect-video">
+                        <template x-for="(src, index) in mainPreviews" :key="index">
+                            <img :src="src" class="w-full h-full object-cover">
+                        </template>
+                        <button type="button" @click.stop="removeMainImage()"
+                                class="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-slate-900/80 text-white hover:bg-rose-600 transition shadow-xs cursor-pointer"
+                                title="Remove Cover Image">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-                            <input type="time" name="start_time" x-model="timeValue"
-                                class="w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 pl-12 pr-12 py-4 text-xl font-bold tracking-tight transition-all">
+            {{-- Primary Details Card --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-2xs space-y-6">
+                <div class="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Announcement Content</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Primary heading, summary note, and comprehensive article body.</p>
+                </div>
+
+                {{-- Title --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5">
+                        Heading / Title <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" name="title" value="{{ old('title') }}" 
+                           placeholder="e.g. Free Polio & Measles Immunization Drive 2026" required 
+                           class="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-semibold transition-all">
+                </div>
+
+                {{-- Subheading --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5">
+                        Subheading / Brief Summary
+                    </label>
+                    <input type="text" name="subheading" value="{{ old('subheading') }}" 
+                           placeholder="Short summary, catchphrase, or venue note" 
+                           class="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium transition-all">
+                </div>
+
+                {{-- Main Content --}}
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2.5">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                            Main Content <span class="text-rose-500">*</span>
+                        </label>
+
+                        {{-- Text Alignment Selector --}}
+                        <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            <input type="hidden" name="content_align" :value="contentAlign">
                             
-                            <!-- Clear Button (Optional Field) - Right Side -->
-                            <button type="button" x-show="timeValue" @click="timeValue = ''" 
-                                class="absolute inset-y-0 right-12 flex items-center text-slate-400 hover:text-red-500 transition-colors"
-                                title="Clear Time">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <button type="button" @click="contentAlign = 'left'" 
+                                    :class="contentAlign === 'left' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                    class="px-2 py-1 rounded-md text-xs flex items-center gap-1 transition-all cursor-pointer" title="Align Left">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h14"/></svg>
+                                <span class="text-[11px] hidden sm:inline">Left</span>
+                            </button>
+
+                            <button type="button" @click="contentAlign = 'center'" 
+                                    :class="contentAlign === 'center' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                    class="px-2 py-1 rounded-md text-xs flex items-center gap-1 transition-all cursor-pointer" title="Align Center">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M5 18h14"/></svg>
+                                <span class="text-[11px] hidden sm:inline">Center</span>
+                            </button>
+
+                            <button type="button" @click="contentAlign = 'right'" 
+                                    :class="contentAlign === 'right' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                    class="px-2 py-1 rounded-md text-xs flex items-center gap-1 transition-all cursor-pointer" title="Align Right">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M6 18h14"/></svg>
+                                <span class="text-[11px] hidden sm:inline">Right</span>
+                            </button>
+
+                            <button type="button" @click="contentAlign = 'justify'" 
+                                    :class="contentAlign === 'justify' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                    class="px-2 py-1 rounded-md text-xs flex items-center gap-1 transition-all cursor-pointer" title="Justify">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                                <span class="text-[11px] hidden sm:inline">Justify</span>
                             </button>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-3 font-medium flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            Optional. Set a specific start time for the event.
-                        </p>
                     </div>
+
+                    <textarea name="content" rows="7" required 
+                              placeholder="Describe the announcement in detail. Include eligibility guidelines, prerequisites, and instructions for patients..." 
+                              :class="{
+                                  'text-left': contentAlign === 'left',
+                                  'text-center': contentAlign === 'center',
+                                  'text-right': contentAlign === 'right',
+                                  'text-justify': contentAlign === 'justify'
+                              }"
+                              class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 p-4 text-sm leading-relaxed transition-all">{{ old('content') }}</textarea>
                 </div>
             </div>
 
-            <div class="col-span-2">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Main Content <span class="text-red-500">*</span></label>
-                <textarea name="content" rows="6" required placeholder="Describe the announcement in detail..." class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-5 leading-relaxed transition-all">{{ old('content') }}</textarea>
-            </div>
-
-            <div class="col-span-2">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Cover Image/Video</label>
-                <!-- File Input Wrapper / Drag & Drop -->
-                <div class="relative group"
-                     @dragenter.prevent="isMainDragging = true"
-                     @dragover.prevent="isMainDragging = true"
-                     @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; isMainDragging = false"
-                     @drop.prevent="isMainDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleMainFiles($event.dataTransfer.files)">
-                    <input type="file" name="images[]" id="main_image" class="hidden" multiple accept="image/*,video/mp4" @change="handleMainImageChange($event)">
-                    <div @click="document.getElementById('main_image').click()" 
-                         :class="isMainDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                         class="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed rounded-xl cursor-pointer transition-all text-center gap-1.5">
-                        <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 pointer-events-none">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <span class="text-slate-700 dark:text-slate-200 text-sm font-semibold pointer-events-none" x-text="mainImageName || 'Drag & drop image(s) or click to browse'"></span>
-                        <span class="text-xs text-slate-400 pointer-events-none">Interactive crop — Free, 16:9, Poster, or Full Image</span>
+            {{-- Additional Sections Card --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-2xs space-y-6">
+                <div class="flex items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                            </span>
+                            <span>Content Sections & Highlights</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Optional extra paragraphs with dedicated media and custom image alignment.</p>
                     </div>
-                </div>
-                <!-- Main Image Previews -->
-                <div class="mt-4 grid grid-cols-3 gap-4" x-show="mainPreviews.length > 0">
-                    <template x-for="(src, index) in mainPreviews" :key="index">
-                        <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <img :src="src" class="w-full h-24 object-cover transform group-hover:scale-110 transition-transform duration-500">
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
 
-        <hr class="border-slate-100 dark:border-slate-800 my-8">
-
-        <!-- Additional Sections Section -->
-        <div>
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
-                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Additional Content Sections
-                    </h4>
-                    <p class="text-[10px] text-slate-500 mt-1">Add rich content blocks with images and flexible layouts.</p>
+                    <button type="button" @click="addSection" 
+                            class="px-5 py-2 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-bold transition-all hover:bg-slate-800 dark:hover:bg-white shadow-2xs flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        <span>Add Section</span>
+                    </button>
                 </div>
-                <button type="button" @click="addSection" class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all hover:scale-105 active:scale-95">
-                    Add Section
-                </button>
-            </div>
 
-            <div class="space-y-6">
-                <template x-for="(section, index) in sections" :key="section.id">
-                    <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 relative group transition-all hover:border-slate-300 dark:hover:border-slate-600">
-                        <button type="button" @click="removeSection(index)" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 p-2 rounded-lg transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Section Content</label>
-                                    <textarea :name="`sections[${index}][content]`" rows="4" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 text-sm focus:border-emerald-500 focus:ring-emerald-500"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Layout Orientation</label>
-                                    <select :name="`sections[${index}][layout]`" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 text-sm font-bold">
-                                        <option value="left">Image Left</option>
-                                        <option value="right">Image Right</option>
-                                        <option value="middle">Full Width (Center)</option>
-                                    </select>
-                                </div>
+                {{-- Sections List --}}
+                <div class="space-y-5">
+                    <template x-for="(section, index) in sections" :key="section.id">
+                        <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 relative transition-all space-y-4">
+                            
+                            {{-- Section Sub-header --}}
+                            <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-200/60 dark:border-slate-700/60">
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg" 
+                                      x-text="'Section #' + (index + 1)"></span>
+                                
+                                <button type="button" @click="removeSection(index)" 
+                                        class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg transition-colors hover:bg-rose-50 dark:hover:bg-rose-950/40" 
+                                        title="Remove Section">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
                             </div>
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Section Media (Image/Video)</label>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                {{-- Section Text & Layout --}}
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex items-center justify-between gap-2 mb-2">
+                                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Section Paragraph</label>
+                                            
+                                            {{-- Section Text Alignment Selector (Icon only) --}}
+                                            <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-200/70 dark:bg-slate-800 border border-slate-300/60 dark:border-slate-700">
+                                                <input type="hidden" :name="`sections[${index}][text_align]`" :value="section.textAlign || 'left'">
+                                                
+                                                <button type="button" @click="section.textAlign = 'left'" 
+                                                        :class="(section.textAlign || 'left') === 'left' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                                        class="w-7 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer" title="Align Left">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h14"/></svg>
+                                                </button>
+
+                                                <button type="button" @click="section.textAlign = 'center'" 
+                                                        :class="(section.textAlign || 'left') === 'center' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                                        class="w-7 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer" title="Align Center">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M5 18h14"/></svg>
+                                                </button>
+
+                                                <button type="button" @click="section.textAlign = 'right'" 
+                                                        :class="(section.textAlign || 'left') === 'right' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                                        class="w-7 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer" title="Align Right">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M6 18h14"/></svg>
+                                                </button>
+
+                                                <button type="button" @click="section.textAlign = 'justify'" 
+                                                        :class="(section.textAlign || 'left') === 'justify' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+                                                        class="w-7 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer" title="Justify">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <textarea :name="`sections[${index}][content]`" rows="4" 
+                                                  placeholder="Detail content for this section..." 
+                                                  :class="{
+                                                      'text-left': (section.textAlign || 'left') === 'left',
+                                                      'text-center': section.textAlign === 'center',
+                                                      'text-right': section.textAlign === 'right',
+                                                      'text-justify': section.textAlign === 'justify'
+                                                  }"
+                                                  class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition shadow-2xs"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Media Orientation</label>
+                                        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                                            <input type="hidden" :name="`sections[${index}][layout]`" :value="section.layout || 'middle'">
+                                            
+                                            {{-- Trigger Button --}}
+                                            <button type="button"
+                                                    @click="open = !open"
+                                                    class="w-full h-11 px-3.5 flex items-center justify-between text-left rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs transition-all duration-150 cursor-pointer focus:outline-none"
+                                                    :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                                                <div class="flex items-center gap-2.5 truncate">
+                                                    <template x-if="(section.layout || 'middle') === 'left'">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h7v14H4zM15 8h5M15 12h5M15 16h3"/></svg>
+                                                            </span>
+                                                            <span class="text-sm font-semibold text-slate-900 dark:text-white">Image Left (Text Right)</span>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="(section.layout || 'middle') === 'right'">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5h7v14h-7zM4 8h5M4 12h5M4 16h3"/></svg>
+                                                            </span>
+                                                            <span class="text-sm font-semibold text-slate-900 dark:text-white">Image Right (Text Left)</span>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="(section.layout || 'middle') === 'middle'">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v8H4zM6 17h12M8 20h8"/></svg>
+                                                            </span>
+                                                            <span class="text-sm font-semibold text-slate-900 dark:text-white">Full Width Center</span>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <span class="text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="open ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                    </svg>
+                                                </span>
+                                            </button>
+
+                                            {{-- Options Dropdown Menu --}}
+                                            <div x-show="open"
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute z-50 mt-1.5 w-full rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl p-1.5 focus:outline-none">
+                                                
+                                                <div class="space-y-1">
+                                                    {{-- Option 1: Image Left --}}
+                                                    <div @click="section.layout = 'left'; open = false"
+                                                         class="flex items-center justify-between px-3 py-2.5 text-xs sm:text-sm rounded-xl transition-colors cursor-pointer select-none"
+                                                         :class="(section.layout || 'middle') === 'left' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                        <div class="flex items-center gap-2.5">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg" :class="(section.layout || 'middle') === 'left' ? 'bg-emerald-200/70 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h7v14H4zM15 8h5M15 12h5M15 16h3"/></svg>
+                                                            </span>
+                                                            <span>Image Left (Text Right)</span>
+                                                        </div>
+                                                        <svg x-show="(section.layout || 'middle') === 'left'" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                    </div>
+
+                                                    {{-- Option 2: Image Right --}}
+                                                    <div @click="section.layout = 'right'; open = false"
+                                                         class="flex items-center justify-between px-3 py-2.5 text-xs sm:text-sm rounded-xl transition-colors cursor-pointer select-none"
+                                                         :class="(section.layout || 'middle') === 'right' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                        <div class="flex items-center gap-2.5">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg" :class="(section.layout || 'middle') === 'right' ? 'bg-emerald-200/70 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5h7v14h-7zM4 8h5M4 12h5M4 16h3"/></svg>
+                                                            </span>
+                                                            <span>Image Right (Text Left)</span>
+                                                        </div>
+                                                        <svg x-show="(section.layout || 'middle') === 'right'" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                    </div>
+
+                                                    {{-- Option 3: Full Width Center --}}
+                                                    <div @click="section.layout = 'middle'; open = false"
+                                                         class="flex items-center justify-between px-3 py-2.5 text-xs sm:text-sm rounded-xl transition-colors cursor-pointer select-none"
+                                                         :class="(section.layout || 'middle') === 'middle' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                        <div class="flex items-center gap-2.5">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg" :class="(section.layout || 'middle') === 'middle' ? 'bg-emerald-200/70 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v8H4zM6 17h12M8 20h8"/></svg>
+                                                            </span>
+                                                            <span>Full Width Center</span>
+                                                        </div>
+                                                        <svg x-show="(section.layout || 'middle') === 'middle'" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Section Media --}}
+                                <div class="space-y-3">
+                                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Section Media (Image/Video)</label>
                                     <div class="relative group"
                                          @dragenter.prevent="section.isDragging = true"
                                          @dragover.prevent="section.isDragging = true"
@@ -344,54 +613,592 @@
                                          @drop.prevent="section.isDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleSectionFiles($event.dataTransfer.files, index)">
                                         <input type="file" :name="`sections[${index}][image]`" :id="'file_' + section.id" class="hidden" accept="image/*,video/mp4" @change="handleSectionFileChange($event, index)">
                                         <div @click="document.getElementById('file_' + section.id).click()" 
-                                             :class="section.isDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 bg-white/50 dark:bg-slate-900/50'"
+                                             :class="section.isDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 bg-white/70 dark:bg-slate-900/50'"
                                              class="flex items-center justify-between w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all">
-                                            <span class="text-slate-500 dark:text-slate-400 truncate text-xs pointer-events-none" x-text="section.fileName || 'Drag & drop or select media (Free crop)...'"></span>
-                                            <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            <span class="text-slate-500 dark:text-slate-400 truncate text-xs pointer-events-none" x-text="section.fileName || 'Click to select media (Free crop)...'"></span>
+                                            <svg class="w-4 h-4 text-emerald-600 shrink-0 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                         </div>
                                     </div>
+                                    <div x-show="section.preview" class="aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs max-h-40">
+                                        <img :src="section.preview" class="w-full h-full object-cover">
+                                    </div>
                                 </div>
-                                <div x-show="section.preview" class="aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
-                                    <img :src="section.preview" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Empty Sections State --}}
+                <div x-show="sections.length === 0" class="text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700/80">
+                    <p class="text-slate-400 dark:text-slate-500 text-xs">No additional sections added. Click <span class="font-bold text-slate-600 dark:text-slate-300">"Add Section"</span> to append structured narrative blocks.</p>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- ────────────────────────────────────────────────────────────
+             RIGHT COLUMN (lg:col-span-4): Publish, Schedule & Media
+        ──────────────────────────────────────────────────────────── --}}
+        <div class="lg:col-span-4 space-y-6">
+            
+            {{-- Publish & Status Settings --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-2xs space-y-5">
+                <div class="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Publishing Options</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Control public visibility and layout presentation.</p>
+                </div>
+
+                {{-- Status Toggle --}}
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60">
+                    <label class="flex items-start justify-between gap-3 cursor-pointer">
+                        <div>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200 block">Publish Immediately</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 leading-normal block mt-1">Unchecked announcements will be saved as pending drafts.</span>
+                        </div>
+                        <div class="relative shrink-0 mt-0.5">
+                            <input type="checkbox" name="status" value="published" checked class="peer sr-only">
+                            <div class="w-10 h-5.5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 transition-colors"></div>
+                            <div class="absolute left-0.5 top-0.5 w-4.5 h-4.5 bg-white rounded-full transition-transform peer-checked:translate-x-4.5 shadow-xs"></div>
+                        </div>
+                    </label>
+                </div>
+
+                {{-- Display Mode with Option-Level Preview Tooltips --}}
+                <div class="relative" 
+                     x-data="{
+                         open: false,
+                         selected: '{{ old('display_mode', 'standard') }}',
+                         activePreview: null,
+                         options: [
+                             { value: 'standard', label: 'Standard Article Post' },
+                             { value: 'infographic', label: 'Infographic / Visual Notice' }
+                         ],
+                         get selectedLabel() {
+                             const found = this.options.find(o => o.value === this.selected);
+                             return found ? found.label : 'Standard Article Post';
+                         },
+                         selectOption(val) {
+                             this.selected = val;
+                             this.open = false;
+                             this.activePreview = null;
+                         }
+                     }"
+                     @click.outside="open = false; activePreview = null">
+                    
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5">Display Mode</label>
+                    
+                    {{-- Hidden input for form submission --}}
+                    <input type="hidden" name="display_mode" :value="selected">
+
+                    {{-- Trigger Button --}}
+                    <button type="button"
+                            @click="open = !open"
+                            :aria-expanded="open"
+                            class="relative w-full h-11 px-4 flex items-center justify-between text-left rounded-xl border bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white shadow-2xs transition-all duration-150 cursor-pointer focus:outline-none"
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                        <span class="truncate block font-semibold text-sm" x-text="selectedLabel"></span>
+                        <span class="text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="open ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </span>
+                    </button>
+
+                    {{-- Options Dropdown Menu --}}
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;"
+                         class="absolute z-50 mt-1.5 w-full rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl p-1.5 focus:outline-none">
+                        
+                        <div class="space-y-1">
+                            {{-- Option 1: Standard Article Post --}}
+                            <div @click="selectOption('standard')"
+                                 class="flex items-center justify-between px-3 py-2.5 text-xs sm:text-sm rounded-xl transition-colors cursor-pointer select-none"
+                                 :class="selected === 'standard' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                <div class="flex items-center gap-2">
+                                    <span class="truncate">Standard Article Post</span>
+                                    <svg x-show="selected === 'standard'" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+
+                                {{-- Question Mark Icon for Option 1 --}}
+                                <div class="ml-2" @click.stop>
+                                    <button type="button"
+                                            @mouseenter="activePreview = 'standard'"
+                                            @mouseleave="activePreview = null"
+                                            @click.stop="activePreview = (activePreview === 'standard' ? null : 'standard')"
+                                            class="w-5 h-5 rounded-full bg-slate-200/80 hover:bg-emerald-600 hover:text-white dark:bg-slate-700 dark:hover:bg-emerald-500 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold transition-all shadow-2xs cursor-pointer"
+                                            title="View preview of Standard Article Post">
+                                        ?
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Option 2: Infographic / Visual Notice --}}
+                            <div @click="selectOption('infographic')"
+                                 class="flex items-center justify-between px-3 py-2.5 text-xs sm:text-sm rounded-xl transition-colors cursor-pointer select-none"
+                                 :class="selected === 'infographic' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                <div class="flex items-center gap-2">
+                                    <span class="truncate">Infographic / Visual Notice</span>
+                                    <svg x-show="selected === 'infographic'" class="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+
+                                {{-- Question Mark Icon for Option 2 --}}
+                                <div class="ml-2" @click.stop>
+                                    <button type="button"
+                                            @mouseenter="activePreview = 'infographic'"
+                                            @mouseleave="activePreview = null"
+                                            @click.stop="activePreview = (activePreview === 'infographic' ? null : 'infographic')"
+                                            class="w-5 h-5 rounded-full bg-slate-200/80 hover:bg-sky-600 hover:text-white dark:bg-slate-700 dark:hover:bg-sky-500 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold transition-all shadow-2xs cursor-pointer"
+                                            title="View preview of Infographic / Visual Notice">
+                                        ?
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Floating Preview Popover (Generous wide card with isolated z-[80]) --}}
+                        <div x-show="activePreview !== null"
+                             @mouseenter="/* keep preview open if hovered */"
+                             @mouseleave="activePreview = null"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             style="display: none;"
+                             class="absolute z-[80] right-full top-0 mr-4 w-[380px] sm:w-[440px] max-w-[90vw] p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl space-y-3.5 pointer-events-auto">
+
+                            {{-- Standard Article Preview --}}
+                            <div x-show="activePreview === 'standard'" class="space-y-3">
+                                <div class="flex items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                    <span class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 whitespace-nowrap">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                        <span>Standard Article Post</span>
+                                    </span>
+                                    <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/60 shrink-0">Editorial</span>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs space-y-2 select-none">
+                                    <div class="h-2.5 w-3/4 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
+                                    <div class="h-14 w-full bg-slate-200 dark:bg-slate-700 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400 gap-2 font-medium">
+                                        <svg class="w-5 h-5 shrink-0" style="width: 20px; height: 20px; max-width: 20px; max-height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <span>Header Cover Image Banner</span>
+                                    </div>
+                                    <div class="space-y-1.5 pt-1">
+                                        <div class="h-2 w-full bg-slate-300/80 dark:bg-slate-600 rounded-full"></div>
+                                        <div class="h-2 w-5/6 bg-slate-300/80 dark:bg-slate-600 rounded-full"></div>
+                                        <div class="h-2 w-2/3 bg-slate-300/80 dark:bg-slate-600 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    Traditional editorial layout with story paragraphs, header photo, and alternating media sections. Best for advisories, press releases, and articles.
+                                </p>
+                            </div>
+
+                            {{-- Infographic Notice Preview --}}
+                            <div x-show="activePreview === 'infographic'" class="space-y-3">
+                                <div class="flex items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                    <span class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 whitespace-nowrap">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-sky-500 shrink-0"></span>
+                                        <span>Infographic / Visual Notice</span>
+                                    </span>
+                                    <span class="text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200/60 dark:border-sky-800/60 shrink-0">Poster-First</span>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs space-y-2 select-none">
+                                    <div class="h-24 w-full bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-950/50 dark:to-indigo-950/40 rounded-lg border border-sky-200/60 dark:border-sky-800/60 flex flex-col items-center justify-center text-sky-600 dark:text-sky-400 p-2 text-center">
+                                        <svg class="w-6 h-6 mb-1 shrink-0" style="width: 24px; height: 24px; max-width: 24px; max-height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <span class="text-xs font-bold uppercase tracking-wider">Prominent Poster / Flyer</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 pt-1">
+                                        <span class="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
+                                        <div class="h-2 w-full bg-slate-300/80 dark:bg-slate-600 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    Poster & flyer showcase layout. The uploaded graphic takes central prominence, keeping essential information concise and readable at a glance.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Action Buttons --}}
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
+                    <button type="submit" 
+                            class="w-full h-11 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Publish Announcement</span>
+                    </button>
+                    <a href="{{ route('admin.announcements.index') }}" 
+                       class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold text-sm transition flex items-center justify-center shadow-2xs">
+                        Discard & Cancel
+                    </a>
+                </div>
+            </div>
+
+            {{-- Event Schedule Card --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-2xs space-y-6">
+                <div class="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </span>
+                        <span>Event Schedule</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">Optional. Attach start and end dates/times for health missions, vaccination drives, or public advisories.</p>
+                </div>
+
+                <div class="space-y-5">
+                    {{-- ── START SCHEDULE GROUP ── --}}
+                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Start Schedule</span>
+                        </div>
+
+                        {{-- Start Date Picker --}}
+                        <div class="relative" x-data="customDatePicker('{{ old('event_date', '') }}')">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Start Date</label>
+                            <input type="hidden" name="event_date" :value="dateValue">
+
+                            <div @click="showDatePicker = !showDatePicker" 
+                                 class="h-11 px-4 flex items-center justify-between w-full rounded-xl border bg-white dark:bg-slate-800 shadow-2xs text-sm font-medium transition-all cursor-pointer select-none"
+                                 :class="showDatePicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                                <span x-text="dateValue ? formattedDate : 'Select Start Date'" 
+                                      class="truncate font-medium text-sm"
+                                      :class="dateValue ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" x-show="dateValue" @click.stop="clearDate()" class="p-1 text-slate-400 hover:text-rose-500 transition rounded cursor-pointer" title="Clear Date">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                    <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                            </div>
+
+                            {{-- Calendar Dropdown --}}
+                            <div x-show="showDatePicker" 
+                                 @click.away="showDatePicker = false" 
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 style="display: none;"
+                                 class="absolute z-50 mt-2 left-0 right-0 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl">
+                                
+                                <div class="flex items-center justify-between gap-1 mb-3">
+                                    <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="monthNames[currentMonth] + ' ' + currentYear"></span>
+                                    <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-7 gap-1 text-center mb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                                    <template x-for="day in days" :key="day"><span x-text="day"></span></template>
+                                </div>
+
+                                <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                                    <template x-for="blank in startDayOfWeek" :key="'blank-s-' + blank"><span class="p-1"></span></template>
+                                    <template x-for="day in daysInMonth" :key="'day-s-' + day">
+                                        <button type="button" 
+                                                @click="selectDay(day)" 
+                                                :class="{
+                                                    'bg-emerald-600 text-white font-bold shadow-xs': isSelected(day),
+                                                    'ring-1 ring-emerald-500 text-emerald-600 font-bold': isToday(day) && !isSelected(day),
+                                                    'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700': !isSelected(day) && !isToday(day)
+                                                }"
+                                                class="p-1.5 rounded-lg text-xs font-medium transition cursor-pointer" 
+                                                x-text="day"></button>
+                                    </template>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2.5 mt-2.5 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                                    <button type="button" @click="clearDate()" class="text-slate-500 hover:text-rose-600 font-semibold transition cursor-pointer">Clear</button>
+                                    <button type="button" @click="selectToday()" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline transition cursor-pointer">Today</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Start Time Picker --}}
+                        <div class="relative" x-data="customTimePicker('{{ old('start_time', '') }}')">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Start Time</label>
+                            <input type="hidden" name="start_time" :value="timeValue">
+
+                            <div @click="showTimePicker = !showTimePicker" 
+                                 class="h-11 px-4 flex items-center justify-between w-full rounded-xl border bg-white dark:bg-slate-800 shadow-2xs text-sm font-medium transition-all cursor-pointer select-none"
+                                 :class="showTimePicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                                <span x-text="timeValue ? formattedDisplay : 'Select Start Time'" 
+                                      class="truncate font-medium text-sm"
+                                      :class="timeValue ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" x-show="timeValue" @click.stop="clearTime()" class="p-1 text-slate-400 hover:text-rose-500 transition rounded cursor-pointer" title="Clear Time">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                    <svg class="w-5 h-5 text-slate-400 shrink-0" :class="showTimePicker ? 'text-emerald-600 dark:text-emerald-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {{-- Time Picker Popover --}}
+                            <div x-show="showTimePicker" 
+                                 @click.away="showTimePicker = false" 
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 style="display: none;"
+                                 class="absolute z-50 mt-2 left-0 right-0 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl space-y-3.5">
+                                
+                                <div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-xl font-black text-slate-900 dark:text-white px-2.5 py-1 bg-white dark:bg-slate-800 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-700" x-text="hour"></span>
+                                        <span class="text-xl font-bold text-slate-400">:</span>
+                                        <span class="text-xl font-black text-slate-900 dark:text-white px-2.5 py-1 bg-white dark:bg-slate-800 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-700" x-text="minute"></span>
+                                    </div>
+                                    <div class="flex items-center p-1 bg-slate-200/80 dark:bg-slate-800 rounded-lg text-xs font-bold">
+                                        <button type="button" @click="setPeriod('AM')" 
+                                                :class="period === 'AM' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                                                class="px-2.5 py-1 rounded-md transition cursor-pointer">AM</button>
+                                        <button type="button" @click="setPeriod('PM')" 
+                                                :class="period === 'PM' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                                                class="px-2.5 py-1 rounded-md transition cursor-pointer">PM</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Quick Presets</span>
+                                    <div class="grid grid-cols-3 gap-1.5 text-xs font-medium">
+                                        <button type="button" @click="setPreset(8, '00', 'AM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">8:00 AM</button>
+                                        <button type="button" @click="setPreset(9, '00', 'AM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">9:00 AM</button>
+                                        <button type="button" @click="setPreset(10, '00', 'AM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">10:00 AM</button>
+                                        <button type="button" @click="setPreset(1, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">1:00 PM</button>
+                                        <button type="button" @click="setPreset(2, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">2:00 PM</button>
+                                        <button type="button" @click="setPreset(3, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">3:00 PM</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Hours</span>
+                                    <div class="grid grid-cols-6 gap-1 text-center">
+                                        <template x-for="h in hoursList" :key="h">
+                                            <button type="button" @click="setHour(h)" 
+                                                    :class="hour === h ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                                                    class="py-1 rounded-lg text-xs font-semibold transition cursor-pointer" x-text="h"></button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Minutes</span>
+                                    <div class="grid grid-cols-6 gap-1 text-center">
+                                        <template x-for="m in commonMinutes" :key="m">
+                                            <button type="button" @click="setMinute(m)" 
+                                                    :class="minute === m ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                                                    class="py-1 rounded-lg text-xs font-semibold transition cursor-pointer" x-text="m"></button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                                    <button type="button" @click="clearTime()" class="text-slate-500 hover:text-rose-600 font-semibold transition cursor-pointer">Clear</button>
+                                    <button type="button" @click="updateTime(); showTimePicker = false" class="px-3.5 py-1 bg-slate-900 text-white dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 rounded-lg font-bold transition shadow-2xs cursor-pointer">Done</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </template>
+
+                    {{-- Connecting Arrow / Divider --}}
+                    <div class="relative flex items-center justify-center my-1">
+                        <div class="w-full border-t border-dashed border-slate-200 dark:border-slate-700"></div>
+                        <div class="absolute px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            <span>TO</span>
+                            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- ── END SCHEDULE GROUP ── --}}
+                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">End Schedule (Optional)</span>
+                        </div>
+
+                        {{-- End Date Picker --}}
+                        <div class="relative" x-data="customDatePicker('{{ old('end_date', '') }}')">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">End Date</label>
+                            <input type="hidden" name="end_date" :value="dateValue">
+
+                            <div @click="showDatePicker = !showDatePicker" 
+                                 class="h-11 px-4 flex items-center justify-between w-full rounded-xl border bg-white dark:bg-slate-800 shadow-2xs text-sm font-medium transition-all cursor-pointer select-none"
+                                 :class="showDatePicker ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                                <span x-text="dateValue ? formattedDate : 'Select End Date'" 
+                                      class="truncate font-medium text-sm"
+                                      :class="dateValue ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" x-show="dateValue" @click.stop="clearDate()" class="p-1 text-slate-400 hover:text-rose-500 transition rounded cursor-pointer" title="Clear Date">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                    <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                            </div>
+
+                            {{-- Calendar Dropdown --}}
+                            <div x-show="showDatePicker" 
+                                 @click.away="showDatePicker = false" 
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 style="display: none;"
+                                 class="absolute z-50 mt-2 left-0 right-0 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl">
+                                
+                                <div class="flex items-center justify-between gap-1 mb-3">
+                                    <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="monthNames[currentMonth] + ' ' + currentYear"></span>
+                                    <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-7 gap-1 text-center mb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                                    <template x-for="day in days" :key="day"><span x-text="day"></span></template>
+                                </div>
+
+                                <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                                    <template x-for="blank in startDayOfWeek" :key="'blank-e-' + blank"><span class="p-1"></span></template>
+                                    <template x-for="day in daysInMonth" :key="'day-e-' + day">
+                                        <button type="button" 
+                                                @click="selectDay(day)" 
+                                                :class="{
+                                                    'bg-teal-600 text-white font-bold shadow-xs': isSelected(day),
+                                                    'ring-1 ring-teal-500 text-teal-600 font-bold': isToday(day) && !isSelected(day),
+                                                    'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700': !isSelected(day) && !isToday(day)
+                                                }"
+                                                class="p-1.5 rounded-lg text-xs font-medium transition cursor-pointer" 
+                                                x-text="day"></button>
+                                    </template>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2.5 mt-2.5 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                                    <button type="button" @click="clearDate()" class="text-slate-500 hover:text-rose-600 font-semibold transition cursor-pointer">Clear</button>
+                                    <button type="button" @click="selectToday()" class="text-teal-600 dark:text-teal-400 font-bold hover:underline transition cursor-pointer">Today</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- End Time Picker --}}
+                        <div class="relative" x-data="customTimePicker('{{ old('end_time', '') }}')">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">End Time</label>
+                            <input type="hidden" name="end_time" :value="timeValue">
+
+                            <div @click="showTimePicker = !showTimePicker" 
+                                 class="h-11 px-4 flex items-center justify-between w-full rounded-xl border bg-white dark:bg-slate-800 shadow-2xs text-sm font-medium transition-all cursor-pointer select-none"
+                                 :class="showTimePicker ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                                <span x-text="timeValue ? formattedDisplay : 'Select End Time'" 
+                                      class="truncate font-medium text-sm"
+                                      :class="timeValue ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" x-show="timeValue" @click.stop="clearTime()" class="p-1 text-slate-400 hover:text-rose-500 transition rounded cursor-pointer" title="Clear Time">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                    <svg class="w-5 h-5 text-slate-400 shrink-0" :class="showTimePicker ? 'text-teal-600 dark:text-teal-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {{-- Time Picker Popover --}}
+                            <div x-show="showTimePicker" 
+                                 @click.away="showTimePicker = false" 
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 style="display: none;"
+                                 class="absolute z-50 mt-2 left-0 right-0 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl space-y-3.5">
+                                
+                                <div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-xl font-black text-slate-900 dark:text-white px-2.5 py-1 bg-white dark:bg-slate-800 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-700" x-text="hour"></span>
+                                        <span class="text-xl font-bold text-slate-400">:</span>
+                                        <span class="text-xl font-black text-slate-900 dark:text-white px-2.5 py-1 bg-white dark:bg-slate-800 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-700" x-text="minute"></span>
+                                    </div>
+                                    <div class="flex items-center p-1 bg-slate-200/80 dark:bg-slate-800 rounded-lg text-xs font-bold">
+                                        <button type="button" @click="setPeriod('AM')" 
+                                                :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                                                class="px-2.5 py-1 rounded-md transition cursor-pointer">AM</button>
+                                        <button type="button" @click="setPeriod('PM')" 
+                                                :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                                                class="px-2.5 py-1 rounded-md transition cursor-pointer">PM</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Quick Presets</span>
+                                    <div class="grid grid-cols-3 gap-1.5 text-xs font-medium">
+                                        <button type="button" @click="setPreset(12, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">12:00 PM</button>
+                                        <button type="button" @click="setPreset(3, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">3:00 PM</button>
+                                        <button type="button" @click="setPreset(4, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">4:00 PM</button>
+                                        <button type="button" @click="setPreset(5, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">5:00 PM</button>
+                                        <button type="button" @click="setPreset(6, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">6:00 PM</button>
+                                        <button type="button" @click="setPreset(8, '00', 'PM')" class="py-1 px-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-300 transition text-[11px] cursor-pointer">8:00 PM</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Hours</span>
+                                    <div class="grid grid-cols-6 gap-1 text-center">
+                                        <template x-for="h in hoursList" :key="h">
+                                            <button type="button" @click="setHour(h)" 
+                                                    :class="hour === h ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                                                    class="py-1 rounded-lg text-xs font-semibold transition cursor-pointer" x-text="h"></button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Minutes</span>
+                                    <div class="grid grid-cols-6 gap-1 text-center">
+                                        <template x-for="m in commonMinutes" :key="m">
+                                            <button type="button" @click="setMinute(m)" 
+                                                    :class="minute === m ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                                                    class="py-1 rounded-lg text-xs font-semibold transition cursor-pointer" x-text="m"></button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                                    <button type="button" @click="clearTime()" class="text-slate-500 hover:text-rose-600 font-semibold transition cursor-pointer">Clear</button>
+                                    <button type="button" @click="updateTime(); showTimePicker = false" class="px-3.5 py-1 bg-slate-900 text-white dark:bg-teal-600 hover:bg-slate-800 dark:hover:bg-teal-700 rounded-lg font-bold transition shadow-2xs cursor-pointer">Done</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div x-show="sections.length === 0" class="text-center py-12 bg-slate-50 dark:bg-slate-950/30 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-                <p class="text-slate-400 text-sm italic">No additional sections added yet. Click 'Add Section' to enhance your announcement.</p>
-            </div>
+
         </div>
 
-        <!-- Submit Section -->
-        <div class="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-slate-100 dark:border-slate-800">
-            <div class="flex items-center gap-4">
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <div class="relative">
-                        <input type="checkbox" name="status" value="published" checked class="peer sr-only">
-                        <div class="w-12 h-6 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:bg-emerald-500 transition-colors"></div>
-                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6 shadow-sm"></div>
-                    </div>
-                    <div>
-                        <span class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 transition-colors">Publish Immediately</span>
-                        <p class="text-[10px] text-slate-400">If unchecked, announcement will be saved as pending.</p>
-                    </div>
-                </label>
-            </div>
-            
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <button type="button" @click="window.location.href='{{ route('admin.announcements.index') }}'" class="flex-1 md:flex-none h-11 px-6 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-sm shadow-2xs cursor-pointer">
-                    Cancel
-                </button>
-                <button type="submit" class="flex-1 md:flex-none h-11 px-8 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                    <span>Save Announcement</span>
-                </button>
-            </div>
-        </div>
     </form>
+
 </div>
 
 @include('partials.image-cropper')

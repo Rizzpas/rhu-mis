@@ -825,7 +825,15 @@ class AdminController extends Controller
             });
         }
 
-        if ($request->filled('date_posted')) {
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        if ($request->filled('date_posted') && ! $request->filled('date_from') && ! $request->filled('date_to')) {
             $query->whereDate('created_at', $request->date_posted);
         }
 
@@ -854,8 +862,11 @@ class AdminController extends Controller
             'title' => 'required|string|max:255',
             'subheading' => 'nullable|string|max:255',
             'event_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
             'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
             'content' => 'required|string',
+            'content_align' => 'nullable|in:left,center,right,justify',
 
             'images' => 'nullable|array',
             'images.*' => 'file|mimes:jpeg,png,jpg,gif,mp4|max:51200', // Increased max size for video (50MB)
@@ -866,6 +877,7 @@ class AdminController extends Controller
             'sections.*.image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4|max:51200',
             'sections.*.video_url' => 'nullable|url',
             'sections.*.layout' => 'nullable|in:left,right,middle',
+            'sections.*.text_align' => 'nullable|in:left,center,right,justify',
         ]);
 
         $imagePath = null;
@@ -888,8 +900,11 @@ class AdminController extends Controller
             'title' => $validated['title'],
             'subheading' => $validated['subheading'] ?? null,
             'event_date' => $validated['event_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
             'start_time' => $validated['start_time'] ?? null,
+            'end_time' => $validated['end_time'] ?? null,
             'content' => $validated['content'],
+            'content_align' => $validated['content_align'] ?? 'left',
             'image_path' => $imagePath,
             'status' => $request->has('status') ? $request->status : ($isSuperAdmin ? 'published' : 'pending'),
             'display_type' => $validated['display_type'] ?? 'list',
@@ -934,6 +949,7 @@ class AdminController extends Controller
                         'image_path' => $sectionMediaPath ?? '', // Empty string if only URL or Text
                         'video_url' => $videoUrl,
                         'content' => $section['content'] ?? null,
+                        'text_align' => $section['text_align'] ?? 'left',
                         'layout' => $section['layout'] ?? 'left',
                         'sort_order' => $index,
                         'type' => 'section',
@@ -952,21 +968,27 @@ class AdminController extends Controller
             'title' => 'required|string|max:255',
             'subheading' => 'nullable|string|max:255',
             'event_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
             'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
             'content' => 'required|string',
+            'content_align' => 'nullable|in:left,center,right,justify',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
             'display_type' => 'nullable|in:list,carousel',
+            'display_mode' => 'nullable|in:standard,infographic',
             // Update existing sections
             'existing_sections' => 'nullable|array',
             'existing_sections.*.content' => 'nullable|string',
             'existing_sections.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
             'existing_sections.*.layout' => 'nullable|in:left,right,middle',
+            'existing_sections.*.text_align' => 'nullable|in:left,center,right,justify',
             // Simple gallery append for now
             'new_sections' => 'nullable|array',
             'new_sections.*.content' => 'nullable|string',
             'new_sections.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
             'new_sections.*.layout' => 'nullable|in:left,right,middle',
+            'new_sections.*.text_align' => 'nullable|in:left,center,right,justify',
             'status' => 'nullable|in:draft,pending,published',
         ]);
 
@@ -999,10 +1021,14 @@ class AdminController extends Controller
             'title' => $validated['title'],
             'subheading' => $validated['subheading'] ?? null,
             'event_date' => $validated['event_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
             'start_time' => $validated['start_time'] ?? null,
+            'end_time' => $validated['end_time'] ?? null,
             'content' => $validated['content'],
+            'content_align' => $validated['content_align'] ?? $announcement->content_align ?? 'left',
             'image_path' => $announcement->image_path,
             'display_type' => $validated['display_type'] ?? 'list',
+            'display_mode' => $validated['display_mode'] ?? $announcement->display_mode,
             'status' => $request->has('status') ? $request->status : $announcement->status,
         ]);
 
@@ -1026,6 +1052,7 @@ class AdminController extends Controller
                 if ($section && $section->announcement_id == $announcement->id) {
                     $updateData = [
                         'content' => $data['content'] ?? null,
+                        'text_align' => $data['text_align'] ?? $section->text_align ?? 'left',
                         'layout' => $data['layout'] ?? $section->layout,
                         'video_url' => $data['video_url'] ?? $section->video_url,
                     ];
@@ -1073,6 +1100,7 @@ class AdminController extends Controller
                         'image_path' => $sectionImagePath ?? '',
                         'video_url' => $videoUrl,
                         'content' => $section['content'] ?? null,
+                        'text_align' => $section['text_align'] ?? 'left',
                         'layout' => $section['layout'] ?? 'left',
                         'sort_order' => $startingOrder + $index,
                         'type' => 'section',
@@ -1548,6 +1576,21 @@ class AdminController extends Controller
                     );
                 }
             }
+        }
+
+        if ($request->has('guiding_principles')) {
+            foreach ($request->guiding_principles as $p) {
+                if (empty(trim($p['title'] ?? '')) || empty(trim($p['description'] ?? ''))) {
+                    return back()->withInput()->with('error', 'Every guiding principle must have both a Title and a Charter Description.')->withErrors(['guiding_principles' => 'Every guiding principle must have both a Title and a Charter Description.']);
+                }
+            }
+            $principles = array_values(array_filter($request->guiding_principles, function ($p) {
+                return ! empty(trim($p['title'] ?? '')) && ! empty(trim($p['description'] ?? ''));
+            }));
+            \App\Models\SiteSetting::updateOrCreate(
+                ['key' => 'guiding_principles'],
+                ['group' => 'about', 'value' => json_encode($principles), 'type' => 'json']
+            );
         }
 
         if ($request->has('faq')) {

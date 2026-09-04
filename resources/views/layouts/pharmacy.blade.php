@@ -35,6 +35,16 @@
         textarea:not(.no-uppercase) {
             text-transform: uppercase;
         }
+
+        /* Option tags dark and light mode styling */
+        option {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        .dark option {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
     </style>
 
     <script>

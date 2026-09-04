@@ -99,66 +99,64 @@
          MISSION SECTION — Documentary Photo & Structured Narrative
     ============================================================ --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-        <div class="bg-white dark:bg-slate-800/95 rounded-3xl border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 shadow-sm">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                
-                {{-- Left Column: Framed Documentary Photography --}}
-                <div class="lg:col-span-6">
-                    <div class="bg-slate-100 dark:bg-slate-900 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-md">
-                        <div class="relative rounded-xl overflow-hidden aspect-[16/11]">
-                            <img src="{{ asset('assets/images/rhu-consultation.jpg') }}" 
-                                 alt="Silang RHU Healthcare Consultation" 
-                                 class="w-full h-full object-cover">
-                        </div>
-                        {{-- Physical Caption Line --}}
-                        <div class="pt-3 px-2 pb-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-200/60 dark:border-slate-800 mt-2.5">
-                            <span class="font-medium">RHU Silang Medical Consultation Wing</span>
-                        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {{-- Left Column: Framed Documentary Photography --}}
+            <div class="lg:col-span-6">
+                <div class="bg-slate-100 dark:bg-slate-900 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-md">
+                    <div class="relative rounded-xl overflow-hidden aspect-[16/11]">
+                        <img src="{{ asset('assets/images/rhu-consultation.jpg') }}" 
+                             alt="Silang RHU Healthcare Consultation" 
+                             class="w-full h-full object-cover">
+                    </div>
+                    {{-- Physical Caption Line --}}
+                    <div class="pt-3 px-2 pb-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-200/60 dark:border-slate-800 mt-2.5">
+                        <span class="font-medium">RHU Silang Medical Consultation Wing</span>
                     </div>
                 </div>
-
-                {{-- Right Column: Structured Mission Content --}}
-                <div class="lg:col-span-6 flex flex-col justify-center">
-                    <div class="inline-flex items-center gap-2 mb-2">
-                        <span class="w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400"></span>
-                        <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Our Mission</span>
-                    </div>
-                    <h2 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
-                        Delivering Responsive, Equitable Public Healthcare
-                    </h2>
-                    <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6 font-normal">
-                        {{ \App\Models\SiteSetting::get('mission_statement', 'To provide responsive, equitable, and quality primary healthcare services to all citizens of Silang. We commit to transparency and excellence by utilizing modern management systems to eliminate barriers to health access and pharmaceutical needs.') }}
-                    </p>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-4 border-t border-slate-100 dark:border-slate-700/70">
-                        <div class="flex items-start gap-3">
-                            <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Equitable access across 64 Silang barangays</span>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Digital queue & clinical record tracking</span>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Continuous inventory & pharmacy transparency</span>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">24/7 dedicated maternal emergency care</span>
-                        </div>
-                    </div>
-                </div>
-
             </div>
+
+            {{-- Right Column: Structured Mission Content --}}
+            <div class="lg:col-span-6 flex flex-col justify-center">
+                <div class="inline-flex items-center gap-2 mb-2">
+                    <span class="w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400"></span>
+                    <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Our Mission</span>
+                </div>
+                <h2 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
+                    Delivering Responsive, Equitable Public Healthcare
+                </h2>
+                <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6 font-normal">
+                    {{ \App\Models\SiteSetting::get('mission_statement', 'To provide responsive, equitable, and quality primary healthcare services to all citizens of Silang. We commit to transparency and excellence by utilizing modern management systems to eliminate barriers to health access and pharmaceutical needs.') }}
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-4 border-t border-slate-100 dark:border-slate-700/70">
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Equitable access across 64 Silang barangays</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Digital queue & clinical record tracking</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Continuous inventory & pharmacy transparency</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">24/7 dedicated maternal emergency care</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </section>
 
@@ -218,38 +216,29 @@
          CORE VALUES & GUIDING MANDATE — Numbered Principles
     ============================================================ --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-        <div class="bg-slate-50/80 dark:bg-slate-900/60 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-6 sm:p-10">
-            <div class="mb-8">
-                <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Public Service Charter</span>
-                <h3 class="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mt-1">Guiding Principles</h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">The standards and ethics that govern every patient consultation, medical diagnosis, and administrative procedure.</p>
-            </div>
+        <div class="mb-8">
+            <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Public Service Charter</span>
+            <h3 class="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mt-1">Guiding Principles</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">The standards and ethics that govern every patient consultation, medical diagnosis, and administrative procedure.</p>
+        </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors">
-                    <span class="font-display text-emerald-700 dark:text-emerald-400 font-extrabold text-xl block mb-2">01</span>
-                    <h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1.5">Compassionate Care</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Treating every patient with dignity, empathy, and dedicated professional attention.</p>
-                </div>
+        @php
+            $guidingPrinciples = \App\Models\SiteSetting::getJson('guiding_principles', [
+                ['number' => '01', 'title' => 'Compassionate Care', 'description' => 'Treating every patient with dignity, empathy, and dedicated professional attention.'],
+                ['number' => '02', 'title' => 'Digital Innovation', 'description' => 'Streamlining triage, clinical schedules, and patient records with modern MIS solutions.'],
+                ['number' => '03', 'title' => 'Transparency & Ethics', 'description' => 'Upholding absolute accountability in pharmacy inventories and healthcare governance.'],
+                ['number' => '04', 'title' => 'Universal Inclusivity', 'description' => 'Guaranteeing barrier-free medical access for all constituents regardless of status.']
+            ]);
+        @endphp
 
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            @foreach($guidingPrinciples as $index => $principle)
                 <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors">
-                    <span class="font-display text-emerald-700 dark:text-emerald-400 font-extrabold text-xl block mb-2">02</span>
-                    <h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1.5">Digital Innovation</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Streamlining triage, clinical schedules, and patient records with modern MIS solutions.</p>
+                    <span class="font-display text-emerald-700 dark:text-emerald-400 font-extrabold text-xl block mb-2">{{ $principle['number'] ?? str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                    <h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1.5">{{ $principle['title'] ?? '' }}</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{{ $principle['description'] ?? '' }}</p>
                 </div>
-
-                <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors">
-                    <span class="font-display text-emerald-700 dark:text-emerald-400 font-extrabold text-xl block mb-2">03</span>
-                    <h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1.5">Transparency & Ethics</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Upholding absolute accountability in pharmacy inventories and healthcare governance.</p>
-                </div>
-
-                <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors">
-                    <span class="font-display text-emerald-700 dark:text-emerald-400 font-extrabold text-xl block mb-2">04</span>
-                    <h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1.5">Universal Inclusivity</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Guaranteeing barrier-free medical access for all constituents regardless of status.</p>
-                </div>
-            </div>
+            @endforeach
         </div>
     </section>
 

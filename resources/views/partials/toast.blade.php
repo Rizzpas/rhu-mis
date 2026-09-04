@@ -54,7 +54,7 @@
         @if(session('info'))
             this.addToast('info', @js(session('info')));
         @endif
-        @if($errors->any())
+        @if(isset($errors) && $errors->any())
             @foreach($errors->all() as $error)
                 this.addToast('error', @js($error));
             @endforeach

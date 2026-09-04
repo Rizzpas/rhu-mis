@@ -270,10 +270,22 @@
         }
     }, true);
 
+    window.showSkeleton = showSkeleton;
+    window.hideSkeleton = hideSkeleton;
+
     // Trigger on form submissions (search, filter, pagination jump, logins)
     document.addEventListener('submit', function(e) {
         const form = e.target;
-        if (!form || form.target === '_blank' || form.dataset.noLoader || form.hasAttribute('x-on:submit')) return;
+        if (
+            !form || 
+            form.target === '_blank' || 
+            form.dataset.noLoader === 'true' || 
+            form.hasAttribute('data-no-loader') || 
+            form.hasAttribute('x-on:submit') || 
+            form.hasAttribute('@submit') || 
+            form.hasAttribute('@submit.prevent') || 
+            form.hasAttribute('x-on:submit.prevent')
+        ) return;
 
         showSkeleton();
     }, true);

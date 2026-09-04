@@ -203,7 +203,15 @@ class PublicController extends Controller
 
     public function showAnnouncement(Announcement $announcement)
     {
-        return view('announcements.show', compact('announcement'));
+        $category = self::getAnnouncementCategory($announcement);
+        $relatedAnnouncements = Announcement::where('status', 'published')
+            ->where('id', '!=', $announcement->id)
+            ->with('images')
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        return view('announcements.show', compact('announcement', 'category', 'relatedAnnouncements'));
     }
 
     public function checkAnnouncementUpdate(Announcement $announcement)
@@ -215,14 +223,15 @@ class PublicController extends Controller
 
     public function getAnnouncementContent(Announcement $announcement)
     {
-        // Render the view partial or full view - we will extract the relevant section in frontend or return a partial view
-        // For simplicity, we can return the entire view and let Alpine/HTMX swap, OR we can make a partial.
-        // A cleaner way for "everything dynamic" without full reload is to return the specific HTML for the article.
-        // Let's return the full view for now but we will use a special header to indicate it's a fragment if we wanted,
-        // but here we will just let the frontend regex/parse or just return a JSON with html.
-        // Actually, returning JSON with HTML is easiest for Alpine to handle.
+        $category = self::getAnnouncementCategory($announcement);
+        $relatedAnnouncements = Announcement::where('status', 'published')
+            ->where('id', '!=', $announcement->id)
+            ->with('images')
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
 
-        $html = view('announcements.show', compact('announcement'))->render();
+        $html = view('announcements.show', compact('announcement', 'category', 'relatedAnnouncements'))->render();
 
         return response()->json(['html' => $html]);
     }

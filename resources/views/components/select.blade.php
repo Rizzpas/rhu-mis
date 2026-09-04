@@ -8,6 +8,8 @@
     'class' => '',
     'containerClass' => '',
     'disabled' => false,
+    'form' => null,
+    'dropUp' => false,
 ])
 
 @php
@@ -69,6 +71,13 @@
         get selectedLabel() {
             const found = this.options.find(o => String(o.value) === String(this.selected));
             return found ? found.label : (@js($placeholder) || 'Select');
+        },
+
+        setSelected(val) {
+            this.selected = val;
+            if (this.$refs.hiddenInput) {
+                this.$refs.hiddenInput.value = val;
+            }
         },
 
         selectOption(val) {
@@ -148,11 +157,12 @@
      }"
      @click.outside="close()"
      @keydown="onKeyDown($event)"
-     {{ $attributes->whereStartsWith(['wire:model']) }}>
+     {{ $attributes->except(['class', 'containerClass', 'container-class', 'size', 'options', 'name', 'id', 'value', 'placeholder', 'disabled', 'form']) }}>
 
     {{-- Hidden Native Input for standard HTML form submissions and x-model proxy --}}
     <input type="hidden" 
            @if($name) name="{{ $name }}" @endif
+           @if($form) form="{{ $form }}" @endif
            id="{{ $id }}" 
            x-ref="hiddenInput" 
            :value="selected" 
@@ -190,7 +200,7 @@
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-1 scale-95"
          style="display: none;"
-         class="absolute z-50 mt-1.5 w-full min-w-[180px] max-h-64 overflow-y-auto rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/10 dark:shadow-slate-950/40 p-1.5 backdrop-blur-md focus:outline-none scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700"
+         class="absolute z-50 w-full min-w-[180px] max-h-64 overflow-y-auto rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/10 dark:shadow-slate-950/40 p-1.5 backdrop-blur-md focus:outline-none scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700 {{ $dropUp ? 'bottom-full mb-1.5' : 'mt-1.5' }}"
          tabindex="-1"
          role="listbox">
         

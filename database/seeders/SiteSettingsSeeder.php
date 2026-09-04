@@ -11,18 +11,21 @@ class SiteSettingsSeeder extends Seeder
     {
         $settings = [
             // ── Top Bar ─────────────────────────────────────────
+            ['group' => 'topbar', 'key' => 'topbar_republic', 'value' => 'Republic of the Philippines', 'type' => 'text'],
+            ['group' => 'topbar', 'key' => 'topbar_province', 'value' => 'Province of Cavite', 'type' => 'text'],
+            ['group' => 'topbar', 'key' => 'topbar_municipality', 'value' => 'Municipality of Silang', 'type' => 'text'],
             ['group' => 'topbar', 'key' => 'clinic_hours', 'value' => 'Mon - Fri | 8:00 AM - 5:00 PM', 'type' => 'text'],
             ['group' => 'topbar', 'key' => 'emergency_hotlines', 'value' => '911 | (046) 432-1234', 'type' => 'text'],
 
             // ── Hero Section ────────────────────────────────────
-            ['group' => 'hero', 'key' => 'hero_badge_text', 'value' => 'Welcome to RHU Portal', 'type' => 'text'],
+            ['group' => 'hero', 'key' => 'hero_badge_text', 'value' => 'Municipality of Silang', 'type' => 'text'],
             ['group' => 'hero', 'key' => 'hero_title_line1', 'value' => 'Accessible', 'type' => 'text'],
-            ['group' => 'hero', 'key' => 'hero_title_highlight', 'value' => 'Healthcare', 'type' => 'text'],
-            ['group' => 'hero', 'key' => 'hero_title_line2', 'value' => 'for Every Citizen.', 'type' => 'text'],
-            ['group' => 'hero', 'key' => 'hero_description', 'value' => 'The Rural Health Unit is the primary gateway for medical services in our city. We provide digital triage, scheduling, and diagnostic referrals.', 'type' => 'textarea'],
+            ['group' => 'hero', 'key' => 'hero_title_highlight', 'value' => 'Public Healthcare', 'type' => 'text'],
+            ['group' => 'hero', 'key' => 'hero_title_line2', 'value' => 'for Every Silang Constituent.', 'type' => 'text'],
+            ['group' => 'hero', 'key' => 'hero_description', 'value' => 'The Rural Health Unit is the official municipal healthcare gateway of Silang, Cavite. We provide online appointments, digital triage, doctor consultations, and primary diagnostic referrals.', 'type' => 'textarea'],
             ['group' => 'hero', 'key' => 'hero_image', 'value' => 'assets/images/hero.jpg', 'type' => 'image'],
             ['group' => 'hero', 'key' => 'carousel_hero_title', 'value' => 'RHU Silang, Cavite', 'type' => 'text'],
-            ['group' => 'hero', 'key' => 'carousel_hero_subtitle', 'value' => 'Providing Quality Healthcare for All Citizens', 'type' => 'text'],
+            ['group' => 'hero', 'key' => 'carousel_hero_subtitle', 'value' => 'Providing Responsive & Quality Healthcare for All Constituents', 'type' => 'text'],
 
             // ── Footer ──────────────────────────────────────────
             ['group' => 'footer', 'key' => 'footer_address_line1', 'value' => 'M.H del Pilar St.', 'type' => 'text'],
@@ -30,9 +33,15 @@ class SiteSettingsSeeder extends Seeder
             ['group' => 'footer', 'key' => 'footer_phone', 'value' => '(046) 414-0209', 'type' => 'text'],
             ['group' => 'footer', 'key' => 'footer_email', 'value' => 'contact@silang.gov.ph', 'type' => 'text'],
 
-            // ── About (Mission & Vision) ────────────────────────
-            ['group' => 'about', 'key' => 'mission_statement', 'value' => '"To provide responsive, equitable, and quality primary healthcare services to all citizens. We commit to transparency and excellence by utilizing modern management systems to eliminate barriers to health access and pharmaceutical needs."', 'type' => 'textarea'],
-            ['group' => 'about', 'key' => 'vision_statement', 'value' => '"A healthy and empowered community served by a world-class Rural Health Unit that champions technological advancement and medical integrity for the well-being of every family, ensuring that quality healthcare is a reliable and efficient right for every citizen."', 'type' => 'textarea'],
+            // ── About (Mission, Vision & Public Service Charter) ───
+            ['group' => 'about', 'key' => 'mission_statement', 'value' => 'To provide responsive, equitable, and quality primary healthcare services to all citizens of Silang. We commit to transparency and excellence by utilizing modern management systems to eliminate barriers to health access and pharmaceutical needs.', 'type' => 'textarea'],
+            ['group' => 'about', 'key' => 'vision_statement', 'value' => 'A healthy, resilient, and empowered community served by a world-class Rural Health Unit that champions technological advancement and medical integrity for the well-being of every family, ensuring that quality healthcare is a reliable right for every citizen.', 'type' => 'textarea'],
+            ['group' => 'about', 'key' => 'guiding_principles', 'value' => json_encode([
+                ['number' => '01', 'title' => 'Compassionate Care', 'description' => 'Treating every patient with dignity, empathy, and dedicated professional attention.'],
+                ['number' => '02', 'title' => 'Digital Innovation', 'description' => 'Streamlining triage, clinical schedules, and patient records with modern MIS solutions.'],
+                ['number' => '03', 'title' => 'Transparency & Ethics', 'description' => 'Upholding absolute accountability in pharmacy inventories and healthcare governance.'],
+                ['number' => '04', 'title' => 'Universal Inclusivity', 'description' => 'Guaranteeing barrier-free medical access for all constituents regardless of status.']
+            ]), 'type' => 'json'],
 
             // ── Step-by-Step Process (Per Unit) ─────────────────────────────
             ['group' => 'steps', 'key' => 'steps_data_main-health-center', 'value' => json_encode([

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AnnouncementImage extends Model
 {
-    protected $fillable = ['announcement_id', 'image_path', 'content', 'sort_order', 'layout', 'type', 'media_type', 'video_url'];
+    protected $fillable = ['announcement_id', 'image_path', 'content', 'text_align', 'sort_order', 'layout', 'type', 'media_type', 'video_url'];
 
     protected $touches = ['announcement'];
 

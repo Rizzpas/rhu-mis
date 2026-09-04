@@ -59,6 +59,16 @@
             --tw-ring-offset-width: 0px !important;
             ring: 0 !important;
         }
+
+        /* Option tags dark and light mode styling */
+        option {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        .dark option {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
     </style>
 
     <script>

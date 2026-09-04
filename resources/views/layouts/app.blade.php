@@ -122,11 +122,11 @@
     <!-- Top Bar — Official Republic & Municipal Header -->
     <div class="bg-emerald-900 text-white text-[11px] sm:text-xs py-2 px-4 md:px-8 flex flex-wrap justify-between items-center font-medium gap-2 sm:gap-4 relative z-10 border-b border-emerald-800/60">
         <div class="hidden md:flex items-center gap-2 mx-auto md:mx-0">
-            <span class="font-bold tracking-wide uppercase">Republic of the Philippines</span>
+            <span class="font-bold tracking-wide uppercase">{{ \App\Models\SiteSetting::get('topbar_republic', 'Republic of the Philippines') }}</span>
             <span class="text-emerald-400 opacity-60">•</span>
-            <span class="text-emerald-200">Province of Cavite</span>
+            <span class="text-emerald-200">{{ \App\Models\SiteSetting::get('topbar_province', 'Province of Cavite') }}</span>
             <span class="text-emerald-400 opacity-60">•</span>
-            <span class="text-emerald-200 font-semibold">Municipality of Silang</span>
+            <span class="text-emerald-200 font-semibold">{{ \App\Models\SiteSetting::get('topbar_municipality', 'Municipality of Silang') }}</span>
         </div>
         <div class="flex items-center gap-4 text-emerald-100/90 mx-auto md:mx-0">
             <span><span class="hidden sm:inline text-emerald-300/80">Clinic Hours: </span>{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</span>

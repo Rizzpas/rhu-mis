@@ -15,7 +15,7 @@
         </div>
 
         <div class="relative z-10">
-            <h3 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">System Announcements</h3>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">System Announcements</h3>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Broadcast important news and events to all staff and portals.</p>
         </div>
 
@@ -37,14 +37,11 @@
     <div class="px-6 py-4 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
         <form method="GET" action="{{ route('admin.announcements.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
             <!-- Search Keyword -->
-            <div class="sm:col-span-2 lg:col-span-4">
+            <div class="sm:col-span-2 lg:col-span-2">
                 <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Search Keyword</label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Enter keywords..." 
-                        class="h-11 pl-10 pr-4 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium transition-all placeholder:text-slate-400">
+                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Keywords..." 
+                        class="h-11 px-3.5 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs sm:text-sm font-medium transition-all placeholder:text-slate-400">
                 </div>
             </div>
 
@@ -60,15 +57,218 @@
                         'content' => 'Main Content'
                     ]" 
                     :value="request('search_by', 'all')"
-                    class="!h-11 !py-0 flex items-center font-semibold"
+                    class="!h-11 !py-0 flex items-center font-semibold text-xs sm:text-sm"
                 />
             </div>
 
-            <!-- Date Posted -->
-            <div class="sm:col-span-1 lg:col-span-2">
-                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Date Posted</label>
-                <input type="date" name="date_posted" value="{{ request('date_posted') }}" 
-                    class="h-11 px-3.5 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium transition-all">
+            <!-- From Date Filter -->
+            <div class="sm:col-span-1 lg:col-span-2 relative"
+                 x-data="{
+                     showPicker: false,
+                     selectedDate: '{{ request('date_from', '') }}',
+                     currentMonth: 0,
+                     currentYear: 2026,
+                     monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                     days: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                     init() {
+                         let d = this.selectedDate ? new Date(this.selectedDate + 'T00:00:00') : new Date();
+                         if (isNaN(d.getTime())) d = new Date();
+                         this.currentMonth = d.getMonth();
+                         this.currentYear = d.getFullYear();
+                     },
+                     get formattedDate() {
+                         if (!this.selectedDate) return '';
+                         let d = new Date(this.selectedDate + 'T00:00:00');
+                         if (isNaN(d.getTime())) return this.selectedDate;
+                         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                     },
+                     get daysInMonth() { return new Date(this.currentYear, this.currentMonth + 1, 0).getDate(); },
+                     get startDayOfWeek() { return new Date(this.currentYear, this.currentMonth, 1).getDay(); },
+                     prevMonth() { if (this.currentMonth === 0) { this.currentMonth = 11; this.currentYear--; } else { this.currentMonth--; } },
+                     nextMonth() { if (this.currentMonth === 11) { this.currentMonth = 0; this.currentYear++; } else { this.currentMonth++; } },
+                     selectDay(day) {
+                         let m = String(this.currentMonth + 1).padStart(2, '0');
+                         let d = String(day).padStart(2, '0');
+                         this.selectedDate = `${this.currentYear}-${m}-${d}`;
+                         this.showPicker = false;
+                     },
+                     clearDate() { this.selectedDate = ''; this.showPicker = false; },
+                     selectToday() {
+                         let today = new Date();
+                         this.currentMonth = today.getMonth();
+                         this.currentYear = today.getFullYear();
+                         let m = String(today.getMonth() + 1).padStart(2, '0');
+                         let d = String(today.getDate()).padStart(2, '0');
+                         this.selectedDate = `${today.getFullYear()}-${m}-${d}`;
+                         this.showPicker = false;
+                     },
+                     isSelected(day) {
+                         if (!this.selectedDate) return false;
+                         let m = String(this.currentMonth + 1).padStart(2, '0');
+                         let d = String(day).padStart(2, '0');
+                         return this.selectedDate === `${this.currentYear}-${m}-${d}`;
+                     },
+                     isToday(day) {
+                         let today = new Date();
+                         return today.getFullYear() === this.currentYear && today.getMonth() === this.currentMonth && today.getDate() === day;
+                     }
+                 }">
+                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">From Date</label>
+                <input type="hidden" name="date_from" :value="selectedDate">
+
+                <div @click="showPicker = !showPicker" 
+                     class="h-11 px-3 flex items-center justify-between w-full rounded-xl border bg-white dark:bg-slate-900 shadow-2xs text-xs font-medium transition-all cursor-pointer select-none"
+                     :class="showPicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                    <span x-text="selectedDate ? formattedDate : 'From Date'" 
+                          class="truncate font-semibold"
+                          :class="selectedDate ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                    <div class="flex items-center gap-1">
+                        <button type="button" x-show="selectedDate" @click.stop="clearDate()" class="p-0.5 rounded text-slate-400 hover:text-rose-500 transition" title="Clear">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <svg class="w-4 h-4 shrink-0 transition-colors text-slate-400" :class="showPicker ? 'text-emerald-600 dark:text-emerald-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div x-show="showPicker" @click.away="showPicker = false" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     style="display: none;"
+                     class="absolute z-50 mt-1.5 left-0 sm:left-auto w-[275px] p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between gap-1 mb-2.5">
+                        <button type="button" @click="prevMonth()" class="p-1 rounded-md text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="monthNames[currentMonth] + ' ' + currentYear"></span>
+                        <button type="button" @click="nextMonth()" class="p-1 rounded-md text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center mb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                        <template x-for="day in days" :key="day"><span x-text="day"></span></template>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                        <template x-for="blank in startDayOfWeek" :key="'blank-' + blank"><span class="p-1"></span></template>
+                        <template x-for="day in daysInMonth" :key="'day-' + day">
+                            <button type="button" @click="selectDay(day)" 
+                                    :class="{
+                                        'bg-emerald-600 text-white font-bold shadow-xs': isSelected(day),
+                                        'ring-1 ring-emerald-500 font-bold text-emerald-600 dark:text-emerald-400': isToday(day) && !isSelected(day),
+                                        'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700': !isSelected(day) && !isToday(day)
+                                    }"
+                                    class="p-1 rounded-md text-xs font-medium transition" x-text="day"></button>
+                        </template>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                        <button type="button" @click="clearDate()" class="text-slate-500 hover:text-rose-600 font-semibold transition">Clear</button>
+                        <button type="button" @click="selectToday()" class="text-emerald-600 dark:text-emerald-400 hover:underline font-bold transition">Today</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- To Date Filter -->
+            <div class="sm:col-span-1 lg:col-span-2 relative"
+                 x-data="{
+                     showPicker: false,
+                     selectedDate: '{{ request('date_to', '') }}',
+                     currentMonth: 0,
+                     currentYear: 2026,
+                     monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                     days: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                     init() {
+                         let d = this.selectedDate ? new Date(this.selectedDate + 'T00:00:00') : new Date();
+                         if (isNaN(d.getTime())) d = new Date();
+                         this.currentMonth = d.getMonth();
+                         this.currentYear = d.getFullYear();
+                     },
+                     get formattedDate() {
+                         if (!this.selectedDate) return '';
+                         let d = new Date(this.selectedDate + 'T00:00:00');
+                         if (isNaN(d.getTime())) return this.selectedDate;
+                         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                     },
+                     get daysInMonth() { return new Date(this.currentYear, this.currentMonth + 1, 0).getDate(); },
+                     get startDayOfWeek() { return new Date(this.currentYear, this.currentMonth, 1).getDay(); },
+                     prevMonth() { if (this.currentMonth === 0) { this.currentMonth = 11; this.currentYear--; } else { this.currentMonth--; } },
+                     nextMonth() { if (this.currentMonth === 11) { this.currentMonth = 0; this.currentYear++; } else { this.currentMonth++; } },
+                     selectDay(day) {
+                         let m = String(this.currentMonth + 1).padStart(2, '0');
+                         let d = String(day).padStart(2, '0');
+                         this.selectedDate = `${this.currentYear}-${m}-${d}`;
+                         this.showPicker = false;
+                     },
+                     clearDate() { this.selectedDate = ''; this.showPicker = false; },
+                     selectToday() {
+                         let today = new Date();
+                         this.currentMonth = today.getMonth();
+                         this.currentYear = today.getFullYear();
+                         let m = String(today.getMonth() + 1).padStart(2, '0');
+                         let d = String(today.getDate()).padStart(2, '0');
+                         this.selectedDate = `${today.getFullYear()}-${m}-${d}`;
+                         this.showPicker = false;
+                     },
+                     isSelected(day) {
+                         if (!this.selectedDate) return false;
+                         let m = String(this.currentMonth + 1).padStart(2, '0');
+                         let d = String(day).padStart(2, '0');
+                         return this.selectedDate === `${this.currentYear}-${m}-${d}`;
+                     },
+                     isToday(day) {
+                         let today = new Date();
+                         return today.getFullYear() === this.currentYear && today.getMonth() === this.currentMonth && today.getDate() === day;
+                     }
+                 }">
+                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">To Date</label>
+                <input type="hidden" name="date_to" :value="selectedDate">
+
+                <div @click="showPicker = !showPicker" 
+                     class="h-11 px-3 flex items-center justify-between w-full rounded-xl border bg-white dark:bg-slate-900 shadow-2xs text-xs font-medium transition-all cursor-pointer select-none"
+                     :class="showPicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'">
+                    <span x-text="selectedDate ? formattedDate : 'To Date'" 
+                          class="truncate font-semibold"
+                          :class="selectedDate ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                    <div class="flex items-center gap-1">
+                        <button type="button" x-show="selectedDate" @click.stop="clearDate()" class="p-0.5 rounded text-slate-400 hover:text-rose-500 transition" title="Clear">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <svg class="w-4 h-4 shrink-0 transition-colors text-slate-400" :class="showPicker ? 'text-emerald-600 dark:text-emerald-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div x-show="showPicker" @click.away="showPicker = false" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     style="display: none;"
+                     class="absolute z-50 mt-1.5 left-0 sm:left-auto sm:right-0 w-[275px] p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between gap-1 mb-2.5">
+                        <button type="button" @click="prevMonth()" class="p-1 rounded-md text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="monthNames[currentMonth] + ' ' + currentYear"></span>
+                        <button type="button" @click="nextMonth()" class="p-1 rounded-md text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center mb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                        <template x-for="day in days" :key="day"><span x-text="day"></span></template>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                        <template x-for="blank in startDayOfWeek" :key="'blank-' + blank"><span class="p-1"></span></template>
+                        <template x-for="day in daysInMonth" :key="'day-' + day">
+                            <button type="button" @click="selectDay(day)" 
+                                    :class="{
+                                        'bg-emerald-600 text-white font-bold shadow-xs': isSelected(day),
+                                        'ring-1 ring-emerald-500 font-bold text-emerald-600 dark:text-emerald-400': isToday(day) && !isSelected(day),
+                                        'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700': !isSelected(day) && !isToday(day)
+                                    }"
+                                    class="p-1 rounded-md text-xs font-medium transition" x-text="day"></button>
+                        </template>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                        <button type="button" @click="clearDate()" class="text-slate-500 hover:text-rose-600 font-semibold transition">Clear</button>
+                        <button type="button" @click="selectToday()" class="text-emerald-600 dark:text-emerald-400 hover:underline font-bold transition">Today</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Status -->
@@ -83,13 +283,13 @@
                         'draft' => 'Draft'
                     ]" 
                     :value="request('status', 'all')"
-                    class="!h-11 !py-0 flex items-center font-semibold"
+                    class="!h-11 !py-0 flex items-center font-semibold text-xs sm:text-sm"
                 />
             </div>
 
             <!-- Action Buttons -->
-            <div class="sm:col-span-1 lg:col-span-2 flex items-center gap-2">
-                @if(request()->anyFilled(['q', 'search_by', 'date_posted', 'status']) && (request('q') || request('search_by', 'all') !== 'all' || request('date_posted') || request('status', 'all') !== 'all'))
+            <div class="sm:col-span-2 lg:col-span-2 flex items-center gap-2">
+                @if(request()->anyFilled(['q', 'search_by', 'date_posted', 'date_from', 'date_to', 'status']) && (request('q') || request('search_by', 'all') !== 'all' || request('date_posted') || request('date_from') || request('date_to') || request('status', 'all') !== 'all'))
                     <a href="{{ route('admin.announcements.index') }}" 
                         title="Clear All Filters"
                         class="h-11 px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm border border-slate-300 dark:border-slate-700 transition-all flex items-center justify-center shrink-0 shadow-2xs cursor-pointer">
@@ -98,7 +298,7 @@
                         </svg>
                     </a>
                 @endif
-                <button type="submit" class="flex-1 h-11 px-4 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+                <button type="submit" class="flex-1 h-11 px-4 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                     <span>Filter</span>
                 </button>
@@ -138,12 +338,14 @@
                                     </div>
                                 @endif
                                 <div class="min-w-0">
-                                    <div class="text-sm font-bold text-slate-900 dark:text-white truncate max-w-md">{{ $announcement->title }}</div>
+                                    <div class="text-base font-bold text-slate-900 dark:text-white truncate max-w-md">{{ $announcement->title }}</div>
                                     <div class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">{{ Str::limit(strip_tags($announcement->content), 80) }}</div>
                                     <div class="flex items-center gap-2 mt-1.5">
                                         <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">Posted {{ $announcement->created_at->diffForHumans() }}</span>
                                         @if($announcement->event_date)
-                                            <span class="text-[10px] font-black uppercase tracking-tighter text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded border border-emerald-100 dark:border-emerald-800/50">Event: {{ $announcement->event_date->format('M d, Y') }}</span>
+                                            <span class="text-[10px] font-black uppercase tracking-tighter text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded border border-emerald-100 dark:border-emerald-800/50">
+                                                Event: {{ $announcement->event_date->format('M d, Y') }}@if($announcement->end_date && $announcement->end_date->format('Y-m-d') !== $announcement->event_date->format('Y-m-d')) – {{ $announcement->end_date->format('M d, Y') }}@endif
+                                            </span>
                                         @endif
                                     </div>
                                 </div>
@@ -175,9 +377,27 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end items-center gap-1.5">
-                                <a href="{{ route('admin.announcements.edit', $announcement) }}" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all cursor-pointer" title="Edit Announcement">
-                                    <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                {{-- View Announcement --}}
+                                <a href="{{ route('announcements.show', $announcement) }}" 
+                                   target="_blank"
+                                   class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-slate-200/70 dark:border-slate-700/70 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer shadow-2xs" 
+                                   title="View Announcement">
+                                    <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
                                 </a>
+
+                                {{-- Edit Announcement --}}
+                                <a href="{{ route('admin.announcements.edit', $announcement) }}" 
+                                   class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 border border-slate-200/70 dark:border-slate-700/70 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all cursor-pointer shadow-2xs" 
+                                   title="Edit Announcement">
+                                    <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </a>
+
+                                {{-- Archive Announcement --}}
                                 <button type="button" @click="$dispatch('open-confirmation', {
                                     action: '{{ route('admin.announcements.destroy', $announcement) }}',
                                     method: 'DELETE',
@@ -185,11 +405,12 @@
                                     message: 'This will move the announcement to the system archive.',
                                     confirmText: 'Yes, Archive',
                                     type: 'danger'
-                                })" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer" title="Archive Announcement">
-                                    <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                        </td>
+                                })" 
+                                class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-slate-200/70 dark:border-slate-700/70 hover:border-rose-300 dark:hover:border-rose-700 transition-all cursor-pointer shadow-2xs" 
+                                title="Archive Announcement">
+                                    <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
                                 </button>
                             </div>
                         </td>

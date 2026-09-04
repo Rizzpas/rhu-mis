@@ -11,11 +11,13 @@ class Announcement extends Model
 {
     use HasFactory, Prunable, SoftDeletes;
 
-    protected $fillable = ['title', 'subheading', 'event_date', 'start_time', 'content', 'image_path', 'status', 'display_type', 'display_mode'];
+    protected $fillable = ['title', 'subheading', 'event_date', 'end_date', 'start_time', 'end_time', 'content', 'content_align', 'image_path', 'status', 'display_type', 'display_mode'];
 
     protected $casts = [
         'event_date' => 'date',
+        'end_date' => 'date',
         'start_time' => 'datetime:H:i',
+        'end_time' => 'datetime:H:i',
     ];
 
     public function images()

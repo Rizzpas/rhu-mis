@@ -1,5 +1,5 @@
 {{-- Modern Executive Leadership & On-Demand Departmental Directory --}}
-<section id="org-chart" class="rounded-3xl p-6 sm:p-10 lg:p-12 bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 shadow-sm dark:shadow-xl transition-colors"
+<section id="org-chart" class="transition-colors"
          x-data="{
     searchQuery: '',
     expandedDivision: null,
