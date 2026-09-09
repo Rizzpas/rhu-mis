@@ -486,11 +486,11 @@
             Chart.register(ChartDataLabels);
 
             // Modern Global Defaults
-            Chart.defaults.font.family = "'Inter', 'system-ui', 'sans-serif'";
+            Chart.defaults.font.family = "'Camera Plain Variable', 'Inter', 'system-ui', 'sans-serif'";
             Chart.defaults.color = '#94a3b8';
             Chart.defaults.plugins.tooltip.backgroundColor = '#0f172a';
-            Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: '600', family: "'Inter', sans-serif" };
-            Chart.defaults.plugins.tooltip.bodyFont = { size: 12, family: "'Inter', sans-serif" };
+            Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: '600', family: "'Camera Plain Variable', 'Inter', sans-serif" };
+            Chart.defaults.plugins.tooltip.bodyFont = { size: 12, family: "'Camera Plain Variable', 'Inter', sans-serif" };
             Chart.defaults.plugins.tooltip.padding = { top: 10, bottom: 10, left: 14, right: 14 };
             Chart.defaults.plugins.tooltip.cornerRadius = 10;
             Chart.defaults.plugins.tooltip.displayColors = false;

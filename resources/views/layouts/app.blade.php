@@ -38,7 +38,7 @@
                             }
                         },
                         fontFamily: {
-                            sans: ['Outfit', 'sans-serif'],
+                            sans: ["'Camera Plain Variable'", 'Outfit', 'sans-serif'],
                         }
                     }
                 }
@@ -47,8 +47,21 @@
     @endif
 
     <style>
+        @font-face {
+            font-family: 'Camera Plain Variable';
+            src: local('Camera Plain Variable'),
+                 local('CameraPlainVariable'),
+                 local('ABC Camera Plain Variable'),
+                 url('/fonts/CameraPlainVariable.woff2') format('woff2-variations'),
+                 url('/fonts/CameraPlainVariable.woff2') format('woff2'),
+                 url('/fonts/CameraPlainVariable.ttf') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Camera Plain Variable', 'Outfit', sans-serif;
             background-color: #faf8f2;
         }
 

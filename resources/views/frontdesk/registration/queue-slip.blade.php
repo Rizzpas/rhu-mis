@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -35,7 +35,7 @@
                 padding: 16px;
                 margin: 0;
                 min-height: 100vh;
-                font-family: Arial, sans-serif;
+                font-family: 'Camera Plain Variable', Arial, sans-serif;
             }
             canvas {
                 background: white;

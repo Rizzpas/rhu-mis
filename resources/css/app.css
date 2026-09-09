@@ -3,6 +3,19 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @import "flowbite/src/themes/default";
 
+@font-face {
+    font-family: 'Camera Plain Variable';
+    src: local('Camera Plain Variable'),
+         local('CameraPlainVariable'),
+         local('ABC Camera Plain Variable'),
+         url('/fonts/CameraPlainVariable.woff2') format('woff2-variations'),
+         url('/fonts/CameraPlainVariable.woff2') format('woff2'),
+         url('/fonts/CameraPlainVariable.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 @plugin "flowbite/plugin";
 @source '../../node_modules/flowbite';
 
@@ -12,9 +25,9 @@
 @source '../js/**/*.js';
 
 @theme {
-    --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: "Camera Plain Variable", "Outfit", ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-display: "DM Sans", "Outfit", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Camera Plain Variable", "DM Sans", "Outfit", ui-sans-serif, system-ui, sans-serif;
 
     /* Brand palette */
     --color-ivory: #FAF9F6;
@@ -86,7 +99,7 @@
 
     html,
     body {
-        font-family: "Outfit", sans-serif !important;
+        font-family: "Camera Plain Variable", "Outfit", sans-serif !important;
     }
 
     /* Display headings use DM Sans */
@@ -780,7 +793,7 @@ select option {
     background-color: #ffffff;
     color: #0f172a;
     padding: 0.65rem 0.85rem;
-    font-family: "Outfit", sans-serif;
+    font-family: "Camera Plain Variable", "Outfit", sans-serif;
     font-size: 0.875rem;
     font-weight: 500;
 }

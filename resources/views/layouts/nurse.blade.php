@@ -23,12 +23,32 @@
     <script>
         tailwind.config = {
             darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["'Camera Plain Variable'", 'Inter', 'sans-serif'],
+                    }
+                }
+            }
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
+        @font-face {
+            font-family: 'Camera Plain Variable';
+            src: local('Camera Plain Variable'),
+                 local('CameraPlainVariable'),
+                 local('ABC Camera Plain Variable'),
+                 url('/fonts/CameraPlainVariable.woff2') format('woff2-variations'),
+                 url('/fonts/CameraPlainVariable.woff2') format('woff2'),
+                 url('/fonts/CameraPlainVariable.ttf') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Camera Plain Variable', 'Inter', sans-serif;
         }
         [x-cloak] { display: none !important; }
         

@@ -4,7 +4,7 @@
     --line-width: 2px;
     --card-radius: 14px;
     --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Camera Plain Variable', 'Inter', 'Segoe UI', system-ui, sans-serif;
     overflow-x: auto;
     padding: 2rem 0;
 }
