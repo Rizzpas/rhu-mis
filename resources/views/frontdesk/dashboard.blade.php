@@ -3,34 +3,134 @@
 @section('header', 'Front Desk Dashboard')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6 pb-12 cursor-default" x-data="dashboardCalendar()">
+<div class="max-w-7xl mx-auto space-y-8 pb-12 cursor-default" x-data="dashboardCalendar()">
     
-    <!-- Welcome Banner & Quick Stats (Optional Future Use) -->
-    <div class="bg-teal-700 bg-linear-to-r from-teal-700 to-teal-900 dark:from-teal-800 dark:to-teal-950 rounded-2xl shadow-lg border border-teal-800 dark:border-teal-900 overflow-hidden relative transition-colors duration-300">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div class="p-8 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center gap-6">
+    <!-- Hero Operational Banner -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-emerald-800 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(16,185,129,0.15)] text-white">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center gap-5 sm:gap-6">
                 <div class="shrink-0">
-                    <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center overflow-hidden shadow-lg">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center overflow-hidden shadow-lg">
                         @if(auth()->user()->avatar_url)
                             <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
                         @else
-                            <span class="text-3xl font-black text-white">
+                            <span class="text-2xl sm:text-3xl font-black text-white">
                                 {{ auth()->user()->initials }}
                             </span>
                         @endif
                     </div>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">Welcome back, {{ auth()->user()->formatted_name }}!</h1>
-                    <p class="text-teal-50 dark:text-teal-100/80 ml-0.5 mt-2 text-base font-medium">Manage today's scheduled consultations and appointments here.</p>
+                    <h1 class="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-xs">Welcome back, {{ auth()->user()->formatted_name }}!</h1>
+                    <p class="text-emerald-50 text-xs sm:text-sm font-medium opacity-90 mt-1 max-w-xl">
+                        Information Desk is currently <span class="px-2 py-0.5 bg-emerald-400/30 rounded-lg font-bold">Active</span>. Monitor today's scheduled consultations, walk-in arrivals, and queue distribution in real time.
+                    </p>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <a href="{{ route('frontdesk.registration.index') }}" class="bg-white/10 dark:bg-black/20 hover:bg-white/20 dark:hover:bg-black/40 text-white border border-white/20 dark:border-white/10 px-5 py-2.5 rounded-xl font-bold shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Walk-in Registration
+            
+            <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+                <!-- Live Time Card -->
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/20 min-w-[120px]"
+                    x-data="{ time: '{{ now()->format('h:i A') }}' }"
+                    x-init="setInterval(() => { time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) }, 1000)">
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-200 opacity-80 mb-0.5">Local Time</p>
+                    <p class="text-base sm:text-lg font-bold tabular-nums" x-text="time">{{ now()->format('h:i A') }}</p>
+                </div>
+                <!-- Date Card -->
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/20 min-w-[120px]">
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-200 opacity-80 mb-0.5">System Date</p>
+                    <p class="text-base sm:text-lg font-bold">{{ now()->format('M d, Y') }}</p>
+                </div>
+                <!-- Active Practitioners Card -->
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/20 min-w-[120px]">
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-200 opacity-80 mb-0.5">Duty Staff</p>
+                    <p class="text-base sm:text-lg font-bold">{{ ($staffGroups['Doctors']->count() + $staffGroups['Clinical Nurses']->count() + $staffGroups['Vitals Nurses']->count()) }} Personnel</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="relative z-10 mt-6 pt-5 border-t border-white/15 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-xs font-semibold text-emerald-100">
+                <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                <span>All systems operational · Live Calendar synced with appointment bookings</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('frontdesk.queue-overview') }}" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-xs backdrop-blur-sm transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                    <span>View Queue</span>
                 </a>
+                <a href="{{ route('frontdesk.registration.index') }}" class="bg-white text-emerald-800 hover:bg-emerald-50 px-4 py-2 rounded-xl text-xs sm:text-sm font-black shadow-md transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span>Walk-in Registration</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Decorative background elements -->
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <!-- Key Operational Metric Cards (KPI Strip) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+        <!-- Today's Appointments -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Today's Visits</p>
+                <p class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white" x-text="stats.today">0</p>
+                <p class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">Scheduled for today</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+        </div>
+
+        <!-- Approved / Pending Check-in -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Approved Bookings</p>
+                <p class="text-2xl sm:text-3xl font-black text-teal-600 dark:text-teal-400" x-text="stats.approved">0</p>
+                <p class="text-[11px] font-medium text-slate-400 mt-0.5">Confirmed appointments</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-teal-100/80 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20 shadow-2xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+
+        <!-- Registered / In Process -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Queued / Triaged</p>
+                <p class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400" x-text="stats.registered">0</p>
+                <p class="text-[11px] font-medium text-slate-400 mt-0.5">Waiting for consult</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-amber-100/80 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20 shadow-2xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+
+        <!-- Completed Encounters -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Completed</p>
+                <p class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400" x-text="stats.done">0</p>
+                <p class="text-[11px] font-medium text-slate-400 mt-0.5">Discharged patients</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+        </div>
+
+        <!-- Total System Bookings -->
+        <div class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Total Scheduled</p>
+                <p class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400" x-text="stats.total">0</p>
+                <p class="text-[11px] font-medium text-slate-400 mt-0.5">All month calendar</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-indigo-100/80 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20 shadow-2xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
         </div>
     </div>
@@ -38,16 +138,26 @@
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        <!-- Left Sidebar: Staff Widget -->
+        <!-- Left Column: Staff Present Widget -->
         <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700/60 overflow-hidden transition-all duration-300">
-                <div class="p-5 border-b border-slate-100 dark:border-slate-700/70 bg-slate-50/50 dark:bg-slate-900/50">
-                    <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        Staff Present
-                    </h2>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200/80 dark:border-slate-800/80 overflow-hidden transition-all">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </span>
+                        <div>
+                            <h2 class="text-sm font-black text-slate-900 dark:text-white tracking-tight">Clinical Staff</h2>
+                            <p class="text-[10px] font-medium text-slate-400">On duty today</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Active
+                    </span>
                 </div>
-                <div class="p-5 space-y-6 max-h-[700px] overflow-y-auto">
+                
+                <div class="p-5 space-y-6 max-h-[640px] overflow-y-auto custom-scrollbar">
                     @php
                         $hasAnyStaff = false;
                     @endphp
@@ -55,20 +165,28 @@
                         @if($staffMembers->count() > 0)
                             @php $hasAnyStaff = true; @endphp
                             <div>
-                                <h3 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{{ $groupName }}</h3>
-                                <div class="space-y-2">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{{ $groupName }}</h3>
+                                    <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">{{ $staffMembers->count() }}</span>
+                                </div>
+                                <div class="space-y-2.5">
                                     @foreach($staffMembers as $staff)
-                                        <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
-                                            <div class="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold shrink-0 shadow-sm overflow-hidden border border-teal-200 dark:border-teal-700">
-                                                @if($staff->avatar_url)
-                                                    <img src="{{ $staff->avatar_url }}" alt="{{ $staff->name }}" class="w-full h-full object-cover">
-                                                @else
-                                                    {{ $staff->initials }}
-                                                @endif
+                                        <div class="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/60 transition-all group">
+                                            <div class="relative shrink-0">
+                                                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs overflow-hidden border border-emerald-500/20">
+                                                    @if($staff->avatar_url)
+                                                        <img src="{{ $staff->avatar_url }}" alt="{{ $staff->name }}" class="w-full h-full object-cover">
+                                                    @else
+                                                        {{ $staff->initials }}
+                                                    @endif
+                                                </div>
+                                                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
                                             </div>
-                                            <div class="overflow-hidden">
-                                                <h4 class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 truncate transition-colors">{{ $staff->formatted_name }}</h4>
-                                                <p class="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 truncate">{{ ucwords(str_replace('_', ' ', $staff->role)) }}</p>
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 truncate transition-colors">{{ $staff->formatted_name }}</h4>
+                                                <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                                                    {{ $staff->specialization ?: ucwords(str_replace('_', ' ', $staff->role)) }}
+                                                </p>
                                             </div>
                                         </div>
                                     @endforeach
@@ -78,7 +196,13 @@
                     @endforeach
 
                     @if(!$hasAnyStaff)
-                        <div class="text-center py-4 text-sm text-slate-500 dark:text-slate-400 italic">No staff currently present.</div>
+                        <div class="text-center py-8">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            </div>
+                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">No staff currently clocked in.</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Personnel status updates upon check-in.</p>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -86,29 +210,44 @@
 
         <!-- Right Column: Calendar Card -->
         <div class="lg:col-span-3">
-            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/60 overflow-hidden h-full flex flex-col transition-all duration-300">
-                <div class="p-5 border-b border-slate-100 dark:border-slate-700/70 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row md:items-center justify-between shrink-0 gap-4">
-                    <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        Appointments Calendar
-                    </h2>
-                    <!-- Legend -->
-                    <div class="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#0d9488]"></span> Approved</div>
-                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#ca8a04]"></span> Registered</div>
-                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#16a34a]"></span> Done</div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200/80 dark:border-slate-800/80 overflow-hidden h-full flex flex-col transition-all">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 flex flex-col sm:flex-row sm:items-center justify-between shrink-0 gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <div>
+                            <h2 class="text-base font-black text-slate-900 dark:text-white tracking-tight">Consultation Calendar</h2>
+                            <p class="text-xs text-slate-400">Click any date or appointment to view full schedule</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Modern Legend -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-bold">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[11px]">
+                            <span class="w-2 h-2 rounded-full bg-emerald-600"></span> Approved
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-[11px]">
+                            <span class="w-2 h-2 rounded-full bg-amber-600"></span> Registered / Queued
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 text-[11px]">
+                            <span class="w-2 h-2 rounded-full bg-green-600"></span> Done
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800 text-[11px]">
+                            <span class="w-2 h-2 rounded-full bg-purple-600"></span> Rescheduled
+                        </span>
                     </div>
                 </div>
                 
-                <div class="p-6 grow">
+                <div class="p-4 sm:p-6 grow">
                     <!-- FullCalendar Container -->
-                    <div id="calendar" class="min-h-[700px]"></div>
+                    <div id="calendar" class="min-h-[680px]"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Day View Modal (Alpine.js) -->
+    <!-- Day View Modal (Frosted Floating Dialog) -->
     <div x-show="isModalOpen" 
          class="fixed inset-0 z-50 overflow-y-auto" 
          aria-labelledby="modal-title" role="dialog" aria-modal="true"
@@ -122,7 +261,7 @@
              x-transition:leave="ease-in duration-200" 
              x-transition:leave-start="opacity-100" 
              x-transition:leave-end="opacity-0" 
-             class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" 
+             class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" 
              @click="closeModal()"></div>
 
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
@@ -134,85 +273,94 @@
                  x-transition:leave="ease-in duration-200" 
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                 class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-gray-100 dark:border-gray-700 flex flex-col max-h-[85vh]">
+                 class="relative transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[85vh]">
                 
                 <!-- Modal Header -->
-                <div class="bg-linear-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between shrink-0">
+                <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/60 dark:bg-slate-900/60">
                     <div>
-                        <h3 class="text-xl font-extrabold text-gray-900 dark:text-white" id="modal-title">
-                            Appointments for <span x-text="selectedDateText" class="text-teal-700"></span>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-1 border border-emerald-500/20">
+                            Daily Schedule Roster
+                        </div>
+                        <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight" id="modal-title">
+                            Appointments for <span x-text="selectedDateText" class="text-emerald-600 dark:text-emerald-400"></span>
                         </h3>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-0.5" x-text="selectedEvents.length + ' scheduled visit(s)'"></p>
+                        <p class="text-xs font-medium text-slate-400 mt-0.5" x-text="selectedEvents.length + ' scheduled consultation(s)'"></p>
                     </div>
-                    <button type="button" @click="closeModal()" class="rounded-full bg-white dark:bg-gray-800 p-2 text-gray-400 hover:text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-900 focus:outline-none transition-colors border border-gray-200 dark:border-gray-700 shadow-sm">
-                        <span class="sr-only">Close panel</span>
+                    <button type="button" @click="closeModal()" class="rounded-xl bg-white dark:bg-slate-800 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 shadow-2xs cursor-pointer">
+                        <span class="sr-only">Close</span>
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
-                <!-- Modal Body (Scrollable List of Appointments) -->
-                <div class="px-6 py-4 overflow-y-auto grow bg-gray-50 dark:bg-gray-900/50">
+                <!-- Modal Body (List of Appointments) -->
+                <div class="px-6 py-5 overflow-y-auto grow bg-slate-50/30 dark:bg-slate-950/30 custom-scrollbar">
                     
                     <template x-if="selectedEvents.length === 0">
                         <div class="text-center py-12">
-                            <svg class="mx-auto h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No appointments</h3>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">There are no approved appointments for this date.</p>
+                            <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3 shadow-2xs">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white">No Consultations Scheduled</h3>
+                            <p class="text-xs text-slate-400 mt-1">There are no patient appointments booked for this specific date.</p>
                         </div>
                     </template>
 
-                    <div class="space-y-4" x-show="selectedEvents.length > 0">
+                    <div class="space-y-3.5" x-show="selectedEvents.length > 0">
                         <template x-for="event in selectedEvents" :key="event.id">
-                            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:border-teal-300 hover:shadow-md transition-all group">
-                                <div class="p-5 flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                    
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <span class="text-sm font-bold text-gray-900 dark:text-white" x-text="event.extendedProps.time"></span>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white" 
+                            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all group">
+                                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                                            <span class="text-xs font-extrabold text-slate-900 dark:text-white font-mono" x-text="event.extendedProps.time"></span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider text-white" 
                                                   :style="`background-color: ${event.backgroundColor}`"
                                                   x-text="event.extendedProps.status"></span>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700" 
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700" 
                                                   x-text="event.extendedProps.type"></span>
                                         </div>
-                                         <h4 class="text-lg font-bold text-teal-900 dark:text-teal-400 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors" x-text="event.extendedProps.patient_name"></h4>
-                                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5" x-text="event.extendedProps.classification || 'Unclassified'"></p>
+                                        <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" x-text="event.extendedProps.patient_name"></h4>
+                                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5" x-text="event.extendedProps.classification || 'General Constituent'"></p>
                                         
-                                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
+                                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-xs">
                                             <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                                                <span x-text="event.extendedProps.contact || 'No contact'"></span>
+                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                                <span x-text="event.extendedProps.contact || 'No contact provided'"></span>
                                             </div>
                                             <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 truncate">
-                                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                                <span x-text="event.extendedProps.email || 'No email'" class="truncate"></span>
+                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                                <span x-text="event.extendedProps.email || 'No email provided'" class="truncate"></span>
                                             </div>
-                                            <div class="sm:col-span-2 flex items-start gap-1.5 text-slate-600 dark:text-slate-400">
-                                                <svg class="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                                                <span class="italic text-sm" x-text="event.extendedProps.reason"></span>
+                                            <div class="sm:col-span-2 flex items-start gap-1.5 text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+                                                <span class="font-bold text-slate-500 dark:text-slate-400">Chief Complaint:</span>
+                                                <span class="italic text-slate-700 dark:text-slate-300" x-text="event.extendedProps.reason"></span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Actions for the specific appointment -->
-                                    <div class="flex md:flex-col gap-2 shrink-0 md:items-end md:justify-center border-t border-slate-100 dark:border-slate-700 md:border-t-0 pt-3 md:pt-0">
+                                    <div class="flex sm:flex-col gap-2 shrink-0 sm:items-end sm:justify-center pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-700/60">
                                         <template x-if="event.extendedProps.status === 'Approved'">
-                                            <form :action="`/frontdesk/appointments/${event.id}/check-in`" method="POST" class="w-full md:w-auto">
+                                            <form :action="`/frontdesk/appointments/${event.id}/check-in`" method="POST" class="w-full sm:w-auto">
                                                 @csrf
-                                                <button type="submit" class="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition flex items-center justify-center gap-1.5">
-                                                    Check In Patient
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                                <button type="submit" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                                    <span>Check In Patient</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                                 </button>
                                             </form>
                                         </template>
-                                        <template x-if="event.extendedProps.status === 'Registered'">
-                                            <span class="w-full md:w-auto bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-lg text-sm font-bold border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-1.5 cursor-not-allowed">
-                                                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                                Already Queued
+                                        <template x-if="event.extendedProps.status === 'Registered' || event.extendedProps.status === 'Triaged'">
+                                            <span class="w-full sm:w-auto bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                <span>Active in Queue</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="event.extendedProps.status === 'Done'">
+                                            <span class="w-full sm:w-auto bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-200 dark:border-emerald-800 flex items-center justify-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                <span>Visit Finished</span>
                                             </span>
                                         </template>
                                     </div>
-                                    
                                 </div>
                             </div>
                         </template>
@@ -221,9 +369,9 @@
                 </div>
                 
                 <!-- Modal Footer -->
-                <div class="bg-white dark:bg-gray-800 px-6 py-4 border-t border-gray-100 dark:border-gray-700 sm:flex sm:flex-row-reverse shrink-0">
-                    <button type="button" @click="closeModal()" class="w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm px-5 py-2.5 bg-white dark:bg-gray-800 text-base font-bold text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-900 hover:text-gray-900 dark:hover:text-white dark:text-white focus:outline-none sm:w-auto sm:text-sm transition-colors">
-                        Close Overview
+                <div class="bg-white dark:bg-slate-900 px-6 py-4 border-t border-slate-100 dark:border-slate-800 sm:flex sm:flex-row-reverse shrink-0">
+                    <button type="button" @click="closeModal()" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs px-5 py-2.5 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+                        Close Window
                     </button>
                 </div>
             </div>
@@ -238,8 +386,12 @@
         Alpine.data('dashboardCalendar', () => ({
             isModalOpen: false,
             selectedDateText: '',
+            selectedDateIsToday: false,
             selectedEvents: [],
             calendar: null,
+            stats: { total: 0, today: 0, approved: 0, registered: 0, done: 0, rescheduled: 0 },
+            activeFilter: 'all',
+            isRefreshing: false,
 
             init() {
                 var calendarEl = document.getElementById('calendar');
@@ -254,180 +406,35 @@
                         right: 'dayGridMonth,timeGridWeek,listWeek'
                     },
                     events: '/frontdesk/api/appointments',
-                    eventColor: '#0d9488', 
+                    eventColor: '#059669', 
                     eventDisplay: 'block',
                     eventTimeFormat: {
                         hour: 'numeric',
                         minute: '2-digit',
                         meridiem: 'short'
                     },
-                    dayMaxEvents: 3, // Allow "more" link when too many events
-                    
-                    // The core interaction requested by user
-                    dateClick: (info) => {
-                        this.openDayModal(info.dateStr);
-                    },
-                    
-                    // Make events clickable too to open the same day modal
-                    eventClick: (info) => {
-                        info.jsEvent.preventDefault(); // don't let the browser navigate
-                        // Get the date string of the event start to open that day in local time
-                        const date = info.event.start;
-                        const pad = n => String(n).padStart(2, '0');
-                        const dateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-                        this.openDayModal(dateStr);
-                    }
-                });
-                
-                this.calendar.render();
-            },
+                    dayMaxEvents: 3,
 
-            openDayModal(dateStr) {
-                // Parse date string locally by appending T00:00:00 to avoid UTC shifting
-                const dateObj = new Date(dateStr + 'T00:00:00');
-                this.selectedDateText = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                
-                // Get all events for this specific date
-                const allEvents = this.calendar.getEvents();
-                
-                this.selectedEvents = allEvents.filter(event => {
-                    const date = event.start;
-                    const pad = n => String(n).padStart(2, '0');
-                    const eventDateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-                    return eventDateStr === dateStr;
-                }).map(event => {
-                    return {
-                        id: event.id,
-                        title: event.title,
-                        backgroundColor: event.backgroundColor,
-                        extendedProps: event.extendedProps
-                    };
-                });
-                
-                // Sort by time
-                this.selectedEvents.sort((a, b) => {
-                    return new Date('1970/01/01 ' + a.extendedProps.time) - new Date('1970/01/01 ' + b.extendedProps.time);
-                });
+                    eventContent: (arg) => {
+                        const status = (arg.event.extendedProps?.status || '').toLowerCase();
+                        const time = arg.event.extendedProps?.time || '';
+                        const name = arg.event.extendedProps?.patient_name || arg.event.title;
 
-                this.isModalOpen = true;
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
-            },
+                        let dotColor = '#059669';
+                        let badgeBg = 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/30';
 
-            closeModal() {
-                this.isModalOpen = false;
-                setTimeout(() => {
-                    document.body.style.overflow = '';
-                }, 300);
-            }
-        }));
-    });
-</script>
-
-<style>
-    /* FullCalendar Custom Tailoring */
-    .fc {
-        font-family: 'Camera Plain Variable', 'Inter', sans-serif;
-    }
-    
-    /* Default (Light) Theme Overrides */
-    .fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid {
-        border-color: #f1f5f9;
-        transition: border-color 0.2s;
-    }
-    .fc-col-header-cell-cushion {
-        padding: 12px 0 !important;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.05em;
-        color: #64748b;
-    }
-    .fc-daygrid-day-number {
-        font-weight: 700;
-        color: #334155;
-        padding: 8px !important;
-    }
-    .fc-day-today {
-        background-color: #f0fdfa !important; /* teal-50 */
-    }
-    .fc-daygrid-day:hover {
-        background-color: #f8fafc;
-        cursor: pointer;
-    }
-    
-    /* Dark Mode Theme Overrides using Tailwind's .dark class */
-    .dark .fc-theme-standard td, .dark .fc-theme-standard th, .dark .fc-theme-standard .fc-scrollgrid {
-        border-color: #334155 !important;
-    }
-    .dark .fc-col-header-cell-cushion {
-        color: #94a3b8;
-    }
-    .dark .fc-daygrid-day-number {
-        color: #e2e8f0;
-    }
-    .dark .fc-day-today {
-        background-color: #115e59 !important; /* teal-800 */
-    }
-    .dark .fc-day-today .fc-daygrid-day-number {
-        color: #ccfbf1 !important;
-    }
-    .dark .fc-daygrid-day:hover {
-        background-color: #1e293b !important;
-    }
-    .dark .fc-toolbar-title {
-        color: #f8fafc !important;
-    }
-
-    /* Event Styling */
-    .fc-event {
-        border-radius: 4px;
-        padding: 2px 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        border: none !important;
-        margin-bottom: 2px;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .fc-event:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-    .fc-event-main {
-        color: white !important;
-    }
-    .fc-button-primary {
-        background-color: #0d9488 !important; /* teal-600 */
-        border-color: #0d9488 !important;
-        font-weight: 600 !important;
-        text-transform: capitalize !important;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
-    }
-    .fc-button-primary:hover {
-        background-color: #0f766e !important; /* teal-700 */
-        border-color: #0f766e !important;
-    }
-    .fc-button-primary:not(:disabled).fc-button-active, .fc-button-primary:not(:disabled):active {
-        background-color: #115e59 !important; /* teal-800 */
-        border-color: #115e59 !important;
-    }
-    .fc-toolbar-title {
-        font-weight: 800 !important;
-        color: #111827 !important;
-        font-size: 1.5rem !important;
-    }
-    /* Hide empty time Grid rows */
-    .fc-timegrid-slot-minor {
-        border-top-style: dashed;
-    }
-</style>
-
+                        if (status.includes('approved')) {
+                            dotColor = '#059669';
+                            badgeBg = 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/30';
                         } else if (status.includes('registered') || status.includes('triaged')) {
                             dotColor = '#d97706';
                             badgeBg = 'bg-amber-500/10 text-amber-800 dark:text-amber-200 border-amber-500/30';
                         } else if (status.includes('done')) {
                             dotColor = '#16a34a';
-                            badgeBg = 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/30';
+                            badgeBg = 'bg-green-500/10 text-green-800 dark:text-green-200 border-green-500/30';
+                        } else if (status.includes('rescheduled')) {
+                            dotColor = '#7c3aed';
+                            badgeBg = 'bg-purple-500/10 text-purple-800 dark:text-purple-200 border-purple-500/30';
                         }
 
                         const container = document.createElement('div');
@@ -440,17 +447,14 @@
                         return { domNodes: [container] };
                     },
 
-                    // Compute statistics whenever events load
                     eventsSet: (events) => {
                         this.updateStats(events);
                     },
                     
-                    // Core day-click interaction
                     dateClick: (info) => {
                         this.openDayModal(info.dateStr);
                     },
                     
-                    // Event click opens the day modal
                     eventClick: (info) => {
                         info.jsEvent.preventDefault();
                         const date = info.event.start;
@@ -494,41 +498,10 @@
                 this.stats = { total, today, approved, registered, done, rescheduled };
             },
 
-            setFilter(status) {
-                this.activeFilter = status;
-                if (this.calendar) {
-                    this.calendar.render(); // Re-renders eventContent with active filter
-                }
-            },
-
-            jumpToday() {
-                if (this.calendar) {
-                    this.calendar.today();
-                }
-            },
-
-            refreshCalendar() {
-                if (this.calendar) {
-                    this.isRefreshing = true;
-                    this.calendar.refetchEvents();
-                    setTimeout(() => {
-                        this.isRefreshing = false;
-                    }, 600);
-                }
-            },
-
-            getInitials(name) {
-                if (!name) return 'PT';
-                const parts = name.trim().split(/\s+/);
-                if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            },
-
             openDayModal(dateStr) {
                 const dateObj = new Date(dateStr + 'T00:00:00');
                 this.selectedDateText = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 
-                // Determine if today
                 const pad = n => String(n).padStart(2, '0');
                 const now = new Date();
                 const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
@@ -549,7 +522,6 @@
                     };
                 });
                 
-                // Sort by time
                 this.selectedEvents.sort((a, b) => {
                     return new Date('1970/01/01 ' + a.extendedProps.time) - new Date('1970/01/01 ' + b.extendedProps.time);
                 });
@@ -573,15 +545,14 @@
     .fc {
         font-family: inherit;
         --fc-border-color: #f1f5f9;
-        --fc-today-bg-color: rgba(13, 148, 136, 0.04);
+        --fc-today-bg-color: rgba(5, 150, 105, 0.04);
     }
     
     .dark .fc {
         --fc-border-color: #1e293b;
-        --fc-today-bg-color: rgba(20, 184, 166, 0.08);
+        --fc-today-bg-color: rgba(16, 185, 129, 0.08);
     }
 
-    /* Toolbar Styling */
     .fc .fc-toolbar {
         display: flex;
         flex-wrap: wrap;
@@ -606,7 +577,6 @@
         color: #f8fafc !important;
     }
 
-    /* FullCalendar Toolbar Buttons */
     .fc .fc-button {
         border-radius: 0.75rem !important;
         font-size: 0.75rem !important;
@@ -638,19 +608,18 @@
     }
     .fc .fc-button-primary:not(:disabled).fc-button-active, 
     .fc .fc-button-primary:not(:disabled):active {
-        background: #0d9488 !important; /* teal-600 */
-        border-color: #0d9488 !important;
+        background: #059669 !important;
+        border-color: #059669 !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.25) !important;
+        box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.25) !important;
     }
     .dark .fc .fc-button-primary:not(:disabled).fc-button-active, 
     .dark .fc .fc-button-primary:not(:disabled):active {
-        background: #0d9488 !important;
-        border-color: #0d9488 !important;
+        background: #059669 !important;
+        border-color: #059669 !important;
         color: #ffffff !important;
     }
 
-    /* Segmented Button Groups */
     .fc .fc-button-group {
         background: #f1f5f9;
         padding: 0.25rem;
@@ -670,16 +639,15 @@
     }
     .fc .fc-button-group .fc-button-active {
         background: #ffffff !important;
-        color: #0f766e !important;
+        color: #065f46 !important;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
         font-weight: 800 !important;
     }
     .dark .fc .fc-button-group .fc-button-active {
         background: #1e293b !important;
-        color: #2dd4bf !important;
+        color: #34d399 !important;
     }
 
-    /* Grid Headers & Cells */
     .fc-theme-standard th {
         background: #f8fafc;
         border-color: #f1f5f9 !important;
@@ -738,7 +706,7 @@
         cursor: pointer;
     }
     .dark .fc-daygrid-day:hover {
-        background-color: #1e293b/60 !important;
+        background-color: rgba(30, 41, 59, 0.6) !important;
     }
     .fc-daygrid-day:hover .fc-daygrid-day-number {
         background: #e2e8f0;
@@ -749,21 +717,19 @@
         color: #ffffff !important;
     }
 
-    /* Today Cell */
     .fc-day-today {
-        background: rgba(13, 148, 136, 0.04) !important;
+        background: rgba(5, 150, 105, 0.04) !important;
     }
     .dark .fc-day-today {
-        background: rgba(20, 184, 166, 0.08) !important;
+        background: rgba(16, 185, 129, 0.08) !important;
     }
     .fc-day-today .fc-daygrid-day-number {
-        background: #0d9488 !important;
+        background: #059669 !important;
         color: #ffffff !important;
         font-weight: 900 !important;
-        box-shadow: 0 2px 4px 0 rgba(13, 148, 136, 0.35) !important;
+        box-shadow: 0 2px 4px 0 rgba(5, 150, 105, 0.35) !important;
     }
 
-    /* Other Months Day */
     .fc-day-other {
         background: #fafbfc;
         opacity: 0.45;
@@ -773,7 +739,6 @@
         opacity: 0.25;
     }
 
-    /* Event Container Overrides */
     .fc-daygrid-event-harness {
         margin-bottom: 3px !important;
     }
@@ -788,76 +753,24 @@
         transform: translateY(-1px);
     }
 
-    /* More link styling */
     .fc-daygrid-more-link {
         font-size: 0.7rem !important;
         font-weight: 800 !important;
-        color: #0d9488 !important;
+        color: #059669 !important;
         padding: 2px 6px !important;
         border-radius: 6px !important;
-        background: #f0fdfa !important;
-        border: 1px solid #ccfbf1 !important;
+        background: #ecfdf5 !important;
+        border: 1px solid #a7f3d0 !important;
         transition: all 0.15s;
     }
     .dark .fc-daygrid-more-link {
-        background: rgba(13, 148, 136, 0.2) !important;
-        border-color: rgba(20, 184, 166, 0.4) !important;
-        color: #2dd4bf !important;
+        background: rgba(5, 150, 105, 0.2) !important;
+        border-color: rgba(16, 185, 129, 0.4) !important;
+        color: #34d399 !important;
     }
     .fc-daygrid-more-link:hover {
-        background: #0d9488 !important;
+        background: #059669 !important;
         color: #ffffff !important;
-    }
-
-    /* Popover Styling */
-    .fc-more-popover {
-        border-radius: 1.25rem !important;
-        border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-        overflow: hidden;
-        background: #ffffff !important;
-    }
-    .dark .fc-more-popover {
-        background: #0f172a !important;
-        border-color: #334155 !important;
-    }
-    .fc-more-popover .fc-popover-header {
-        background: #f8fafc !important;
-        font-weight: 800 !important;
-        font-size: 0.8rem !important;
-        padding: 0.5rem 0.75rem !important;
-        border-bottom: 1px solid #e2e8f0 !important;
-    }
-    .dark .fc-more-popover .fc-popover-header {
-        background: #1e293b !important;
-        border-bottom-color: #334155 !important;
-        color: #f8fafc !important;
-    }
-
-    /* List Agenda View */
-    .fc-list {
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 1.25rem !important;
-        overflow: hidden;
-    }
-    .dark .fc-list {
-        border-color: #1e293b !important;
-    }
-    .fc-list-day-cushion {
-        background: #f8fafc !important;
-        font-weight: 800 !important;
-        font-size: 0.8rem !important;
-        color: #334155 !important;
-    }
-    .dark .fc-list-day-cushion {
-        background: #0f172a !important;
-        color: #e2e8f0 !important;
-    }
-    .fc-list-event:hover td {
-        background: #f0fdfa !important;
-    }
-    .dark .fc-list-event:hover td {
-        background: rgba(19, 78, 74, 0.25) !important;
     }
 </style>
 @endpush

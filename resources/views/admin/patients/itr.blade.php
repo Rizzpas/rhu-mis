@@ -9,7 +9,8 @@
         body {
             background-color: #fff;
             color: #000;
-            font-family: 'Camera Plain Variable', 'Arial', sans-serif;
+            font-family: 'Inter', 'Arial', sans-serif;
+            letter-spacing: -0.025em;
             margin: 0;
             padding: 0;
         }

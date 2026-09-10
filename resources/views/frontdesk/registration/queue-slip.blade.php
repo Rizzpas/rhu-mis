@@ -35,7 +35,8 @@
                 padding: 16px;
                 margin: 0;
                 min-height: 100vh;
-                font-family: 'Camera Plain Variable', Arial, sans-serif;
+                font-family: 'Inter', Arial, sans-serif;
+                letter-spacing: -0.025em;
             }
             canvas {
                 background: white;

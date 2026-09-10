@@ -144,27 +144,65 @@
 
         {{-- Save Changes Confirmation Modal --}}
         <template x-teleport="body">
-            <div x-show="showConfirmModal" style="display: none;" class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm px-4">
-                <div @click.away="showConfirmModal = false" 
-                     x-transition:enter="transition ease-out duration-200" 
-                     x-transition:enter-start="opacity-0 scale-95" 
-                     x-transition:enter-end="opacity-100 scale-100" 
-                     x-transition:leave="transition ease-in duration-150" 
-                     x-transition:leave-start="opacity-100 scale-100" 
-                     x-transition:leave-end="opacity-0 scale-95" 
-                     class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800">
-                    <div class="flex items-center gap-3.5 mb-3">
-                        <div class="w-11 h-11 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-xs">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+            <div x-show="showConfirmModal"
+                 x-cloak
+                 class="fixed inset-0 z-50 overflow-y-auto"
+                 aria-labelledby="save-modal-title"
+                 role="dialog"
+                 aria-modal="true">
+                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div x-show="showConfirmModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+                         @click="showConfirmModal = false"
+                         aria-hidden="true"></div>
+
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div x-show="showConfirmModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                        <div class="p-6 sm:p-8">
+                            <div class="sm:flex sm:items-start">
+                                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl sm:mx-0 sm:h-10 sm:w-10 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                                    </svg>
+                                </div>
+                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="save-modal-title">
+                                        Save Landing Content?
+                                    </h3>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                                            Updated text and images will immediately go live on the public website. Are you sure you want to apply these changes?
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Save Landing Content?</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Updated text and images will immediately go live on the public website.</p>
+                        <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                            <button type="button"
+                                    @click="showConfirmModal = false; if (window.showSkeleton) { window.showSkeleton(); } document.getElementById('landingContentForm').submit();"
+                                    class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-sm font-bold text-white transition-all cursor-pointer">
+                                Yes, Apply Changes
+                            </button>
+                            <button type="button"
+                                    @click="showConfirmModal = false"
+                                    class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer">
+                                Cancel
+                            </button>
                         </div>
-                    </div>
-                    <div class="mt-6 flex justify-end gap-2.5">
-                        <button type="button" @click="showConfirmModal = false" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-300 dark:border-slate-700 cursor-pointer">Cancel</button>
-                        <button type="button" @click="showConfirmModal = false; if (window.showSkeleton) { window.showSkeleton(); } document.getElementById('landingContentForm').submit();" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white transition shadow-sm cursor-pointer active:scale-95">Yes, Apply Changes</button>
                     </div>
                 </div>
             </div>
@@ -172,33 +210,65 @@
 
         {{-- Reset Fields Confirmation Modal --}}
         <template x-teleport="body">
-            <div x-show="showResetModal" style="display: none;" class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm px-4">
-                <div @click.away="showResetModal = false" 
-                     x-transition:enter="transition ease-out duration-200" 
-                     x-transition:enter-start="opacity-0 scale-95" 
-                     x-transition:enter-end="opacity-100 scale-100" 
-                     x-transition:leave="transition ease-in duration-150" 
-                     x-transition:leave-start="opacity-100 scale-100" 
-                     x-transition:leave-end="opacity-0 scale-95" 
-                     class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800">
-                    <div class="flex items-center gap-3.5 mb-3">
-                        <div class="w-11 h-11 rounded-2xl bg-amber-100/80 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20 shadow-xs">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <div x-show="showResetModal"
+                 x-cloak
+                 class="fixed inset-0 z-50 overflow-y-auto"
+                 aria-labelledby="reset-modal-title"
+                 role="dialog"
+                 aria-modal="true">
+                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div x-show="showResetModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+                         @click="showResetModal = false"
+                         aria-hidden="true"></div>
+
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div x-show="showResetModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                        <div class="p-6 sm:p-8">
+                            <div class="sm:flex sm:items-start">
+                                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl sm:mx-0 sm:h-10 sm:w-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="reset-modal-title">
+                                        Reset All Content Fields?
+                                    </h3>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                                            Are you sure you want to reset all fields back to normal? Any unsaved changes made across all tabs will be discarded.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Reset All Content Fields?</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Discard unsaved edits and restore saved normal values.</p>
+                        <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                            <button type="button"
+                                    @click="showResetModal = false; window.location.reload();"
+                                    class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-amber-600 hover:bg-amber-700 text-sm font-bold text-white transition-all cursor-pointer">
+                                Yes, Reset to Normal
+                            </button>
+                            <button type="button"
+                                    @click="showResetModal = false"
+                                    class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer">
+                                Cancel
+                            </button>
                         </div>
-                    </div>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-2.5">
-                        Are you sure you want to reset all fields back to normal? Any unsaved changes made across all tabs will be discarded.
-                    </p>
-                    <div class="mt-6 flex justify-end gap-2.5">
-                        <button type="button" @click="showResetModal = false" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-300 dark:border-slate-700 cursor-pointer">Cancel</button>
-                        <button type="button" @click="showResetModal = false; window.location.reload();" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition shadow-sm cursor-pointer active:scale-95 flex items-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            <span>Yes, Reset to Normal</span>
-                        </button>
                     </div>
                 </div>
             </div>

@@ -1113,7 +1113,7 @@
 <script>
     // Global Chart Configuration
     Chart.register(ChartDataLabels);
-    Chart.defaults.font.family = "'Camera Plain Variable', 'Inter', 'sans-serif'";
+    Chart.defaults.font.family = "'Inter', 'sans-serif'";
     Chart.defaults.color = '#64748b';
     Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
     Chart.defaults.plugins.tooltip.titleFont = { size: 14, weight: 'bold' };

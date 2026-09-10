@@ -312,7 +312,10 @@
             <thead>
                 <tr class="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
                     <th class="px-6 py-4 text-left w-12">
-                        <input type="checkbox" @change="if($event.target.checked) { selectedAnnouncements = Array.from(document.querySelectorAll('.announcement-checkbox')).map(cb => cb.value) } else { selectedAnnouncements = [] }" class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-800">
+                        <input type="checkbox" 
+                            :checked="selectedAnnouncements.length > 0 && selectedAnnouncements.length === {{ $announcements->count() }}"
+                            @change="if($event.target.checked) { selectedAnnouncements = Array.from(document.querySelectorAll('.announcement-checkbox')).map(cb => cb.value) } else { selectedAnnouncements = [] }" 
+                            class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-800 cursor-pointer">
                     </th>
                     <th class="px-6 py-4 text-left text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title & Content</th>
                     <th class="px-6 py-4 text-center text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Engagement</th>
@@ -434,47 +437,62 @@
             </tbody>
         </table>
     </div>
-</div>
 
-<!-- Bulk Archive Modal -->
-<template x-if="showBulkModal">
-    <div class="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="showBulkModal = false"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
-                <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Archive Announcements</h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to archive <span class="font-black text-red-600 dark:text-red-400" x-text="selectedAnnouncements.length"></span> selected announcements? They will be moved to the archive module.</p>
+    @if($announcements->hasPages())
+        <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+            {{ $announcements->links() }}
+        </div>
+    @endif
+
+    <!-- Bulk Archive Modal -->
+    <template x-teleport="body">
+        <div x-show="showBulkModal" x-cloak class="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="showBulkModal = false"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                    <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Archive Announcements</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to archive <span class="font-black text-rose-600 dark:text-rose-400" x-text="selectedAnnouncements.length"></span> selected announcement(s)? They will be moved to the archive module.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
-                    <form method="POST" action="{{ route('admin.announcements.bulk-delete') }}">
-                        @csrf
-                        @method('DELETE')
-                        <template x-for="id in selectedAnnouncements">
-                            <input type="hidden" name="ids[]" :value="id">
-                        </template>
-                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-red-600 text-sm font-bold text-white hover:bg-red-700 transition-all">
-                            Yes, Archive All
+                    <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                        <form method="POST" action="{{ route('admin.announcements.bulk-delete') }}" @submit="
+                            $el.querySelectorAll('input[name=\'ids[]\']').forEach(e => e.remove());
+                            selectedAnnouncements.forEach(id => {
+                                const inp = document.createElement('input');
+                                inp.type = 'hidden';
+                                inp.name = 'ids[]';
+                                inp.value = id;
+                                $el.appendChild(inp);
+                            });
+                        ">
+                            @csrf
+                            @method('DELETE')
+                            <template x-for="id in selectedAnnouncements" :key="id">
+                                <input type="hidden" name="ids[]" :value="id">
+                            </template>
+                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all cursor-pointer">
+                                Yes, Archive All
+                            </button>
+                        </form>
+                        <button type="button" @click="showBulkModal = false" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer">
+                            Cancel
                         </button>
-                    </form>
-                    <button type="button" @click="showBulkModal = false" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
-                        Cancel
-                    </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</template>
+    </template>
+</div>
 @endsection

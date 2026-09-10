@@ -12,7 +12,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     @stack('head')
 
@@ -38,7 +38,7 @@
                             }
                         },
                         fontFamily: {
-                            sans: ["'Camera Plain Variable'", 'Outfit', 'sans-serif'],
+                            sans: ['Inter', 'Outfit', 'sans-serif'],
                         }
                     }
                 }
@@ -47,21 +47,9 @@
     @endif
 
     <style>
-        @font-face {
-            font-family: 'Camera Plain Variable';
-            src: local('Camera Plain Variable'),
-                 local('CameraPlainVariable'),
-                 local('ABC Camera Plain Variable'),
-                 url('/fonts/CameraPlainVariable.woff2') format('woff2-variations'),
-                 url('/fonts/CameraPlainVariable.woff2') format('woff2'),
-                 url('/fonts/CameraPlainVariable.ttf') format('truetype');
-            font-weight: 100 900;
-            font-style: normal;
-            font-display: swap;
-        }
-
         body {
-            font-family: 'Camera Plain Variable', 'Outfit', sans-serif;
+            font-family: 'Inter', 'Outfit', sans-serif;
+            letter-spacing: -0.025em;
             background-color: #faf8f2;
         }
 
@@ -100,6 +88,8 @@
             action: '',
             method: 'POST',
             confirmText: 'Confirm',
+            confirmClass: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20',
+            iconBgClass: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
             showPrivacy: false,
             showFaq: false,
             
@@ -110,6 +100,13 @@
                 this.action = detail.action || '';
                 this.method = detail.method || 'POST';
                 this.confirmText = detail.confirmText || 'Yes, Proceed';
+                if(detail.type === 'danger') {
+                    this.confirmClass = 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20';
+                    this.iconBgClass = 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400';
+                } else {
+                    this.confirmClass = 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20';
+                    this.iconBgClass = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400';
+                }
                 this.open = true;
             },
             
@@ -726,52 +723,62 @@
     </script>
     @stack('scripts')
     <!-- Global Confirmation Modal (Public) -->
-    <div x-show="open" style="display: none;" class="fixed inset-0 z-100 overflow-y-auto" aria-labelledby="modal-title"
-        role="dialog" aria-modal="true">
+    <template x-teleport="body">
+        <div x-show="open" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div x-show="open" 
+                    x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="open = false" aria-hidden="true"></div>
 
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="open" class="fixed inset-0 bg-gray-900/75 transition-opacity" @click="open = false"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div x-show="open"
-                class="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div
-                            class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-900/40 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" x-text="title"></h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500 dark:text-gray-400" x-text="message"></p>
+                <!-- Modal panel -->
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div x-show="open" 
+                    x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                    class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+
+                    <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl sm:mx-0 sm:h-10 sm:w-10" :class="iconBgClass">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title" x-text="title"></h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500 dark:text-slate-400" x-text="message"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="bg-gray-50 dark:bg-gray-900 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <template x-if="action">
-                        <form :action="action" method="POST" class="inline-flex w-full sm:ml-3 sm:w-auto">
-                            @csrf
-                            <input type="hidden" name="_method" :value="method">
-                            <button type="submit"
-                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none sm:text-sm"
-                                x-text="confirmText"></button>
-                        </form>
-                    </template>
-                    <template x-if="!action">
-                        <button type="button" @click="confirm()"
-                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-                            x-text="confirmText"></button>
-                    </template>
-                    <button type="button" @click="open = false"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-900 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancel</button>
+
+                    <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                        <template x-if="action">
+                            <form :action="action" method="POST" class="inline-flex w-full sm:w-auto">
+                                @csrf
+                                <input type="hidden" name="_method" :value="method">
+                                <button type="submit"
+                                    class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 text-sm font-bold text-white transition-all cursor-pointer"
+                                    :class="confirmClass" x-text="confirmText"></button>
+                            </form>
+                        </template>
+                        <template x-if="!action">
+                            <button type="button" @click="confirm()"
+                                class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 text-sm font-bold text-white transition-all cursor-pointer"
+                                :class="confirmClass" x-text="confirmText"></button>
+                        </template>
+                        <button type="button" @click="open = false"
+                            class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </template>
 
     <!-- Go to Top Button -->
     <button x-data="{ show: false }" @scroll.window="show = (window.pageYOffset > 300)"

@@ -170,74 +170,102 @@
         </div>
     </div>
 
-    <!-- Bulk Restore Modal (Content Management Style) -->
-    <template x-if="showBulkRestoreModal">
-        <div class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm px-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div @click.away="showBulkRestoreModal = false" class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800">
-                <div class="flex items-center gap-3.5 mb-3">
-                    <div class="w-11 h-11 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-xs">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-                        </svg>
+    <!-- Bulk Restore Modal -->
+    <template x-teleport="body">
+        <div x-show="showBulkRestoreModal" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="showBulkRestoreModal = false"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                    <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Restore Confirmation</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to restore <span class="font-black text-emerald-600 dark:text-emerald-400" x-text="selectedIds.length"></span> selected records? They will be moved back to active records.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Restore Confirmation</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Move selected archived items back to active records.</p>
-                    </div>
-                </div>
-                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-2.5">
-                    Are you sure you want to restore <span class="font-bold text-emerald-600 dark:text-emerald-400" x-text="selectedIds.length"></span> selected records?
-                </p>
-                <div class="mt-6 flex justify-end gap-2.5">
-                    <button type="button" @click="showBulkRestoreModal = false" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-300 dark:border-slate-700 cursor-pointer">
-                        Cancel
-                    </button>
-                    <form method="POST" action="{{ route('admin.archive.bulk-restore', $type) }}">
-                        @csrf
-                        <template x-for="id in selectedIds">
-                            <input type="hidden" name="ids[]" :value="id">
-                        </template>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white transition shadow-sm cursor-pointer active:scale-95">
-                            Restore Records
+                    <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                        <form method="POST" action="{{ route('admin.archive.bulk-restore', $type) }}" @submit="
+                            $el.querySelectorAll('input[name=\'ids[]\']').forEach(e => e.remove());
+                            selectedIds.forEach(id => {
+                                const inp = document.createElement('input');
+                                inp.type = 'hidden';
+                                inp.name = 'ids[]';
+                                inp.value = id;
+                                $el.appendChild(inp);
+                            });
+                        ">
+                            @csrf
+                            <template x-for="id in selectedIds" :key="id">
+                                <input type="hidden" name="ids[]" :value="id">
+                            </template>
+                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-emerald-600 text-sm font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer">
+                                Restore Records
+                            </button>
+                        </form>
+                        <button type="button" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" @click="showBulkRestoreModal = false">
+                            Cancel
                         </button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
     </template>
 
-    <!-- Bulk Delete Modal (Content Management Style) -->
-    <template x-if="showBulkDeleteModal">
-        <div class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm px-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div @click.away="showBulkDeleteModal = false" class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800">
-                <div class="flex items-center gap-3.5 mb-3">
-                    <div class="w-11 h-11 rounded-2xl bg-rose-100/80 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/20 shadow-xs">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
+    <!-- Bulk Delete Modal -->
+    <template x-teleport="body">
+        <div x-show="showBulkDeleteModal" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="showBulkDeleteModal = false"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                    <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Permanent Purge</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500 dark:text-slate-400"><span class="font-bold text-rose-600 dark:text-rose-400">CRITICAL WARNING:</span> Are you sure you want to permanently purge <span class="font-black text-rose-600 dark:text-rose-400" x-text="selectedIds.length"></span> selected records? This operation cannot be reversed.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Permanent Purge</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Permanent destruction of soft-deleted records.</p>
-                    </div>
-                </div>
-                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-2.5">
-                    <span class="font-bold text-rose-600 dark:text-rose-400 uppercase">Warning:</span> Are you sure you want to permanently purge <span class="font-bold text-rose-600 dark:text-rose-400" x-text="selectedIds.length"></span> selected records and associated data? This operation cannot be reversed.
-                </p>
-                <div class="mt-6 flex justify-end gap-2.5">
-                    <button type="button" @click="showBulkDeleteModal = false" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-300 dark:border-slate-700 cursor-pointer">
-                        Cancel
-                    </button>
-                    <form method="POST" action="{{ route('admin.archive.bulk-force-delete', $type) }}">
-                        @csrf
-                        @method('DELETE')
-                        <template x-for="id in selectedIds">
-                            <input type="hidden" name="ids[]" :value="id">
-                        </template>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white transition shadow-sm cursor-pointer active:scale-95">
-                            Purge Permanently
+                    <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                        <form method="POST" action="{{ route('admin.archive.bulk-force-delete', $type) }}" @submit="
+                            $el.querySelectorAll('input[name=\'ids[]\']').forEach(e => e.remove());
+                            selectedIds.forEach(id => {
+                                const inp = document.createElement('input');
+                                inp.type = 'hidden';
+                                inp.name = 'ids[]';
+                                inp.value = id;
+                                $el.appendChild(inp);
+                            });
+                        ">
+                            @csrf
+                            @method('DELETE')
+                            <template x-for="id in selectedIds" :key="id">
+                                <input type="hidden" name="ids[]" :value="id">
+                            </template>
+                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all cursor-pointer">
+                                Purge Permanently
+                            </button>
+                        </form>
+                        <button type="button" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" @click="showBulkDeleteModal = false">
+                            Cancel
                         </button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
