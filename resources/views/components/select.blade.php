@@ -157,6 +157,7 @@
      }"
      @click.outside="close()"
      @keydown="onKeyDown($event)"
+     @select-reset.window="if (!$event.detail || $event.detail.name === @js($name)) { selected = @js($initialValue); if ($refs.hiddenInput) $refs.hiddenInput.value = selected; }"
      {{ $attributes->except(['class', 'containerClass', 'container-class', 'size', 'options', 'name', 'id', 'value', 'placeholder', 'disabled', 'form']) }}>
 
     {{-- Hidden Native Input for standard HTML form submissions and x-model proxy --}}

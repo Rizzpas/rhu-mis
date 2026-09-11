@@ -1,35 +1,43 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="bg-transparent min-h-screen py-8 sm:py-12" x-data="appointmentForm()">
+    <div class="py-6 sm:py-8" x-data="appointmentForm()">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="mb-6 flex justify-start">
-                <a href="{{ route('welcome') }}"
-                    class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-2xs text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Back to Home
-                </a>
-            </div>
+            <x-breadcrumb :items="['Appointments' => route('appointment.create'), 'Book Consultation' => '']">
+                <x-slot:right>
+                    <a href="{{ route('appointment.manage') }}"
+                       class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors group">
+                        <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        <span>Manage Existing Appointment</span>
+                        <svg class="w-3 h-3 text-slate-400 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </x-slot:right>
+            </x-breadcrumb>
 
-            <!-- Modern Progress Indicator -->
-            <div class="mb-8 w-full max-w-3xl mx-auto" x-data="{ stepLabels: ['Service', 'Patient Info', 'Date & Slot', 'Verification', 'Confirmation'] }">
-                <div class="flex items-start justify-between relative">
+            <!-- Modern Step Progress Indicator -->
+            <div class="mb-6 rounded-2xl bg-white/75 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-4 sm:p-5 shadow-2xs backdrop-blur-xs"
+                 x-data="{ stepLabels: ['Service', 'Patient Info', 'Date & Slot', 'Verification', 'Confirmation'] }">
+                <div class="flex items-start justify-between relative max-w-2xl mx-auto">
                     <!-- Progress Bar Background Track -->
-                    <div class="absolute left-0 top-5 transform -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full z-0"></div>
+                    <div class="absolute left-6 right-6 top-5 transform -translate-y-1/2 h-1 bg-slate-200 dark:bg-slate-700 rounded-full z-0"></div>
                     <!-- Progress Bar Fill Track -->
-                    <div class="absolute left-0 top-5 transform -translate-y-1/2 h-1 bg-emerald-700 rounded-full z-0 transition-all duration-300"
-                        :style="'width: ' + progress + '%'"></div>
+                    <div class="absolute left-6 top-5 transform -translate-y-1/2 h-1 bg-emerald-700 rounded-full z-0 transition-all duration-300"
+                        :style="'width: calc(' + progress + '% * 0.88)'"></div>
 
                     <!-- Steps 1-5 Bubbles -->
                     <template x-for="i in 5">
                         <div class="relative z-10 flex flex-col items-center w-1/5">
                             <button type="button" @click="goToStep(i)"
                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-display font-bold text-xs sm:text-sm transition-all duration-300 focus:outline-none cursor-pointer"
-                                :class="step >= i ? 'bg-emerald-700 text-white shadow-xs scale-105' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'" 
+                                :class="step >= i ? 'bg-emerald-700 text-white shadow-xs scale-105 ring-4 ring-emerald-100 dark:ring-emerald-950/60' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'" 
                                 x-text="'0' + i"
                                 :disabled="i > step && i > maxStepReached + 1"></button>
-                            <span class="text-[10px] sm:text-xs font-bold mt-2 text-center uppercase tracking-wider transition-colors"
+                            <span class="text-[10px] sm:text-[11px] font-bold mt-2 text-center uppercase tracking-wider transition-colors"
                                   :class="step >= i ? 'text-emerald-800 dark:text-emerald-400 font-extrabold' : 'text-slate-400 dark:text-slate-500'" 
                                   x-text="stepLabels[i-1]"></span>
                         </div>
@@ -37,7 +45,9 @@
                 </div>
             </div>
 
-            <div class="rounded-3xl p-6 sm:p-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs">
+            <div class="rounded-3xl p-6 sm:p-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-md relative overflow-hidden">
+                {{-- Subtle top decorative gradient line --}}
+                <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600"></div>
                 
                 <!-- Loading Overlay -->
                 <div x-show="isLoading"
@@ -45,13 +55,13 @@
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-700"></div>
                 </div>
 
-                <div class="text-center mb-8">
-                    <div class="mb-2">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-widest rounded-md border border-emerald-300/50 dark:border-emerald-700/50">
-                            Republic of the Philippines • RHU Silang
-                        </span>
-                    </div>
-                    <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Public Health Consultation Booking</h2>
+                <div class="text-center mb-6 sm:mb-8">
+                    <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        Public Health Consultation <span class="text-emerald-700 dark:text-emerald-400">Booking</span>
+                    </h1>
+                    <p class="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+                        Reserve an official consultation schedule at Rural Health Unit — Silang, Cavite.
+                    </p>
                 </div>
 
                 <form id="appointment-form" action="{{ route('appointment.store') }}" method="POST"
@@ -131,6 +141,23 @@
                                     </div>
                                 </label>
                             </div>
+                        {{-- Manage existing appointment callout --}}
+                        <div class="mt-6 p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-300">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span>Already booked an appointment? Check status, reschedule, or cancel your visit.</span>
+                            </div>
+                            <a href="{{ route('appointment.manage') }}"
+                               class="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors whitespace-nowrap shrink-0">
+                                <span>Manage Appointment</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </a>
                         </div>
                     </div>
 

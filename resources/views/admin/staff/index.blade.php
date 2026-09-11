@@ -163,7 +163,7 @@
                             'all' => 'All Status',
                             'Present' => 'Present (Active)',
                             'Seminar' => 'On Seminar',
-                            'Out of Office' => 'Out of Office',
+                            'Unavailable' => 'Unavailable',
                         ]" 
                         :value="request('status', 'all')"
                         class="!h-11 !py-0 flex items-center font-semibold"
@@ -225,7 +225,7 @@
                             availableStatuses: [
                                 { value: 'Present', label: 'Present (Active)', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
                                 { value: 'Seminar', label: 'On Seminar', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' },
-                                { value: 'Out of Office', label: 'Out of Office (Unavailable)', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
+                                { value: 'Unavailable', label: 'Unavailable', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
                             ],
                             getRoleLabel(val) {
                                 const found = this.availableRoles.find(r => r.value === val);
@@ -568,7 +568,7 @@
                                                           :class="{
                                                               'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Present',
                                                               'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Seminar',
-                                                              'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Out of Office'
+                                                              'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Unavailable'
                                                           }"></span>
                                                     <span class="truncate" x-text="getStatusLabel(status)"></span>
                                                 </div>
@@ -1002,7 +1002,7 @@
                 availableStatuses: [
                     { value: 'Present', label: 'Present (Active)', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
                     { value: 'Seminar', label: 'On Seminar', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' },
-                    { value: 'Out of Office', label: 'Out of Office (Unavailable)', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
+                    { value: 'Unavailable', label: 'Unavailable', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
                 ],
 
                 getRoleLabel(val) {
@@ -1476,7 +1476,7 @@
                                                       :class="{
                                                           'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Present',
                                                           'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Seminar',
-                                                          'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Out of Office'
+                                                          'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Unavailable'
                                                       }"></span>
                                                 <span class="truncate" x-text="getStatusLabel(status)"></span>
                                             </div>
@@ -1908,7 +1908,7 @@
                                         @else
                                             <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 shadow-2xs">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]"></span>
-                                                <span>{{ $member->status ?: 'Out of Office' }}</span>
+                                                <span>{{ $member->status ?: 'Unavailable' }}</span>
                                             </span>
                                         @endif
                                     </td>
@@ -1925,8 +1925,8 @@
                                                 Seminar
                                             </button>
                                             <button
-                                                @click="updateStatus({{ $member->id }}, 'Out of Office', '{{ addslashes($member->formatted_name) }}')"
-                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ str_contains(strtolower($member->status), 'out') || str_contains(strtolower($member->status), 'absent') ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-white dark:hover:bg-slate-800' }}">
+                                                @click="updateStatus({{ $member->id }}, 'Unavailable', '{{ addslashes($member->formatted_name) }}')"
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $member->status === 'Unavailable' ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-white dark:hover:bg-slate-800' }}">
                                                 Unavailable
                                             </button>
                                         </div>

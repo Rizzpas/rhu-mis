@@ -815,7 +815,44 @@ select option:focus {
     color: #5eead4;
 }
 
-/* Custom sleek scrollbar for popups, dropdowns, and option lists */
+/* Custom sleek scrollbar (Global & Class-specific) */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.6);
+}
+
+:where(.dark, .dark *) ::-webkit-scrollbar-thumb,
+.dark ::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.5);
+}
+
+:where(.dark, .dark *) ::-webkit-scrollbar-thumb:hover,
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.8);
+}
+
+/* Firefox support */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+:where(.dark, .dark *), .dark, .dark * {
+    scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -826,20 +863,22 @@ select option:focus {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.4);
+    background: rgba(148, 163, 184, 0.4);
     border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(13, 148, 136, 0.7);
+    background: rgba(100, 116, 139, 0.6);
 }
 
-:where(.dark, .dark *) .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(107, 114, 128, 0.4);
+:where(.dark, .dark *) .custom-scrollbar::-webkit-scrollbar-thumb,
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.5);
 }
 
-:where(.dark, .dark *) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(20, 184, 166, 0.7);
+:where(.dark, .dark *) .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.8);
 }
 
 /* Animated mobile hamburger toggle */

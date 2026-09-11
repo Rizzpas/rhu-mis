@@ -229,7 +229,7 @@
                                                 @elseif(!$isLabOnline) Laboratory department
                                                 @else Radiology department
                                                 @endif
-                                                are currently offline (Out of Office).
+                                                are currently offline (Unavailable).
                                             </p>
                                             <p class="text-xs text-rose-600 mt-1">Requests will still be queued, but will not be processed until staff logs in.</p>
                                         </div>
@@ -356,7 +356,7 @@
                                     </div>
                                     <div class="ml-3">
                                         <p class="text-sm text-amber-700 font-bold">
-                                            Attention: Pharmacy department is currently offline (Out of Office).
+                                            Attention: Pharmacy department is currently offline (Unavailable).
                                         </p>
                                         <p class="text-xs text-amber-600 mt-1">Prescriptions will be queued, but will not be dispensed until a Pharmacist logs in.</p>
                                     </div>

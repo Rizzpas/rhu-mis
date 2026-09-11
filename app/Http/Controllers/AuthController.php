@@ -80,14 +80,14 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        // ── Presence System: Auto-set "Out of Office" on logout ──
+        // ── Presence System: Auto-set "Unavailable" on logout ──
         if ($user) {
             $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
 
             // Only force them offline if we are NOT in demo mode.
             // In demo mode, we want them to stay "Present" so the presenter can log in/out freely.
             if (! $isDemoMode) {
-                $user->update(['status' => 'Out of Office']);
+                $user->update(['status' => 'Unavailable']);
             }
 
             \App\Models\AuditLog::record('Logout', $user);

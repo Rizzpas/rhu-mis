@@ -389,11 +389,11 @@
                     <div x-ref="doctorScroll" class="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth doctor-scroll">
                         @foreach($doctors as $index => $doctor)
                             @php
-                                $displayStatus = $doctor->is_present ? 'Present' : (in_array(strtolower($doctor->status ?? ''), ['seminar']) ? 'Seminar' : 'Out of Office');
+                                $displayStatus = $doctor->is_present ? 'Present' : (in_array(strtolower($doctor->status ?? ''), ['seminar']) ? 'Seminar' : 'Unavailable');
                                 $statusDotClass = match (strtolower($displayStatus)) {
                                     'present' => 'status-dot-available',
                                     'seminar' => 'status-dot-away',
-                                    'out of office' => 'status-dot-offline',
+                                    'unavailable' => 'status-dot-offline',
                                     default => 'status-dot-offline',
                                 };
                                 $statusBadge = match (strtolower($displayStatus)) {
@@ -461,11 +461,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($doctors as $index => $doctor)
                         @php
-                            $displayStatus = $doctor->is_present ? 'Present' : (in_array(strtolower($doctor->status ?? ''), ['seminar']) ? 'Seminar' : 'Out of Office');
+                            $displayStatus = $doctor->is_present ? 'Present' : (in_array(strtolower($doctor->status ?? ''), ['seminar']) ? 'Seminar' : 'Unavailable');
                             $statusDotClass = match (strtolower($displayStatus)) {
                                 'present' => 'status-dot-available',
                                 'seminar' => 'status-dot-away',
-                                'out of office' => 'status-dot-offline',
+                                'unavailable' => 'status-dot-offline',
                                 default => 'status-dot-offline',
                             };
                             $statusBadge = match (strtolower($displayStatus)) {

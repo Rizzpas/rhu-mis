@@ -1,6 +1,6 @@
 {{-- Presence System: JS Heartbeat --}}
 {{-- Pings /heartbeat every 60 seconds to keep the user marked as "Present". --}}
-{{-- If the user goes idle for 30+ minutes, the scheduled command marks them "Out of Office". --}}
+{{-- If the user goes idle for 30+ minutes, the scheduled command marks them "Unavailable". --}}
 @auth
 <script>
 (function() {

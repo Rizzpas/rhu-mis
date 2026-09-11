@@ -29,25 +29,14 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->ignore($user->id),
-            ],
+            'status' => ['nullable', 'string', 'in:online,offline,in meeting,Present,Unavailable,Seminar'],
             'avatar' => ['nullable', 'image', 'max:2048'], // Max 2MB
         ]);
 
         $user->name = $validated['name'];
 
-        // Require OTP verification if email is changing
-        if ($user->email !== $validated['email']) {
-            if (! session('email_otp_verified') || session('email_otp_verified') !== $validated['email']) {
-                return back()->withErrors(['email' => 'You must verify your new email address via OTP first before saving.']);
-            }
-            session()->forget('email_otp_verified');
-            $user->email = $validated['email'];
+        if ($request->filled('status')) {
+            $user->status = $validated['status'];
         }
 
         if ($request->hasFile('avatar')) {
@@ -68,6 +57,32 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update user's duty status instantly via direct toggle.
+     */
+    public function updateStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:online,offline,in meeting,Present,Unavailable,Seminar'],
+        ]);
+
+        $user = Auth::user();
+        $user->status = $validated['status'];
+
+        if ($validated['status'] === 'offline') {
+            $user->last_activity_at = null;
+        } else {
+            $user->last_activity_at = now();
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'status' => $user->status,
+        ]);
+    }
+
+    /**
      * Update user's password.
      */
     public function updatePassword(Request $request)
@@ -79,9 +94,7 @@ class ProfileController extends Controller
                 'string',
                 'confirmed',
                 \Illuminate\Validation\Rules\Password::min(8)
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols(),
+                    ->numbers(),
             ],
         ]);
 

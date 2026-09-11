@@ -16,7 +16,7 @@ class AutoLogoutInactiveStaff extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Mark staff as "Out of Office" if they have been inactive for the specified duration.';
+    protected $description = 'Mark staff as "Unavailable" if they have been inactive for the specified duration.';
 
     /**
      * Execute the console command.
@@ -42,7 +42,7 @@ class AutoLogoutInactiveStaff extends Command
         $count = $inactiveStaff->count();
 
         foreach ($inactiveStaff as $user) {
-            $user->update(['status' => 'Out of Office']);
+            $user->update(['status' => 'Unavailable']);
 
             \App\Models\AuditLog::record('Auto Logout (Idle)', $user, [
                 'last_activity' => $user->last_activity_at?->toIso8601String() ?? 'Never',

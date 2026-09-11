@@ -5,14 +5,14 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Breadcrumb & Top Bar -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <!-- Breadcrumb Navigation -->
+    <x-breadcrumb :homeUrl="route('frontdesk.dashboard')" homeLabel="Home" :items="[
+        'Live Clinical Queue' => ''
+    ]" />
+
+    <!-- Top Bar Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                <span>Frontdesk Portal</span>
-                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                <span class="text-emerald-600 dark:text-emerald-400 font-bold">Live Queue Overview</span>
-            </div>
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-sm border border-emerald-500/20 shadow-2xs">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>

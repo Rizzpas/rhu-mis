@@ -241,7 +241,7 @@
                 
                 <div class="p-4 sm:p-6 grow">
                     <!-- FullCalendar Container -->
-                    <div id="calendar" class="min-h-[680px]"></div>
+                    <div id="calendar" class="w-full"></div>
                 </div>
             </div>
         </div>
@@ -399,6 +399,9 @@
                 this.calendar = new FullCalendar.Calendar(calendarEl, {
                     timeZone: 'local',
                     initialView: 'dayGridMonth',
+                    height: 'auto',
+                    contentHeight: 'auto',
+                    expandRows: true,
                     themeSystem: 'standard',
                     headerToolbar: {
                         left: 'prev,next today',
@@ -646,6 +649,21 @@
     .dark .fc .fc-button-group .fc-button-active {
         background: #1e293b !important;
         color: #34d399 !important;
+    }
+
+    /* Clean, seamless calendar view without right-side scrollbar */
+    .fc .fc-scroller {
+        overflow: hidden !important;
+    }
+    .fc .fc-scroller-liquid-absolute {
+        position: static !important;
+        overflow: visible !important;
+    }
+    .fc .fc-scroller-harness {
+        overflow: visible !important;
+    }
+    .fc .fc-scrollgrid-section-liquid > td {
+        height: auto !important;
     }
 
     .fc-theme-standard th {

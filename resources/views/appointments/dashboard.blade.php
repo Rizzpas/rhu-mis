@@ -4,13 +4,18 @@
 <div class="min-h-screen bg-transparent py-10 sm:py-12" x-data="manageAppointment()">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <!-- Back to Home -->
-        <div class="mb-6">
-            <a href="{{ route('welcome') }}" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-2xs text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back to Home
-            </a>
-        </div>
+        <x-breadcrumb :items="[
+            'Appointments' => route('appointment.create'),
+            'Manage Appointment' => route('appointment.manage'),
+            'Record #' . $appointment->reference_number => ''
+        ]">
+            <x-slot:right>
+                <a href="{{ route('appointment.logout') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Exit Record</span>
+                </a>
+            </x-slot:right>
+        </x-breadcrumb>
 
         <!-- Status Showcase Card -->
         <div class="rounded-3xl p-6 sm:p-8 mb-6 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs">

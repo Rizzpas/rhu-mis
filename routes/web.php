@@ -243,6 +243,7 @@ use App\Http\Controllers\ProfileController;
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/status', [ProfileController::class, 'updateStatus'])->name('profile.status.update');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
     Route::post('/profile/email-otp/send', [ProfileController::class, 'sendEmailOtp'])->name('profile.email-otp.send');
     Route::post('/profile/email-otp/verify', [ProfileController::class, 'verifyEmailOtp'])->name('profile.email-otp.verify');

@@ -132,7 +132,7 @@ class User extends Authenticatable
      */
     public function getIsPresentAttribute(): bool
     {
-        if ($this->status === 'Out of Office' || $this->status === 'Seminar') {
+        if (in_array(strtolower($this->status ?? ''), ['out of office', 'seminar', 'offline'])) {
             return false;
         }
 
@@ -153,8 +153,8 @@ class User extends Authenticatable
             return true;
         }
 
-        // If manually set to 'Present', they are present as long as they are active.
-        if ($this->status === 'Present') {
+        // If manually set to 'Present', 'online', or 'in meeting'
+        if (in_array(strtolower($this->status ?? ''), ['present', 'online', 'in meeting'])) {
             return true;
         }
 
@@ -177,10 +177,10 @@ class User extends Authenticatable
 
         $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
 
-        $query->whereNotIn('status', ['Out of Office', 'Seminar']);
+        $query->whereNotIn('status', ['Unavailable', 'Seminar', 'offline']);
 
         if ($isDemoMode) {
-            // In demo mode, everyone who isn't Out of Office/Seminar is present
+            // In demo mode, everyone who isn't Unavailable/Seminar is present
             // We ignore last_activity_at to prevent timeouts during presentations
             return $query;
         }
@@ -191,8 +191,8 @@ class User extends Authenticatable
 
         $query->where('last_activity_at', '>=', $activeSince)
               ->where(function ($q) use ($dayOfWeek, $time) {
-                  // Either they have a manual 'Present' status...
-                  $q->where('status', 'Present')
+                  // Either they have a manual 'Present', 'online', or 'in meeting' status...
+                  $q->whereIn('status', ['Present', 'online', 'in meeting'])
                     // ...or they match their defined schedule
                     ->orWhereHas('practitionerSchedules', function ($scheduleQuery) use ($dayOfWeek, $time) {
                         $scheduleQuery->where('day_of_week', $dayOfWeek)

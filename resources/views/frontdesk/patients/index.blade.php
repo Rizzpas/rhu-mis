@@ -11,7 +11,11 @@
         const form = this.$refs.filterForm;
         const url = new URL(form.action);
         const formData = new FormData(form);
-        formData.forEach((value, key) => url.searchParams.append(key, value));
+        formData.forEach((value, key) => {
+            if (value !== '') {
+                url.searchParams.append(key, value);
+            }
+        });
         
         try {
             const response = await fetch(url, {
@@ -34,20 +38,14 @@
     },
     clearFilters() {
         this.$refs.filterForm.reset();
-        if (document.getElementById('date_from')._flatpickr) {
-            document.getElementById('date_from')._flatpickr.clear();
-            document.getElementById('date_from')._flatpickr.set('maxDate', 'today');
-        }
-        if (document.getElementById('date_to')._flatpickr) {
-            document.getElementById('date_to')._flatpickr.clear();
-            document.getElementById('date_to')._flatpickr.set('minDate', null);
-        }
+        this.$dispatch('clear-dates');
+        this.$dispatch('select-reset');
         this.$refs.filterForm.querySelectorAll('input[type=text]').forEach(el => el.value = '');
         const classSelect = this.$refs.filterForm.querySelector('[name=classification]');
         if (classSelect) classSelect.value = 'all';
         this.submitForm();
     }
-}">
+}" @date-filter-changed="submitForm()">
     
     <!-- Breadcrumb Navigation -->
     <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 py-1" aria-label="Breadcrumb">
@@ -64,9 +62,6 @@
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold uppercase tracking-wider mb-2 border border-emerald-500/20">
-                Municipal Clinical Registry
-            </div>
             <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
                 <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +127,7 @@
     </div>
 
     <!-- Search & Filter Bar -->
-    <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-2xs">
+    <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-2xs relative z-30">
         <form x-ref="filterForm" action="{{ route('frontdesk.patients.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
             <!-- Search -->
             <div class="sm:col-span-2 lg:col-span-4">
@@ -148,7 +143,7 @@
             </div>
 
             <!-- Classification Filter -->
-            <div class="sm:col-span-1 lg:col-span-3">
+            <div class="sm:col-span-1 lg:col-span-3 relative z-30">
                 <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Demographic Category</label>
                 <x-select 
                     name="classification" 
@@ -166,28 +161,140 @@
             </div>
 
             <!-- Date Registered (From) -->
-            <div class="sm:col-span-1 lg:col-span-2">
+            <div class="sm:col-span-1 lg:col-span-2 relative z-20" x-data="customDatePicker('{{ request('date_from', '') }}')" @clear-dates.window="clearDate(false)">
                 <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Registered From</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <input type="hidden" name="date_from" :value="dateValue">
+
+                <div @click="showDatePicker = !showDatePicker" 
+                     class="h-11 px-3.5 flex items-center justify-between w-full rounded-xl border bg-slate-50/70 dark:bg-slate-800/60 shadow-2xs text-xs font-semibold transition-all cursor-pointer select-none"
+                     :class="showDatePicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'">
+                    
+                    <span x-text="dateValue ? formattedDate : 'Start Date'" 
+                          class="truncate font-semibold text-xs"
+                          :class="dateValue ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" x-show="dateValue" @click.stop="clearDate(true)" class="p-0.5 text-slate-400 hover:text-rose-500 transition rounded cursor-pointer" title="Clear Date">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <input type="text" id="date_from" name="date_from" value="{{ request('date_from') }}" placeholder="Start Date"
-                        @change="submitForm"
-                        class="flatpickr-date h-11 w-full pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:border-emerald-500 shadow-2xs cursor-pointer">
+                </div>
+
+                {{-- Calendar Dropdown Popover --}}
+                <div x-show="showDatePicker" 
+                     @click.outside="showDatePicker = false" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                     style="display: none;"
+                     class="absolute z-50 mt-2 left-0 w-72 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-slate-950/40">
+                    
+                    <div class="flex items-center justify-between gap-1 mb-3">
+                        <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="monthNames[currentMonth] + ' ' + currentYear"></span>
+                        <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center mb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                        <template x-for="day in days" :key="day"><span x-text="day"></span></template>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                        <template x-for="blank in startDayOfWeek" :key="'blank-from-' + blank"><span class="p-1"></span></template>
+                        <template x-for="day in daysInMonth" :key="'day-from-' + day">
+                            <button type="button" 
+                                    @click="selectDay(day)" 
+                                    :class="{
+                                        'bg-emerald-600 text-white font-bold shadow-xs': isSelected(day),
+                                        'ring-1 ring-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold': isToday(day) && !isSelected(day),
+                                        'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700': !isSelected(day) && !isToday(day)
+                                    }"
+                                    class="p-1.5 rounded-lg text-xs font-medium transition cursor-pointer" 
+                                    x-text="day"></button>
+                        </template>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2.5 mt-2.5 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                        <button type="button" @click="clearDate(true)" class="text-slate-500 hover:text-rose-600 font-semibold transition cursor-pointer">Clear</button>
+                        <button type="button" @click="selectToday()" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline transition cursor-pointer">Today</button>
+                    </div>
                 </div>
             </div>
 
             <!-- Date Registered (To) -->
-            <div class="sm:col-span-1 lg:col-span-2">
+            <div class="sm:col-span-1 lg:col-span-2 relative z-10" x-data="customDatePicker('{{ request('date_to', '') }}')" @clear-dates.window="clearDate(false)">
                 <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Registered To</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <input type="hidden" name="date_to" :value="dateValue">
+
+                <div @click="showDatePicker = !showDatePicker" 
+                     class="h-11 px-3.5 flex items-center justify-between w-full rounded-xl border bg-slate-50/70 dark:bg-slate-800/60 shadow-2xs text-xs font-semibold transition-all cursor-pointer select-none"
+                     :class="showDatePicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'">
+                    
+                    <span x-text="dateValue ? formattedDate : 'End Date'" 
+                          class="truncate font-semibold text-xs"
+                          :class="dateValue ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500'"></span>
+
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" x-show="dateValue" @click.stop="clearDate(true)" class="p-0.5 text-slate-400 hover:text-rose-500 transition rounded cursor-pointer" title="Clear Date">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <input type="text" id="date_to" name="date_to" value="{{ request('date_to') }}" placeholder="End Date"
-                        @change="submitForm"
-                        class="flatpickr-date h-11 w-full pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:border-emerald-500 shadow-2xs cursor-pointer">
+                </div>
+
+                {{-- Calendar Dropdown Popover --}}
+                <div x-show="showDatePicker" 
+                     @click.outside="showDatePicker = false" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                     style="display: none;"
+                     class="absolute z-50 mt-2 right-0 w-72 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-slate-950/40">
+                    
+                    <div class="flex items-center justify-between gap-1 mb-3">
+                        <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="monthNames[currentMonth] + ' ' + currentYear"></span>
+                        <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center mb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                        <template x-for="day in days" :key="day"><span x-text="day"></span></template>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                        <template x-for="blank in startDayOfWeek" :key="'blank-to-' + blank"><span class="p-1"></span></template>
+                        <template x-for="day in daysInMonth" :key="'day-to-' + day">
+                            <button type="button" 
+                                    @click="selectDay(day)" 
+                                    :class="{
+                                        'bg-emerald-600 text-white font-bold shadow-xs': isSelected(day),
+                                        'ring-1 ring-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold': isToday(day) && !isSelected(day),
+                                        'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700': !isSelected(day) && !isToday(day)
+                                    }"
+                                    class="p-1.5 rounded-lg text-xs font-medium transition cursor-pointer" 
+                                    x-text="day"></button>
+                        </template>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2.5 mt-2.5 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                        <button type="button" @click="clearDate(true)" class="text-slate-500 hover:text-rose-600 font-semibold transition cursor-pointer">Clear</button>
+                        <button type="button" @click="selectToday()" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline transition cursor-pointer">Today</button>
+                    </div>
                 </div>
             </div>
 
@@ -302,49 +409,88 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateFromInput = document.getElementById('date_from');
-        const dateToInput = document.getElementById('date_to');
-
-        if (dateFromInput && dateToInput) {
-            const dateFromPicker = flatpickr(dateFromInput, {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "F j, Y",
-                allowInput: true,
-                maxDate: "today",
-                onChange: function(selectedDates, dateStr, instance) {
-                    if (dateToPicker) {
-                        dateToPicker.set('minDate', dateStr);
+    function customDatePicker(initialDate = '') {
+        return {
+            showDatePicker: false,
+            dateValue: initialDate,
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            days: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+            init() {
+                if (this.dateValue) {
+                    let d = new Date(this.dateValue + 'T00:00:00');
+                    if (!isNaN(d.getTime())) {
+                        this.currentMonth = d.getMonth();
+                        this.currentYear = d.getFullYear();
                     }
-                    dateFromInput.value = dateStr;
-                    setTimeout(() => dateFromInput.dispatchEvent(new Event('change', { bubbles: true })), 10);
                 }
-            });
-
-            const dateToPicker = flatpickr(dateToInput, {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "F j, Y",
-                allowInput: true,
-                maxDate: "today",
-                onChange: function(selectedDates, dateStr, instance) {
-                    if (dateFromPicker) {
-                        dateFromPicker.set('maxDate', dateStr || "today");
-                    }
-                    dateToInput.value = dateStr;
-                    setTimeout(() => dateToInput.dispatchEvent(new Event('change', { bubbles: true })), 10);
+            },
+            get formattedDate() {
+                if (!this.dateValue) return '';
+                let d = new Date(this.dateValue + 'T00:00:00');
+                if (isNaN(d.getTime())) return this.dateValue;
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            },
+            get daysInMonth() {
+                return new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+            },
+            get startDayOfWeek() {
+                return new Date(this.currentYear, this.currentMonth, 1).getDay();
+            },
+            prevMonth() {
+                if (this.currentMonth === 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                } else {
+                    this.currentMonth--;
                 }
-            });
-            
-            if (dateFromInput.value) {
-                dateToPicker.set('minDate', dateFromInput.value);
+            },
+            nextMonth() {
+                if (this.currentMonth === 11) {
+                    this.currentMonth = 0;
+                    this.currentYear++;
+                } else {
+                    this.currentMonth++;
+                }
+            },
+            selectDay(day) {
+                let m = String(this.currentMonth + 1).padStart(2, '0');
+                let d = String(day).padStart(2, '0');
+                this.dateValue = `${this.currentYear}-${m}-${d}`;
+                this.showDatePicker = false;
+                this.$dispatch('date-filter-changed');
+            },
+            clearDate(triggerSubmit = false) {
+                this.dateValue = '';
+                this.showDatePicker = false;
+                if (triggerSubmit) {
+                    this.$dispatch('date-filter-changed');
+                }
+            },
+            selectToday() {
+                let today = new Date();
+                this.currentMonth = today.getMonth();
+                this.currentYear = today.getFullYear();
+                let m = String(today.getMonth() + 1).padStart(2, '0');
+                let d = String(today.getDate()).padStart(2, '0');
+                this.dateValue = `${today.getFullYear()}-${m}-${d}`;
+                this.showDatePicker = false;
+                this.$dispatch('date-filter-changed');
+            },
+            isSelected(day) {
+                if (!this.dateValue) return false;
+                let m = String(this.currentMonth + 1).padStart(2, '0');
+                let d = String(day).padStart(2, '0');
+                return this.dateValue === `${this.currentYear}-${m}-${d}`;
+            },
+            isToday(day) {
+                let today = new Date();
+                return today.getFullYear() === this.currentYear && today.getMonth() === this.currentMonth && today.getDate() === day;
             }
-            if (dateToInput.value) {
-                dateFromPicker.set('maxDate', dateToInput.value);
-            }
-        }
-    });
+        };
+    }
+    window.customDatePicker = customDatePicker;
 </script>
 @endpush
 @endsection
