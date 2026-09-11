@@ -16,7 +16,7 @@ class AutoLogoutInactiveStaff extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Mark staff as "Unavailable" if they have been inactive for the specified duration.';
+    protected $description = 'Mark staff as "Offline" if they have been inactive for the specified duration.';
 
     /**
      * Execute the console command.
@@ -26,7 +26,7 @@ class AutoLogoutInactiveStaff extends Command
         $minutes = (int) $this->option('minutes');
         $cutoff = Carbon::now()->subMinutes($minutes);
 
-        // Find clinical staff who are "Present" but haven't had any activity within the cutoff
+        // Find clinical staff who are "Present" or "Online" but haven't had any activity within the cutoff
         $inactiveStaff = User::present()
             ->whereIn('role', [
                 'regular_doctor', 'pedia_doctor',
@@ -42,7 +42,10 @@ class AutoLogoutInactiveStaff extends Command
         $count = $inactiveStaff->count();
 
         foreach ($inactiveStaff as $user) {
-            $user->update(['status' => 'Unavailable']);
+            $user->update([
+                'status' => 'Offline',
+                'last_activity_at' => null,
+            ]);
 
             \App\Models\AuditLog::record('Auto Logout (Idle)', $user, [
                 'last_activity' => $user->last_activity_at?->toIso8601String() ?? 'Never',

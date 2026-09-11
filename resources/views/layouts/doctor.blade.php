@@ -218,22 +218,7 @@
     <!-- Main Content -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
         <!-- Top bar -->
-        <header class="bg-emerald-600 dark:bg-emerald-800 shadow-md z-20 sticky top-0"
-            x-data="{
-                searchQuery: '',
-                showResults: false,
-                links: [
-                    { name: 'Dashboard', route: '{{ route('doctor.dashboard') }}', keywords: ['dashboard', 'home', 'overview', 'stats', 'consultations'] }
-                ],
-                get filteredLinks() {
-                    if (this.searchQuery.trim() === '') return [];
-                    const query = this.searchQuery.toLowerCase();
-                    return this.links.filter(link => {
-                        return link.name.toLowerCase().includes(query) || link.keywords.some(k => k.includes(query));
-                    });
-                }
-            }" @click.away="showResults = false">
-            
+        <header class="bg-emerald-600 dark:bg-emerald-800 shadow-md z-20 sticky top-0">
             <div class="flex justify-between items-center px-4 sm:px-6 py-3.5 gap-4">
                 <div class="flex items-center gap-4 flex-1">
                     <button @click="sidebarOpen = true" class="md:hidden text-white hover:bg-emerald-700 p-1.5 rounded-md transition-colors">
@@ -241,37 +226,97 @@
                     </button>
                     
                     <h1 class="text-xl font-bold text-white tracking-tight hidden sm:block whitespace-nowrap">
-                        @yield('header', 'Dashboard')
+                        @yield('header', 'Doctor Portal')
                     </h1>
 
                     <!-- Search Bar -->
-                    <div class="relative w-full max-w-xl sm:ml-6 group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-4 w-4 text-emerald-800 dark:text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <div class="relative w-full max-w-xl sm:ml-6 group"
+                        x-data="{
+                            searchQuery: '',
+                            showResults: false,
+                            links: [
+                                { name: 'Active Queue (Dashboard)', route: '{{ route('doctor.dashboard') }}', desc: 'Current assigned patients in queue', keywords: ['dashboard', 'home', 'overview', 'queue', 'patients', 'consultations', 'triage'] },
+                                { name: 'Waiting for Results', route: '{{ route('doctor.waiting-results') }}', desc: 'Pending lab & radiology diagnostics', keywords: ['waiting', 'results', 'lab', 'radiology', 'xray', 'ancillary', 'tests', 'laboratory'] },
+                                { name: 'Staff Profile & Duty Status', route: '{{ route('profile.edit') }}', desc: 'Account settings, duty toggle, password', keywords: ['settings', 'profile', 'status', 'duty', 'online', 'offline', 'occupied', 'account'] },
+                            ],
+                            get filteredLinks() {
+                                if (this.searchQuery.trim() === '') return [];
+                                const query = this.searchQuery.toLowerCase().trim();
+                                return this.links.filter(link => {
+                                    return link.name.toLowerCase().includes(query) || link.keywords.some(k => k.includes(query));
+                                });
+                            },
+                            triggerSearch() {
+                                window.dispatchEvent(new CustomEvent('doctor-global-search', { detail: this.searchQuery }));
+                            },
+                            clearSearch() {
+                                this.searchQuery = '';
+                                this.triggerSearch();
+                                this.showResults = false;
+                            }
+                        }"
+                        @click.away="showResults = false">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-emerald-800/70 dark:text-emerald-300/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
-                        <input type="text" x-model="searchQuery" @focus="showResults = true" @keydown.escape="showResults = false" placeholder="Search..." 
-                            class="w-full pl-10 pr-4 py-2 bg-white rounded-full border-none shadow-inner focus:ring-2 focus:ring-emerald-300 focus:outline-none text-sm text-emerald-900 placeholder-emerald-800/60 dark:bg-emerald-950 dark:text-emerald-100 dark:placeholder-emerald-400/50 transition-shadow">
+                        <input type="text" 
+                               x-model="searchQuery" 
+                               @input="triggerSearch()"
+                               @focus="showResults = true" 
+                               @keydown.escape="showResults = false" 
+                               placeholder="Search queue, patients, or shortcuts..." 
+                               class="no-uppercase w-full pl-10 pr-9 py-2 bg-white/95 dark:bg-slate-900/90 rounded-full border-0 shadow-inner focus:ring-2 focus:ring-white/40 dark:focus:ring-emerald-500/40 focus:outline-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 dark:text-slate-100 dark:placeholder-slate-400 transition-all"
+                               style="text-transform: none !important;">
+                        
+                        <!-- Clear Search Button -->
+                        <button type="button" 
+                                x-show="searchQuery.length > 0" 
+                                @click="clearSearch()"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                         
                         <!-- Search Dropdown -->
-                        <div x-show="showResults && searchQuery.length > 0" style="display: none;" class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden top-full left-0 py-2">
+                        <div x-show="showResults && searchQuery.length > 0" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             style="display: none;" 
+                             class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden top-full left-0 py-2">
+                            <div class="px-3 pb-2 pt-1 border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                                <span>Quick Navigation</span>
+                                <span class="text-emerald-700 dark:text-emerald-400 font-semibold lowercase">filtering on-screen list</span>
+                            </div>
+
                             <template x-if="filteredLinks.length > 0">
                                 <ul class="max-h-64 overflow-y-auto custom-scrollbar">
                                     <template x-for="link in filteredLinks" :key="link.name">
                                         <li>
-                                            <a :href="link.route" class="block px-4 py-3 hover:bg-emerald-50 dark:hover:bg-slate-700/50 text-sm transition-colors group/item">
+                                            <a :href="link.route" class="block px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800/80 text-sm transition-colors group/item">
                                                 <div class="flex items-center gap-3">
-                                                    <div class="p-1.5 rounded-md bg-emerald-100 dark:bg-slate-900 text-emerald-600 dark:text-emerald-400">
+                                                    <div class="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover/item:scale-105 transition-transform shrink-0">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
                                                     </div>
-                                                    <div>
-                                                        <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="link.name"></span>
-                                                        <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">Quick Navigation</span>
+                                                    <div class="min-w-0">
+                                                        <span class="font-bold text-slate-800 dark:text-white text-xs sm:text-sm" x-text="link.name"></span>
+                                                        <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="link.desc"></span>
                                                     </div>
                                                 </div>
                                             </a>
                                         </li>
                                     </template>
                                 </ul>
+                            </template>
+
+                            <template x-if="filteredLinks.length === 0">
+                                <div class="px-4 py-4 text-center">
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Filtering current page queue for "<span class="font-bold text-slate-900 dark:text-white" x-text="searchQuery"></span>"</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Check matching patient cards below</p>
+                                </div>
                             </template>
                         </div>
                     </div>
@@ -419,7 +464,12 @@
                         dynamicBlocks.forEach(block => {
                             if (block.id) {
                                 const newBlock = doc.getElementById(block.id);
-                                if (newBlock) block.innerHTML = newBlock.innerHTML;
+                                if (newBlock) {
+                                    block.innerHTML = newBlock.innerHTML;
+                                    if (window.Alpine) {
+                                        Alpine.initTree(block);
+                                    }
+                                }
                             }
                         });
                     } catch (error) {}

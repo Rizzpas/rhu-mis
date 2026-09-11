@@ -124,12 +124,11 @@
                 <!-- User Details -->
                 @php
                     $rawStatus = strtolower(auth()->user()->status ?? '');
-                    $initStatus = in_array($rawStatus, ['online', 'offline', 'in meeting']) 
-                        ? $rawStatus 
-                        : ($rawStatus === 'out of office' ? 'offline' : 'online');
-                    $isOffline = $initStatus === 'offline';
-                    $isInMeeting = $initStatus === 'in meeting';
-                    $initLabel = $isOffline ? 'Offline' : ($isInMeeting ? 'In Meeting' : 'Active');
+                    $initStatus = match(true) {
+                        in_array($rawStatus, ['online', 'present', 'active', 'in office']) => 'Online',
+                        in_array($rawStatus, ['occupied', 'seminar', 'on seminar', 'in meeting']) => 'Occupied',
+                        default => 'Offline'
+                    };
                 @endphp
                 <div class="space-y-2 flex flex-col justify-center"
                      x-data="{
@@ -151,17 +150,17 @@
                     <div>
                         <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border transition-all duration-200"
                               :class="{
-                                  'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/80': status === 'online',
-                                  'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700': status === 'offline',
-                                  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200/80 dark:border-amber-800/80': status === 'in meeting'
+                                  'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/80': status === 'Online',
+                                  'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700': status === 'Offline',
+                                  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200/80 dark:border-amber-800/80': status === 'Occupied'
                               }">
                             <span class="w-2 h-2 rounded-full transition-all"
                                   :class="{
-                                      'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse': status === 'online',
-                                      'bg-slate-400 dark:bg-slate-500': status === 'offline',
-                                      'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse': status === 'in meeting'
+                                      'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse': status === 'Online',
+                                      'bg-slate-400 dark:bg-slate-500': status === 'Offline',
+                                      'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse': status === 'Occupied'
                                   }"></span>
-                            <span x-text="status === 'online' ? 'Active' : (status === 'in meeting' ? 'In Meeting' : 'Offline')">{{ $initLabel }}</span>
+                            <span x-text="status">{{ $initStatus }}</span>
                         </span>
                     </div>
 
@@ -189,39 +188,39 @@
                     <div class="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                         <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Duty Status:</span>
                         <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/70">
-                            <!-- online -->
+                            <!-- Online -->
                             <button type="button" 
-                                    @click="setStatus('online')"
+                                    @click="setStatus('Online')"
                                     class="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer"
-                                    :class="status === 'online' 
+                                    :class="status === 'Online' 
                                         ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm font-bold' 
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500"
-                                      :class="status === 'online' ? 'shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'opacity-60'"></span>
+                                      :class="status === 'Online' ? 'shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'opacity-60'"></span>
                                 <span>Online</span>
                             </button>
 
-                            <!-- offline -->
+                            <!-- Offline -->
                             <button type="button" 
-                                    @click="setStatus('offline')"
+                                    @click="setStatus('Offline')"
                                     class="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer"
-                                    :class="status === 'offline' 
+                                    :class="status === 'Offline' 
                                         ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm font-bold' 
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
                                 <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500"></span>
                                 <span>Offline</span>
                             </button>
 
-                            <!-- in meeting -->
+                            <!-- Occupied -->
                             <button type="button" 
-                                    @click="setStatus('in meeting')"
+                                    @click="setStatus('Occupied')"
                                     class="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer"
-                                    :class="status === 'in meeting' 
+                                    :class="status === 'Occupied' 
                                         ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm font-bold' 
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
                                 <span class="w-2 h-2 rounded-full bg-amber-500"
-                                      :class="status === 'in meeting' ? 'shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 'opacity-60'"></span>
-                                <span>In Meeting</span>
+                                      :class="status === 'Occupied' ? 'shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 'opacity-60'"></span>
+                                <span>Occupied</span>
                             </button>
                         </div>
                     </div>

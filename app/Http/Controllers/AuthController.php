@@ -57,9 +57,9 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            // ── Presence System: Auto-set "Present" on login ──
+            // ── Presence System: Auto-set "Online" on login ──
             $user->update([
-                'status' => 'Present',
+                'status' => 'Online',
                 'last_activity_at' => now(),
             ]);
 
@@ -80,14 +80,17 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        // ── Presence System: Auto-set "Unavailable" on logout ──
+        // ── Presence System: Auto-set "Offline" on logout ──
         if ($user) {
             $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
 
             // Only force them offline if we are NOT in demo mode.
-            // In demo mode, we want them to stay "Present" so the presenter can log in/out freely.
+            // In demo mode, we want them to stay "Online" so the presenter can log in/out freely.
             if (! $isDemoMode) {
-                $user->update(['status' => 'Unavailable']);
+                $user->update([
+                    'status' => 'Offline',
+                    'last_activity_at' => null,
+                ]);
             }
 
             \App\Models\AuditLog::record('Logout', $user);

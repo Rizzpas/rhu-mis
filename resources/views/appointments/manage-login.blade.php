@@ -23,56 +23,56 @@
                     </p>
                 </div>
 
-                {{-- Interactive Features Bento Cards --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-                    {{-- Card 1 --}}
-                    <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs backdrop-blur-xs transition hover:border-emerald-300 dark:hover:border-emerald-700">
-                        <div class="w-9 h-9 rounded-xl bg-emerald-100/90 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-700 dark:text-emerald-400 mb-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {{-- Interactive Features --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+                    {{-- Feature 1 --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
+                            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Real-Time Status</h3>
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Real-Time Status</h3>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Check if your consultation is confirmed, pending triage review, or completed.
                         </p>
                     </div>
 
-                    {{-- Card 2 --}}
-                    <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs backdrop-blur-xs transition hover:border-emerald-300 dark:hover:border-emerald-700">
-                        <div class="w-9 h-9 rounded-xl bg-teal-100/90 dark:bg-teal-900/50 flex items-center justify-center text-teal-700 dark:text-teal-400 mb-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- Feature 2 --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
+                            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Fast Reschedule</h3>
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Fast Reschedule</h3>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Need to change your date? Easily choose another available slot with a few clicks.
                         </p>
                     </div>
 
-                    {{-- Card 3 --}}
-                    <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs backdrop-blur-xs transition hover:border-emerald-300 dark:hover:border-emerald-700">
-                        <div class="w-9 h-9 rounded-xl bg-amber-100/90 dark:bg-amber-900/50 flex items-center justify-center text-amber-700 dark:text-amber-400 mb-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- Feature 3 --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
+                            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Appointment Slips</h3>
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Appointment Slips</h3>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Download or print your official QR booking slip to present at the triage reception.
                         </p>
                     </div>
 
-                    {{-- Card 4 --}}
-                    <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs backdrop-blur-xs transition hover:border-emerald-300 dark:hover:border-emerald-700">
-                        <div class="w-9 h-9 rounded-xl bg-sky-100/90 dark:bg-sky-900/50 flex items-center justify-center text-sky-700 dark:text-sky-400 mb-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- Feature 4 --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
+                            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Preparation Guides</h3>
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Preparation Guides</h3>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             View required IDs, PhilHealth documents, and laboratory fasting guidelines.
                         </p>
                     </div>

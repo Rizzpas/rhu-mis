@@ -120,9 +120,9 @@ class NurseController extends Controller
         \App\Models\AuditLog::record("Accessed Patient Medical Folder: {$patient->patient_id}", $patient);
 
         // Check department statuses
-        $isPharmacyOnline = \App\Models\User::where('role', 'pharmacy')->where('status', 'Present')->exists();
-        $isLabOnline = \App\Models\User::where('role', 'laboratory')->where('status', 'Present')->exists();
-        $isRadOnline = \App\Models\User::where('role', 'radiology')->where('status', 'Present')->exists();
+        $isPharmacyOnline = \App\Models\User::where('role', 'pharmacy')->whereIn('status', ['Online', 'online', 'Present'])->exists();
+        $isLabOnline = \App\Models\User::where('role', 'laboratory')->whereIn('status', ['Online', 'online', 'Present'])->exists();
+        $isRadOnline = \App\Models\User::where('role', 'radiology')->whereIn('status', ['Online', 'online', 'Present'])->exists();
 
         return view('nurse.consultation', compact('consultation', 'patient', 'pastConsultations', 'isPharmacyOnline', 'isLabOnline', 'isRadOnline'));
     }

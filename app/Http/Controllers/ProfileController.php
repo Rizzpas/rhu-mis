@@ -29,14 +29,19 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'status' => ['nullable', 'string', 'in:online,offline,in meeting,Present,Unavailable,Seminar'],
+            'status' => ['nullable', 'string', 'in:Online,Offline,Occupied,online,offline,occupied,in meeting,Present,Unavailable,Seminar'],
             'avatar' => ['nullable', 'image', 'max:2048'], // Max 2MB
         ]);
 
         $user->name = $validated['name'];
 
         if ($request->filled('status')) {
-            $user->status = $validated['status'];
+            $user->status = match(strtolower($validated['status'])) {
+                'online', 'present' => 'Online',
+                'offline', 'unavailable', 'out of office' => 'Offline',
+                'occupied', 'in meeting', 'seminar' => 'Occupied',
+                default => 'Offline'
+            };
         }
 
         if ($request->hasFile('avatar')) {
@@ -62,13 +67,19 @@ class ProfileController extends Controller
     public function updateStatus(Request $request)
     {
         $validated = $request->validate([
-            'status' => ['required', 'string', 'in:online,offline,in meeting,Present,Unavailable,Seminar'],
+            'status' => ['required', 'string', 'in:Online,Offline,Occupied,online,offline,occupied,in meeting,Present,Unavailable,Seminar'],
         ]);
 
         $user = Auth::user();
-        $user->status = $validated['status'];
+        $normalizedStatus = match(strtolower($validated['status'])) {
+            'online', 'present' => 'Online',
+            'offline', 'unavailable', 'out of office' => 'Offline',
+            'occupied', 'in meeting', 'seminar' => 'Occupied',
+            default => 'Offline'
+        };
+        $user->status = $normalizedStatus;
 
-        if ($validated['status'] === 'offline') {
+        if ($normalizedStatus === 'Offline') {
             $user->last_activity_at = null;
         } else {
             $user->last_activity_at = now();

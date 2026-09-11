@@ -73,7 +73,7 @@ class UserSeeder extends Seeder
                 'email' => 'doctor2@rhu.gov.ph',
                 'password' => bcrypt('password'),
                 'role' => 'regular_doctor',
-                'status' => 'Present',
+                'status' => 'Online',
                 'schedule' => 'Mon-Thu 9AM-4PM',
             ]);
         }
@@ -84,7 +84,7 @@ class UserSeeder extends Seeder
                 'email' => 'doctor3@rhu.gov.ph',
                 'password' => bcrypt('password'),
                 'role' => 'regular_doctor',
-                'status' => 'Out of Office',
+                'status' => 'Offline',
                 'schedule' => 'Tue, Thu, Sat',
             ]);
         }

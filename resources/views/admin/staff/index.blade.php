@@ -161,9 +161,9 @@
                         name="status" 
                         :options="[
                             'all' => 'All Status',
-                            'Present' => 'Present (Active)',
-                            'Seminar' => 'On Seminar',
-                            'Unavailable' => 'Unavailable',
+                            'Online' => 'Online',
+                            'Offline' => 'Offline',
+                            'Occupied' => 'Occupied',
                         ]" 
                         :value="request('status', 'all')"
                         class="!h-11 !py-0 flex items-center font-semibold"
@@ -205,7 +205,7 @@
                             suffix: @js(old('suffix', '')),
                             email: @js(old('email', '')),
                             role: @js(old('role', '')),
-                            status: @js(old('status', 'Present')),
+                            status: @js(old('status', 'Online')),
                             openRoleDropdown: false,
                             openStatusDropdown: false,
                             availableRoles: [
@@ -223,9 +223,9 @@
                                 { value: 'information_desk', label: 'Front Desk / Information Desk' }
                             ],
                             availableStatuses: [
-                                { value: 'Present', label: 'Present (Active)', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
-                                { value: 'Seminar', label: 'On Seminar', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' },
-                                { value: 'Unavailable', label: 'Unavailable', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
+                                { value: 'Online', label: 'Online', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
+                                { value: 'Offline', label: 'Offline', dot: 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]' },
+                                { value: 'Occupied', label: 'Occupied', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }
                             ],
                             getRoleLabel(val) {
                                 const found = this.availableRoles.find(r => r.value === val);
@@ -566,9 +566,9 @@
                                                 <div class="flex items-center gap-2">
                                                     <span class="w-2.5 h-2.5 rounded-full"
                                                           :class="{
-                                                              'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Present',
-                                                              'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Seminar',
-                                                              'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Unavailable'
+                                                              'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Online',
+                                                              'bg-slate-400 shadow-[0_0_6px_rgba(148,163,184,0.5)]': status === 'Offline',
+                                                              'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Occupied'
                                                           }"></span>
                                                     <span class="truncate" x-text="getStatusLabel(status)"></span>
                                                 </div>
@@ -971,7 +971,7 @@
                 lastName: '',
                 suffix: '',
                 role: 'regular_doctor',
-                status: 'Present',
+                status: 'Online',
                 days: {Mon: false, Tue: false, Wed: false, Thu: false, Fri: false, Sat: false, Sun: false},
                 timeIn: '08:00',
                 timeOut: '17:00',
@@ -1000,9 +1000,9 @@
                 ],
 
                 availableStatuses: [
-                    { value: 'Present', label: 'Present (Active)', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
-                    { value: 'Seminar', label: 'On Seminar', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' },
-                    { value: 'Unavailable', label: 'Unavailable', dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
+                    { value: 'Online', label: 'Online', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
+                    { value: 'Offline', label: 'Offline', dot: 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]' },
+                    { value: 'Occupied', label: 'Occupied', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }
                 ],
 
                 getRoleLabel(val) {
@@ -1058,7 +1058,14 @@
                     this.openRoleDropdown = false;
                     this.openStatusDropdown = false;
                     this.role = member.role || 'regular_doctor';
-                    this.status = member.status || 'Present';
+                    const s = (member.status || 'Offline').toLowerCase();
+                    if (['online', 'present', 'active', 'in office'].includes(s)) {
+                        this.status = 'Online';
+                    } else if (['occupied', 'seminar', 'on seminar', 'in meeting'].includes(s)) {
+                        this.status = 'Occupied';
+                    } else {
+                        this.status = 'Offline';
+                    }
                     
                     // Clean Name parsing
                     let cleanName = (member.name || '').replace(/^(Dr\.|Nurse|MedTech|RadTech)\s+/i, '').trim();
@@ -1474,9 +1481,9 @@
                                             <div class="flex items-center gap-2">
                                                 <span class="w-2.5 h-2.5 rounded-full"
                                                       :class="{
-                                                          'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Present',
-                                                          'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Seminar',
-                                                          'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': status === 'Unavailable'
+                                                          'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]': status === 'Online',
+                                                          'bg-slate-400 shadow-[0_0_6px_rgba(148,163,184,0.5)]': status === 'Offline',
+                                                          'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]': status === 'Occupied'
                                                       }"></span>
                                                 <span class="truncate" x-text="getStatusLabel(status)"></span>
                                             </div>
@@ -1895,39 +1902,47 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($member->status === 'Present')
+                                        @php
+                                            $rawStat = strtolower($member->status ?? '');
+                                            $normalizedMemberStatus = match(true) {
+                                                in_array($rawStat, ['online', 'present', 'active', 'in office']) => 'Online',
+                                                in_array($rawStat, ['occupied', 'seminar', 'on seminar', 'in meeting']) => 'Occupied',
+                                                default => 'Offline'
+                                            };
+                                        @endphp
+                                        @if($normalizedMemberStatus === 'Online')
                                             <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]"></span>
-                                                <span>Present</span>
+                                                <span>Online</span>
                                             </span>
-                                        @elseif($member->status === 'Seminar')
+                                        @elseif($normalizedMemberStatus === 'Occupied')
                                             <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]"></span>
-                                                <span>On Seminar</span>
+                                                <span>Occupied</span>
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 shadow-2xs">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]"></span>
-                                                <span>{{ $member->status ?: 'Unavailable' }}</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/80 shadow-2xs">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                                                <span>Offline</span>
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/70 gap-1 shadow-2xs" x-data>
                                             <button
-                                                @click="updateStatus({{ $member->id }}, 'Present', '{{ addslashes($member->formatted_name) }}')"
-                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $member->status === 'Present' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-800' }}">
-                                                Present
+                                                @click="updateStatus({{ $member->id }}, 'Online', '{{ addslashes($member->formatted_name) }}')"
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $normalizedMemberStatus === 'Online' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-800' }}">
+                                                Online
                                             </button>
                                             <button
-                                                @click="updateStatus({{ $member->id }}, 'Seminar', '{{ addslashes($member->formatted_name) }}')"
-                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $member->status === 'Seminar' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-800' }}">
-                                                Seminar
+                                                @click="updateStatus({{ $member->id }}, 'Offline', '{{ addslashes($member->formatted_name) }}')"
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $normalizedMemberStatus === 'Offline' ? 'bg-slate-600 dark:bg-slate-700 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800' }}">
+                                                Offline
                                             </button>
                                             <button
-                                                @click="updateStatus({{ $member->id }}, 'Unavailable', '{{ addslashes($member->formatted_name) }}')"
-                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $member->status === 'Unavailable' ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-white dark:hover:bg-slate-800' }}">
-                                                Unavailable
+                                                @click="updateStatus({{ $member->id }}, 'Occupied', '{{ addslashes($member->formatted_name) }}')"
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $normalizedMemberStatus === 'Occupied' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-800' }}">
+                                                Occupied
                                             </button>
                                         </div>
                                     </td>

@@ -132,7 +132,7 @@ class User extends Authenticatable
      */
     public function getIsPresentAttribute(): bool
     {
-        if (in_array(strtolower($this->status ?? ''), ['out of office', 'seminar', 'offline'])) {
+        if (in_array(strtolower($this->status ?? ''), ['offline', 'out of office', 'unavailable', 'occupied', 'seminar'])) {
             return false;
         }
 
@@ -153,8 +153,8 @@ class User extends Authenticatable
             return true;
         }
 
-        // If manually set to 'Present', 'online', or 'in meeting'
-        if (in_array(strtolower($this->status ?? ''), ['present', 'online', 'in meeting'])) {
+        // If manually set to 'Online' or 'Present'
+        if (in_array(strtolower($this->status ?? ''), ['online', 'present'])) {
             return true;
         }
 
@@ -177,22 +177,22 @@ class User extends Authenticatable
 
         $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
 
-        $query->whereNotIn('status', ['Unavailable', 'Seminar', 'offline']);
+        $query->whereNotIn('status', ['Offline', 'offline', 'Unavailable', 'Out of Office', 'Occupied', 'occupied', 'Seminar', 'seminar']);
 
         if ($isDemoMode) {
-            // In demo mode, everyone who isn't Unavailable/Seminar is present
+            // In demo mode, everyone who isn't Offline/Occupied is present
             // We ignore last_activity_at to prevent timeouts during presentations
             return $query;
         }
 
-        // For non-demo mode, check if they are manually marked 'Present' OR if they are scheduled + recently active
+        // For non-demo mode, check if they are manually marked 'Online'/'Present' OR if they are scheduled + recently active
         // Crucially, they MUST have been active recently regardless of manual status or schedule.
         $activeSince = $now->copy()->subMinutes(10);
 
         $query->where('last_activity_at', '>=', $activeSince)
               ->where(function ($q) use ($dayOfWeek, $time) {
-                  // Either they have a manual 'Present', 'online', or 'in meeting' status...
-                  $q->whereIn('status', ['Present', 'online', 'in meeting'])
+                  // Either they have a manual 'Online' or 'Present' status...
+                  $q->whereIn('status', ['Online', 'online', 'Present', 'present'])
                     // ...or they match their defined schedule
                     ->orWhereHas('practitionerSchedules', function ($scheduleQuery) use ($dayOfWeek, $time) {
                         $scheduleQuery->where('day_of_week', $dayOfWeek)

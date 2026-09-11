@@ -389,18 +389,16 @@
                     <div x-ref="doctorScroll" class="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth doctor-scroll">
                         @foreach($doctors as $index => $doctor)
                             @php
-                                $displayStatus = $doctor->is_present ? 'Present' : (in_array(strtolower($doctor->status ?? ''), ['seminar']) ? 'Seminar' : 'Unavailable');
+                                $displayStatus = $doctor->is_present ? 'Online' : (in_array(strtolower($doctor->status ?? ''), ['occupied', 'seminar']) ? 'Occupied' : 'Offline');
                                 $statusDotClass = match (strtolower($displayStatus)) {
-                                    'present' => 'status-dot-available',
-                                    'seminar' => 'status-dot-away',
-                                    'unavailable' => 'status-dot-offline',
+                                    'online' => 'status-dot-available',
+                                    'occupied' => 'status-dot-away',
                                     default => 'status-dot-offline',
                                 };
                                 $statusBadge = match (strtolower($displayStatus)) {
-                                    'present' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
-                                    'seminar' => 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
-                                    'out of office' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
-                                    default => 'bg-slate-100 dark:bg-slate-800 dark:text-slate-300',
+                                    'online' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+                                    'occupied' => 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+                                    default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
                                 };
                                 $roleLabel = match (true) {
                                     str_contains($doctor->role ?? '', 'pedia') => 'Pediatrician',
@@ -432,7 +430,7 @@
                                     {{-- Status badge + schedule --}}
                                     <div class="flex items-center gap-2 mb-3">
                                         <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
-                                        @if(strtolower($displayStatus) === 'present')
+                                        @if(in_array(strtolower($displayStatus), ['online', 'present']))
                                             <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">• In Clinic Now</span>
                                         @endif
                                     </div>
@@ -461,18 +459,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($doctors as $index => $doctor)
                         @php
-                            $displayStatus = $doctor->is_present ? 'Present' : (in_array(strtolower($doctor->status ?? ''), ['seminar']) ? 'Seminar' : 'Unavailable');
+                            $displayStatus = $doctor->is_present ? 'Online' : (in_array(strtolower($doctor->status ?? ''), ['occupied', 'seminar']) ? 'Occupied' : 'Offline');
                             $statusDotClass = match (strtolower($displayStatus)) {
-                                'present' => 'status-dot-available',
-                                'seminar' => 'status-dot-away',
-                                'unavailable' => 'status-dot-offline',
+                                'online' => 'status-dot-available',
+                                'occupied' => 'status-dot-away',
                                 default => 'status-dot-offline',
                             };
                             $statusBadge = match (strtolower($displayStatus)) {
-                                'present' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
-                                'seminar' => 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
-                                'out of office' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
-                                default => 'bg-slate-100 dark:bg-slate-800 dark:text-slate-300',
+                                'online' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+                                'occupied' => 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+                                default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
                             };
                             $roleLabel = match (true) {
                                 str_contains($doctor->role ?? '', 'pedia') => 'Pediatrician',
@@ -501,7 +497,7 @@
 
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
-                                @if(strtolower($displayStatus) === 'present')
+                                @if(in_array(strtolower($displayStatus), ['online', 'present']))
                                     <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">• In Clinic Now</span>
                                 @endif
                             </div>

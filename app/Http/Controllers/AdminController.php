@@ -748,7 +748,15 @@ class AdminController extends Controller
         }
 
         if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+            if ($request->status === 'Online') {
+                $query->whereIn('status', ['Online', 'online', 'Present', 'Active', 'In Office']);
+            } elseif ($request->status === 'Offline') {
+                $query->whereIn('status', ['Offline', 'offline', 'Out of Office', 'Unavailable', 'inactive']);
+            } elseif ($request->status === 'Occupied') {
+                $query->whereIn('status', ['Occupied', 'occupied', 'Seminar', 'On Seminar', 'in meeting', 'In Meeting']);
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         $staff = $query->with('practitionerSchedules')->orderBy('created_at', 'desc')->get();
@@ -1202,11 +1210,19 @@ class AdminController extends Controller
 
         $name = ucwords(strtolower(trim(str_replace(['Dr. ', 'Dr '], '', $validated['name']))));
 
+        $normalizedStatus = match(strtolower($validated['status'])) {
+            'online', 'present' => 'Online',
+            'offline', 'unavailable', 'out of office' => 'Offline',
+            'occupied', 'seminar', 'in meeting' => 'Occupied',
+            default => $validated['status']
+        };
+
         $user = \App\Models\User::create([
             'name' => $name,
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
-            'status' => $validated['status'],
+            'status' => $normalizedStatus,
+            'last_activity_at' => $normalizedStatus === 'Online' ? now() : null,
             // 'schedule' string column is no longer used, we save to practitioner_schedules instead
             'avatar_path' => $avatarPath,
         ]);
@@ -1254,12 +1270,25 @@ class AdminController extends Controller
 
         $name = ucwords(strtolower(trim(str_replace(['Dr. ', 'Dr '], '', $validated['name']))));
 
+        $normalizedStatus = match(strtolower($validated['status'])) {
+            'online', 'present' => 'Online',
+            'offline', 'unavailable', 'out of office' => 'Offline',
+            'occupied', 'seminar', 'in meeting' => 'Occupied',
+            default => $validated['status']
+        };
+
         $data = [
             'name' => $name,
             'email' => $validated['email'],
-            'status' => $validated['status'],
+            'status' => $normalizedStatus,
             // 'schedule' string column is no longer used directly
         ];
+
+        if ($normalizedStatus === 'Online') {
+            $data['last_activity_at'] = now();
+        } elseif ($normalizedStatus === 'Offline') {
+            $data['last_activity_at'] = null;
+        }
 
         if (! empty($validated['password'])) {
             $data['password'] = bcrypt($validated['password']);
@@ -1331,17 +1360,24 @@ class AdminController extends Controller
             'status' => 'required|string',
         ]);
 
-        $updateData = ['status' => $request->status];
+        $normalizedStatus = match(strtolower($request->status)) {
+            'online', 'present', 'active' => 'Online',
+            'offline', 'unavailable', 'out of office' => 'Offline',
+            'occupied', 'seminar', 'in meeting' => 'Occupied',
+            default => $request->status
+        };
 
-        // If an admin forces someone to be "Present", artificially bump their heartbeat
-        // so they instantly appear online without needing to log in.
-        if (in_array($request->status, ['Present', 'Active', 'Online', 'Available', 'In Office'])) {
+        $updateData = ['status' => $normalizedStatus];
+
+        if ($normalizedStatus === 'Online') {
             $updateData['last_activity_at'] = now();
+        } elseif ($normalizedStatus === 'Offline') {
+            $updateData['last_activity_at'] = null;
         }
 
         $user->update($updateData);
 
-        return back()->with('success', 'Staff status updated successfully!');
+        return back()->with('success', "Staff status updated to {$normalizedStatus} successfully!");
     }
 
     public function promoteToAdmin(\App\Models\User $user)
