@@ -274,4 +274,14 @@ class User extends Authenticatable
 
         return asset('uploads/'.$cleanPath);
     }
+
+    /**
+     * Conversations this user is a participant of.
+     */
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_user')
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
 }

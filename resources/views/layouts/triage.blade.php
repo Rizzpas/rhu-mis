@@ -412,6 +412,8 @@
             }
         });
     </script>
+
+    @include('partials.chat-widget')
 </body>
 
 </html>

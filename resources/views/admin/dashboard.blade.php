@@ -36,63 +36,120 @@
         </div>
     </div>
 
-    <!-- Hero Banner / Quick Status -->
-    <div
-        class="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-emerald-800 rounded-3xl p-8 mb-10 shadow-[0_20px_50px_rgba(16,185,129,0.15)] text-white">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div class="flex items-center gap-6">
-                <div class="shrink-0">
-                    <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center overflow-hidden shadow-lg">
-                        @if(Auth::user()->avatar_url)
-                            <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
-                        @else
-                            <span class="text-3xl font-black text-white">
-                                {{ Auth::user()->initials }}
-                            </span>
-                        @endif
-                    </div>
+    <!-- Hero Banner / Quick Status (Mockup Chrome + Black-Green Gradient) -->
+    <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-10 text-white bg-gradient-to-br from-slate-950 via-[#0a1513] to-[#04241d] border border-emerald-500/20 shadow-2xl">
+        <!-- Ambient radial glow -->
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Browser Chrome Mockup Top Bar -->
+        <div class="relative z-10 flex flex-wrap items-center justify-between gap-3 pb-5 mb-6 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block shadow-xs"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block shadow-xs"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block shadow-xs"></span>
                 </div>
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-black mb-2">Welcome back, {{ Auth::user()->name }}!</h1>
-                    <p class="text-emerald-50 text-sm font-medium opacity-90 max-w-xl" x-data>
-                        The health center is currently <span
-                            class="px-2 py-0.5 bg-emerald-400/30 rounded-lg font-bold">Operational</span>.
-                        You have overseen <span
-                            class="font-bold underline decoration-emerald-300 underline-offset-4" x-text="$store.dashboard.filtered.currentPeriodConsultations">{{ number_format($currentPeriodConsultations) }}</span>
-                        consultations during this <span x-text="$store.dashboard.filterLabel">{{ $timeFilter }}</span> window.
-                    </p>
+                <div class="px-3 py-1 rounded-lg bg-white/5 text-[11px] text-slate-300 font-mono flex items-center gap-1.5 border border-white/10 shadow-inner">
+                    <svg class="w-3 h-3 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <span>silang.gov.ph / Rural Health Unit &bull; Command Center</span>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-4">
-                <!-- Live Time Card -->
-                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[130px]"
-                    x-data="{ time: '{{ now()->format('h:i A') }}' }"
-                    x-init="setInterval(() => { time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) }, 1000)">
-                    <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-200 opacity-80 mb-1">Local Time
-                    </p>
-                    <p class="text-lg font-bold tabular-nums" x-text="time">{{ now()->format('h:i A') }}</p>
+
+            <div class="flex items-center gap-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Live System Operational
+                </span>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Left Info Column -->
+            <div class="lg:col-span-8 space-y-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/15 text-emerald-300 text-[11px] font-bold uppercase tracking-widest rounded-lg border border-emerald-500/30 shadow-xs">
+                        Municipality of Silang
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-slate-300 border border-white/10">
+                        {{ ucfirst(Auth::user()->role ?? 'Admin') }} Portal
+                    </span>
                 </div>
-                <!-- Date Card -->
-                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[130px]">
-                    <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-200 opacity-80 mb-1">System Date
-                    </p>
-                    <p class="text-lg font-bold">{{ now()->format('M d, Y') }}</p>
+
+                <h1 class="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-white">
+                    Welcome back, <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200 bg-clip-text text-transparent">{{ Auth::user()->name }}</span>!
+                </h1>
+
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal max-w-2xl" x-data>
+                    The health facility is currently active and processing patients. You have overseen
+                    <span class="font-bold text-white bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30" x-text="$store.dashboard.filtered.currentPeriodConsultations">{{ number_format($currentPeriodConsultations) }}</span>
+                    consultations during this <span class="text-emerald-300 font-semibold" x-text="$store.dashboard.filterLabel">{{ $timeFilter }}</span> window.
+                </p>
+
+                <!-- Live Metrics Pills -->
+                <div class="pt-2 flex flex-wrap items-center gap-3">
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-xl px-3.5 py-2 border border-slate-700/60 flex items-center gap-2.5 shadow-sm"
+                        x-data="{ time: '{{ now()->format('h:i:s A') }}' }"
+                        x-init="setInterval(() => { time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) }, 1000)">
+                        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                        <div>
+                            <p class="text-[9px] uppercase font-bold tracking-widest text-slate-400">Local Time</p>
+                            <p class="text-xs font-bold text-white tabular-nums" x-text="time">{{ now()->format('h:i:s A') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-xl px-3.5 py-2 border border-slate-700/60 flex items-center gap-2.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div>
+                            <p class="text-[9px] uppercase font-bold tracking-widest text-slate-400">System Date</p>
+                            <p class="text-xs font-bold text-white">{{ now()->format('M d, Y') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-xl px-3.5 py-2 border border-slate-700/60 flex items-center gap-2.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <div>
+                            <p class="text-[9px] uppercase font-bold tracking-widest text-slate-400">Active Duty</p>
+                            <p class="text-xs font-bold text-white">{{ $presentDoctors + $presentNurses }} Personnel</p>
+                        </div>
+                    </div>
                 </div>
-                <!-- Personnel Card -->
-                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[130px]">
-                    <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-200 opacity-80 mb-1">Active Duty
-                    </p>
-                    <p class="text-lg font-bold">{{ $presentDoctors + $presentNurses }} Personnel</p>
+
+                <!-- Action Buttons -->
+                <div class="pt-2 flex flex-wrap items-center gap-3">
+                    <a href="{{ route('admin.analytics') }}" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <span>Launch Analytics</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                    <button onclick="window.print()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/10 transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Print Report</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Circular Showcase Frame -->
+            <div class="lg:col-span-4 flex justify-center">
+                <div class="relative">
+                    <div class="relative w-44 h-44 sm:w-56 sm:h-56 rounded-full overflow-hidden border-4 border-emerald-400/40 shadow-2xl shadow-emerald-500/30 bg-slate-900 flex items-center justify-center ring-8 ring-emerald-500/10 transition-transform duration-500 hover:scale-105">
+                        <img src="{{ asset('assets/images/rhu-facility.jpg') }}" alt="RHU Facility" class="w-full h-full object-cover">
+                    </div>
+                    <!-- Overlaid status badge -->
+                    <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-emerald-400/30 text-[10px] font-bold text-emerald-300 shadow-lg flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        Main Clinical Facility
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- Decorative background elements -->
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl"></div>
     </div>
 
     <!-- Key Performance Indicators (KPIs) -->
-    <div class="grid grid-cols-2 lg:grid-cols-6 gap-6 xl:gap-8 mb-10" x-data="{
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-5 xl:gap-6 mb-10" x-data="{
                 stats: {
                     totalDoctors: {{ $totalDoctors }},
                     presentDoctors: {{ $presentDoctors }},
@@ -110,134 +167,187 @@
                 }
              }" x-init="init()">
 
-        <!-- Real-time Stats -->
+        <!-- 1. Doctors Present -->
         <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-            class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex flex-col justify-center relative">
+            class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between relative group">
             
             <!-- Custom Tooltip -->
-            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
+            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none text-center font-medium leading-relaxed border border-slate-800" style="display: none;">
                 Number of doctors currently marked as 'Present' vs total doctors registered in the system.
-                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-950"></div>
             </div>
 
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
-                Doctors Present
-                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </p>
-            <div class="flex items-end gap-2">
-                <p class="text-2xl font-black text-green-600 dark:text-green-400" x-text="stats.presentDoctors">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Doctors Present</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <p class="text-3xl font-black text-slate-900 dark:text-white" x-text="stats.presentDoctors">
                     {{ $presentDoctors }}
                 </p>
-                <p class="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1">/ <span
-                        x-text="stats.totalDoctors">{{ $totalDoctors }}</span></p>
+                <p class="text-xs font-bold text-slate-400 dark:text-slate-500">/ <span x-text="stats.totalDoctors">{{ $totalDoctors }}</span> total</p>
+            </div>
+            <div class="mt-2 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                <span>Active in clinic</span>
             </div>
         </div>
 
+        <!-- 2. Nurses Present -->
         <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-            class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex flex-col justify-center relative">
+            class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between relative group">
             
             <!-- Custom Tooltip -->
-            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
+            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none text-center font-medium leading-relaxed border border-slate-800" style="display: none;">
                 Total number of clinical and vitals nurses currently on duty.
-                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-950"></div>
             </div>
 
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
-                Nurses Present
-                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </p>
-            <p class="text-2xl font-black text-teal-600 dark:text-teal-400" x-text="stats.presentNurses">
-                {{ $presentNurses }}
-            </p>
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Nurses Present</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <p class="text-3xl font-black text-slate-900 dark:text-white" x-text="stats.presentNurses">
+                    {{ $presentNurses }}
+                </p>
+                <p class="text-xs font-bold text-slate-400 dark:text-slate-500">active duty</p>
+            </div>
+            <div class="mt-2 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                <span>Triage & Vitals</span>
+            </div>
         </div>
 
+        <!-- 3. Today's Appointments -->
         <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-            class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex flex-col justify-center relative">
+            class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between relative group">
             
             <!-- Custom Tooltip -->
-            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
+            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none text-center font-medium leading-relaxed border border-slate-800" style="display: none;">
                 Total appointments scheduled for the current date.
-                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-950"></div>
             </div>
 
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
-                Today's Appts
-                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </p>
-            <p class="text-2xl font-black text-purple-600 dark:text-purple-400" x-text="stats.todayAppointments">
-                {{ $todayAppointments }}
-            </p>
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Today's Appts</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <p class="text-3xl font-black text-slate-900 dark:text-white" x-text="stats.todayAppointments">
+                    {{ $todayAppointments }}
+                </p>
+                <p class="text-xs font-bold text-slate-400 dark:text-slate-500">bookings</p>
+            </div>
+            <div class="mt-2 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                <span>Scheduled today</span>
+            </div>
         </div>
 
-        <!-- Filtered Stats -->
+        <!-- 4. Period Volume -->
         <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-            class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex flex-col justify-center relative transition-all duration-300">
+            class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between relative group">
             
             <!-- Custom Tooltip -->
-            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
+            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none text-center font-medium leading-relaxed border border-slate-800" style="display: none;">
                 Total volume of consultations handled within the currently selected timeframe.
-                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-950"></div>
             </div>
 
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
-                Period Volume
-                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </p>
-            <div class="flex items-end gap-2">
-                <p class="text-2xl font-black text-slate-800 dark:text-white" x-data x-text="$store.dashboard.filtered.currentPeriodConsultations">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Period Volume</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <p class="text-3xl font-black text-slate-900 dark:text-white" x-data x-text="$store.dashboard.filtered.currentPeriodConsultations">
                     {{ number_format($currentPeriodConsultations) }}
                 </p>
-                <span x-data="{ get trend() { return $store.dashboard.filtered.trendPercentage } }" class="text-xs font-bold mb-1 flex items-center"
-                    :class="trend > 0 ? 'text-red-500' : (trend < 0 ? 'text-green-500' : 'text-slate-400')">
+                <span x-data="{ get trend() { return $store.dashboard.filtered.trendPercentage } }" class="text-[11px] font-bold flex items-center"
+                    :class="trend > 0 ? 'text-emerald-600 dark:text-emerald-400' : (trend < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400')">
                     <template x-if="trend > 0">
-                        <span class="flex items-center"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span x-text="trend + '%'"></span></span>
+                        <span class="flex items-center"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span x-text="'+' + trend + '%'"></span></span>
                     </template>
                     <template x-if="trend < 0">
-                        <span class="flex items-center"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg><span x-text="Math.abs(trend) + '%'"></span></span>
+                        <span class="flex items-center"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg><span x-text="trend + '%'"></span></span>
                     </template>
                     <template x-if="trend === 0">
-                        <span>— 0%</span>
+                        <span>0%</span>
                     </template>
                 </span>
             </div>
+            <div class="mt-2 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                <span>Total consults</span>
+            </div>
         </div>
 
+        <!-- 5. Avg Wait Time -->
         <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-            class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex flex-col justify-center relative">
+            class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between relative group">
             
             <!-- Custom Tooltip -->
-            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
+            <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none text-center font-medium leading-relaxed border border-slate-800" style="display: none;">
                 Average time a patient spends in the queue from triage until they are seen by a doctor.
-                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-950"></div>
             </div>
 
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
-                Avg Wait Time
-                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </p>
-            <p class="text-2xl font-black text-orange-600 dark:text-orange-400" x-data>
-                <span x-text="`${$store.dashboard.filtered.avgWaitTime} min`">{{ $avgWaitTime }} min</span>
-            </p>
-        </div>
-
-        <div
-            class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex flex-col justify-center relative overflow-hidden group">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-2 flex items-center gap-1" title="Percentage of patients who returned for their required follow-up appointments within the designated window.">
-                Return Rate
-                <svg class="w-3 h-3 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </p>
-            <div class="relative w-16 h-16 ml-auto mr-auto">
-                <canvas id="returnRateChart"></canvas>
-                <div class="absolute inset-0 flex items-center justify-center" x-data>
-                    <span class="text-sm font-black"
-                        :class="$store.dashboard.filtered.complianceRate >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'"
-                        x-text="$store.dashboard.filtered.complianceRate + '%'">{{ $complianceRate }}%</span>
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Avg Wait Time</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-            <!-- Tooltip -->
+            <div class="flex items-baseline gap-2">
+                <p class="text-3xl font-black text-slate-900 dark:text-white" x-data>
+                    <span x-text="`${$store.dashboard.filtered.avgWaitTime}m`">{{ $avgWaitTime }}m</span>
+                </p>
+                <p class="text-xs font-bold text-slate-400 dark:text-slate-500">triage to doc</p>
+            </div>
+            <div class="mt-2 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                <span>Queue efficiency</span>
+            </div>
+        </div>
+
+        <!-- 6. Return Rate -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Return Rate</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="relative w-12 h-12 shrink-0">
+                    <canvas id="returnRateChart"></canvas>
+                    <div class="absolute inset-0 flex items-center justify-center" x-data>
+                        <span class="text-[11px] font-black text-slate-900 dark:text-white"
+                            x-text="$store.dashboard.filtered.complianceRate + '%'">{{ $complianceRate }}%</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-black text-slate-900 dark:text-white" x-data x-text="`${$store.dashboard.filtered.complianceRate}%`">{{ $complianceRate }}%</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500">Follow-up</p>
+                </div>
+            </div>
+            <div class="mt-2 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                <span>Compliance target</span>
+            </div>
+            <!-- Tooltip Hover Overlay -->
             <div
-                class="absolute inset-0 bg-slate-900/90 flex items-center justify-center p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" x-data>
-                <p class="text-[10px] text-white text-center font-medium leading-tight">Based on <span x-text="$store.dashboard.filtered.totalFollowupsNeeded">{{ $totalFollowupsNeeded }}</span>
+                class="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" x-data>
+                <p class="text-[10px] text-white text-center font-medium leading-tight">Based on <span x-text="$store.dashboard.filtered.totalFollowupsNeeded" class="font-bold text-slate-200">{{ $totalFollowupsNeeded }}</span>
                     patients requiring follow-up in the last 30+ days.</p>
             </div>
         </div>
@@ -250,31 +360,32 @@
         <div class="xl:col-span-1 space-y-8 order-2 xl:order-2">
             <!-- Recent Announcements -->
             <div
-                class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 h-fit overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">Recent
-                        Announcements</h3>
+                class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs border border-slate-200/90 dark:border-slate-700/80 h-fit overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700/80 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/60">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                        <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Recent Announcements</h3>
+                    </div>
                     <a href="{{ route('admin.announcements.index') }}"
-                        class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 transition-colors">Manage
-                        All</a>
+                        class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">Manage All</a>
                 </div>
                 <div class="p-6 space-y-4">
                     @forelse($announcements as $announcement)
                         <div
-                            class="border-b border-slate-100 dark:border-slate-800/50 pb-4 last:border-0 last:pb-0 hover:-translate-y-0.5 transition-transform">
+                            class="border-b border-slate-100 dark:border-slate-700/60 pb-4 last:border-0 last:pb-0 hover:translate-x-1 transition-transform">
                             <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $announcement->title }}</p>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                {{ Str::limit($announcement->content, 60) }}
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                                {{ Str::limit($announcement->content, 80) }}
                             </p>
                             <span
-                                class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mt-2">{{ $announcement->created_at->diffForHumans() }}</span>
+                                class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mt-2">{{ $announcement->created_at->diffForHumans() }}</span>
                         </div>
                     @empty
                         <div
-                            class="flex flex-col items-center justify-center py-12 text-center text-slate-500 dark:text-slate-400">
+                            class="flex flex-col items-center justify-center py-10 text-center text-slate-500 dark:text-slate-400">
                             <div
-                                class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-full mb-3 border border-slate-100 dark:border-slate-800/50">
-                                <svg class="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor"
+                                class="p-3 bg-slate-100 dark:bg-slate-700/50 rounded-2xl mb-3 border border-slate-200/60 dark:border-slate-600/50">
+                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
@@ -290,48 +401,48 @@
 
             <!-- Data Retention Alerts -->
             <div
-                class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-red-100 dark:border-red-900/30 h-fit overflow-hidden">
+                class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs border border-slate-200/90 dark:border-slate-700/80 h-fit overflow-hidden">
                 <div
-                    class="px-6 py-4 border-b border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 flex justify-between items-center">
+                    class="px-6 py-4 border-b border-slate-100 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/60 flex justify-between items-center">
                     <h3
-                        class="text-sm font-bold text-red-800 dark:text-red-400 flex items-center gap-2 uppercase tracking-wide">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-wider">
+                        <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
                             </path>
                         </svg>
-                        Data Retention
+                        Data Retention Compliance
                     </h3>
                     @if($pendingDeletionCount > 0)
                         <span
-                            class="bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-400 text-xs px-2 py-0.5 rounded border border-red-200 dark:border-red-800 font-extrabold">{{ $pendingDeletionCount }}
+                            class="bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-300 text-[10px] px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800 font-extrabold">{{ $pendingDeletionCount }}
                             Pending</span>
                     @endif
                 </div>
                 <div class="p-6">
                     @if($pendingDeletionCount > 0)
                         <div
-                            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 p-4 rounded-2xl mb-4 text-sm shadow-sm">
+                            class="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 p-4 rounded-2xl mb-4 text-xs leading-relaxed shadow-xs">
                             <strong class="font-bold">Critical Action Required:</strong> There are <strong
-                                class="font-bold">{{ $pendingDeletionCount }}</strong> inactive patient records scheduled for
+                                class="font-bold text-rose-800 dark:text-rose-200">{{ $pendingDeletionCount }}</strong> inactive patient records scheduled for
                             permanent deletion based on the 10-year RHU Data Retention Policy.
                         </div>
                         <a href="{{ route('admin.retention.index') }}"
-                            class="block bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-colors text-center shadow-sm">
+                            class="block bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all text-center shadow-md shadow-rose-600/20 active:scale-95">
                             Review & Manage Records
                         </a>
                     @else
                         <div
                             class="flex flex-col items-center justify-center py-4 text-center text-slate-500 dark:text-slate-400">
                             <div
-                                class="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 dark:text-emerald-400 rounded-full mb-3 border border-emerald-100 dark:border-emerald-800/30">
+                                class="p-3 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-2xl mb-3 border border-slate-200/80 dark:border-slate-600/60">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
                                     </path>
                                 </svg>
                             </div>
-                            <p class="font-bold text-slate-800 dark:text-white text-sm">All data is compliant.</p>
-                            <p class="text-xs mt-1">No expired records require deletion.</p>
+                            <p class="font-bold text-slate-800 dark:text-white text-sm">All records are compliant.</p>
+                            <p class="text-xs mt-1">No expired records require deletion at this time.</p>
                         </div>
                     @endif
                 </div>
@@ -344,22 +455,32 @@
             <!-- Operational Charts Row -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div
-                    class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-1" title="Tracks the volume of patient visits over the last 7 days.">
-                        Daily Volume
-                        <svg class="w-3 h-3 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </h3>
+                    class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 dark:border-slate-700/80 flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5" title="Tracks the volume of patient visits over the last 7 days.">
+                                Daily Volume
+                                <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Patient consultation throughput</p>
+                        </div>
+                    </div>
                     <div class="relative h-64 w-full">
                         <canvas id="visitVolumeChart"></canvas>
                     </div>
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-1" title="Distribution of patient arrival times throughout the day.">
-                        Peak Hours
-                        <svg class="w-3 h-3 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </h3>
+                    class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 dark:border-slate-700/80 flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5" title="Distribution of patient arrival times throughout the day.">
+                                Peak Hours
+                                <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Distribution across operating hours</p>
+                        </div>
+                    </div>
                     <div class="relative h-64 w-full">
                         <canvas id="peakHoursChart"></canvas>
                     </div>
@@ -369,22 +490,24 @@
             <!-- Pharmacy Inventory Insights -->
             <div class="mt-8">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="p-2.5 bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 rounded-xl">
+                    <div class="w-10 h-10 bg-slate-100 dark:bg-slate-700/70 text-slate-700 dark:text-slate-300 rounded-2xl border border-slate-200/80 dark:border-slate-600/60 flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-extrabold text-slate-800 dark:text-white">Pharmacy Inventory Insights</h3>
+                        <h3 class="text-base font-extrabold text-slate-800 dark:text-white">Pharmacy Inventory Insights</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Medicine dispensing demand and trends for restocking decisions.</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Top Dispensed Medicines -->
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80">
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-1">
-                            Top Dispensed (30 Days)
-                            <svg class="w-3 h-3 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Most frequently dispensed medicines over the last 30 days."><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </h3>
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 dark:border-slate-700/80">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1">
+                                Top Dispensed (30 Days)
+                                <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Most frequently dispensed medicines over the last 30 days."><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </h3>
+                        </div>
                         @if($topDispensed->count() > 0)
                             <div class="relative h-64 w-full">
                                 <canvas id="adminTopDispensedChart"></canvas>
@@ -400,11 +523,13 @@
                     </div>
 
                     <!-- Monthly Dispensing Trend -->
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80">
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-1">
-                            Monthly Dispensing Trend
-                            <svg class="w-3 h-3 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Total units dispensed per month over the last 6 months."><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </h3>
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 dark:border-slate-700/80">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1">
+                                Monthly Dispensing Trend
+                                <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Total units dispensed per month over the last 6 months."><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </h3>
+                        </div>
                         @if($monthlyTrend->count() > 0)
                             <div class="relative h-64 w-full">
                                 <canvas id="adminMonthlyTrendChart"></canvas>
@@ -421,24 +546,26 @@
                 </div>
             </div>
 
-            <!-- Analytics Call To Action -->
-            <div class="mt-8 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-3xl p-8 shadow-lg relative overflow-hidden group">
-                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
+            <!-- Analytics Call To Action (Matching Dark Black-Green Aesthetic) -->
+            <div class="mt-8 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 rounded-3xl p-8 border border-emerald-500/20 shadow-xl relative overflow-hidden group text-white">
                 <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div class="text-white max-w-xl">
-                        <h3 class="text-2xl font-black mb-2 tracking-tight">Need Deeper Insights?</h3>
-                        <p class="text-emerald-100/90 text-sm font-medium leading-relaxed">
+                    <div class="max-w-xl space-y-2">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-full border border-emerald-500/20">
+                            Advanced Intelligence
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-black tracking-tight">Need Deeper Epidemiological Insights?</h3>
+                        <p class="text-slate-300 text-xs sm:text-sm font-normal leading-relaxed">
                             Access the full Epidemiological & Operational Analytics suite. View full-screen interactive charts for Demographics, Barangay Heatmaps, Triage Severity, Staff Workload, and export comprehensive CSV and PDF reports.
                         </p>
                     </div>
-                    <a href="{{ route('admin.analytics') }}" class="shrink-0 bg-white text-emerald-800 hover:bg-emerald-50 px-8 py-4 rounded-2xl font-bold transition-all shadow-md hover:shadow-xl hover:-translate-y-1 flex items-center gap-3">
-                        Launch Analytics
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    <a href="{{ route('admin.analytics') }}" class="shrink-0 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 px-7 py-3.5 rounded-2xl font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/25 hover:scale-105 active:scale-95 flex items-center gap-2.5 cursor-pointer">
+                        <span>Launch Analytics</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>
                 </div>
-                <!-- Decorative Elements -->
-                <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
-                <div class="absolute -left-20 -top-20 w-48 h-48 bg-emerald-400 rounded-full mix-blend-multiply filter blur-2xl opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+                <!-- Ambient Glow Elements -->
+                <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none"></div>
+                <div class="absolute -left-20 -top-20 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
             </div>
         </div>
     </div>

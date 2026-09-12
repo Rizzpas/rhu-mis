@@ -151,19 +151,7 @@
         }
 
         function redirectToLogin() {
-            // Submit fallback form if needed, or redirect directly to login
-            let form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ route("logout") }}';
-
-            let csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-
-            form.appendChild(csrfToken);
-            document.body.appendChild(form);
-            form.submit();
+            window.location.href = '{{ route("logout") }}';
         }
 
         // Test helper for developer/verification

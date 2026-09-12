@@ -3,20 +3,20 @@
 @section('header', 'Detailed Analytics')
 
 @section('content')
-<div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Epidemiological & Operational Analytics</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Deep-dive into facility metrics and patient trends.</p>
+        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Epidemiological & Operational Analytics</h2>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Deep-dive into facility metrics, population demographics, and patient flow trends.</p>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
-        <button onclick="window.print()" class="hidden md:flex items-center gap-2 h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span>Export Full Report</span>
+        <button onclick="window.print()" class="hidden md:flex items-center gap-2 h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>Export Report</span>
         </button>
-        <form action="{{ route('admin.analytics') }}" method="GET" class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 transition-all">
-            <label for="time_filter" class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1 shrink-0">Global Timeframe:</label>
-            <div class="w-36">
+        <form action="{{ route('admin.analytics') }}" method="GET" class="h-10 flex items-center gap-2 bg-white dark:bg-slate-900/90 px-3 rounded-xl shadow-2xs border border-slate-200/90 dark:border-slate-700/80 focus-within:border-emerald-500 transition-all">
+            <label for="time_filter" class="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-wider pl-1 shrink-0">Timeframe:</label>
+            <div class="w-32">
                 <x-select 
                     name="time_filter" 
                     id="time_filter" 
@@ -24,10 +24,81 @@
                     :value="$timeFilter" 
                     @change="$el.closest('form').submit()"
                     size="sm"
-                    class="border-0 shadow-none font-bold text-slate-800 dark:text-white !py-0 focus:ring-0"
+                    class="border-0 shadow-none font-bold text-xs text-slate-800 dark:text-white !py-0 focus:ring-0 bg-transparent"
                 />
             </div>
         </form>
+    </div>
+</div>
+
+@php
+    $totalPeriodVisits = array_sum($visitVolumeData['data'] ?? [0]);
+    $peakHourMaxVal = max($peakHoursData['data'] ?? [0]);
+    $peakHourIndex = array_search($peakHourMaxVal, $peakHoursData['data'] ?? []);
+    $busiestHourLabel = ($peakHourMaxVal > 0 && $peakHourIndex !== false) ? ($peakHoursData['labels'][$peakHourIndex] ?? 'N/A') : '8:00 AM - 5:00 PM';
+    
+    $maxDemoGroup = 'N/A';
+    $maxDemoCount = 0;
+    foreach (($demoData['labels'] ?? []) as $idx => $label) {
+        $totalDemo = ($demoData['Male'][$idx] ?? 0) + ($demoData['Female'][$idx] ?? 0);
+        if ($totalDemo > $maxDemoCount) {
+            $maxDemoCount = $totalDemo;
+            $maxDemoGroup = $label;
+        }
+    }
+    
+    $dominantSeverity = 'Standard';
+    if (!empty($severityData) && count($severityData) > 0) {
+        $sortedSev = is_array($severityData) ? $severityData : $severityData->toArray();
+        arsort($sortedSev);
+        $dominantSeverity = ucfirst(array_key_first($sortedSev) ?? 'Mild');
+    }
+@endphp
+
+<!-- Quick Intelligence Ribbon -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Total Consults</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ number_format($totalPeriodVisits) }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">Recorded in period</p>
+        </div>
+        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Peak Patient Flow</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ $busiestHourLabel }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">High traffic window</p>
+        </div>
+        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Top Demographic</p>
+            <p class="text-lg font-black text-slate-900 dark:text-white mt-1 truncate max-w-[140px]" title="{{ $maxDemoGroup }}">{{ $maxDemoGroup }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">Majority demographic</p>
+        </div>
+        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Triage Priority</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ $dominantSeverity }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">Prevalent urgency</p>
+        </div>
+        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
     </div>
 </div>
 
@@ -35,21 +106,26 @@
 <div x-data="analyticsDashboard()" class="space-y-8">
     
     <!-- Row 1: Visit Volume (Full Width) -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col w-full h-[500px]">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full h-[520px]">
         <div class="flex justify-between items-center mb-6">
-            <div>
-                <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
-                    class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                    Visit Volume
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                        Tracks the total number of consultations recorded over the selected timeframe.
-                        <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
-                    </div>
-                </h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Total consultations over time</p>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <div>
+                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
+                        class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                        Visit Volume
+                        <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        
+                        <!-- Custom Tooltip -->
+                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                            Tracks the total number of consultations recorded over the selected timeframe.
+                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                        </div>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total patient consultations over time</p>
+                </div>
             </div>
             <div class="flex items-center gap-2">
                 <!-- Custom Timeframe Dropdown -->
@@ -141,21 +217,26 @@
 
     <!-- Row 2: Peak Hours & Workload (Half/Half) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col h-[400px]">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col h-[420px]">
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                        class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                        Peak Hours
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        
-                        <!-- Custom Tooltip -->
-                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                            Visualizes the busiest times of day based on consultation start times.
-                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
-                        </div>
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Consultation distribution by hour</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                            Peak Hours
+                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            
+                            <!-- Custom Tooltip -->
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                                Visualizes the busiest times of day based on consultation start times.
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                            </div>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Consultation distribution by hour</p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <!-- Custom Timeframe Dropdown -->
@@ -242,21 +323,26 @@
             <div class="relative flex-1 w-full min-h-0"><canvas id="peakHoursChart"></canvas></div>
         </div>
 
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col h-[400px]">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col h-[420px]">
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                        class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                        Staff Workload
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        
-                        <!-- Custom Tooltip -->
-                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                            Shows the distribution of patient cases across different doctors and nurses.
-                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
-                        </div>
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Consultations per doctor/nurse</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                            Staff Workload
+                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            
+                            <!-- Custom Tooltip -->
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                                Shows the distribution of patient cases across different doctors and nurses.
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                            </div>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Consultations per doctor/nurse</p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <!-- Custom Timeframe Dropdown -->
@@ -345,21 +431,26 @@
     </div>
 
     <!-- Row 3: Age-Sex Pyramid (Full Width) -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col w-full h-[500px]">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full h-[520px]">
         <div class="flex justify-between items-center mb-6">
-            <div>
-                <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                    Patient Demographics (Age-Sex Pyramid)
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                        Age and sex distribution of the patient population.
-                        <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
-                    </div>
-                </h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Age distribution among patients</p>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <div>
+                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                        class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                        Patient Demographics (Age-Sex Pyramid)
+                        <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        
+                        <!-- Custom Tooltip -->
+                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                            Age and sex distribution of the patient population.
+                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                        </div>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Age and gender distribution among patients</p>
+                </div>
             </div>
             <div class="flex items-center gap-2">
                 <!-- Custom Timeframe Dropdown -->
@@ -447,21 +538,26 @@
     </div>
     <!-- Row 4: Classification & Severity (Half/Half Doughnuts) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col h-[400px]">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col h-[420px]">
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                        class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                        Patient Classification
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        
-                        <!-- Custom Tooltip -->
-                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                            Breakdown of patients by age group (Pediatric, Adult, etc.).
-                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
-                        </div>
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Distribution by sector</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                    </div>
+                    <div>
+                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                            Patient Classification
+                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            
+                            <!-- Custom Tooltip -->
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                                Breakdown of patients by age group (Pediatric, Adult, etc.).
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                            </div>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Distribution by patient sector</p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <!-- Custom Timeframe Dropdown -->
@@ -548,21 +644,26 @@
             <div class="relative flex-1 w-full min-h-0"><canvas id="classificationChart"></canvas></div>
         </div>
 
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col h-[400px]">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col h-[420px]">
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                        class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                        Triage Severity
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        
-                        <!-- Custom Tooltip -->
-                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                            Percentage of patients categorized by urgency level (Mild, Moderate, Severe).
-                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
-                        </div>
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Case priority breakdown</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <div>
+                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                            Triage Severity
+                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            
+                            <!-- Custom Tooltip -->
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                                Percentage of patients categorized by urgency level (Mild, Moderate, Severe).
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                            </div>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Case priority and urgency breakdown</p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <!-- Custom Timeframe Dropdown -->
@@ -651,21 +752,26 @@
     </div>
 
     <!-- Row 5: Barangay Heatmap (Full Width) -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col w-full" style="min-height: 400px;">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full" style="min-height: 400px;">
         <div class="flex justify-between items-center mb-6">
-            <div>
-                <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                    Barangay Heatmap
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                        Distribution of patients by their residence location within Silang.
-                        <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
-                    </div>
-                </h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Patient distribution across Silang</p>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div>
+                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                        class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                        Barangay Heatmap
+                        <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        
+                        <!-- Custom Tooltip -->
+                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                            Distribution of patients by their residence location within Silang.
+                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                        </div>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Patient distribution across Silang communities</p>
+                </div>
             </div>
             <div class="flex items-center gap-2">
                 <!-- Custom Timeframe Dropdown -->
@@ -753,22 +859,27 @@
     </div>
 
     <!-- Row 6: Staff Productivity -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col w-full mt-8">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full mt-8 transition-all">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2 relative">
-                    <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    Staff Productivity
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-64 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none font-medium leading-relaxed" style="display: none;">
-                        Aggregate performance data measuring how quickly and effectively staff process patient records and consultations.
-                        <div class="absolute top-full left-10 border-[6px] border-transparent border-t-slate-900"></div>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Staff Productivity</h3>
+                        <div x-data="{ showTooltip: false }" class="relative inline-flex items-center">
+                            <button @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none font-medium leading-relaxed" style="display: none;">
+                                Aggregate performance data measuring how quickly and effectively staff process patient records and consultations.
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-slate-900"></div>
+                            </div>
+                        </div>
                     </div>
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Performance metrics and throughput</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Clinical performance metrics, throughput, and operational efficiency</p>
+                </div>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
                 <!-- Custom Staff Selector Dropdown with Live Search -->
@@ -799,8 +910,8 @@
                 }" @click.outside="open = false; search = ''">
                     <button type="button" 
                             @click="open = !open; if(open) $nextTick(() => $refs.staffSearchInput?.focus())"
-                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
-                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/10' : ''">
                         <span class="max-w-[150px] sm:max-w-[200px] truncate" x-text="selectedLabel"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0"
                              :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -885,8 +996,8 @@
                     }
                 }" @click.outside="open = false">
                     <button type="button" @click="open = !open"
-                            class="h-10 px-4 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
-                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2.5 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/10' : ''">
                         <span x-text="options[productivityTime] || 'This Month'"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
                              :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -919,127 +1030,123 @@
             </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex border-b border-gray-200 dark:border-slate-700 mb-6 overflow-x-auto">
-            <button @click="productivityTab = 'clinical'" :class="{'border-emerald-500 text-emerald-600 dark:text-emerald-400': productivityTab === 'clinical', 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300': productivityTab !== 'clinical'}" class="whitespace-nowrap py-3 px-4 border-b-2 font-bold text-sm transition-colors">
+        <!-- Segmented Tab Switcher -->
+        <div class="inline-flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 gap-1 mb-6 self-start">
+            <button type="button" @click="productivityTab = 'clinical'"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+                    :class="productivityTab === 'clinical' 
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs' 
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 Clinical Performance (Doctors/Nurses)
             </button>
-            <button @click="productivityTab = 'triage'" :class="{'border-emerald-500 text-emerald-600 dark:text-emerald-400': productivityTab === 'triage', 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300': productivityTab !== 'triage'}" class="whitespace-nowrap py-3 px-4 border-b-2 font-bold text-sm transition-colors">
+            <button type="button" @click="productivityTab = 'triage'"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+                    :class="productivityTab === 'triage' 
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs' 
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 Front-Line Efficiency (Triage/Info Desk)
             </button>
         </div>
 
         <!-- KPI Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <!-- Clinical KPI Cards -->
             <template x-if="productivityTab === 'clinical'">
-                <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="bg-emerald-50 dark:bg-slate-700/50 p-4 rounded-xl border border-emerald-100 dark:border-slate-700 text-center col-span-1 relative">
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
-                        The mean time spent in actual consultation per patient for the selected period.
-                        <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="bg-slate-50/70 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Duration</span>
+                        <div class="w-7 h-7 rounded-xl bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
                     </div>
-
-                    <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
-                        Avg Duration
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </p>
-                    <p class="text-2xl font-black text-gray-800 dark:text-white" x-text="productivityData.avgDuration + ' min'">{{ $staffProductivity['avgDuration'] }} min</p>
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight" x-text="productivityData.avgDuration">{{ $staffProductivity['avgDuration'] }}</span>
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">min / patient</span>
+                    </div>
                 </div>
             </template>
             <template x-if="productivityTab === 'clinical'">
-                <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="bg-blue-50 dark:bg-slate-700/50 p-4 rounded-xl border border-blue-100 dark:border-slate-700 text-center col-span-1 relative">
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
-                        Total count of unique patients successfully treated and completed.
-                        <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="bg-slate-50/70 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Patients</span>
+                        <div class="w-7 h-7 rounded-xl bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
                     </div>
-
-                    <p class="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
-                        Total Patients
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </p>
-                    <p class="text-2xl font-black text-gray-800 dark:text-white" x-text="productivityData.totalPatients">{{ $staffProductivity['totalPatients'] }}</p>
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight" x-text="productivityData.totalPatients">{{ $staffProductivity['totalPatients'] }}</span>
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">completed</span>
+                    </div>
                 </div>
             </template>
             <template x-if="productivityTab === 'clinical'">
-                <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="bg-purple-50 dark:bg-slate-700/50 p-4 rounded-xl border border-purple-100 dark:border-slate-700 text-center col-span-1 relative">
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
-                        Average number of patients processed per hour of active clinical work.
-                        <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="bg-slate-50/70 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Throughput</span>
+                        <div class="w-7 h-7 rounded-xl bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
                     </div>
-
-                    <p class="text-xs text-purple-600 dark:text-purple-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
-                        Throughput (Per Hr)
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </p>
-                    <p class="text-2xl font-black text-gray-800 dark:text-white" x-text="productivityData.patientsPerHour">{{ $staffProductivity['patientsPerHour'] }}</p>
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight" x-text="productivityData.patientsPerHour">{{ $staffProductivity['patientsPerHour'] }}</span>
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">patients / hr</span>
+                    </div>
                 </div>
             </template>
             <template x-if="productivityTab === 'clinical'">
-                <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="bg-rose-50 dark:bg-slate-700/50 p-4 rounded-xl border border-rose-100 dark:border-slate-700 text-center col-span-1 relative">
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
-                        Percentage of queued consultations that were cancelled or did not proceed.
-                        <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="bg-slate-50/70 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cancellation Rate</span>
+                        <div class="w-7 h-7 rounded-xl bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
                     </div>
-
-                    <p class="text-xs text-rose-600 dark:text-rose-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
-                        Cancellation Rate
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </p>
-                    <p class="text-2xl font-black text-gray-800 dark:text-white" x-text="productivityData.cancellationRate + '%'">{{ $staffProductivity['cancellationRate'] }}%</p>
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight" x-text="productivityData.cancellationRate + '%'">{{ $staffProductivity['cancellationRate'] }}%</span>
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">rate</span>
+                    </div>
                 </div>
             </template>
 
             <!-- Triage KPI Cards -->
             <template x-if="productivityTab === 'triage'">
-                <div x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                    class="bg-amber-50 dark:bg-slate-700/50 p-4 rounded-xl border border-amber-100 dark:border-slate-700 text-center col-span-1 relative">
-                    
-                    <!-- Custom Tooltip -->
-                    <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute z-50 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none text-center font-medium leading-relaxed" style="display: none;">
-                        Average duration patients spend in the queue before being seen by a provider.
-                        <div class="absolute top-full left-1/2 -ml-1 border-[6px] border-transparent border-t-slate-900"></div>
+                <div class="bg-slate-50/70 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 transition-all col-span-2 sm:col-span-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Wait Time</span>
+                        <div class="w-7 h-7 rounded-xl bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
                     </div>
-
-                    <p class="text-xs text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
-                        Avg Wait Time
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </p>
-                    <p class="text-2xl font-black text-gray-800 dark:text-white" x-text="productivityData.avgWaitTime + ' min'">{{ $staffProductivity['avgWaitTime'] }} min</p>
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight" x-text="productivityData.avgWaitTime">{{ $staffProductivity['avgWaitTime'] }}</span>
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">min in queue</span>
+                    </div>
                 </div>
             </template>
         </div>
 
-        <!-- Charts -->
+        <!-- Charts Area -->
         <div class="h-[400px]">
             <!-- Clinical Chart -->
             <div x-show="productivityTab === 'clinical'" class="flex flex-col h-full w-full">
                 <div class="flex justify-between items-center mb-4">
-                    <h4 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                        class="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 relative">
-                        Avg Consultation Duration (mins) per Provider
-                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        
-                        <!-- Custom Tooltip -->
-                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                            The mean time spent in actual consultation per patient.
-                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">Avg Consultation Duration (mins) per Provider</h4>
+                        <div x-data="{ showTooltip: false }" class="relative inline-flex items-center">
+                            <button @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2.5 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
+                                The mean time spent in actual consultation per patient.
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
+                            </div>
                         </div>
-                    </h4>
+                    </div>
                     <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                         <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-8 w-8 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-lg transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                class="h-8 w-8 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
                                 :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
@@ -1051,9 +1158,9 @@
                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                              x-transition:leave-end="opacity-0 translate-y-1 scale-95"
                              style="display: none;" 
-                             class="absolute right-0 mt-1.5 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1 z-50 backdrop-blur-md">
+                             class="absolute right-0 mt-1.5 w-36 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1 z-50 backdrop-blur-md">
                             <a href="#" @click.prevent="exportChart('durationStaffChart'); openExport = false" 
-                               class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-lg transition-colors">
+                               class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 <span>Download PNG</span>
                             </a>
@@ -1066,20 +1173,21 @@
             <!-- Triage Chart -->
             <div x-show="productivityTab === 'triage'" class="flex flex-col h-full w-full">
                 <div class="flex justify-between items-center mb-4">
-                    <h4 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                        class="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 relative">
-                        Triage Encoding Speed (seconds) per Nurse
-                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        
-                        <!-- Custom Tooltip -->
-                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
-                            Average time taken by triage nurses to input patient vital signs and symptoms.
-                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">Triage Encoding Speed (seconds) per Nurse</h4>
+                        <div x-data="{ showTooltip: false }" class="relative inline-flex items-center">
+                            <button @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2.5 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl pointer-events-none font-medium leading-tight" style="display: none;">
+                                Average time taken by triage nurses to input patient vital signs and symptoms.
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-900"></div>
+                            </div>
                         </div>
-                    </h4>
+                    </div>
                     <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
                         <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-8 w-8 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-lg transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
+                                class="h-8 w-8 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
                                 :class="openExport ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         </button>
@@ -1091,9 +1199,9 @@
                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                              x-transition:leave-end="opacity-0 translate-y-1 scale-95"
                              style="display: none;" 
-                             class="absolute right-0 mt-1.5 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1 z-50 backdrop-blur-md">
+                             class="absolute right-0 mt-1.5 w-36 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1 z-50 backdrop-blur-md">
                             <a href="#" @click.prevent="exportChart('encodingSpeedChart'); openExport = false" 
-                               class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-lg transition-colors">
+                               class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 <span>Download PNG</span>
                             </a>

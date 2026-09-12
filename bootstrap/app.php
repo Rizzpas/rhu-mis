@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\TrackUserActivity::class,
             \App\Http\Middleware\PreventBackHistory::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'logout',
+            'appointment/logout',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

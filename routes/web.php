@@ -46,7 +46,7 @@ Route::get('/appointment/logout', function () {
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Forgot Password
 use App\Http\Controllers\Auth\StaffPasswordResetController;
@@ -67,6 +67,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/notifications', [NotificationController::class, 'index']);
     Route::post('/api/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/api/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+});
+
+// Chat API
+use App\Http\Controllers\ChatController;
+
+Route::middleware('auth')->prefix('chat')->group(function () {
+    Route::get('/conversations', [ChatController::class, 'index'])->name('chat.conversations');
+    Route::post('/conversations', [ChatController::class, 'store'])->name('chat.conversations.store');
+    Route::get('/conversations/{conversation}/messages', [ChatController::class, 'messages'])->name('chat.messages');
+    Route::post('/conversations/{conversation}/messages', [ChatController::class, 'sendMessage'])->name('chat.messages.send');
+    Route::post('/conversations/{conversation}/read', [ChatController::class, 'markAsRead'])->name('chat.read');
+    Route::get('/users', [ChatController::class, 'users'])->name('chat.users');
+    Route::get('/unread-count', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
 });
 
 // Front Desk / Information Desk Routes

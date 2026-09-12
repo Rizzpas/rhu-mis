@@ -478,6 +478,8 @@
         });
     </script>
     @stack('scripts')
+
+    @include('partials.chat-widget')
 </body>
 
 </html>
