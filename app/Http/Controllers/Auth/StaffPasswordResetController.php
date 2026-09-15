@@ -18,6 +18,10 @@ class StaffPasswordResetController extends Controller
      */
     public function showForgotForm()
     {
+        if (! session()->pull('staff_portal_token')) {
+            abort(404);
+        }
+
         return view('auth.forgot-password');
     }
 
@@ -69,6 +73,8 @@ class StaffPasswordResetController extends Controller
         $user->save();
 
         Cache::forget('password_reset_otp_'.$request->email);
+
+        session(['staff_portal_token' => true]);
 
         return redirect()->route('login')->with('success', 'Password reset successfully. You can now log in.');
     }

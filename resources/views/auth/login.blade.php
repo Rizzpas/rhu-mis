@@ -165,7 +165,7 @@
 
                 <!-- Forgot Password -->
                 <div class="flex items-center justify-end pt-1">
-                    <a href="{{ route('staff.password.request') }}" class="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 font-bold text-right transition-colors underline-offset-2 hover:underline">
+                    <a href="{{ route('staff.password.access') }}" class="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 font-bold text-right transition-colors underline-offset-2 hover:underline">
                         Forgot your password?
                     </a>
                 </div>

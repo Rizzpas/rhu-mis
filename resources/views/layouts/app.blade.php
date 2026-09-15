@@ -717,21 +717,18 @@
             </div>
 
             <div class="flex flex-col gap-3">
-                <h3 class="font-bold text-white mb-2 uppercase tracking-wide">Legal & Staff</h3>
+                <h3 class="font-bold text-white mb-2 uppercase tracking-wide">Legal</h3>
                 <a href="#" @click.prevent="showPrivacy = true" class="hover:text-white hover:underline transition">Data
                     Privacy Policy</a>
                 @auth
                     <a href="{{ \App\Http\Controllers\AuthController::homeRouteForRole(auth()->user()->role ?? 'guest') }}"
                         class="hover:text-white hover:underline transition mt-4 font-bold text-teal-300">Go to Dashboard</a>
-                @else
-                    <a href="{{ route('login') }}"
-                        class="hover:text-white hover:underline transition mt-4 font-bold text-green-400">Staff Log In</a>
                 @endauth
             </div>
         </div>
         <div
             class="text-center text-xs text-green-800 dark:text-green-400/60 mt-8 pt-8 border-t border-green-800/30 flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto px-4 md:px-8 relative z-10">
-            <p class="text-green-200/60 font-medium">&copy; {{ date('Y') }} Rural Health Unit. All rights reserved.</p>
+            <a href="{{ route('staff.access') }}" class="text-green-200/60 font-medium hover:text-green-200/60 no-underline" style="cursor: default; text-decoration: none;">&copy; {{ date('Y') }} Rural Health Unit. All rights reserved.</a>
             <p class="text-green-200/60 mt-2 md:mt-0 font-medium">Refined by <span class="text-green-400 font-bold">MIS
                     Team</span></p>
         </div>

@@ -44,12 +44,24 @@ Route::get('/appointment/logout', function () {
 })->name('appointment.logout');
 
 // Auth Routes
+// Hidden staff portal entry — sets a session token so the login page will render.
+// This route is triggered from a disguised link in the public footer.
+Route::get('/staff-access', function () {
+    session(['staff_portal_token' => true]);
+    return redirect()->route('login');
+})->name('staff.access');
+
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Forgot Password
 use App\Http\Controllers\Auth\StaffPasswordResetController;
+
+Route::get('/staff-access/forgot-password', function () {
+    session(['staff_portal_token' => true]);
+    return redirect()->route('staff.password.request');
+})->name('staff.password.access');
 
 Route::get('/staff/forgot-password', [StaffPasswordResetController::class, 'showForgotForm'])->name('staff.password.request');
 Route::post('/staff/forgot-password/otp', [StaffPasswordResetController::class, 'sendResetOtp'])->middleware('throttle:3,1')->name('staff.password.send-otp');
