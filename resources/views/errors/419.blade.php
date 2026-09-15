@@ -5,9 +5,6 @@
     <x-breadcrumb :items="['Error 419 (Page Expired)' => '']" />
 
     <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 shadow-xl backdrop-blur-md p-8 sm:p-12 relative overflow-hidden text-center">
-        {{-- Decorative Gradient Bar --}}
-        <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600"></div>
-
         {{-- Big Graphic Number with Icon --}}
         <div class="relative mb-6">
             <span class="font-display text-8xl sm:text-9xl font-black text-amber-500/15 dark:text-amber-400/10 tracking-tighter select-none">

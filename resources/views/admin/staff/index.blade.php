@@ -3,6 +3,14 @@
 @section('header', 'Staff Management')
 
 @section('content')
+    {{-- Fallback toast dispatcher for staff creation/update success --}}
+    @if(session('success'))
+    <div x-data x-init="setTimeout(() => { $dispatch('add-toast', { type: 'success', message: {{ Js::from(session('success')) }} }) }, 150)" class="hidden"></div>
+    @endif
+    @if(session('error'))
+    <div x-data x-init="setTimeout(() => { $dispatch('add-toast', { type: 'error', message: {{ Js::from(session('error')) }} }) }, 150)" class="hidden"></div>
+    @endif
+
     <div class="bg-slate-50 dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 overflow-hidden"
         x-data="{
             showAddDoctor: {{ old('_form') == 'add_staff' && $errors->any() ? 'true' : 'false' }},
@@ -193,327 +201,476 @@
         </div>
 
         <!-- Add Staff Modal -->
-        <div x-show="showAddDoctor" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto">
+        <div x-show="showAddDoctor" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto"
+             x-data="{
+                step: 1,
+                firstName: @js(old('first_name', '')),
+                middleName: @js(old('middle_name', '')),
+                lastName: @js(old('last_name', '')),
+                suffix: @js(old('suffix', '')),
+                email: @js(old('email', '')),
+                role: @js(old('role', '')),
+                status: @js(old('status', 'Online')),
+                openRoleDropdown: false,
+                openStatusDropdown: false,
+                availableRoles: [
+                    @can('promote-admin')
+                    { value: 'super_admin', label: 'Super Admin' },
+                    { value: 'admin', label: 'Admin' },
+                    @endcan
+                    { value: 'regular_doctor', label: 'Regular Doctor' },
+                    { value: 'pedia_doctor', label: 'Pedia Doctor' },
+                    { value: 'laboratory', label: 'Laboratory' },
+                    { value: 'radiology', label: 'Radiology' },
+                    { value: 'clinical_nurse', label: 'Clinical Nurse' },
+                    { value: 'vitals_nurse', label: 'Vitals Nurse (Triage)' },
+                    { value: 'pharmacy', label: 'Pharmacist' },
+                    { value: 'information_desk', label: 'Front Desk / Information Desk' }
+                ],
+                availableStatuses: [
+                    { value: 'Online', label: 'Online', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
+                    { value: 'Offline', label: 'Offline', dot: 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]' },
+                    { value: 'Occupied', label: 'Occupied', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }
+                ],
+                getRoleLabel(val) {
+                    const found = this.availableRoles.find(r => r.value === val);
+                    return found ? found.label : (val ? val.replace(/_/g, ' ') : 'Select Role');
+                },
+                getStatusLabel(val) {
+                    const found = this.availableStatuses.find(s => s.value === val);
+                    return found ? found.label : (val || 'Select Status');
+                },
+                get fullName() {
+                    return `${this.firstName || ''} ${this.middleName || ''} ${this.lastName || ''} ${this.suffix || ''}`.replace(/\s+/g, ' ').trim();
+                },
+                get initials() {
+                    let f = this.firstName ? this.firstName.trim().charAt(0) : '';
+                    let l = this.lastName ? this.lastName.trim().charAt(0) : '';
+                    return (f + l).toUpperCase() || 'ST';
+                },
+                avatarFileName: '',
+                avatarPreview: null,
+                isDragging: false,
+                dragCounter: 0,
+                isProcessingAvatar: false,
+                avatarUploadSuccess: false,
+                handleDragEnter(e) {
+                    if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                        this.dragCounter++;
+                        this.isDragging = true;
+                    }
+                },
+                handleDragLeave(e) {
+                    if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                        this.dragCounter--;
+                        if (this.dragCounter <= 0) {
+                            this.isDragging = false;
+                            this.dragCounter = 0;
+                        }
+                    }
+                },
+                handleDrop(e) {
+                    this.isDragging = false;
+                    this.dragCounter = 0;
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                        const file = e.dataTransfer.files[0];
+                        if (file && file.type.startsWith('image/')) {
+                            this.handleStaffAvatar(file);
+                        }
+                    }
+                },
+                handleStaffAvatar(file) {
+                    if (!file || !file.type.startsWith('image/')) return;
+                    this.isProcessingAvatar = true;
+                    this.avatarUploadSuccess = false;
+                    const input = document.getElementById('staff_create_avatar_input');
+                    $store.imageCropper.open(file, {
+                        aspectRatio: 1,
+                        circular: true,
+                        subtitle: 'Square crop (1:1) — Staff Avatar',
+                        onApply: (blob, previewUrl) => {
+                            this.isProcessingAvatar = true;
+                            setTimeout(() => {
+                                this.avatarPreview = previewUrl;
+                                this.avatarFileName = file.name;
+                                setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                this.isProcessingAvatar = false;
+                                this.avatarUploadSuccess = true;
+                                setTimeout(() => { this.avatarUploadSuccess = false; }, 4000);
+                            }, 350);
+                        },
+                        onCancel: () => {
+                            this.isProcessingAvatar = false;
+                        }
+                    });
+                },
+                password: '',
+                passwordConfirmation: '',
+                get strength() {
+                    let score = 0;
+                    if (this.password.length > 7) score++;
+                    if (/[A-Z]/.test(this.password)) score++;
+                    if (/[0-9]/.test(this.password)) score++;
+                    if (/[^A-Za-z0-9]/.test(this.password)) score++;
+                    return score;
+                },
+                get strengthColor() {
+                    if (this.strength === 0) return 'bg-slate-200 dark:bg-slate-700';
+                    if (this.strength === 1) return 'bg-red-500';
+                    if (this.strength === 2) return 'bg-yellow-500';
+                    if (this.strength === 3) return 'bg-teal-500';
+                    return 'bg-green-500';
+                },
+                get strengthText() {
+                    if (this.password.length === 0) return '';
+                    if (this.strength <= 1) return 'Weak';
+                    if (this.strength === 2) return 'Fair';
+                    if (this.strength === 3) return 'Good';
+                    return 'Strong';
+                },
+                days: {Mon: false, Tue: false, Wed: false, Thu: false, Fri: false, Sat: false, Sun: false},
+                timeIn: '08:00',
+                timeOut: '17:00',
+                get formattedSchedule() {
+                    const selected = Object.keys(this.days).filter(d => this.days[d]);
+                    if (selected.length === 0) return '';
+                    const formatTime = (time24) => {
+                        if(!time24) return '';
+                        let [hours, minutes] = time24.split(':');
+                        let ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12 || 12;
+                        return `${hours}:${minutes} ${ampm}`;
+                    };
+                    return `${selected.join(', ')} (${formatTime(this.timeIn)} - ${formatTime(this.timeOut)})`;
+                },
+                get schedulePayload() {
+                    const selected = Object.keys(this.days).filter(d => this.days[d]);
+                    if (selected.length === 0) return '';
+                    return JSON.stringify(selected.map(day => ({
+                        day: day,
+                        time_in: this.timeIn,
+                        time_out: this.timeOut
+                    })));
+                },
+                nextStep() {
+                    if (this.step === 1) {
+                        if (!this.firstName || !this.lastName || !this.email) {
+                            alert('Please fill out First Name, Last Name, and Email Address.');
+                            return;
+                        }
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(this.email)) {
+                            alert('Please enter a valid email address.');
+                            return;
+                        }
+                    }
+                    if (this.step === 2 && !this.role) {
+                        alert('Please select a role for the staff member.');
+                        return;
+                    }
+                    if (this.step < 3) this.step++;
+                },
+                prevStep() {
+                    if (this.step > 1) this.step--;
+                },
+                goToStep(s) {
+                    if (s < this.step) {
+                        this.step = s;
+                    } else if (s === 2 && this.firstName && this.lastName && this.email) {
+                        this.step = 2;
+                    } else if (s === 3 && this.firstName && this.lastName && this.email && this.role) {
+                        this.step = 3;
+                    }
+                }
+             }">
             <div class="flex items-center justify-center min-h-screen px-4 py-8">
-                <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" @click="showAddDoctor = false">
+                <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
+                    @click="showAddDoctor = false">
                 </div>
-                <div x-data="{
-                            step: 1,
-                            firstName: @js(old('first_name', '')),
-                            middleName: @js(old('middle_name', '')),
-                            lastName: @js(old('last_name', '')),
-                            suffix: @js(old('suffix', '')),
-                            email: @js(old('email', '')),
-                            role: @js(old('role', '')),
-                            status: @js(old('status', 'Online')),
-                            openRoleDropdown: false,
-                            openStatusDropdown: false,
-                            availableRoles: [
-                                @can('promote-admin')
-                                { value: 'super_admin', label: 'Super Admin' },
-                                { value: 'admin', label: 'Admin' },
-                                @endcan
-                                { value: 'regular_doctor', label: 'Regular Doctor' },
-                                { value: 'pedia_doctor', label: 'Pedia Doctor' },
-                                { value: 'laboratory', label: 'Laboratory' },
-                                { value: 'radiology', label: 'Radiology' },
-                                { value: 'clinical_nurse', label: 'Clinical Nurse' },
-                                { value: 'vitals_nurse', label: 'Vitals Nurse (Triage)' },
-                                { value: 'pharmacy', label: 'Pharmacist' },
-                                { value: 'information_desk', label: 'Front Desk / Information Desk' }
-                            ],
-                            availableStatuses: [
-                                { value: 'Online', label: 'Online', dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
-                                { value: 'Offline', label: 'Offline', dot: 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]' },
-                                { value: 'Occupied', label: 'Occupied', dot: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }
-                            ],
-                            getRoleLabel(val) {
-                                const found = this.availableRoles.find(r => r.value === val);
-                                return found ? found.label : (val ? val.replace(/_/g, ' ') : 'Select Role');
-                            },
-                            getStatusLabel(val) {
-                                const found = this.availableStatuses.find(s => s.value === val);
-                                return found ? found.label : (val || 'Select Status');
-                            },
-                            get fullName() {
-                                return `${this.firstName} ${this.middleName} ${this.lastName} ${this.suffix}`.replace(/\s+/g, ' ').trim();
-                            },
-                            avatarFileName: '',
-                            avatarPreview: null,
-                            isDragging: false,
-                            dragCounter: 0,
-                            isProcessingAvatar: false,
-                            avatarUploadSuccess: false,
-                            handleDragEnter(e) {
-                                if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
-                                    this.dragCounter++;
-                                    this.isDragging = true;
-                                }
-                            },
-                            handleDragLeave(e) {
-                                if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
-                                    this.dragCounter--;
-                                    if (this.dragCounter <= 0) {
-                                        this.isDragging = false;
-                                        this.dragCounter = 0;
-                                    }
-                                }
-                            },
-                            handleDrop(e) {
-                                this.isDragging = false;
-                                this.dragCounter = 0;
-                                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-                                    const file = e.dataTransfer.files[0];
-                                    if (file && file.type.startsWith('image/')) {
-                                        this.handleStaffAvatar(file);
-                                    }
-                                }
-                            },
-                            handleStaffAvatar(file) {
-                                if (!file || !file.type.startsWith('image/')) return;
-                                this.isProcessingAvatar = true;
-                                this.avatarUploadSuccess = false;
-                                const input = document.getElementById('staff_create_avatar_input');
-                                $store.imageCropper.open(file, {
-                                    aspectRatio: 1,
-                                    circular: true,
-                                    subtitle: 'Square crop (1:1) — Staff Avatar',
-                                    onApply: (blob, previewUrl) => {
-                                        this.isProcessingAvatar = true;
-                                        setTimeout(() => {
-                                            this.avatarPreview = previewUrl;
-                                            this.avatarFileName = file.name;
-                                            setCroppedFile(input, blob, file.name || 'avatar.jpg');
-                                            this.isProcessingAvatar = false;
-                                            this.avatarUploadSuccess = true;
-                                            setTimeout(() => { this.avatarUploadSuccess = false; }, 4000);
-                                        }, 350);
-                                    },
-                                    onCancel: () => {
-                                        this.isProcessingAvatar = false;
-                                    }
-                                });
-                            },
-                            password: '', 
-                            passwordConfirmation: '',
-                            get strength() {
-                                let score = 0;
-                                if (this.password.length > 7) score++;
-                                if (/[A-Z]/.test(this.password)) score++;
-                                if (/[0-9]/.test(this.password)) score++;
-                                if (/[^A-Za-z0-9]/.test(this.password)) score++;
-                                return score;
-                            },
-                            get strengthColor() {
-                                if (this.strength === 0) return 'bg-slate-200 dark:bg-slate-700';
-                                if (this.strength === 1) return 'bg-red-500';
-                                if (this.strength === 2) return 'bg-yellow-500';
-                                if (this.strength === 3) return 'bg-teal-500';
-                                return 'bg-green-500';
-                            },
-                            get strengthText() {
-                                if (this.password.length === 0) return '';
-                                if (this.strength <= 1) return 'Weak';
-                                if (this.strength === 2) return 'Fair';
-                                if (this.strength === 3) return 'Good';
-                                return 'Strong';
-                            },
-                            days: {Mon: false, Tue: false, Wed: false, Thu: false, Fri: false, Sat: false, Sun: false},
-                            timeIn: '08:00',
-                            timeOut: '17:00',
-                            get formattedSchedule() {
-                                const selected = Object.keys(this.days).filter(d => this.days[d]);
-                                if (selected.length === 0) return '';
-                                const formatTime = (time24) => {
-                                    if(!time24) return '';
-                                    let [hours, minutes] = time24.split(':');
-                                    let ampm = hours >= 12 ? 'PM' : 'AM';
-                                    hours = hours % 12 || 12;
-                                    return `${hours}:${minutes} ${ampm}`;
-                                };
-                                return `${selected.join(', ')} (${formatTime(this.timeIn)} - ${formatTime(this.timeOut)})`;
-                            },
-                            get schedulePayload() {
-                                const selected = Object.keys(this.days).filter(d => this.days[d]);
-                                if (selected.length === 0) return '';
-                                return JSON.stringify(selected.map(day => ({
-                                    day: day,
-                                    time_in: this.timeIn,
-                                    time_out: this.timeOut
-                                })));
-                            },
-                            nextStep() {
-                                if (this.step === 1 && (!this.firstName || !this.lastName || !this.email)) {
-                                    alert('Please fill out all required fields in Step 1.');
-                                    return;
-                                }
-                                if (this.step === 2 && !this.role) {
-                                    alert('Please select a role.');
-                                    return;
-                                }
-                                if (this.step < 3) this.step++;
-                            },
-                            prevStep() {
-                                if (this.step > 1) this.step--;
-                            }
-                        }" class="relative z-10 w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto flex flex-col pointer-events-auto">
-                    <div
-                        class="relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl transform transition-all w-full min-h-[580px] md:min-h-[620px] max-h-[92vh] flex flex-col border border-slate-200/80 dark:border-slate-800"
-                        @dragenter.prevent="handleDragEnter($event)"
-                        @dragleave.prevent="handleDragLeave($event)"
-                        @dragover.prevent
-                        @drop.prevent="handleDrop($event)">
-                        
-                        <!-- Full Modal Drag & Drop Overlay (Whole Box Dropzone) -->
-                        <div x-show="isDragging"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 scale-98"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-98"
-                             style="display: none;"
-                             class="absolute inset-0 z-50 rounded-3xl bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center pointer-events-none border-4 border-dashed border-teal-400">
-                            <div class="w-20 h-20 rounded-full bg-teal-500/20 ring-8 ring-teal-500/30 flex items-center justify-center text-teal-400 animate-bounce mb-4">
-                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+
+                <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl transform transition-all sm:max-w-2xl lg:max-w-3xl w-full z-10 max-h-[92vh] flex flex-col border border-slate-200/80 dark:border-slate-800 overflow-hidden"
+                     @dragenter.prevent="handleDragEnter($event)"
+                     @dragleave.prevent="handleDragLeave($event)"
+                     @dragover.prevent
+                     @drop.prevent="handleDrop($event)">
+
+                    <!-- Full Modal Drag & Drop Overlay -->
+                    <div x-show="isDragging"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-98"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-98"
+                         style="display: none;"
+                         class="absolute inset-0 z-50 rounded-3xl bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center pointer-events-none border-4 border-dashed border-teal-400">
+                        <div class="w-20 h-20 rounded-full bg-teal-500/20 ring-8 ring-teal-500/30 flex items-center justify-center text-teal-400 animate-bounce mb-4">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-black text-white tracking-tight mb-1">Drop Image to Add Photo</h4>
+                        <p class="text-sm text-teal-200/90 max-w-sm font-medium">
+                            Release your photo anywhere inside this modal to open the 1:1 image cropper
+                        </p>
+                        <div class="mt-4 px-4 py-1.5 rounded-full bg-teal-500/20 text-xs font-bold text-teal-300 border border-teal-400/30 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span>Supports JPG, PNG, WEBP, GIF</span>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('admin.staff.store') }}" method="POST" enctype="multipart/form-data"
+                          class="flex flex-col flex-1 min-h-0"
+                          @submit="if(step < 3) { $event.preventDefault(); nextStep(); } else if (password !== passwordConfirmation) { $event.preventDefault(); alert('Passwords do not match'); }">
+                        @csrf
+                        <input type="hidden" name="_form" value="add_staff">
+                        <input type="hidden" name="name" :value="fullName">
+                        <input type="hidden" name="schedule" :value="schedulePayload">
+                        <input type="hidden" name="role" :value="role">
+                        <input type="hidden" name="status" :value="status">
+
+                        <!-- Modal Header -->
+                        <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 flex justify-between items-center shrink-0 rounded-t-3xl">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-xs">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Add New Staff Member</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        <span x-text="step === 1 ? 'Step 1 of 3: Personal Information' : (step === 2 ? 'Step 2 of 3: Role & Schedule' : 'Step 3 of 3: Security & Confirmation')"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" @click="showAddDoctor = false"
+                                class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                            </div>
-                            <h4 class="text-xl font-black text-white tracking-tight mb-1">Drop Image to Add Photo</h4>
-                            <p class="text-sm text-teal-200/90 max-w-sm font-medium">
-                                Release your photo anywhere inside this box to open the 1:1 image cropper
-                            </p>
-                            <div class="mt-4 px-4 py-1.5 rounded-full bg-teal-500/20 text-xs font-bold text-teal-300 border border-teal-400/30 flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                <span>Supports JPG, PNG, WEBP, GIF</span>
-                            </div>
+                            </button>
                         </div>
 
-                        <form action="{{ route('admin.staff.store') }}" method="POST" enctype="multipart/form-data"
-                            class="flex flex-col h-full flex-1"
-                            @submit="if(step < 3) { $event.preventDefault(); nextStep(); } else if (password !== passwordConfirmation) { $event.preventDefault(); alert('Passwords do not match'); }">
-                            @csrf
-                            <input type="hidden" name="_form" value="add_staff">
-                            <input type="hidden" name="name" :value="fullName">
-                            <input type="hidden" name="schedule" :value="schedulePayload">
+                        <!-- Sleek Stepper Navigation Bar -->
+                        <div class="px-6 sm:px-8 py-2.5 bg-slate-100/70 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
+                            <!-- Step 1 pill -->
+                            <button type="button" @click="goToStep(1)"
+                                    class="flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer group"
+                                    :class="step === 1 ? 'text-teal-600 dark:text-teal-400' : (step > 1 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400')">
+                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all"
+                                      :class="step === 1 ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/20' : (step > 1 ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500')">
+                                    <template x-if="step > 1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                    </template>
+                                    <template x-if="step <= 1">1</template>
+                                </span>
+                                <span class="hidden sm:inline tracking-wide">Personal Info</span>
+                            </button>
 
-                            <div
-                                class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex justify-between items-center relative overflow-hidden shrink-0">
-                                <!-- Progress Bar -->
-                                <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
-                                    :style="`width: ${(step / 3) * 100}%`"></div>
-                                <div class="relative z-10">
-                                    <h3 class="text-xl leading-6 font-bold text-slate-900 dark:text-white tracking-tight"
-                                        x-text="step === 1 ? 'Step 1: Personal Info' : (step === 2 ? 'Step 2: Role & Schedule' : 'Step 3: Security & Finish')">
-                                        Add New Staff Member</h3>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Adding Staff Member as an
-                                        Administrator.</p>
-                                </div>
-
-                                <button type="button" @click="showAddDoctor = false"
-                                    class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer relative z-10">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+                            <!-- Divider Line 1 -->
+                            <div class="flex-1 h-0.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
+                                     :style="step > 1 ? 'width: 100%' : 'width: 0%'"></div>
                             </div>
 
-                            <div class="px-8 sm:px-10 py-7 overflow-y-auto custom-scrollbar flex-1 space-y-6 min-h-[420px]">
-                                <!-- Step 1: Personal Info -->
-                                <div x-show="step === 1" class="space-y-6">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- Step 2 pill -->
+                            <button type="button" @click="goToStep(2)"
+                                    class="flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer group"
+                                    :class="step === 2 ? 'text-teal-600 dark:text-teal-400' : (step > 2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400')">
+                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all"
+                                      :class="step === 2 ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/20' : (step > 2 ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500')">
+                                    <template x-if="step > 2">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                    </template>
+                                    <template x-if="step <= 2">2</template>
+                                </span>
+                                <span class="hidden sm:inline tracking-wide">Role & Schedule</span>
+                            </button>
+
+                            <!-- Divider Line 2 -->
+                            <div class="flex-1 h-0.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
+                                     :style="step > 2 ? 'width: 100%' : 'width: 0%'"></div>
+                            </div>
+
+                            <!-- Step 3 pill -->
+                            <button type="button" @click="goToStep(3)"
+                                    class="flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer group"
+                                    :class="step === 3 ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400'">
+                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all"
+                                      :class="step === 3 ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'">
+                                    3
+                                </span>
+                                <span class="hidden sm:inline tracking-wide">Security & Finish</span>
+                            </button>
+                        </div>
+
+                        <!-- Modal Scrollable Body -->
+                        <div class="px-6 sm:px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+
+                            <!-- STEP 1: Personal Info -->
+                            <div x-show="step === 1" class="space-y-6">
+                                <!-- Profile Picture & Identity Preview Banner -->
+                                <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 dark:from-slate-800/70 dark:to-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row items-center gap-5">
+                                    <div class="relative group shrink-0">
+                                        <div class="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl ring-4 shadow-md overflow-hidden bg-gradient-to-br from-teal-500 to-emerald-700 flex items-center justify-center text-white text-2xl font-black relative"
+                                             :class="avatarUploadSuccess ? 'ring-emerald-400 dark:ring-emerald-500 ring-offset-2' : 'ring-white dark:ring-slate-700'">
+                                            
+                                            <!-- Dynamic Avatar Preview or Initials -->
+                                            <template x-if="avatarPreview">
+                                                <img :src="avatarPreview" class="w-full h-full object-cover" alt="Avatar Preview">
+                                            </template>
+                                            <template x-if="!avatarPreview">
+                                                <span x-text="initials"></span>
+                                            </template>
+
+                                            <!-- Processing Spinner -->
+                                            <div x-show="isProcessingAvatar"
+                                                 style="display: none;"
+                                                 class="absolute inset-0 bg-slate-900/80 rounded-2xl flex flex-col items-center justify-center text-white z-20">
+                                                <svg class="w-6 h-6 animate-spin text-teal-400" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span class="text-[10px] font-bold text-teal-200 mt-1">Processing...</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Quick Hover Change Overlay -->
+                                        <button type="button" 
+                                                @click="document.getElementById('staff_create_avatar_input').click()"
+                                                class="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[11px] font-bold gap-1 cursor-pointer z-10">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                            <span>Upload</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="flex-1 w-full space-y-2 text-center sm:text-left">
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                            <div>
+                                                <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                                                    <h4 class="text-base font-bold text-slate-900 dark:text-white" x-text="fullName || 'New Staff Member'"></h4>
+                                                    
+                                                    <!-- Photo Ready Badge -->
+                                                    <div x-show="avatarUploadSuccess"
+                                                         x-transition:enter="transition ease-out duration-300"
+                                                         x-transition:enter-start="opacity-0 scale-90 translate-y-1"
+                                                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                                         x-transition:leave="transition ease-in duration-300"
+                                                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                                         x-transition:leave-end="opacity-0 scale-90 translate-y-1"
+                                                         style="display: none;"
+                                                         class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                        </svg>
+                                                        <span>Photo ready!</span>
+                                                    </div>
+                                                </div>
+                                                <p class="text-xs text-slate-500 dark:text-slate-400" x-text="email || 'Email not specified yet'"></p>
+                                            </div>
+                                            <template x-if="role">
+                                                <div>
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider capitalize bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
+                                                          x-text="getRoleLabel(role)"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        <!-- Hidden Input & Browse Area -->
+                                        <input type="file" id="staff_create_avatar_input" name="avatar" accept="image/*" class="hidden"
+                                               @change="if ($event.target.files.length) handleStaffAvatar($event.target.files[0])">
+                                        
+                                        <div class="pt-1 flex items-center gap-2">
+                                            <div @click="document.getElementById('staff_create_avatar_input').click()"
+                                                 class="flex-1 border border-dashed rounded-xl px-3.5 py-2 cursor-pointer transition-all flex items-center justify-center gap-2 group border-slate-300/80 dark:border-slate-600/80 bg-white dark:bg-slate-900/60 hover:border-teal-500 hover:bg-teal-50/30 dark:hover:bg-slate-800">
+                                                <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate" 
+                                                      x-text="avatarFileName ? 'Selected: ' + avatarFileName : 'Click to browse or drop photo anywhere in modal (1:1 crop)'"></span>
+                                            </div>
+
+                                            <template x-if="avatarPreview">
+                                                <button type="button" 
+                                                        @click="avatarPreview = null; avatarFileName = ''; document.getElementById('staff_create_avatar_input').value = ''"
+                                                        class="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all border border-slate-200 dark:border-slate-700 cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold"
+                                                        title="Remove photo">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                    <span class="hidden sm:inline">Remove</span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Personal Information Inputs -->
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        <span>Personal Information</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         <div>
-                                            <label
-                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">First
-                                                Name <span class="text-red-500">*</span></label>
-                                            <input type="text" x-model="firstName" name="first_name" :required="step === 1"
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                First Name <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="text" x-model="firstName" name="first_name" :required="step === 1" placeholder="e.g. John"
                                                 class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                         <div>
-                                            <label
-                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Middle
-                                                Name</label>
-                                            <input type="text" x-model="middleName" name="middle_name"
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Middle Name
+                                            </label>
+                                            <input type="text" x-model="middleName" name="middle_name" placeholder="Optional"
                                                 class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Last
-                                                 Name <span class="text-red-500">*</span></label>
-                                            <input type="text" x-model="lastName" name="last_name" :required="step === 1"
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Last Name <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="text" x-model="lastName" name="last_name" :required="step === 1" placeholder="e.g. Doe"
                                                 class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                         <div>
-                                            <label
-                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Suffix
-                                                (e.g. Jr., Sr.)</label>
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Suffix
+                                            </label>
                                             <input type="text" x-model="suffix" name="suffix" placeholder="Jr., Sr., III"
                                                 class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                         </div>
                                     </div>
+
                                     <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Email
-                                            Address <span class="text-red-500">*</span></label>
-                                        <input type="email" name="email" x-model="email" :required="step === 1"
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Email Address <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="email" x-model="email" name="email" :required="step === 1" placeholder="doctor.name@rhu.gov.ph"
                                             class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Profile Photo (Max 2MB)</label>
-                                        <input type="file" id="staff_create_avatar_input" name="avatar" accept="image/*" class="hidden"
-                                            @change="if ($event.target.files.length) handleStaffAvatar($event.target.files[0])">
-                                        
-                                        <div class="flex items-center gap-4">
-                                            <!-- Preview avatar circle with hover action -->
-                                            <div @click="document.getElementById('staff_create_avatar_input').click()"
-                                                 class="h-16 w-16 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 relative border-2 border-teal-500 shadow-md cursor-pointer group flex-shrink-0 flex items-center justify-center">
-                                                <template x-if="avatarPreview">
-                                                    <img :src="avatarPreview" class="h-full w-full object-cover" alt="Staff Avatar">
-                                                </template>
-                                                <template x-if="!avatarPreview">
-                                                    <div class="h-full w-full flex items-center justify-center bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 font-bold text-xl">
-                                                        <span x-text="((firstName ? firstName[0] : '') + (lastName ? lastName[0] : '')).toUpperCase() || 'ST'"></span>
-                                                    </div>
-                                                </template>
-                                                <div class="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                                </div>
-                                                <!-- Processing spinner -->
-                                                <div x-show="isProcessingAvatar" style="display: none;" class="absolute inset-0 bg-slate-900/80 flex items-center justify-center text-teal-400">
-                                                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                </div>
-                                            </div>
-
-                                            <!-- Dropzone / Browse banner -->
-                                            <div @click="document.getElementById('staff_create_avatar_input').click()"
-                                                 class="flex-1 border-2 border-dashed rounded-xl px-4 py-3 text-center cursor-pointer transition-all flex items-center justify-between gap-3 border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 group">
-                                                <div class="flex items-center gap-3 min-w-0">
-                                                    <div class="w-9 h-9 rounded-lg bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                                                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                    </div>
-                                                    <div class="text-left truncate">
-                                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate" x-text="avatarFileName || 'Drag & drop image anywhere or browse'"></p>
-                                                        <p class="text-[11px] text-slate-400">1:1 square crop • Max 2MB</p>
-                                                    </div>
-                                                </div>
-                                                <template x-if="avatarUploadSuccess">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 shrink-0">
-                                                        Ready
-                                                    </span>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
+                            </div>
 
-                                <!-- Step 2: Role & Schedule -->
-                                <div x-show="step === 2" style="display: none;" class="space-y-6">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <!-- STEP 2: Role & Work Schedule -->
+                            <div x-show="step === 2" style="display: none;" class="space-y-6">
+                                <!-- Role & Availability Status -->
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                        <span>Role & Availability Status</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <!-- Custom Floating Role Dropdown -->
                                         <div class="relative" @click.outside="openRoleDropdown = false">
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                                 Role & Access Level <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="hidden" name="role" :value="role">
                                             
                                             <button type="button" 
                                                     @click="openRoleDropdown = !openRoleDropdown; openStatusDropdown = false"
@@ -527,7 +684,7 @@
                                                 </svg>
                                             </button>
 
-                                            <!-- Custom Floating Menu with rounded-2xl -->
+                                            <!-- Custom Floating Menu -->
                                             <div x-show="openRoleDropdown" 
                                                  x-transition:enter="transition ease-out duration-150"
                                                  x-transition:enter-start="opacity-0 translate-y-1 scale-95"
@@ -557,7 +714,6 @@
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                                 Initial Status <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="hidden" name="status" :value="status">
 
                                             <button type="button" 
                                                     @click="openStatusDropdown = !openStatusDropdown; openRoleDropdown = false"
@@ -579,7 +735,7 @@
                                                 </svg>
                                             </button>
 
-                                            <!-- Custom Floating Menu with rounded-2xl -->
+                                            <!-- Custom Floating Menu -->
                                             <div x-show="openStatusDropdown" 
                                                  x-transition:enter="transition ease-out duration-150"
                                                  x-transition:enter-start="opacity-0 translate-y-1 scale-95"
@@ -607,23 +763,34 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="pt-1">
-                                        <label
-                                            class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Schedule
-                                            (Optional)</label>
-                                        <div class="flex flex-wrap gap-2 mb-4">
-                                            <template x-for="(isActive, day) in days" :key="day">
-                                                <button type="button" @click="days[day] = !days[day]"
-                                                    :class="isActive ? 'bg-teal-600 text-white border-teal-600 shadow-xs' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'"
-                                                    class="px-3.5 py-1.5 border rounded-xl text-xs font-bold transition-all cursor-pointer focus:outline-none"
-                                                    x-text="day">
-                                                </button>
-                                            </template>
+                                <!-- Work Schedule Section -->
+                                <div class="space-y-4 pt-2">
+                                    <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <span>Work Schedule (Optional)</span>
+                                    </div>
+
+                                    <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 space-y-4">
+                                        <div>
+                                            <span class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Duty Days</span>
+                                            <div class="flex flex-wrap gap-2">
+                                                <template x-for="(isActive, day) in days" :key="day">
+                                                    <button type="button" @click="days[day] = !days[day]"
+                                                        :class="isActive 
+                                                            ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/30 font-bold border-teal-600' 
+                                                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium'"
+                                                        class="px-3.5 py-1.5 border rounded-xl text-xs transition-all focus:outline-none cursor-pointer"
+                                                        x-text="day">
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <!-- Time In Picker -->
-                                            <div class="relative" x-data="{
+                                            <div class="relative" :class="open ? 'z-40' : 'z-10'" x-data="{
                                                 open: false,
                                                 selectedHour: 8,
                                                 selectedMinute: '00',
@@ -653,10 +820,10 @@
                                                     return `${String(this.selectedHour).padStart(2, '0')}:${this.selectedMinute} ${this.period}`;
                                                 }
                                             }" @click.outside="open = false">
-                                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">Duty Time In</label>
+                                                <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time In</label>
                                                 
                                                 <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
-                                                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                        class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
                                                         :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
                                                     <div class="flex items-center gap-2">
                                                         <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,79 +831,99 @@
                                                         </svg>
                                                         <span x-text="displayFormatted"></span>
                                                     </div>
-                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
-                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
-                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                    </svg>
+                                                    <div class="flex items-center gap-2">
+                                                        <!-- Direct AM/PM Toggle Pill on Trigger -->
+                                                        <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
+                                                                    :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
+                                                                    :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                        </div>
+                                                        <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                             :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                        </svg>
+                                                    </div>
                                                 </button>
 
-                                                <!-- Custom Popover Panel -->
+                                                <!-- Time In Popover (Compact, Never Clipped) -->
                                                 <div x-show="open" 
                                                      x-transition:enter="transition ease-out duration-150"
-                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
                                                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                                                      x-transition:leave="transition ease-in duration-100"
                                                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
                                                      style="display: none;"
-                                                     class="absolute left-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                     class="absolute left-0 bottom-full mb-2 z-50 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 backdrop-blur-md space-y-2.5">
                                                     
-                                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
-                                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
-                                                        <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-700">
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time:</span>
+                                                            <span class="text-xs font-black text-teal-600 dark:text-teal-400" x-text="displayFormatted"></span>
+                                                        </div>
+                                                        <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
                                                             <button type="button" @click="setTime(undefined, undefined, 'AM')"
                                                                     :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                                    class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">AM</button>
                                                             <button type="button" @click="setTime(undefined, undefined, 'PM')"
                                                                     :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                                    class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">PM</button>
                                                         </div>
                                                     </div>
 
                                                     <div>
-                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
-                                                        <div class="grid grid-cols-6 gap-1.5">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hour</div>
+                                                        <div class="grid grid-cols-6 gap-1">
                                                             <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
                                                                 <button type="button" @click="setTime(h, undefined, undefined)"
-                                                                        :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        :class="selectedHour === h 
+                                                                            ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                            : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                        class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                         x-text="h"></button>
                                                             </template>
                                                         </div>
                                                     </div>
 
                                                     <div>
-                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
-                                                        <div class="grid grid-cols-4 gap-1.5">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Minute</div>
+                                                        <div class="grid grid-cols-4 gap-1">
                                                             <template x-for="m in ['00', '15', '30', '45']" :key="m">
                                                                 <button type="button" @click="setTime(undefined, m, undefined)"
-                                                                        :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        :class="selectedMinute === m 
+                                                                            ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                            : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                        class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                         x-text="':' + m"></button>
                                                             </template>
                                                         </div>
                                                     </div>
 
-                                                    <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
-                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
-                                                        <div class="flex flex-wrap gap-1.5">
-                                                            <button type="button" @click="setTime(8, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">8:00 AM</button>
-                                                            <button type="button" @click="setTime(9, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">9:00 AM</button>
-                                                            <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
-                                                            <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
+                                                    <div class="pt-1.5 border-t border-slate-100 dark:border-slate-700">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quick Presets</div>
+                                                        <div class="flex flex-wrap gap-1">
+                                                            <button type="button" @click="setTime(8, '00', 'AM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 AM</button>
+                                                            <button type="button" @click="setTime(9, '00', 'AM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">9:00 AM</button>
+                                                            <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">1:00 PM</button>
+                                                            <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">5:00 PM</button>
+                                                            <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">6:00 PM</button>
+                                                            <button type="button" @click="setTime(8, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 PM</button>
                                                         </div>
                                                     </div>
                                                     
                                                     <button type="button" @click="open = false"
-                                                            class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                            class="w-full py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer">
                                                         Done
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <!-- Time Out Picker -->
-                                            <div class="relative" x-data="{
+                                            <div class="relative" :class="open ? 'z-40' : 'z-10'" x-data="{
                                                 open: false,
                                                 selectedHour: 5,
                                                 selectedMinute: '00',
@@ -766,10 +953,10 @@
                                                     return `${String(this.selectedHour).padStart(2, '0')}:${this.selectedMinute} ${this.period}`;
                                                 }
                                             }" @click.outside="open = false">
-                                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">Duty Time Out</label>
+                                                <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time Out</label>
                                                 
                                                 <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
-                                                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                        class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
                                                         :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
                                                     <div class="flex items-center gap-2">
                                                         <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -777,181 +964,254 @@
                                                         </svg>
                                                         <span x-text="displayFormatted"></span>
                                                     </div>
-                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
-                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
-                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                    </svg>
+                                                    <div class="flex items-center gap-2">
+                                                        <!-- Direct AM/PM Toggle Pill on Trigger -->
+                                                        <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
+                                                                    :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
+                                                                    :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                        </div>
+                                                        <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                             :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                        </svg>
+                                                    </div>
                                                 </button>
 
-                                                <!-- Custom Popover Panel -->
+                                                <!-- Time Out Popover (Compact, Never Clipped) -->
                                                 <div x-show="open" 
                                                      x-transition:enter="transition ease-out duration-150"
-                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
                                                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                                                      x-transition:leave="transition ease-in duration-100"
                                                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
                                                      style="display: none;"
-                                                     class="absolute left-0 sm:left-auto right-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                     class="absolute left-0 sm:left-auto right-0 bottom-full mb-2 z-50 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 backdrop-blur-md space-y-2.5">
                                                     
-                                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
-                                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
-                                                        <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-700">
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time:</span>
+                                                            <span class="text-xs font-black text-teal-600 dark:text-teal-400" x-text="displayFormatted"></span>
+                                                        </div>
+                                                        <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
                                                             <button type="button" @click="setTime(undefined, undefined, 'AM')"
                                                                     :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                                    class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">AM</button>
                                                             <button type="button" @click="setTime(undefined, undefined, 'PM')"
                                                                     :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                    class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                                    class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">PM</button>
                                                         </div>
                                                     </div>
 
                                                     <div>
-                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
-                                                        <div class="grid grid-cols-6 gap-1.5">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hour</div>
+                                                        <div class="grid grid-cols-6 gap-1">
                                                             <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
                                                                 <button type="button" @click="setTime(h, undefined, undefined)"
-                                                                        :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        :class="selectedHour === h 
+                                                                            ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                            : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                        class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                         x-text="h"></button>
                                                             </template>
                                                         </div>
                                                     </div>
 
                                                     <div>
-                                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
-                                                        <div class="grid grid-cols-4 gap-1.5">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Minute</div>
+                                                        <div class="grid grid-cols-4 gap-1">
                                                             <template x-for="m in ['00', '15', '30', '45']" :key="m">
                                                                 <button type="button" @click="setTime(undefined, m, undefined)"
-                                                                        :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                        class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                        :class="selectedMinute === m 
+                                                                            ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                            : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                        class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                         x-text="':' + m"></button>
                                                             </template>
                                                         </div>
                                                     </div>
 
-                                                    <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
-                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
-                                                        <div class="flex flex-wrap gap-1.5">
-                                                            <button type="button" @click="setTime(12, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">12:00 PM</button>
-                                                            <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
-                                                            <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
-                                                            <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">6:00 PM</button>
+                                                    <div class="pt-1.5 border-t border-slate-100 dark:border-slate-700">
+                                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quick Presets</div>
+                                                        <div class="flex flex-wrap gap-1">
+                                                            <button type="button" @click="setTime(12, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">12:00 PM</button>
+                                                            <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">1:00 PM</button>
+                                                            <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">5:00 PM</button>
+                                                            <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">6:00 PM</button>
+                                                            <button type="button" @click="setTime(8, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 PM</button>
+                                                            <button type="button" @click="setTime(10, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">10:00 PM</button>
                                                         </div>
                                                     </div>
                                                     
                                                     <button type="button" @click="open = false"
-                                                            class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                            class="w-full py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer">
                                                         Done
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div
-                                            class="mt-3 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                            <svg class="shrink-0 w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24"
-                                                stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+
+                                        <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1">
+                                            <svg class="w-4 h-4 text-teal-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                             </svg>
-                                            <span
-                                                x-text="formattedSchedule ? 'Preview: ' + formattedSchedule : 'No schedule selected'"></span>
+                                            <span class="font-medium" x-text="formattedSchedule ? 'Current Schedule: ' + formattedSchedule : 'No schedule days selected'"></span>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- Step 3: Security -->
-                                <div x-show="step === 3" style="display: none;" class="space-y-6">
-                                    <div
-                                        class="bg-amber-50 dark:bg-amber-950/30 p-4 rounded-2xl border border-amber-200/80 dark:border-amber-800/60">
-                                        <p class="text-xs sm:text-sm text-amber-900 dark:text-amber-200">
-                                            <strong>Security Requirements:</strong> Create a temporary password for the
-                                            staff member. They will be required to change it upon their first login.
+                            <!-- STEP 3: Security & Completion -->
+                            <div x-show="step === 3" style="display: none;" class="space-y-6">
+                                <!-- Security Notice Box -->
+                                <div class="p-4 rounded-2xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200/80 dark:border-teal-800/60 flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-900/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-xs font-bold text-teal-900 dark:text-teal-200">Account Credentials</h5>
+                                        <p class="text-xs text-teal-800/80 dark:text-teal-300/80 mt-0.5">
+                                            Set a temporary password for this staff member (minimum 8 characters). They can change this password anytime in their profile.
                                         </p>
                                     </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                </div>
+
+                                <!-- Password Inputs -->
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                        <span>Password Setup</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label
-                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Temporary
-                                                Password <span class="text-red-500">*</span></label>
-                                            <input type="password" name="password" x-model="password" :required="step === 3"
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Temporary Password <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="password" name="password" x-model="password" :required="step === 3" placeholder="••••••••"
                                                 class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
-                                            <!-- Strength Meter -->
+                                            
+                                            <!-- Password Strength Bar -->
                                             <div class="mt-2.5 flex items-center gap-2" x-show="password.length > 0">
                                                 <div class="flex-1 flex gap-1 h-1.5">
                                                     <div class="flex-1 rounded-full transition-colors duration-300"
-                                                        :class="strength >= 1 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'">
-                                                    </div>
+                                                        :class="strength >= 1 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'"></div>
                                                     <div class="flex-1 rounded-full transition-colors duration-300"
-                                                        :class="strength >= 2 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'">
-                                                    </div>
+                                                        :class="strength >= 2 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'"></div>
                                                     <div class="flex-1 rounded-full transition-colors duration-300"
-                                                        :class="strength >= 3 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'">
-                                                    </div>
+                                                        :class="strength >= 3 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'"></div>
                                                     <div class="flex-1 rounded-full transition-colors duration-300"
-                                                        :class="strength >= 4 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'">
-                                                    </div>
+                                                        :class="strength >= 4 ? strengthColor : 'bg-slate-200 dark:bg-slate-700'"></div>
                                                 </div>
                                                 <span class="text-xs font-bold"
                                                     :class="{'text-red-500': strength <= 1, 'text-yellow-500': strength === 2, 'text-teal-500': strength === 3, 'text-green-500': strength === 4}"
                                                     x-text="strengthText"></span>
                                             </div>
                                         </div>
+
                                         <div>
-                                            <label
-                                                class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Confirm
-                                                Password <span class="text-red-500">*</span></label>
-                                            <input type="password" name="password_confirmation"
-                                                x-model="passwordConfirmation" :required="step === 3"
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Confirm Password <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="password" name="password_confirmation" x-model="passwordConfirmation" :required="step === 3" placeholder="••••••••"
                                                 class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                            
                                             <p x-show="passwordConfirmation.length > 0 && password !== passwordConfirmation"
-                                                class="text-xs text-red-500 font-semibold mt-1.5">Passwords do not match.</p>
+                                                class="text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                <span>Passwords do not match.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Review Staff Details Summary Card -->
+                                <div class="space-y-3 pt-1">
+                                    <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                        <span>Staff Summary Review</span>
+                                    </div>
+
+                                    <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                                        <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200/60 dark:border-slate-700/60">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold shadow-xs">
+                                                    <template x-if="avatarPreview">
+                                                        <img :src="avatarPreview" class="w-full h-full object-cover" alt="Staff Preview">
+                                                    </template>
+                                                    <template x-if="!avatarPreview">
+                                                        <span x-text="initials"></span>
+                                                    </template>
+                                                </div>
+                                                <div>
+                                                    <h5 class="text-sm font-bold text-slate-900 dark:text-white" x-text="fullName || 'New Staff Member'"></h5>
+                                                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="email"></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
+                                                      x-text="getRoleLabel(role)"></span>
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                                    <span class="w-2 h-2 rounded-full"
+                                                          :class="{
+                                                              'bg-emerald-500': status === 'Online',
+                                                              'bg-slate-400': status === 'Offline',
+                                                              'bg-amber-500': status === 'Occupied'
+                                                          }"></span>
+                                                    <span x-text="getStatusLabel(status)"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                                            <svg class="w-4 h-4 text-teal-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span class="font-medium" x-text="formattedSchedule ? formattedSchedule : 'No schedule set (staff can work flexible hours)'"></span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div
-                                class="px-8 py-5 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
-                                <div>
-                                    <button type="button" x-show="step > 1" @click="prevStep()"
-                                        class="h-11 px-4 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 19l-7-7 7-7"></path>
-                                        </svg>
-                                        <span>Back</span>
-                                    </button>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button type="button" @click="showAddDoctor = false"
-                                        class="h-11 px-5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl shadow-2xs transition-all cursor-pointer">
-                                        Cancel
-                                    </button>
-
-                                    <button type="button" x-show="step < 3" @click="nextStep()"
-                                        class="h-11 px-6 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-sm font-bold text-white rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
-                                        <span>Next</span>
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7"></path>
-                                        </svg>
-                                    </button>
-
-                                    <button type="submit" x-show="step === 3" :disabled="password !== passwordConfirmation"
-                                        :class="password !== passwordConfirmation ? 'opacity-50 cursor-not-allowed' : 'hover:from-teal-700 hover:to-emerald-700 active:scale-95 cursor-pointer shadow-md shadow-teal-600/20'"
-                                        class="h-11 px-6 bg-gradient-to-r from-teal-600 to-emerald-600 text-sm font-bold text-white rounded-xl transition-all flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <span>Create Staff</span>
-                                    </button>
-                                </div>
+                        <!-- Modal Footer -->
+                        <div class="px-8 py-4 bg-slate-50/70 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0 rounded-b-3xl">
+                            <div>
+                                <button type="button" x-show="step > 1" @click="prevStep()"
+                                    class="px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                    <span>Back</span>
+                                </button>
                             </div>
-                        </form>
-                    </div>
+                            
+                            <div class="flex items-center gap-3">
+                                <button type="button" @click="showAddDoctor = false"
+                                    class="px-5 py-2.5 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer">
+                                    Cancel
+                                </button>
+
+                                <button type="button" x-show="step < 3" @click="nextStep()"
+                                    class="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-sm font-bold text-white rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                    <span>Next</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+
+                                <button type="submit" x-show="step === 3"
+                                    :disabled="!password || password.length < 8 || password !== passwordConfirmation"
+                                    :class="(!password || password.length < 8 || password !== passwordConfirmation) ? 'opacity-50 cursor-not-allowed' : 'hover:from-teal-700 hover:to-emerald-700 active:scale-95 cursor-pointer shadow-md shadow-teal-600/20'"
+                                    class="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-sm font-bold text-white rounded-xl transition-all flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span>Create Staff</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1214,7 +1474,7 @@
                         </div>
                     </div>
 
-                    <form :action="'/admin/staff/' + editMember.id" method="POST" enctype="multipart/form-data" class="flex flex-col h-full">
+                    <form :action="'/admin/staff/' + editMember.id" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
                         @csrf
                         @method('PUT')
                         
@@ -1242,7 +1502,7 @@
                         </div>
 
                         <!-- Modal Scrollable Body -->
-                        <div class="px-6 sm:px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                        <div class="px-6 sm:px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar flex-1 min-h-0">
                             
                             <!-- Profile Picture & Identity Banner -->
                             <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 dark:from-slate-800/70 dark:to-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row items-center gap-5">
@@ -1549,9 +1809,8 @@
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <!-- Time In Picker -->
-                                        <div class="relative" x-data="{
+                                                                            <!-- Time In Picker -->
+                                        <div class="relative" :class="open ? 'z-40' : 'z-10'" x-data="{
                                             open: false,
                                             selectedHour: 8,
                                             selectedMinute: '00',
@@ -1592,79 +1851,99 @@
                                                     </svg>
                                                     <span x-text="displayFormatted"></span>
                                                 </div>
-                                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
-                                                     :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
-                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                </svg>
+                                                <div class="flex items-center gap-2">
+                                                    <!-- Direct AM/PM Toggle Pill on Trigger -->
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
+                                                                :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
+                                                                :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </div>
                                             </button>
 
-                                            <!-- Custom Popover Panel -->
+                                            <!-- Time In Popover (Compact, Never Clipped) -->
                                             <div x-show="open" 
                                                  x-transition:enter="transition ease-out duration-150"
-                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
                                                  x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                                                  x-transition:leave="transition ease-in duration-100"
                                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
                                                  style="display: none;"
-                                                 class="absolute left-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                 class="absolute left-0 bottom-full mb-2 z-50 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 backdrop-blur-md space-y-2.5">
                                                 
-                                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
-                                                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
-                                                    <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-700">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time:</span>
+                                                        <span class="text-xs font-black text-teal-600 dark:text-teal-400" x-text="displayFormatted"></span>
+                                                    </div>
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
                                                         <button type="button" @click="setTime(undefined, undefined, 'AM')"
                                                                 :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">AM</button>
                                                         <button type="button" @click="setTime(undefined, undefined, 'PM')"
                                                                 :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">PM</button>
                                                     </div>
                                                 </div>
 
                                                 <div>
-                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
-                                                    <div class="grid grid-cols-6 gap-1.5">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hour</div>
+                                                    <div class="grid grid-cols-6 gap-1">
                                                         <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
                                                             <button type="button" @click="setTime(h, undefined, undefined)"
-                                                                    :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    :class="selectedHour === h 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                     x-text="h"></button>
                                                         </template>
                                                     </div>
                                                 </div>
 
                                                 <div>
-                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
-                                                    <div class="grid grid-cols-4 gap-1.5">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Minute</div>
+                                                    <div class="grid grid-cols-4 gap-1">
                                                         <template x-for="m in ['00', '15', '30', '45']" :key="m">
                                                             <button type="button" @click="setTime(undefined, m, undefined)"
-                                                                    :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    :class="selectedMinute === m 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                     x-text="':' + m"></button>
                                                         </template>
                                                     </div>
                                                 </div>
 
-                                                <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
-                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
-                                                    <div class="flex flex-wrap gap-1.5">
-                                                        <button type="button" @click="setTime(8, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">8:00 AM</button>
-                                                        <button type="button" @click="setTime(9, '00', 'AM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">9:00 AM</button>
-                                                        <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
-                                                        <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
+                                                <div class="pt-1.5 border-t border-slate-100 dark:border-slate-700">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quick Presets</div>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        <button type="button" @click="setTime(8, '00', 'AM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 AM</button>
+                                                        <button type="button" @click="setTime(9, '00', 'AM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">9:00 AM</button>
+                                                        <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">1:00 PM</button>
+                                                        <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">5:00 PM</button>
+                                                        <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">6:00 PM</button>
+                                                        <button type="button" @click="setTime(8, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 PM</button>
                                                     </div>
                                                 </div>
                                                 
                                                 <button type="button" @click="open = false"
-                                                        class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                        class="w-full py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer">
                                                     Done
                                                 </button>
                                             </div>
                                         </div>
 
                                         <!-- Time Out Picker -->
-                                        <div class="relative" x-data="{
+                                        <div class="relative" :class="open ? 'z-40' : 'z-10'" x-data="{
                                             open: false,
                                             selectedHour: 5,
                                             selectedMinute: '00',
@@ -1705,75 +1984,96 @@
                                                     </svg>
                                                     <span x-text="displayFormatted"></span>
                                                 </div>
-                                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
-                                                     :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
-                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                </svg>
+                                                <div class="flex items-center gap-2">
+                                                    <!-- Direct AM/PM Toggle Pill on Trigger -->
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
+                                                                :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
+                                                                :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </div>
                                             </button>
 
-                                            <!-- Custom Popover Panel -->
+                                            <!-- Time Out Popover (Compact, Never Clipped) -->
                                             <div x-show="open" 
                                                  x-transition:enter="transition ease-out duration-150"
-                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
                                                  x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                                                  x-transition:leave="transition ease-in duration-100"
                                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
                                                  style="display: none;"
-                                                 class="absolute left-0 sm:left-auto right-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-4 backdrop-blur-md space-y-3.5">
+                                                 class="absolute left-0 sm:left-auto right-0 bottom-full mb-2 z-50 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 backdrop-blur-md space-y-2.5">
                                                 
-                                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
-                                                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">Select Time</span>
-                                                    <div class="flex p-0.5 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-700">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time:</span>
+                                                        <span class="text-xs font-black text-teal-600 dark:text-teal-400" x-text="displayFormatted"></span>
+                                                    </div>
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
                                                         <button type="button" @click="setTime(undefined, undefined, 'AM')"
                                                                 :class="period === 'AM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">AM</button>
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">AM</button>
                                                         <button type="button" @click="setTime(undefined, undefined, 'PM')"
                                                                 :class="period === 'PM' ? 'bg-teal-600 text-white shadow-xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer">PM</button>
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">PM</button>
                                                     </div>
                                                 </div>
 
                                                 <div>
-                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Hour</div>
-                                                    <div class="grid grid-cols-6 gap-1.5">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hour</div>
+                                                    <div class="grid grid-cols-6 gap-1">
                                                         <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="h">
                                                             <button type="button" @click="setTime(h, undefined, undefined)"
-                                                                    :class="selectedHour === h ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    :class="selectedHour === h 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                     x-text="h"></button>
                                                         </template>
                                                     </div>
                                                 </div>
 
                                                 <div>
-                                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Minute</div>
-                                                    <div class="grid grid-cols-4 gap-1.5">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Minute</div>
+                                                    <div class="grid grid-cols-4 gap-1">
                                                         <template x-for="m in ['00', '15', '30', '45']" :key="m">
                                                             <button type="button" @click="setTime(undefined, m, undefined)"
-                                                                    :class="selectedMinute === m ? 'bg-teal-600 text-white shadow-xs font-bold' : 'bg-slate-50 dark:bg-slate-750 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-600'"
-                                                                    class="py-1.5 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    :class="selectedMinute === m 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
                                                                     x-text="':' + m"></button>
                                                         </template>
                                                     </div>
                                                 </div>
 
-                                                <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
-                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Common Presets</div>
-                                                    <div class="flex flex-wrap gap-1.5">
-                                                        <button type="button" @click="setTime(12, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">12:00 PM</button>
-                                                        <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">1:00 PM</button>
-                                                        <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">5:00 PM</button>
-                                                        <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-teal-50 dark:hover:bg-slate-600 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">6:00 PM</button>
+                                                <div class="pt-1.5 border-t border-slate-100 dark:border-slate-700">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quick Presets</div>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        <button type="button" @click="setTime(12, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">12:00 PM</button>
+                                                        <button type="button" @click="setTime(1, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">1:00 PM</button>
+                                                        <button type="button" @click="setTime(5, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">5:00 PM</button>
+                                                        <button type="button" @click="setTime(6, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">6:00 PM</button>
+                                                        <button type="button" @click="setTime(8, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 PM</button>
+                                                        <button type="button" @click="setTime(10, '00', 'PM'); open = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">10:00 PM</button>
                                                     </div>
                                                 </div>
                                                 
                                                 <button type="button" @click="open = false"
-                                                        class="w-full py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer">
+                                                        class="w-full py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer">
                                                     Done
                                                 </button>
                                             </div>
+                                        </div>/div>
                                         </div>
                                     </div>
 

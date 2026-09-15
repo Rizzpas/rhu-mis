@@ -5,9 +5,7 @@
     <x-breadcrumb :items="['Error 401 (Unauthorized)' => '']" />
 
     <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 shadow-xl backdrop-blur-md p-8 sm:p-12 relative overflow-hidden text-center">
-        {{-- Decorative Gradient Bar --}}
-        <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600"></div>
-
+    
         {{-- Big Graphic Number with Icon --}}
         <div class="relative mb-6">
             <span class="font-display text-8xl sm:text-9xl font-black text-indigo-500/15 dark:text-indigo-400/10 tracking-tighter select-none">

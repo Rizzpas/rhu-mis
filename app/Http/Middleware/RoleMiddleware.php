@@ -42,7 +42,7 @@ class RoleMiddleware
                 return redirect($home)->with('warning', 'You do not have permission to access that page.');
             }
 
-            return redirect()->route('login');
+            abort(404);
         }
 
         return $next($request);

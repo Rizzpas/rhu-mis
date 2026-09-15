@@ -430,9 +430,6 @@
                                     {{-- Status badge + schedule --}}
                                     <div class="flex items-center gap-2 mb-3">
                                         <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
-                                        @if(in_array(strtolower($displayStatus), ['online', 'present']))
-                                            <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">• In Clinic Now</span>
-                                        @endif
                                     </div>
 
                                     <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-2 font-normal">
@@ -497,9 +494,6 @@
 
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
-                                @if(in_array(strtolower($displayStatus), ['online', 'present']))
-                                    <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">• In Clinic Now</span>
-                                @endif
                             </div>
 
                             <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-2 font-normal">

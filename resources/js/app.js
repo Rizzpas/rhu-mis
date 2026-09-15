@@ -266,10 +266,11 @@ function setupCustomSelect(select) {
         }
 
         // Sync validation error state
-        if (select.classList.contains('border-red-500') || select.classList.contains('ring-red-500')) {
-            btn.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+        const hasError = select.className.includes('border-red-500') || select.className.includes('ring-red-500');
+        if (hasError) {
+            btn.classList.add('border-red-500!', 'ring-1', 'ring-red-500!', 'dark:border-red-500!');
         } else {
-            btn.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+            btn.classList.remove('border-red-500!', 'ring-1', 'ring-red-500!', 'dark:border-red-500!', 'border-red-500', 'ring-1', 'ring-red-500');
         }
 
         // Search input for lists with 8+ items
@@ -335,6 +336,27 @@ function setupCustomSelect(select) {
                     select.value = opt.value;
                     select.dispatchEvent(new Event('input', { bubbles: true }));
                     select.dispatchEvent(new Event('change', { bubbles: true }));
+                    
+                    // Directly notify Alpine if present
+                    try {
+                        const alpineRoot = select.closest('[x-data]');
+                        if (alpineRoot && window.Alpine) {
+                            const data = window.Alpine.$data(alpineRoot);
+                            if (data) {
+                                if (data.formData && select.name && select.name in data.formData) {
+                                    data.formData[select.name] = opt.value;
+                                }
+                                if (data.errors && select.name && data.errors[select.name]) {
+                                    delete data.errors[select.name];
+                                }
+                                const xModel = select.getAttribute('x-model');
+                                if (xModel && !xModel.includes('.') && xModel in data) {
+                                    data[xModel] = opt.value;
+                                }
+                            }
+                        }
+                    } catch (err) {}
+
                     closeMenu();
                     renderOptions();
                 });
@@ -350,7 +372,23 @@ function setupCustomSelect(select) {
     renderOptions();
 
     // Listen for select updates from Alpine x-model or script
-    select.addEventListener('change', renderOptions);
+    select.addEventListener('change', () => {
+        try {
+            const alpineRoot = select.closest('[x-data]');
+            if (alpineRoot && window.Alpine) {
+                const data = window.Alpine.$data(alpineRoot);
+                if (data) {
+                    if (data.formData && select.name && select.name in data.formData) {
+                        data.formData[select.name] = select.value;
+                    }
+                    if (data.errors && select.name && data.errors[select.name]) {
+                        delete data.errors[select.name];
+                    }
+                }
+            }
+        } catch (e) {}
+        renderOptions();
+    });
     select.addEventListener('input', renderOptions);
 
     // Watch for dynamic changes (like Alpine x-for options, disabled, or validation classes)

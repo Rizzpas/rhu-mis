@@ -1369,16 +1369,24 @@ class AdminController extends Controller
 
         $updateData = ['status' => $normalizedStatus];
 
-        if ($normalizedStatus === 'Online') {
-            $updateData['last_activity_at'] = now();
-        } elseif ($normalizedStatus === 'Offline') {
+        // Set schedule_override to track manual status changes
+        if ($normalizedStatus === 'Offline') {
+            $updateData['schedule_override'] = 'manual_offline';
             $updateData['last_activity_at'] = null;
+        } elseif ($normalizedStatus === 'Online') {
+            $updateData['schedule_override'] = 'manual_online';
+            $updateData['last_activity_at'] = now();
+        } else {
+            // Occupied
+            $updateData['schedule_override'] = 'manual_online';
+            $updateData['last_activity_at'] = now();
         }
 
         $user->update($updateData);
 
         return back()->with('success', "Staff status updated to {$normalizedStatus} successfully!");
     }
+
 
     public function promoteToAdmin(\App\Models\User $user)
     {

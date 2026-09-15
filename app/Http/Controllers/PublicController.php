@@ -16,7 +16,19 @@ class PublicController extends Controller
 {
     public function index()
     {
-        $doctors = \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])->with('practitionerSchedules')->get();
+        $today = now()->format('D'); // Mon, Tue, Wed, etc.
+
+        $doctors = \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])
+            ->with('practitionerSchedules')
+            ->where(function ($q) use ($today) {
+                // Online or Occupied right now
+                $q->whereIn('status', ['Online', 'Occupied'])
+                  // OR has a schedule entry for today
+                  ->orWhereHas('practitionerSchedules', function ($schedQ) use ($today) {
+                      $schedQ->where('day_of_week', $today);
+                  });
+            })
+            ->get();
         // Fetch up to 7 latest published announcements for the carousel (Total 8 slides with hero)
         $announcements = Announcement::where('status', 'published')
             ->orderBy('created_at', 'desc')

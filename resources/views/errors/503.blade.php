@@ -5,8 +5,6 @@
     <x-breadcrumb :items="['Error 503 (Under Maintenance)' => '']" />
 
     <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 shadow-xl backdrop-blur-md p-8 sm:p-12 relative overflow-hidden text-center">
-        {{-- Decorative Gradient Bar --}}
-        <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-purple-500 via-indigo-500 to-teal-500"></div>
 
         {{-- Big Graphic Number with Icon --}}
         <div class="relative mb-6">

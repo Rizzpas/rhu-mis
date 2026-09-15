@@ -12,3 +12,4 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('model:prune')->daily();
 Schedule::command('app:cleanup-vitals')->dailyAt('23:59');
 Schedule::command('staff:auto-logout --minutes=30')->everyFiveMinutes();
+Schedule::command('staff:sync-schedule-status')->everyMinute();

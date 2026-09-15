@@ -18,6 +18,7 @@ class User extends Authenticatable
         'email',
         'password',
         'status',
+        'schedule_override',
         'avatar_path',
         'schedule',
         'last_activity_at',

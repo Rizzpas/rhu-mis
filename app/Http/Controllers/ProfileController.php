@@ -79,9 +79,15 @@ class ProfileController extends Controller
         };
         $user->status = $normalizedStatus;
 
+        // Set schedule_override to track manual status changes
+        // This tells the auto-schedule sync command to respect the user's choice
         if ($normalizedStatus === 'Offline') {
+            // Manual offline: stay offline until next schedule slot starts
+            $user->schedule_override = 'manual_offline';
             $user->last_activity_at = null;
-        } else {
+        } elseif ($normalizedStatus === 'Online' || $normalizedStatus === 'Occupied') {
+            // Manual online/occupied: stay active, auto-offline when schedule ends
+            $user->schedule_override = 'manual_online';
             $user->last_activity_at = now();
         }
 
@@ -92,6 +98,7 @@ class ProfileController extends Controller
             'status' => $user->status,
         ]);
     }
+
 
     /**
      * Update user's password.

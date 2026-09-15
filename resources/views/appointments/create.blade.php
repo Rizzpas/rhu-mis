@@ -45,9 +45,7 @@
                 </div>
             </div>
 
-            <div class="rounded-3xl p-6 sm:p-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-md relative overflow-hidden">
-                {{-- Subtle top decorative gradient line --}}
-                <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600"></div>
+            <div class="rounded-2xl mb-36 p-6 sm:p-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-md relative overflow-hidden">
                 
                 <!-- Loading Overlay -->
                 <div x-show="isLoading"
@@ -160,6 +158,7 @@
                             </a>
                         </div>
                     </div>
+                    </div>
 
                     <!-- Step 2: Patient Info -->
                     <div x-show="step === 2" x-transition>
@@ -174,9 +173,9 @@
                                 <div class="md:col-span-4">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('First Name') }} <span class="text-red-500">*</span></label>
                                     <input type="text" name="first_name" x-model="formData.first_name" required
-                                        @input="formData.first_name = $event.target.value.toUpperCase()"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 transition duration-150"
-                                        :class="errors.first_name ? 'border-red-500 ring-red-500' : 'border-gray-300'">
+                                        @input="formData.first_name = $event.target.value.toUpperCase(); if (errors.first_name) delete errors.first_name;"
+                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500 transition duration-150"
+                                        :class="errors.first_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     <p x-show="errors.first_name" class="text-red-500 text-xs mt-1" x-text="errors.first_name"></p>
                                 </div>
                                 <div class="md:col-span-3">
@@ -188,9 +187,9 @@
                                 <div class="md:col-span-3">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Last Name') }} <span class="text-red-500">*</span></label>
                                     <input type="text" name="last_name" x-model="formData.last_name" required
-                                        @input="formData.last_name = $event.target.value.toUpperCase()"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 transition duration-150"
-                                        :class="errors.last_name ? 'border-red-500 ring-red-500' : 'border-gray-300'">
+                                        @input="formData.last_name = $event.target.value.toUpperCase(); if (errors.last_name) delete errors.last_name;"
+                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500 transition duration-150"
+                                        :class="errors.last_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     <p x-show="errors.last_name" class="text-red-500 text-xs mt-1" x-text="errors.last_name"></p>
                                 </div>
                                 <div class="md:col-span-2">
@@ -206,6 +205,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Sex') }} <span class="text-red-500">*</span></label>
                                     <select name="sex" x-model="formData.sex" required
+                                        @change="formData.sex = $event.target.value; if (errors.sex) delete errors.sex;"
                                         class="form-select mt-1 block w-full"
                                         :class="errors.sex ? 'border-red-500! ring-red-500!' : ''">
                                         <option value="">Select Sex</option>
@@ -225,48 +225,128 @@
                                     get daysInMonth() { return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate(); },
                                     get startDay() { return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay(); },
                                     setMonth(monthIndex) { 
-                                        this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, 1); 
+                                        let currentDay = this.currentDate.getDate();
+                                        if (formData.dob && /^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+                                            currentDay = parseInt(formData.dob.split('-')[2], 10) || currentDay;
+                                        }
+                                        const maxDays = new Date(this.currentDate.getFullYear(), monthIndex + 1, 0).getDate();
+                                        currentDay = Math.min(currentDay, maxDays);
+
+                                        this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, currentDay); 
                                         this.showMonthPicker = false;
+
+                                        // Update formData.dob immediately to reflect the new month
+                                        const y = this.currentDate.getFullYear();
+                                        const m = String(monthIndex + 1).padStart(2, '0');
+                                        const d = String(currentDay).padStart(2, '0');
+                                        formData.dob = `${y}-${m}-${d}`;
+                                        if (errors.dob) delete errors.dob;
                                     },
                                     setYear(year) { 
-                                        this.currentDate = new Date(year, this.currentDate.getMonth(), 1); 
+                                        let currentDay = this.currentDate.getDate();
+                                        if (formData.dob && /^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+                                            currentDay = parseInt(formData.dob.split('-')[2], 10) || currentDay;
+                                        }
+                                        const maxDays = new Date(year, this.currentDate.getMonth() + 1, 0).getDate();
+                                        currentDay = Math.min(currentDay, maxDays);
+
+                                        this.currentDate = new Date(year, this.currentDate.getMonth(), currentDay); 
                                         this.showYearPicker = false;
+
+                                        // Update formData.dob immediately to reflect the new year
+                                        const y = year;
+                                        const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                        const d = String(currentDay).padStart(2, '0');
+                                        formData.dob = `${y}-${m}-${d}`;
+                                        if (errors.dob) delete errors.dob;
                                     },
                                     prevMonth() {
-                                        this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+                                        let currentDay = this.currentDate.getDate();
+                                        if (formData.dob && /^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+                                            currentDay = parseInt(formData.dob.split('-')[2], 10) || currentDay;
+                                        }
+                                        const targetMonth = this.currentDate.getMonth() - 1;
+                                        const targetYear = this.currentDate.getFullYear();
+                                        const maxDays = new Date(targetYear, targetMonth + 1, 0).getDate();
+                                        currentDay = Math.min(currentDay, maxDays);
+
+                                        this.currentDate = new Date(targetYear, targetMonth, currentDay);
+                                        if (formData.dob) {
+                                            const y = this.currentDate.getFullYear();
+                                            const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                            const d = String(currentDay).padStart(2, '0');
+                                            formData.dob = `${y}-${m}-${d}`;
+                                            if (errors.dob) delete errors.dob;
+                                        }
                                     },
                                     nextMonth() {
-                                        this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+                                        let currentDay = this.currentDate.getDate();
+                                        if (formData.dob && /^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+                                            currentDay = parseInt(formData.dob.split('-')[2], 10) || currentDay;
+                                        }
+                                        const targetMonth = this.currentDate.getMonth() + 1;
+                                        const targetYear = this.currentDate.getFullYear();
+                                        const maxDays = new Date(targetYear, targetMonth + 1, 0).getDate();
+                                        currentDay = Math.min(currentDay, maxDays);
+
+                                        this.currentDate = new Date(targetYear, targetMonth, currentDay);
+                                        if (formData.dob) {
+                                            const y = this.currentDate.getFullYear();
+                                            const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                            const d = String(currentDay).padStart(2, '0');
+                                            formData.dob = `${y}-${m}-${d}`;
+                                            if (errors.dob) delete errors.dob;
+                                        }
                                     },
                                     isFutureDate(day) {
                                         let dateToCheck = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
+                                        dateToCheck.setHours(0,0,0,0);
                                         let today = new Date(); today.setHours(0,0,0,0);
                                         return dateToCheck > today;
                                     },
                                     selectDate(day) {
                                         if (this.isFutureDate(day)) return;
-                                        let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                        let offset = date.getTimezoneOffset();
-                                        date = new Date(date.getTime() - (offset*60*1000));
-                                        formData.dob = date.toISOString().split('T')[0];
+                                        const y = this.currentDate.getFullYear();
+                                        const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                        const d = String(day).padStart(2, '0');
+                                        formData.dob = `${y}-${m}-${d}`;
+                                        this.currentDate = new Date(y, this.currentDate.getMonth(), day);
+                                        if (errors.dob) delete errors.dob;
                                         this.showDatepicker = false;
                                         this.showMonthPicker = false;
                                         this.showYearPicker = false;
                                     },
                                     isSelected(day) {
                                         if(!formData.dob) return false;
-                                        let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                        let offset = date.getTimezoneOffset();
-                                        date = new Date(date.getTime() - (offset*60*1000));
-                                        return formData.dob === date.toISOString().split('T')[0];
+                                        const y = this.currentDate.getFullYear();
+                                        const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                        const d = String(day).padStart(2, '0');
+                                        return formData.dob === `${y}-${m}-${d}`;
                                     },
-                                    init() { if (formData.dob) { this.currentDate = new Date(formData.dob); } }
+                                    syncFromDob() {
+                                        if (formData.dob && /^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+                                            const [y, m, d] = formData.dob.split('-').map(Number);
+                                            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+                                                this.currentDate = new Date(y, m - 1, d);
+                                            }
+                                        }
+                                    },
+                                    toggleCalendar() {
+                                        this.syncFromDob();
+                                        this.showDatepicker = !this.showDatepicker;
+                                        this.showMonthPicker = false;
+                                        this.showYearPicker = false;
+                                    },
+                                    init() {
+                                        this.syncFromDob();
+                                        this.$watch('formData.dob', () => this.syncFromDob());
+                                    }
                                 }" class="relative">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Date of Birth') }} <span class="text-red-500">*</span></label>
                                     <input type="hidden" name="dob" x-model="formData.dob">
-                                    <div @click="showDatepicker = !showDatepicker; showMonthPicker = false; showYearPicker = false;"
+                                    <div @click="toggleCalendar()"
                                         class="mt-1 w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                                        :class="errors.dob ? 'border-red-500! ring-1 ring-red-500!' : (showDatepicker ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-600')">
+                                        :class="errors.dob ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : (showDatepicker ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-600')">
                                         <span x-text="formData.dob ? formData.dob : 'Select Date'" class="truncate" :class="formData.dob ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-400'"></span>
                                         <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-colors shrink-0 ml-2" :class="showDatepicker ? 'text-teal-600 dark:text-teal-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -396,7 +476,7 @@
                                         <!-- Calendar Days Grid -->
                                         <div class="grid grid-cols-7 gap-1">
                                             <template x-for="blank in startDay"><div class="p-1"></div></template>
-                                            <template x-for="day in daysInMonth" :key="day">
+                                            <template x-for="day in daysInMonth" :key="currentDate.getFullYear() + '-' + currentDate.getMonth() + '-' + day">
                                                 <div @click="selectDate(day)"
                                                     class="w-8 h-8 flex items-center justify-center rounded-full text-sm cursor-pointer transition-colors"
                                                     :class="{
@@ -407,6 +487,18 @@
                                                      }" x-text="day">
                                                 </div>
                                             </template>
+                                        </div>
+
+                                        <!-- Footer: Selected preview and Done button -->
+                                        <div class="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                                            <div class="text-xs truncate mr-2">
+                                                <span class="text-gray-400 dark:text-gray-500">Selected: </span>
+                                                <span class="font-bold text-teal-600 dark:text-teal-400" x-text="formData.dob ? formData.dob : 'None'"></span>
+                                            </div>
+                                            <button type="button" @click="showDatepicker = false; showMonthPicker = false; showYearPicker = false;"
+                                                class="px-3 py-1 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white shadow-xs transition-colors shrink-0 cursor-pointer">
+                                                Done
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -432,11 +524,12 @@
                                     selectedReligion: '',
                                     customReligion: '',
                                     get finalReligion() { return this.selectedReligion === 'Others' ? this.customReligion : this.selectedReligion; }
-                                }" x-effect="formData.religion = finalReligion">
+                                }" x-effect="formData.religion = finalReligion; if (errors.religion && finalReligion) delete errors.religion;">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Religion') }}</label>
                                     <select x-model="selectedReligion" :required="!isFollowUp && formData.type !== 'pedia'"
+                                        @change="if (errors.religion) delete errors.religion;"
                                         class="form-select mt-1 block w-full"
-                                        :class="errors.religion ? 'border-red-500!' : ''">
+                                        :class="errors.religion ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
                                         <option value="">Select Religion...</option>
                                         <option value="N/A">Not Applicable (N/A)</option>
                                         <option value="Roman Catholic">Roman Catholic</option>
@@ -450,6 +543,7 @@
                                     </select>
                                     <p x-show="errors.religion" class="text-red-500 text-xs mt-1" x-text="errors.religion"></p>
                                     <input type="text" x-show="selectedReligion === 'Others'" x-model="customReligion"
+                                        @input="if (errors.religion) delete errors.religion;"
                                         placeholder="Specify religion..." style="display:none;"
                                         class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm">
                                     <input type="hidden" name="religion" :value="finalReligion">
@@ -502,8 +596,9 @@
                                 <div class="md:col-span-1">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Blood Type') }} <span class="text-red-500">*</span></label>
                                     <select name="blood_type" x-model="formData.blood_type" :required="!isFollowUp"
+                                        @change="formData.blood_type = $event.target.value; if (errors.blood_type) delete errors.blood_type;"
                                         class="form-select mt-1 block w-full"
-                                        :class="errors.blood_type ? 'border-red-500!' : ''">
+                                        :class="errors.blood_type ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
                                         <option value="">Select Blood Type</option>
                                         <option value="A+">A+</option>
                                         <option value="A-">A-</option>
@@ -522,7 +617,9 @@
 
                         {{-- Section 3: Family Information --}}
                         <div x-show="!isFollowUp" class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-                            <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4">Family Information</h4>
+                            <div class="mb-4">
+                                <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Family Information</h4>
+                            </div>
                             
                             {{-- Mother's Maiden Name --}}
                             <div class="mb-4">
@@ -531,25 +628,27 @@
                                     <div class="md:col-span-4">
                                         <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('First Name') }} <span class="text-red-500">*</span></label>
                                         <input type="text" x-model="formData.mother_first_name" :required="!isFollowUp" placeholder="First Name"
-                                            @input="formData.mother_first_name = $event.target.value.toUpperCase()"
-                                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase">
+                                            @input="formData.mother_first_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
+                                            class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:bg-gray-700 dark:text-white"
+                                            :class="errors.mothers_maiden_name && !formData.mother_first_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     </div>
                                     <div class="md:col-span-3">
                                         <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Middle Name') }}</label>
                                         <input type="text" x-model="formData.mother_middle_name" placeholder="Middle Name"
-                                            @input="formData.mother_middle_name = $event.target.value.toUpperCase()"
+                                            @input="formData.mother_middle_name = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
                                             class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase">
                                     </div>
                                     <div class="md:col-span-3">
                                         <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Last Name') }} <span class="text-red-500">*</span></label>
                                         <input type="text" x-model="formData.mother_last_name" :required="!isFollowUp" placeholder="Last Name"
-                                            @input="formData.mother_last_name = $event.target.value.toUpperCase()"
-                                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase">
+                                            @input="formData.mother_last_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
+                                            class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:bg-gray-700 dark:text-white"
+                                            :class="errors.mothers_maiden_name && !formData.mother_last_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     </div>
                                     <div class="md:col-span-2">
                                         <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Suffix') }}</label>
                                         <input type="text" x-model="formData.mother_suffix" placeholder="Suffix"
-                                            @input="formData.mother_suffix = $event.target.value.toUpperCase()"
+                                            @input="formData.mother_suffix = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
                                             class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase">
                                     </div>
                                 </div>
@@ -566,9 +665,9 @@
                                 <div class="relative mt-1">
                                     <input :type="showPhilhealth ? 'text' : 'password'" name="philhealth_number" :required="!isFollowUp"
                                         x-model="formData.philhealth_number" placeholder="12-123456789-0"
-                                        @input="formData.philhealth_number = formatPhilHealth($event.target.value)"
+                                        @input="formData.philhealth_number = formatPhilHealth($event.target.value); if (errors.philhealth) delete errors.philhealth;"
                                         class="block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 pr-10"
-                                        :class="errors.philhealth ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'">
+                                        :class="errors.philhealth ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     <button type="button" @click="showPhilhealth = !showPhilhealth" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
                                         <svg x-show="!showPhilhealth" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                         <svg x-show="showPhilhealth" style="display:none;" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
@@ -591,8 +690,9 @@
                                         <span x-text="formData.type === 'pedia' ? 'Guardian Email Address' : 'Email Address'"></span> <span class="text-red-500">*</span>
                                     </label>
                                     <input type="email" name="email" x-model="formData.email" :required="true" placeholder="example@email.com"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500"
-                                        :class="errors.email ? 'border-red-500 ring-red-500' : 'border-gray-300'">
+                                        @input="formData.email = $event.target.value; if (errors.email) delete errors.email;"
+                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
+                                        :class="errors.email ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     <p x-show="errors.email" class="text-red-500 text-xs mt-1" x-text="errors.email"></p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">We will send a verification code to this email.</p>
                                 </div>
@@ -601,9 +701,9 @@
                                         {{ __('Contact Number') }} <span class="text-red-500">*</span>
                                     </label>
                                     <input type="text" name="contact_number" x-model="formData.contact_number" x-bind:required="!isFollowUp && formData.type !== 'pedia'" placeholder="09xxxxxxxxx" maxlength="11"
-                                        x-on:input="formData.contact_number = $event.target.value.replace(/[^0-9]/g, '').slice(0, 11)"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500"
-                                        :class="errors.contact_number ? 'border-red-500 ring-red-500' : 'border-gray-300'">
+                                        x-on:input="formData.contact_number = $event.target.value.replace(/[^0-9]/g, '').slice(0, 11); if (errors.contact_number) delete errors.contact_number;"
+                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
+                                        :class="errors.contact_number ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     <p x-show="errors.contact_number" class="text-red-500 text-xs mt-1" x-text="errors.contact_number"></p>
                                 </div>
                             </div>
@@ -652,8 +752,9 @@
                                     </div>
                                     <div class="md:col-span-6">
                                         <select x-model="barangay" :disabled="loadingBrgy" :required="!isFollowUp"
+                                            @change="if (errors.address) delete errors.address;"
                                             class="form-select w-full text-sm uppercase"
-                                            :class="errors.address && !barangay ? 'border-red-500!' : ''">
+                                            :class="errors.address && !barangay ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
                                             <option value="" x-text="loadingBrgy ? 'Loading barangays...' : 'Select Barangay'"></option>
                                             <template x-for="bg in barangays" :key="bg.code">
                                                 <option :value="bg.name" x-text="bg.name"></option>
@@ -676,7 +777,47 @@
 
                         {{-- Section 5: Guardian Info (Pedia only) --}}
                         <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700" x-show="formData.type === 'pedia' && !isFollowUp" x-cloak>
-                            <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4">Guardian Information</h4>
+                            <div class="mb-3">
+                                <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Guardian Information</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Required for pediatric patients (12 years old and below)</p>
+                            </div>
+
+                            {{-- Mother is also Guardian Toggle Card --}}
+                            <label class="group relative flex items-center justify-between gap-4 p-3.5 mb-4 rounded-xl border transition-all duration-200 cursor-pointer select-none"
+                                :class="motherIsGuardian 
+                                    ? 'bg-teal-50/80 dark:bg-teal-950/40 border-teal-300 dark:border-teal-700 shadow-xs ring-1 ring-teal-500/20' 
+                                    : 'bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-700 shadow-2xs'">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200"
+                                        :class="motherIsGuardian 
+                                            ? 'bg-teal-600 text-white shadow-xs' 
+                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400'">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">
+                                                Mother is also the patient's guardian
+                                            </span>
+                                            <span x-show="motherIsGuardian" x-cloak class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white tracking-wide uppercase shadow-2xs">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                Linked
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            <span x-show="!motherIsGuardian">Click to auto-fill guardian name using mother's information from above</span>
+                                            <span x-show="motherIsGuardian" class="text-teal-600 dark:text-teal-400 font-medium">Auto-filled and synced with Mother's Name</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- Toggle Switch -->
+                                <div class="relative inline-flex items-center shrink-0">
+                                    <input type="checkbox" x-model="motherIsGuardian" @change="toggleMotherAsGuardian()" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/40 dark:peer-focus:ring-teal-600/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600 shadow-inner"></div>
+                                </div>
+                            </label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Guardian Name') }} <span class="text-red-500">*</span></label>
@@ -684,26 +825,34 @@
                                         <div class="md:col-span-4">
                                             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('First Name') }} <span class="text-red-500">*</span></label>
                                             <input type="text" name="guardian_first_name" x-model="formData.guardian_first_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="First Name"
-                                                @input="formData.guardian_first_name = $event.target.value.toUpperCase()"
-                                                class="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm uppercase">
+                                                :readonly="motherIsGuardian"
+                                                @input="if (!motherIsGuardian) { formData.guardian_first_name = $event.target.value.toUpperCase(); if (errors.guardian_first_name && formData.guardian_first_name && formData.guardian_last_name) delete errors.guardian_first_name; }"
+                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
+                                                :class="[errors.guardian_first_name && !formData.guardian_first_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600', motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'dark:bg-gray-700']">
                                         </div>
                                         <div class="md:col-span-3">
                                             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Middle Name') }}</label>
                                             <input type="text" name="guardian_middle_name" x-model="formData.guardian_middle_name" placeholder="Middle Name"
-                                                @input="formData.guardian_middle_name = $event.target.value.toUpperCase()"
-                                                class="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm uppercase">
+                                                :readonly="motherIsGuardian"
+                                                @input="if (!motherIsGuardian) { formData.guardian_middle_name = $event.target.value.toUpperCase(); }"
+                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
+                                                :class="[motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border-gray-300 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700']">
                                         </div>
                                         <div class="md:col-span-3">
                                             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Last Name') }} <span class="text-red-500">*</span></label>
                                             <input type="text" name="guardian_last_name" x-model="formData.guardian_last_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="Last Name"
-                                                @input="formData.guardian_last_name = $event.target.value.toUpperCase()"
-                                                class="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm uppercase">
+                                                :readonly="motherIsGuardian"
+                                                @input="if (!motherIsGuardian) { formData.guardian_last_name = $event.target.value.toUpperCase(); if (errors.guardian_first_name && formData.guardian_first_name && formData.guardian_last_name) delete errors.guardian_first_name; }"
+                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
+                                                :class="[errors.guardian_first_name && !formData.guardian_last_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600', motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'dark:bg-gray-700']">
                                         </div>
                                         <div class="md:col-span-2">
                                             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Suffix') }}</label>
                                             <input type="text" name="guardian_suffix" x-model="formData.guardian_suffix" placeholder="Suffix"
-                                                @input="formData.guardian_suffix = $event.target.value.toUpperCase()"
-                                                class="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm uppercase">
+                                                :readonly="motherIsGuardian"
+                                                @input="if (!motherIsGuardian) { formData.guardian_suffix = $event.target.value.toUpperCase(); }"
+                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
+                                                :class="[motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border-gray-300 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700']">
                                         </div>
                                     </div>
                                     <p x-show="errors.guardian_first_name || errors.guardian_last_name" class="text-red-500 text-xs mt-1" x-text="errors.guardian_first_name || errors.guardian_last_name"></p>
@@ -712,10 +861,12 @@
                                     selectedGuardianRelation: '',
                                     customGuardianRelation: '',
                                     get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; }
-                                }" x-effect="formData.guardian_relation = finalGuardianRelation">
+                                }" x-effect="formData.guardian_relation = finalGuardianRelation; if (errors.guardian_relation && finalGuardianRelation) delete errors.guardian_relation;">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Relationship to Patient') }} <span class="text-red-500">*</span></label>
                                     <select x-model="selectedGuardianRelation" :required="formData.type === 'pedia' && !isFollowUp"
-                                        class="form-select block w-full">
+                                        @change="if (errors.guardian_relation) delete errors.guardian_relation;"
+                                        class="form-select block w-full"
+                                        :class="errors.guardian_relation ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
                                         <option value="">Select Relationship</option>
                                         <option value="Mother">Mother</option>
                                         <option value="Father">Father</option>
@@ -725,16 +876,16 @@
                                     </select>
                                     <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation"
                                         placeholder="Specify relationship..." style="display:none;"
-                                        class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase" @input="customGuardianRelation = $event.target.value.toUpperCase()">
+                                        class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase" @input="customGuardianRelation = $event.target.value.toUpperCase(); if (errors.guardian_relation) delete errors.guardian_relation;">
                                     <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
                                     <p x-show="errors.guardian_relation" class="text-red-500 text-xs mt-1" x-text="errors.guardian_relation"></p>
                                 </div>
                                 <div class="md:col-span-1">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Guardian Contact Number') }} <span class="text-red-500">*</span></label>
                                     <input type="text" name="guardian_contact" x-model="formData.guardian_contact" placeholder="09xxxxxxxxx" maxlength="11"
-                                        x-on:input="formData.guardian_contact = formData.guardian_contact.replace(/[^0-9]/g, '').slice(0, 11)"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500"
-                                        :class="errors.guardian_contact ? 'border-red-500 ring-red-500' : 'border-gray-300'">
+                                        x-on:input="formData.guardian_contact = formData.guardian_contact.replace(/[^0-9]/g, '').slice(0, 11); if (errors.guardian_contact) delete errors.guardian_contact;"
+                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
+                                        :class="errors.guardian_contact ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
                                     <p x-show="errors.guardian_contact" class="text-red-500 text-xs mt-1" x-text="errors.guardian_contact"></p>
                                 </div>
                             </div>
@@ -747,14 +898,16 @@
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                                  <template x-for="symptom in ['Cough', 'Fever', 'Headache', 'Abdominal Pain', 'Sore Throat', 'Difficulty Breathing', 'Dizziness', 'Skin Rash']">
                                     <label class="flex items-center space-x-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-white dark:hover:bg-gray-800 transition cursor-pointer">
-                                        <input type="checkbox" :value="symptom" x-model="formData.symptoms" class="rounded text-teal-600 focus:ring-teal-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                                        <input type="checkbox" :value="symptom" x-model="formData.symptoms" @change="if (errors.complaint) delete errors.complaint;" class="rounded text-teal-600 focus:ring-teal-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700">
                                         <span class="text-sm text-gray-700 dark:text-gray-300" x-text="symptom"></span>
                                     </label>
                                  </template>
                             </div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-2">{{ __('Others Specify') }}</label>
                             <textarea x-model="formData.other_symptom" rows="2" placeholder="Other symptoms or reason..."
-                                class="mt-1 block w-full rounded-md shadow-sm border p-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"></textarea>
+                                @input="if (errors.complaint) delete errors.complaint;"
+                                class="mt-1 block w-full rounded-md shadow-sm border p-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
+                                :class="errors.complaint && (!combinedComplaint || combinedComplaint.trim() === '') ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'"></textarea>
                             
                             <input type="hidden" name="complaint" :value="combinedComplaint">
                             <p x-show="errors.complaint" class="text-red-500 text-xs mt-1" x-text="errors.complaint"></p>
@@ -1226,6 +1379,7 @@
                     mother_first_name: '',
                     mother_middle_name: '',
                     mother_last_name: '',
+                    mother_suffix: '',
                     mothers_maiden_name: '{{ old('mothers_maiden_name', '') }}',
                     classification: '{{ old('classification', '') }}',
                     email: '{{ old('email', '') }}',
@@ -1288,6 +1442,47 @@
 
                 errors: {},
 
+                motherIsGuardian: false,
+
+                toggleMotherAsGuardian() {
+                    if (this.motherIsGuardian) {
+                        this.syncMotherToGuardian();
+                    }
+                },
+
+                syncMotherToGuardian() {
+                    const mFirst = (this.formData.mother_first_name || document.querySelector('input[x-model="formData.mother_first_name"]')?.value || '').trim().toUpperCase();
+                    const mMid = (this.formData.mother_middle_name || document.querySelector('input[x-model="formData.mother_middle_name"]')?.value || '').trim().toUpperCase();
+                    const mLast = (this.formData.mother_last_name || document.querySelector('input[x-model="formData.mother_last_name"]')?.value || '').trim().toUpperCase();
+                    const mSuffix = (this.formData.mother_suffix || document.querySelector('input[x-model="formData.mother_suffix"]')?.value || '').trim().toUpperCase();
+
+                    this.formData.mother_first_name = mFirst;
+                    this.formData.mother_middle_name = mMid;
+                    this.formData.mother_last_name = mLast;
+                    this.formData.mother_suffix = mSuffix;
+
+                    this.formData.guardian_first_name = mFirst;
+                    this.formData.guardian_middle_name = mMid;
+                    this.formData.guardian_last_name = mLast;
+                    this.formData.guardian_suffix = mSuffix;
+
+                    // Immediately update DOM input values for instant visual feedback
+                    const gFirst = document.querySelector('input[name="guardian_first_name"]');
+                    if (gFirst) gFirst.value = mFirst;
+                    const gMid = document.querySelector('input[name="guardian_middle_name"]');
+                    if (gMid) gMid.value = mMid;
+                    const gLast = document.querySelector('input[name="guardian_last_name"]');
+                    if (gLast) gLast.value = mLast;
+                    const gSuffix = document.querySelector('input[name="guardian_suffix"]');
+                    if (gSuffix) gSuffix.value = mSuffix;
+
+                    // Clear guardian name errors if names are now present
+                    if (this.formData.guardian_first_name && this.formData.guardian_last_name) {
+                        delete this.errors.guardian_first_name;
+                        delete this.errors.guardian_last_name;
+                    }
+                },
+
                 setService(type) {
                     this.formData.type = type;
                     // Adult is always follow-up in this flow. Pedia is optional (checkbox).
@@ -1304,6 +1499,7 @@
                     if (this.step === 1) {
                         canProceed = true;
                     } else if (this.step === 2) {
+                        this.syncFormDataFromDOM();
                         if (this.validateInfo()) {
                             // Check for duplicate booking before proceeding
                             try {
@@ -1452,7 +1648,71 @@
                     }
                 },
 
+                syncFormDataFromDOM() {
+                    const syncVal = (selector, setter) => {
+                        const el = document.querySelector(selector);
+                        if (el && el.value !== undefined && el.value !== null && el.value.toString().trim() !== '') {
+                            setter(el.value.toString().trim());
+                        }
+                    };
+
+                    syncVal('input[name="first_name"]', v => { this.formData.first_name = v.toUpperCase(); });
+                    syncVal('input[name="middle_name"]', v => { this.formData.middle_name = v.toUpperCase(); });
+                    syncVal('input[name="last_name"]', v => { this.formData.last_name = v.toUpperCase(); });
+                    syncVal('input[name="suffix"]', v => { this.formData.suffix = v.toUpperCase(); });
+                    syncVal('select[name="sex"]', v => { this.formData.sex = v; });
+                    syncVal('input[name="dob"]', v => { this.formData.dob = v; });
+                    syncVal('select[name="civil_status"]', v => { this.formData.civil_status = v; });
+                    syncVal('select[name="blood_type"]', v => { this.formData.blood_type = v; });
+                    syncVal('select[name="education"]', v => { this.formData.education = v; });
+                    syncVal('input[name="email"]', v => { this.formData.email = v; });
+                    syncVal('input[name="contact_number"]', v => { this.formData.contact_number = v; });
+                    syncVal('input[name="philhealth_number"]', v => { this.formData.philhealth_number = this.formatPhilHealth(v); });
+
+                    // Mother's Maiden Name
+                    syncVal('input[x-model="formData.mother_first_name"]', v => { this.formData.mother_first_name = v.toUpperCase(); });
+                    syncVal('input[x-model="formData.mother_middle_name"]', v => { this.formData.mother_middle_name = v.toUpperCase(); });
+                    syncVal('input[x-model="formData.mother_last_name"]', v => { this.formData.mother_last_name = v.toUpperCase(); });
+                    syncVal('input[x-model="formData.mother_suffix"]', v => { this.formData.mother_suffix = v.toUpperCase(); });
+
+                    // Address / Barangay
+                    syncVal('select[x-model="barangay"]', v => { this.formData.barangay = v; });
+                    syncVal('input[x-model="house_no"]', v => { this.formData.house_no = v; });
+                    syncVal('input[x-model="street"]', v => { this.formData.street = v; });
+                    syncVal('input[x-model="building"]', v => { this.formData.building = v; });
+                    syncVal('input[name="address"]', v => { this.formData.address = v; });
+
+                    // Guardian (Pedia)
+                    if (this.motherIsGuardian) {
+                        // When mother is guardian, sync names from mother fields
+                        this.syncMotherToGuardian();
+                    } else {
+                        syncVal('input[name="guardian_first_name"]', v => { this.formData.guardian_first_name = v.toUpperCase(); });
+                        syncVal('input[name="guardian_middle_name"]', v => { this.formData.guardian_middle_name = v.toUpperCase(); });
+                        syncVal('input[name="guardian_last_name"]', v => { this.formData.guardian_last_name = v.toUpperCase(); });
+                        syncVal('input[name="guardian_suffix"]', v => { this.formData.guardian_suffix = v.toUpperCase(); });
+                    }
+                    syncVal('select[x-model="selectedGuardianRelation"]', v => {
+                        const custom = document.querySelector('input[x-model="customGuardianRelation"]')?.value?.trim();
+                        this.formData.guardian_relation = (v === 'Others (Please Specify)' && custom) ? custom.toUpperCase() : v;
+                    });
+                    syncVal('input[name="guardian_contact"]', v => { this.formData.guardian_contact = v; });
+
+                    // Religion & Occupation
+                    const relEl = document.querySelector('select[x-model="selectedReligion"]');
+                    if (relEl && relEl.value) {
+                        const customRel = document.querySelector('input[x-model="customReligion"]')?.value?.trim();
+                        this.formData.religion = (relEl.value === 'Others' && customRel) ? customRel : relEl.value;
+                    }
+                    const occEl = document.querySelector('select[x-model="selectedOccupation"]');
+                    if (occEl && occEl.value) {
+                        const customOcc = document.querySelector('input[x-model="customOccupation"]')?.value?.trim();
+                        this.formData.occupation = (occEl.value === 'Others' && customOcc) ? customOcc : occEl.value;
+                    }
+                },
+
                 validateInfo() {
+                    this.syncFormDataFromDOM();
                     let isValid = true;
                     if (!this.formData.first_name) { this.errors.first_name = 'Required'; isValid = false; }
                     if (!this.formData.last_name) { this.errors.last_name = 'Required'; isValid = false; }

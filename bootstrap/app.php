@@ -22,5 +22,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Return a generic 404 instead of redirecting to /login when an
+        // unauthenticated user probes a protected route.  This prevents
+        // information disclosure — attackers won't learn that a login
+        // page exists by simply visiting /admin, /doctor, etc.
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
+            abort(404);
+        });
     })->create();
