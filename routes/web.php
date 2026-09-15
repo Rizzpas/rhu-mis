@@ -43,6 +43,13 @@ Route::get('/appointment/logout', function () {
     return redirect()->route('appointment.manage');
 })->name('appointment.logout');
 
+// Developer Preview Route for Toast Notifications (Local only)
+if (app()->environment('local')) {
+    Route::get('/dev/toast-preview', function () {
+        return view('dev.toast-preview');
+    })->name('dev.toast-preview');
+}
+
 // Auth Routes
 // Hidden staff portal entry — sets a session token so the login page will render.
 // This route is triggered from a disguised link in the public footer.

@@ -14,19 +14,33 @@ use Illuminate\Support\Str;
 
 class PublicController extends Controller
 {
+    /** Rate limiting constants for OTP verification */
+    public const OTP_VERIFY_MAX_ATTEMPTS = 5;
+    public const OTP_VERIFY_LOCKOUT_SECONDS = 180; // 3 minutes base lockout
+    public const OTP_VERIFY_BACKOFF_TIERS = [180, 300, 600, 1800]; // 3m -> 5m -> 10m -> 30m exponential backoff
+
     public function index()
     {
-        $today = now()->format('D'); // Mon, Tue, Wed, etc.
+        $now = now();
+        $today = $now->format('D'); // Mon, Tue, Wed, etc.
+        $currentTime = $now->format('H:i:s');
 
         $doctors = \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])
             ->with('practitionerSchedules')
-            ->where(function ($q) use ($today) {
-                // Online or Occupied right now
+            ->where(function ($q) use ($today, $currentTime) {
+                // Currently Online or Occupied (manual status)
                 $q->whereIn('status', ['Online', 'Occupied'])
-                  // OR has a schedule entry for today
-                  ->orWhereHas('practitionerSchedules', function ($schedQ) use ($today) {
-                      $schedQ->where('day_of_week', $today);
+                  // OR currently within an active schedule slot
+                  ->orWhereHas('practitionerSchedules', function ($schedQ) use ($today, $currentTime) {
+                      $schedQ->where('day_of_week', $today)
+                             ->where('time_in', '<=', $currentTime)
+                             ->where('time_out', '>=', $currentTime);
                   });
+            })
+            // Exclude doctors who manually went offline
+            ->where(function ($q) {
+                $q->whereNull('schedule_override')
+                  ->orWhere('schedule_override', '!=', 'manual_offline');
             })
             ->get();
         // Fetch up to 7 latest published announcements for the carousel (Total 8 slides with hero)
@@ -478,7 +492,7 @@ class PublicController extends Controller
             'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
             'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
             'suffix' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
-            'email' => ['required', 'email:rfc,dns', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
             'sex' => 'required|in:Male,Female',
             'dob' => 'required|date',
             'civil_status' => 'nullable|string|max:50',
@@ -512,7 +526,7 @@ class PublicController extends Controller
             $rules['guardian_last_name'] = ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'];
             $rules['guardian_middle_name'] = ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'];
             $rules['guardian_suffix'] = ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'];
-            $rules['guardian_relation'] = 'required|string|in:Mother,Father,Grandparent,Sibling,Other';
+            $rules['guardian_relation'] = 'required|string|max:100';
             $rules['guardian_contact'] = ['required', 'regex:/^09\d{9}$/'];
             $rules['is_follow_up'] = 'boolean';
         }
@@ -678,17 +692,102 @@ class PublicController extends Controller
             'otp' => 'required|digits:6',
         ]);
 
-        $cachedOtp = Cache::get('otp_'.$request->email);
+        $email = strtolower(trim($request->email));
+        $ip = $request->ip();
+        $rateLimitKey = sha1($email.'|'.$ip);
 
-        if ($cachedOtp && $cachedOtp == $request->otp) {
-            Cache::forget('otp_attempts_'.$request->email);
-            Cache::forget('otp_lockout_'.$request->email);
-            Cache::forget('otp_'.$request->email);
+        $lockoutKey = 'otp_verify_lockout_'.$rateLimitKey;
+        $attemptsKey = 'otp_verify_attempts_'.$rateLimitKey;
+        $tierKey = 'otp_verify_tier_'.$rateLimitKey;
+        $lastAttemptKey = 'otp_verify_last_at_'.$rateLimitKey;
+
+        $maxAttempts = (int) config('auth.otp_verify_max_attempts', self::OTP_VERIFY_MAX_ATTEMPTS);
+        $baseLockout = (int) config('auth.otp_verify_lockout_seconds', self::OTP_VERIFY_LOCKOUT_SECONDS);
+        $backoffTiers = (array) config('auth.otp_verify_backoff_tiers', self::OTP_VERIFY_BACKOFF_TIERS);
+
+        // 1. Check if currently locked out
+        if (Cache::has($lockoutKey)) {
+            $lockoutUntil = (int) Cache::get($lockoutKey);
+            $secondsRemaining = $lockoutUntil - time();
+
+            if ($secondsRemaining > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Too many failed verification attempts. Please try again in '.$this->formatRetryDuration($secondsRemaining).'.',
+                    'seconds_remaining' => $secondsRemaining,
+                ], 429);
+            }
+
+            // Lockout expired: clear lockout key and reset failed-attempts counter
+            Cache::forget($lockoutKey);
+            Cache::forget($attemptsKey);
+        }
+
+        // 2. Validate OTP
+        $cachedOtp = Cache::get('otp_'.$email);
+
+        if ($cachedOtp && (string) $cachedOtp === (string) $request->otp) {
+            // Successful verification: reset failed-attempt counter, lockout, and tier history
+            Cache::forget($attemptsKey);
+            Cache::forget($lockoutKey);
+            Cache::forget($tierKey);
+            Cache::forget($lastAttemptKey);
+
+            // Also clear email send-limit caches and stored OTP
+            Cache::forget('otp_attempts_'.$email);
+            Cache::forget('otp_lockout_'.$email);
+            Cache::forget('otp_'.$email);
 
             return response()->json(['success' => true]);
         }
 
-        return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.'], 400);
+        // 3. Failed attempt: increment failed attempts & store attempt count/time
+        $failedAttempts = (int) Cache::get($attemptsKey, 0) + 1;
+        Cache::put($lastAttemptKey, time(), 86400);
+
+        if ($failedAttempts >= $maxAttempts) {
+            // Determine lockout duration using exponential backoff tiers (3m -> 5m -> 10m -> 30m)
+            $tier = (int) Cache::get($tierKey, 0);
+            $lockoutDuration = $backoffTiers[min($tier, count($backoffTiers) - 1)] ?? $baseLockout;
+
+            Cache::put($lockoutKey, time() + $lockoutDuration, $lockoutDuration);
+            Cache::put($tierKey, $tier + 1, 86400); // Retain escalation tier for 24 hours
+            Cache::forget($attemptsKey); // Reset consecutive counter so user starts fresh after cooldown
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many failed verification attempts. You have been locked out. Please try again in '.$this->formatRetryDuration($lockoutDuration).'.',
+                'seconds_remaining' => $lockoutDuration,
+            ], 429);
+        }
+
+        // Store updated failed attempts with 1-hour expiration
+        Cache::put($attemptsKey, $failedAttempts, 3600);
+        $remaining = max(0, $maxAttempts - $failedAttempts);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid or expired OTP. You have '.$remaining.' attempt'.($remaining === 1 ? '' : 's').' remaining before lockout.',
+            'attempts_remaining' => $remaining,
+        ], 400);
+    }
+
+    /**
+     * Format seconds into a human-readable duration string.
+     */
+    protected function formatRetryDuration(int $seconds): string
+    {
+        if ($seconds <= 0) {
+            return 'a few seconds';
+        }
+
+        if ($seconds < 60) {
+            return $seconds.' second'.($seconds === 1 ? '' : 's');
+        }
+
+        $minutes = (int) ceil($seconds / 60);
+
+        return $minutes.' minute'.($minutes === 1 ? '' : 's');
     }
 
     // Appointment Management

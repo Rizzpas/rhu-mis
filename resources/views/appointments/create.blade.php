@@ -45,12 +45,13 @@
                 </div>
             </div>
 
-            <div class="rounded-2xl mb-36 p-6 sm:p-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-md relative overflow-hidden">
+            <div class="rounded-2xl mb-36 p-6 sm:p-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-md relative z-10 overflow-hidden">
                 
                 <!-- Loading Overlay -->
                 <div x-show="isLoading"
-                    class="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs z-60 flex items-center justify-center">
+                    class="absolute inset-0 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xs z-20 flex flex-col items-center justify-center gap-3">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-700"></div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wide">Processing your appointment booking...</span>
                 </div>
 
                 <div class="text-center mb-6 sm:mb-8">
@@ -63,8 +64,7 @@
                 </div>
 
                 <form id="appointment-form" action="{{ route('appointment.store') }}" method="POST"
-                    @submit.prevent="submitForm"
-                    @submit-appointment-form.window="console.log('Submitting form...'); $el.submit(); isLoading = true">
+                    @submit="submitForm($event)">
                     @csrf
                     <div x-show="step === 1" x-transition>
                         <h3 class="font-display text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
@@ -1166,9 +1166,22 @@
                         <button type="submit" x-show="step === 5"
                             class="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-xs text-white shadow-md transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             style="background: linear-gradient(135deg, #10b981, #15803d);"
-                            :disabled="!formData.data_privacy_agreed">
-                            <span>{{ __('Confirm Booking') }}</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            :disabled="!formData.data_privacy_agreed || isLoading">
+                            <template x-if="!isLoading">
+                                <span class="inline-flex items-center gap-2">
+                                    <span>{{ __('Confirm Booking') }}</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </span>
+                            </template>
+                            <template x-if="isLoading">
+                                <span class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>{{ __('Submitting Booking...') }}</span>
+                                </span>
+                            </template>
                         </button>
                     </div>
 
@@ -1423,8 +1436,12 @@
 
                 init() {
                     @if($errors->any())
-                        // Alert user of errors
-                        alert("Submission Failed: {{ implode(' ', $errors->all()) }}");
+                        window.dispatchEvent(new CustomEvent('add-toast', {
+                            detail: {
+                                type: 'error',
+                                message: 'Submission Failed: {{ implode(', ', $errors->all()) }}'
+                            }
+                        }));
 
                         // Smart Step Restoration
                         if (this.selectedDate) {
@@ -1875,9 +1892,21 @@
                             this.updateProgress();
                         } else {
                             this.errors.otp = data.message || 'Invalid OTP';
+                            window.dispatchEvent(new CustomEvent('add-toast', {
+                                detail: {
+                                    type: 'error',
+                                    message: data.message || 'Invalid OTP'
+                                }
+                            }));
                         }
                     } catch (e) {
                         this.errors.otp = 'Verification failed. Try again.';
+                        window.dispatchEvent(new CustomEvent('add-toast', {
+                            detail: {
+                                type: 'error',
+                                message: 'Verification failed. Try again.'
+                            }
+                        }));
                     } finally {
                         this.isLoading = false;
                     }
@@ -1885,20 +1914,12 @@
 
                 submitForm(e) {
                     if (!this.formData.data_privacy_agreed) {
+                        if (e) e.preventDefault();
                         window.dispatchEvent(new CustomEvent('add-toast', { detail: { type: 'error', message: 'Please agree to the Data Privacy Act to proceed.' } }));
                         return;
                     }
 
-                    // Prevent default submission initially
-                    // Trigger the modal
-                    window.dispatchEvent(new CustomEvent('open-confirmation', {
-                        detail: {
-                            title: 'Confirm Appointment',
-                            message: 'Are you sure all the details are correct? Click "Yes, Proceed" to submit your appointment request.',
-                            confirmText: 'Yes, Proceed',
-                            callback: 'submit-appointment-form'
-                        }
-                    }));
+                    this.isLoading = true;
                 },
 
                 formatDate(dateString) {

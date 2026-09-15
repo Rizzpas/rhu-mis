@@ -350,7 +350,9 @@
 
         {{-- ============================================================
              LIVE SCHEDULE SECTION — Doctor Directory with Real Availability
+             Only shown when there are doctors currently online/scheduled/occupied
         ============================================================ --}}
+        @if(count($doctors) > 0)
         <div id="schedule" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
             <div class="text-center mb-12" data-reveal>
                 <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Medical Staff Availability</span>
@@ -509,6 +511,7 @@
                 </div>
             @endif
         </div>
+        @endif
 
         {{-- ============================================================
              CIVIC CONTACT & ACCESS DIRECTORY — High Contrast Structure
