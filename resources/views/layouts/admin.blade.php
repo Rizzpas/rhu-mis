@@ -408,7 +408,7 @@
                             x-model="searchQuery" 
                             @focus="showResults = true"
                             @keydown.escape="showResults = false"
-                            placeholder="Search..." 
+                            placeholder="Search" 
                             class="w-full pl-10 pr-4 py-2 bg-white rounded-full border-none shadow-inner focus:ring-2 focus:ring-emerald-300 focus:outline-none text-sm text-emerald-900 placeholder-emerald-800/60 dark:bg-emerald-950 dark:text-emerald-100 dark:placeholder-emerald-400/50 transition-shadow">
                         
                         <!-- Search Dropdown -->

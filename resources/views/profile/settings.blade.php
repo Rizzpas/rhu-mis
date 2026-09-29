@@ -48,6 +48,9 @@
                         this.photoPreview = previewUrl;
                         this.photoName = file.name;
                         setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                        window.dispatchEvent(new CustomEvent('profile-avatar-changed', {
+                            detail: { previewUrl: previewUrl, fileName: file.name }
+                        }));
                     }
                 });
             }
@@ -277,7 +280,18 @@
 
             <!-- Profile Form with Confirmation Modal -->
             <form id="profile-info-form" x-ref="profileForm" method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" 
-                  x-data="{ showConfirmModal: false, submitting: false, formName: '{{ addslashes($user->name) }}' }"
+                  x-data="{ 
+                      showConfirmModal: false, 
+                      submitting: false, 
+                      formName: '{{ addslashes($user->name) }}',
+                      avatarPreview: null,
+                      avatarName: null,
+                      hasAvatar() {
+                          const input = document.getElementById('profile_avatar_input');
+                          return !!(this.avatarPreview || (input && input.files && input.files.length > 0));
+                      }
+                  }"
+                  @profile-avatar-changed.window="avatarPreview = $event.detail.previewUrl; avatarName = $event.detail.fileName"
                   class="space-y-6">
                 @csrf
                 @method('patch')
@@ -449,6 +463,7 @@
                 </div>
 
                 <!-- POP-UP CONFIRMATION MODAL: Profile Changes -->
+                <template x-teleport="body">
                 <div x-show="showConfirmModal" 
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
@@ -456,7 +471,7 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" 
+                     class="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" 
                      x-cloak
                      style="display: none;">
                     
@@ -491,7 +506,17 @@
                             </div>
                             <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
                                 <span class="text-slate-500 dark:text-slate-400 font-medium">Avatar Upload:</span>
-                                <span class="font-semibold text-emerald-600 dark:text-emerald-400" x-text="photoPreview ? 'New Photo Selected' : 'Unchanged'"></span>
+                                <template x-if="hasAvatar()">
+                                    <div class="flex items-center gap-2 font-semibold text-emerald-600 dark:text-emerald-400">
+                                        <template x-if="avatarPreview">
+                                            <img :src="avatarPreview" class="w-5 h-5 rounded-full object-cover ring-1 ring-emerald-500/50">
+                                        </template>
+                                        <span>New Photo Selected</span>
+                                    </div>
+                                </template>
+                                <template x-if="!hasAvatar()">
+                                    <span class="font-medium text-slate-400 dark:text-slate-500">Unchanged</span>
+                                </template>
                             </div>
                             <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
                                 <span class="text-slate-500 dark:text-slate-400 font-medium">Administrative Fields:</span>
@@ -508,7 +533,7 @@
                                 Cancel
                             </button>
                             <button type="button"
-                                    @click="submitting = true; $refs.profileForm.submit()"
+                                    @click="submitting = true; document.getElementById('profile-info-form').submit()"
                                     :disabled="submitting"
                                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-700/20 active:scale-[0.98] transition cursor-pointer disabled:opacity-50">
                                 <template x-if="submitting">
@@ -522,6 +547,7 @@
                         </div>
                     </div>
                 </div>
+                </template>
             </form>
         </div>
 
@@ -702,6 +728,7 @@
                 </div>
 
                 <!-- POP-UP CONFIRMATION MODAL: Password Update -->
+                <template x-teleport="body">
                 <div x-show="showPassModal" 
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
@@ -709,7 +736,7 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" 
+                     class="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" 
                      x-cloak
                      style="display: none;">
                     
@@ -749,7 +776,7 @@
                                 Cancel
                             </button>
                             <button type="button"
-                                    @click="submittingPass = true; $refs.passwordForm.submit()"
+                                    @click="submittingPass = true; document.getElementById('password-update-form').submit()"
                                     :disabled="submittingPass"
                                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-700/20 active:scale-[0.98] transition cursor-pointer disabled:opacity-50">
                                 <template x-if="submittingPass">
@@ -763,6 +790,7 @@
                         </div>
                     </div>
                 </div>
+                </template>
             </form>
         </div>
 
