@@ -705,7 +705,7 @@ class PublicController extends Controller
     public function sendOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
-        $email = $request->email;
+        $email = strtolower(trim($request->email));
 
         $lockoutKey = 'otp_lockout_'.$email;
         $attemptsKey = 'otp_attempts_'.$email;

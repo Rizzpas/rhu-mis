@@ -1074,7 +1074,8 @@
                                  class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"></div>
                             <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
                             <div x-show="genericConfirmOpen"
-                                 class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                                 @click.stop
+                                 class="relative z-50 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
                                 <div class="p-6 sm:p-8">
                                     <div class="sm:flex sm:items-start">
                                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl sm:mx-0 sm:h-10 sm:w-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">

@@ -172,7 +172,8 @@
                                      x-transition:leave="ease-in duration-200"
                                      x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                                      x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                     class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                                     @click.stop
+                                     class="relative z-50 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
                                     <form action="{{ route('nurse.forward', $consultation) }}" method="POST">
                                         @csrf
                                         <div class="p-6 sm:p-8">

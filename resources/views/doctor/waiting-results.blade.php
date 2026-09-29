@@ -44,62 +44,82 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {{-- Card 1: Total Waiting --}}
-        <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs backdrop-blur-xs relative overflow-hidden flex flex-col justify-between">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total In Diagnostics</span>
-                <span class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-200 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total In Diagnostics</span>
+                    <span class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-100 dark:border-amber-800/40 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $totalAwaiting }}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">patients on hold</span>
+                </div>
             </div>
-            <div class="flex items-baseline gap-2">
-                <span class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">{{ $totalAwaiting }}</span>
-                <span class="text-xs text-slate-500">patients on hold</span>
+            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span>Awaiting diagnostic releases</span>
             </div>
         </div>
 
         {{-- Card 2: Results Ready (Urgent) --}}
-        <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-emerald-300 dark:border-emerald-800/80 p-6 shadow-xs backdrop-blur-xs relative overflow-hidden flex flex-col justify-between ring-2 ring-emerald-500/10">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Results Ready</span>
-                <span class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center animate-pulse">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
+        <div class="rounded-3xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/90 dark:border-emerald-800/60 p-6 shadow-xs hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Results Ready</span>
+                    <span class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center border border-emerald-200/80 dark:border-emerald-700/60 shadow-2xs">
+                        <svg class="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="font-display text-3xl sm:text-4xl font-extrabold text-emerald-700 dark:text-emerald-300 tracking-tight">{{ $resultsReadyCount }}</span>
+                    <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">ready to resume</span>
+                </div>
             </div>
-            <div class="flex items-baseline gap-2">
-                <span class="font-display text-3xl sm:text-4xl font-extrabold text-emerald-700 dark:text-emerald-400">{{ $resultsReadyCount }}</span>
-                <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">ready to resume</span>
+            <div class="mt-4 pt-3.5 border-t border-emerald-200/60 dark:border-emerald-800/40 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span>Immediate evaluation needed</span>
             </div>
         </div>
 
         {{-- Card 3: Laboratory Tests --}}
-        <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs backdrop-blur-xs relative overflow-hidden flex flex-col justify-between">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-purple-500 to-fuchsia-600"></div>
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Lab Orders</span>
-                <span class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                </span>
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-200 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Lab Orders</span>
+                    <span class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-100 dark:border-purple-800/40 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $totalLab }}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">specimens tracked</span>
+                </div>
             </div>
-            <div class="flex items-baseline gap-2">
-                <span class="font-display text-3xl sm:text-4xl font-extrabold text-purple-700 dark:text-purple-400">{{ $totalLab }}</span>
-                <span class="text-xs text-slate-500">specimens tracked</span>
+            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                <span>Pathology & blood chemistry</span>
             </div>
         </div>
 
         {{-- Card 4: Radiology Orders --}}
-        <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs backdrop-blur-xs relative overflow-hidden flex flex-col justify-between">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-indigo-500 to-sky-600"></div>
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Radiology Orders</span>
-                <span class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </span>
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-200 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Radiology Orders</span>
+                    <span class="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-100 dark:border-sky-800/40 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $totalRad }}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">scans ordered</span>
+                </div>
             </div>
-            <div class="flex items-baseline gap-2">
-                <span class="font-display text-3xl sm:text-4xl font-extrabold text-indigo-700 dark:text-indigo-400">{{ $totalRad }}</span>
-                <span class="text-xs text-slate-500">scans ordered</span>
+            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                <span>X-Ray & ultrasound imaging</span>
             </div>
         </div>
     </div>

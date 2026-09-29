@@ -38,69 +38,69 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-5">
         
         {{-- Card 1: Active Queue --}}
-        <div class="lg:col-span-3 rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs backdrop-blur-xs relative overflow-hidden flex flex-col justify-between group hover:border-emerald-300 dark:hover:border-emerald-700/60 transition-all">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Waiting Patients</span>
-                <span class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                </span>
-            </div>
+        <div class="lg:col-span-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-200 flex flex-col justify-between">
             <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Waiting Patients</span>
+                    <span class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-100 dark:border-emerald-800/40 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </span>
+                </div>
                 <div class="flex items-baseline gap-2">
-                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white">{{ count($queue) }}</span>
+                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ count($queue) }}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">in queue today</span>
                 </div>
-                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2 text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                    <span class="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        {{ $queue->where('status', 'active')->count() }} in progress
-                    </span>
-                    <span>•</span>
-                    <span class="text-teal-700 dark:text-teal-400">{{ $queue->where('status', 'results_ready')->count() }} results ready</span>
-                </div>
+            </div>
+            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2 text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                <span class="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    {{ $queue->where('status', 'active')->count() }} in progress
+                </span>
+                <span class="text-slate-300 dark:text-slate-700">•</span>
+                <span class="inline-flex items-center gap-1.5 text-teal-700 dark:text-teal-400">
+                    <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                    {{ $queue->where('status', 'results_ready')->count() }} results ready
+                </span>
             </div>
         </div>
 
         {{-- Card 2: Waiting for Results --}}
         <a href="{{ route('doctor.waiting-results') }}" 
-           class="lg:col-span-3 rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs backdrop-blur-xs relative overflow-hidden flex flex-col justify-between group hover:border-amber-400 dark:hover:border-amber-600 transition-all cursor-pointer">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pending Diagnostics</span>
-                <span class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg class="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                </span>
-            </div>
+           class="lg:col-span-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-md hover:border-amber-300 dark:hover:border-amber-600/70 transition-all duration-200 flex flex-col justify-between group cursor-pointer">
             <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pending Diagnostics</span>
+                    <span class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-100 dark:border-amber-800/40 shadow-2xs group-hover:scale-105 transition-transform">
+                        <svg class="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    </span>
+                </div>
                 <div class="flex items-baseline gap-2">
-                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-amber-600 dark:text-amber-400">{{ $awaitingLabs->count() }}</span>
+                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-amber-600 dark:text-amber-400 tracking-tight">{{ $awaitingLabs->count() }}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">awaiting labs</span>
                 </div>
-                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-bold text-amber-700 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform">
-                    <span>View Diagnostic Tracker</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </div>
+            </div>
+            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-bold text-amber-700 dark:text-amber-400 group-hover:text-amber-800 dark:group-hover:text-amber-300">
+                <span>View Diagnostic Tracker</span>
+                <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
         </a>
 
         {{-- Card 3: Completed Consultations --}}
-        <div class="lg:col-span-3 rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs backdrop-blur-xs relative overflow-hidden flex flex-col justify-between group hover:border-teal-300 dark:hover:border-teal-700/60 transition-all">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-teal-500 to-emerald-600"></div>
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Completed Consultations</span>
-                <span class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
-            </div>
+        <div class="lg:col-span-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-200 flex flex-col justify-between">
             <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Completed Consultations</span>
+                    <span class="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-100 dark:border-teal-800/40 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
                 <div class="flex items-baseline gap-2">
-                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white">{{ count($handledPatients) }}</span>
+                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ count($handledPatients) }}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">patients finished</span>
                 </div>
-                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
-                    Prescriptions & medical notes filed
-                </div>
+            </div>
+            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
+                Prescriptions & medical notes filed
             </div>
         </div>
 

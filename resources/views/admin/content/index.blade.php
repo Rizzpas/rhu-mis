@@ -637,10 +637,11 @@
                  showAddModal: false,
                  showEditModal: false,
                  showDeleteModal: false,
-                 editUnit: { id: null, name: '', category: '', description: '', operating_hours: '', contact_number: '', location: '', services_offered: '', sort_order: 0, is_active: true, image_url: '' },
+                 editUnit: { id: null, slug: '', name: '', category: '', description: '', operating_hours: '', contact_number: '', location: '', services_offered: '', sort_order: 0, is_active: true, image_url: '' },
                  openEdit(unit) {
                      this.editUnit = {
                          id: unit.id,
+                         slug: unit.slug || '',
                          name: unit.name,
                          category: unit.category || '',
                          description: unit.description || '',
@@ -1002,7 +1003,7 @@
                     </div>
 
                     {{-- Modal Body Form --}}
-                    <form :action="'{{ url('admin/facilities') }}/' + editUnit.id" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden" x-data="{ newImagePreview: null }" x-init="$watch('editUnit.id', () => { newImagePreview = null; if ($el.querySelector('input[name=image]')) $el.querySelector('input[name=image]').value = ''; })">
+                    <form :action="'{{ url('admin/facilities') }}/' + editUnit.slug" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden" x-data="{ newImagePreview: null }" x-init="$watch('editUnit.id', () => { newImagePreview = null; if ($el.querySelector('input[name=image]')) $el.querySelector('input[name=image]').value = ''; })">
                         @csrf
                         @method('PUT')
                         <div class="p-6 sm:p-7 space-y-5 overflow-y-auto flex-1">
@@ -1182,7 +1183,7 @@
                             </div>
                         </div>
                     </form>
-                    <form x-ref="deleteForm" :action="'{{ url('admin/facilities') }}/' + editUnit.id" method="POST" class="hidden">
+                    <form x-ref="deleteForm" :action="'{{ url('admin/facilities') }}/' + editUnit.slug" method="POST" class="hidden">
                         @csrf
                         @method('DELETE')
                     </form>

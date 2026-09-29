@@ -747,7 +747,7 @@
                                             class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm border-gray-300 uppercase">
                                     </div>
                                     <div class="md:col-span-5">
-                                        <input type="text" x-model="building" placeholder="Bldg/Subd (Opt)"
+                                        <input type="text" x-model="building" placeholder="Building/Subdivision (Optional)"
                                             class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm border-gray-300 uppercase">
                                     </div>
                                     <div class="md:col-span-6">
