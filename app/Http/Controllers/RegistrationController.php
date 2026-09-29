@@ -113,6 +113,15 @@ class RegistrationController extends Controller
 
     public function checkIn(\App\Models\Appointment $appointment)
     {
+        // ── Date Validation: Prevent early check-in ──────────────────────
+        $appointmentDate = \Carbon\Carbon::parse($appointment->preferred_date)->startOfDay();
+        $today = \Carbon\Carbon::today();
+
+        if ($today->lt($appointmentDate)) {
+            return redirect()->route('frontdesk.registration.index')
+                ->with('error', 'This appointment is scheduled for '.$appointmentDate->format('F d, Y').'. The patient cannot be checked in before the scheduled appointment date.');
+        }
+
         if (in_array($appointment->status, ['pending', 'approved', 'rescheduled'])) {
             $appointment->update(['status' => 'arrived']);
             broadcast(new \App\Events\QueueUpdated('Appointment checked in', 'general'));

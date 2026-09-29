@@ -637,7 +637,7 @@
                  showAddModal: false,
                  showEditModal: false,
                  showDeleteModal: false,
-                 editUnit: { id: null, name: '', category: '', description: '', operating_hours: '', contact_number: '', location: '', services_offered: '', sort_order: 0, is_active: true },
+                 editUnit: { id: null, name: '', category: '', description: '', operating_hours: '', contact_number: '', location: '', services_offered: '', sort_order: 0, is_active: true, image_url: '' },
                  openEdit(unit) {
                      this.editUnit = {
                          id: unit.id,
@@ -649,7 +649,8 @@
                          location: unit.location || '',
                          services_offered: Array.isArray(unit.services_offered) ? unit.services_offered.join('\n') : '',
                          sort_order: unit.sort_order || 0,
-                         is_active: Boolean(unit.is_active)
+                         is_active: Boolean(unit.is_active),
+                        image_url: unit.image_url || ''
                      };
                      this.showEditModal = true;
                  }
@@ -691,12 +692,19 @@
                                 <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                                     <td class="p-4 text-center font-mono font-bold text-slate-400">{{ $fUnit->sort_order }}</td>
                                     <td class="p-4">
-                                        <div class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{{ $fUnit->name }}</div>
-                                        <div class="flex items-center gap-2 mt-1">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
-                                                {{ $fUnit->category ?: 'General Health' }}
-                                            </span>
-                                            <span class="text-[11px] text-slate-400 font-mono">/units/{{ $fUnit->slug }}</span>
+                                        <div class="flex items-center gap-3.5">
+                                            <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                                                <img src="{{ $fUnit->image_url }}" alt="{{ $fUnit->name }}" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="font-bold text-slate-900 dark:text-white text-sm tracking-tight truncate">{{ $fUnit->name }}</div>
+                                                <div class="flex items-center gap-2 mt-1">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
+                                                        {{ $fUnit->category ?: 'General Health' }}
+                                                    </span>
+                                                    <span class="text-[11px] text-slate-400 font-mono">/units/{{ $fUnit->slug }}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                     <td class="p-4">
@@ -786,9 +794,46 @@
                     </div>
 
                     {{-- Modal Body Form --}}
-                    <form action="{{ route('admin.facilities.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
+                    <form action="{{ route('admin.facilities.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden" x-data="{ imagePreview: null }">
                         @csrf
                         <div class="p-6 sm:p-7 space-y-5 overflow-y-auto flex-1">
+                            
+                            {{-- Facility Photo Upload with Live Preview --}}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Facility Photo / Background Image
+                                </label>
+                                <div class="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:border-emerald-500/50 transition-colors">
+                                    <div class="relative w-32 h-20 sm:w-36 sm:h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-center">
+                                        <template x-if="imagePreview">
+                                            <img :src="imagePreview" class="w-full h-full object-cover" alt="Preview">
+                                        </template>
+                                        <template x-if="!imagePreview">
+                                            <div class="flex flex-col items-center justify-center text-slate-400 p-2 text-center">
+                                                <svg class="w-6 h-6 mb-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                <span class="text-[10px] font-medium">Select photo</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="flex-1 text-center sm:text-left space-y-1.5">
+                                        <div class="flex items-center justify-center sm:justify-start gap-2">
+                                            <label class="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs transition-all inline-flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                <span>Choose Photo</span>
+                                                <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/jpg" class="hidden"
+                                                       @change="const file = $event.target.files[0]; if (file) { imagePreview = URL.createObjectURL(file); }">
+                                            </label>
+                                            <button type="button" x-show="imagePreview" @click="imagePreview = null; $el.closest('form').querySelector('input[name=image]').value = ''" 
+                                                    class="px-2.5 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400">
+                                                Clear
+                                            </button>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                            Recommended: 16:9 ratio (JPG, PNG, WebP up to 5MB). Used for hero background & card thumbnail.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             
                             {{-- Row 1: Name and Category --}}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
@@ -957,10 +1002,53 @@
                     </div>
 
                     {{-- Modal Body Form --}}
-                    <form :action="'{{ url('admin/facilities') }}/' + editUnit.id" method="POST" class="flex flex-col flex-1 overflow-hidden">
+                    <form :action="'{{ url('admin/facilities') }}/' + editUnit.id" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden" x-data="{ newImagePreview: null }" x-init="$watch('editUnit.id', () => { newImagePreview = null; if ($el.querySelector('input[name=image]')) $el.querySelector('input[name=image]').value = ''; })">
                         @csrf
                         @method('PUT')
                         <div class="p-6 sm:p-7 space-y-5 overflow-y-auto flex-1">
+                            
+                            {{-- Facility Photo Upload / Replace with Live Preview --}}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Facility Photo / Background Image
+                                </label>
+                                <div class="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:border-emerald-500/50 transition-colors">
+                                    <!-- Photo Preview -->
+                                    <div class="relative w-32 h-20 sm:w-36 sm:h-24 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-center">
+                                        <template x-if="newImagePreview">
+                                            <img :src="newImagePreview" class="w-full h-full object-cover" alt="New Preview">
+                                        </template>
+                                        <template x-if="!newImagePreview && editUnit.image_url">
+                                            <img :src="editUnit.image_url" class="w-full h-full object-cover" alt="Current Photo">
+                                        </template>
+                                        <template x-if="!newImagePreview && !editUnit.image_url">
+                                            <div class="flex flex-col items-center justify-center text-slate-400 p-2 text-center">
+                                                <svg class="w-6 h-6 mb-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                <span class="text-[10px] font-medium">Default image</span>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Action Controls -->
+                                    <div class="flex-1 text-center sm:text-left space-y-1.5">
+                                        <div class="flex items-center justify-center sm:justify-start gap-2">
+                                            <label class="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs transition-all inline-flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                <span x-text="newImagePreview ? 'Change Selection' : 'Replace Photo'">Replace Photo</span>
+                                                <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/jpg" class="hidden"
+                                                       @change="const file = $event.target.files[0]; if (file) { newImagePreview = URL.createObjectURL(file); }">
+                                            </label>
+                                            <button type="button" x-show="newImagePreview" @click="newImagePreview = null; $el.closest('form').querySelector('input[name=image]').value = ''" 
+                                                    class="px-2.5 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400">
+                                                Revert
+                                            </button>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                            Upload a new photo to replace the current picture. Recommended: 16:9 ratio (JPG, PNG, WebP up to 5MB).
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             
                             {{-- Row 1: Name and Category --}}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">

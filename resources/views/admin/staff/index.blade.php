@@ -822,9 +822,10 @@
                                             }" @click.outside="open = false">
                                                 <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time In</label>
                                                 
-                                                <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
-                                                        class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                                                        :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <div @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                     role="button" tabindex="0"
+                                                     class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer select-none"
+                                                     :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
                                                     <div class="flex items-center gap-2">
                                                         <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -847,7 +848,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                         </svg>
                                                     </div>
-                                                </button>
+                                                </div>
 
                                                 <!-- Time In Popover (Compact, Never Clipped) -->
                                                 <div x-show="open" 
@@ -955,9 +956,10 @@
                                             }" @click.outside="open = false">
                                                 <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time Out</label>
                                                 
-                                                <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
-                                                        class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                                                        :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <div @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                     role="button" tabindex="0"
+                                                     class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer select-none"
+                                                     :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
                                                     <div class="flex items-center gap-2">
                                                         <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -980,7 +982,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                         </svg>
                                                     </div>
-                                                </button>
+                                                </div>
 
                                                 <!-- Time Out Popover (Compact, Never Clipped) -->
                                                 <div x-show="open" 
@@ -1809,7 +1811,8 @@
                                         </div>
                                     </div>
 
-                                                                            <!-- Time In Picker -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <!-- Time In Picker -->
                                         <div class="relative" :class="open ? 'z-40' : 'z-10'" x-data="{
                                             open: false,
                                             selectedHour: 8,
@@ -1842,32 +1845,33 @@
                                         }" @click.outside="open = false">
                                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time In</label>
                                             
-                                            <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
-                                                    class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                                                    :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
-                                                <div class="flex items-center gap-2">
-                                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                    </svg>
-                                                    <span x-text="displayFormatted"></span>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <!-- Direct AM/PM Toggle Pill on Trigger -->
-                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
-                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
-                                                                :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
-                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
-                                                                :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                <div @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                     role="button" tabindex="0"
+                                                     class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer select-none"
+                                                     :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                    <div class="flex items-center gap-2">
+                                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span x-text="displayFormatted"></span>
                                                     </div>
-                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
-                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
-                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                    </svg>
+                                                    <div class="flex items-center gap-2">
+                                                        <!-- Direct AM/PM Toggle Pill on Trigger -->
+                                                        <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
+                                                                    :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
+                                                                    :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                        </div>
+                                                        <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                             :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                        </svg>
+                                                    </div>
                                                 </div>
-                                            </button>
 
                                             <!-- Time In Popover (Compact, Never Clipped) -->
                                             <div x-show="open" 
@@ -1975,32 +1979,33 @@
                                         }" @click.outside="open = false">
                                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Duty Time Out</label>
                                             
-                                            <button type="button" @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
-                                                    class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                                                    :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
-                                                <div class="flex items-center gap-2">
-                                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                    </svg>
-                                                    <span x-text="displayFormatted"></span>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <!-- Direct AM/PM Toggle Pill on Trigger -->
-                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
-                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
-                                                                :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
-                                                        <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
-                                                                :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
-                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                <div @click="open = !open; openRoleDropdown = false; openStatusDropdown = false"
+                                                     role="button" tabindex="0"
+                                                     class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer select-none"
+                                                     :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                    <div class="flex items-center gap-2">
+                                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span x-text="displayFormatted"></span>
                                                     </div>
-                                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
-                                                         :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
-                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                    </svg>
+                                                    <div class="flex items-center gap-2">
+                                                        <!-- Direct AM/PM Toggle Pill on Trigger -->
+                                                        <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'AM')"
+                                                                    :class="period === 'AM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                            <button type="button" @click.stop="setTime(undefined, undefined, 'PM')"
+                                                                    :class="period === 'PM' ? 'bg-teal-600 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                        </div>
+                                                        <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                                                             :class="open ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                        </svg>
+                                                    </div>
                                                 </div>
-                                            </button>
 
                                             <!-- Time Out Popover (Compact, Never Clipped) -->
                                             <div x-show="open" 
@@ -2073,7 +2078,6 @@
                                                     Done
                                                 </button>
                                             </div>
-                                        </div>/div>
                                         </div>
                                     </div>
 
@@ -2104,7 +2108,7 @@
             </div>
         </div>
                 <div class="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar">
-                    <table class="min-w-full divide-y dark:divide-slate-600 relative">
+                    <table class="w-full min-w-full divide-y dark:divide-slate-600 relative">
                         <thead class="dark:bg-slate-800 bg-slate-100 sticky top-0 z-10 shadow-sm">
                             <tr>
                                 <th class="px-6 py-3 text-left w-12">
@@ -2193,7 +2197,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4">
                                         <div class="text-sm text-slate-900 dark:text-slate-300 font-medium capitalize">
                                             {{ str_replace('_', ' ', $member->role) }}
                                         </div>
@@ -2310,7 +2314,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                                         <svg class="mx-auto h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

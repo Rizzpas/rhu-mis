@@ -27,6 +27,28 @@ class FacilityUnit extends Model
         return $query->orderBy('sort_order')->orderBy('name');
     }
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute(): string
+    {
+        if ($this->image_path) {
+            $clean = ltrim(str_replace(['uploads/', 'storage/'], '', $this->image_path), '/');
+            if (file_exists(public_path('uploads/' . $clean))) {
+                return asset('uploads/' . $clean);
+            }
+            if (file_exists(public_path($this->image_path))) {
+                return asset($this->image_path);
+            }
+        }
+
+        $defaultFacilityImage = 'assets/images/facilities/' . $this->slug . '.jpg';
+        if (file_exists(public_path($defaultFacilityImage))) {
+            return asset($defaultFacilityImage);
+        }
+
+        return asset('assets/images/rhu-facility.jpg');
+    }
+
     public function getRouteKeyName()
     {
         return 'slug';

@@ -8,6 +8,8 @@
             'badge' => 'Primary Healthcare & Diagnostics',
             'status' => 'Mon - Fri | 8:00 AM - 5:00 PM',
             'coverage' => 'PhilHealth & Free Consultation',
+            'gradient' => 'from-emerald-500 to-teal-600',
+            'glowColor' => 'bg-emerald-500/20',
             'requirements' => ['Valid Government ID or Barangay ID', 'PhilHealth ID / MDR (if available)', 'Previous Medical / Lab Records'],
         ],
         'lying-in-clinic' => [
@@ -15,13 +17,26 @@
             'badge' => '24/7 Maternal & Birthing Center',
             'status' => '24/7 Continuous Care',
             'coverage' => 'PhilHealth Maternity Care Package (MCP)',
+            'gradient' => 'from-rose-500 to-pink-600',
+            'glowColor' => 'bg-rose-500/20',
             'requirements' => ['Prenatal / Mother-Child Record Book (Pink Book)', 'Valid Government ID of Mother & Spouse', 'PhilHealth Member Data Record (MDR)', 'Birth Registration Details'],
+        ],
+        'ob-gyn-unit' => [
+            'icon' => '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>',
+            'badge' => 'Obstetrics & Women\'s Health',
+            'status' => 'Mon - Fri | 8:00 AM - 4:00 PM',
+            'coverage' => 'Specialized Maternal Care',
+            'gradient' => 'from-fuchsia-500 to-purple-600',
+            'glowColor' => 'bg-fuchsia-500/20',
+            'requirements' => ['Valid ID', 'Previous Ultrasound / Lab Results', 'Maternity Record (if pregnant)'],
         ],
         'dental-clinic' => [
             'icon' => '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>',
             'badge' => 'Community Oral Healthcare',
             'status' => 'Mon - Fri | 8:00 AM - 5:00 PM',
             'coverage' => 'Free Extraction & Dental Consult',
+            'gradient' => 'from-cyan-500 to-blue-600',
+            'glowColor' => 'bg-cyan-500/20',
             'requirements' => ['Valid ID', 'Medical History (BP & allergies)', 'Guardian Consent for Minors'],
         ],
         'tb-dots-facility' => [
@@ -29,6 +44,8 @@
             'badge' => 'National Tuberculosis Elimination Center',
             'status' => 'Mon - Fri | 8:00 AM - 5:00 PM',
             'coverage' => '100% Free Medication & Screening',
+            'gradient' => 'from-amber-500 to-orange-600',
+            'glowColor' => 'bg-amber-500/20',
             'requirements' => ['Valid ID', 'Prior Chest X-ray (if available)', 'Sputum Sample Container (provided on-site)'],
         ],
         'animal-bite-center' => [
@@ -36,6 +53,8 @@
             'badge' => 'Rabies Treatment & Post-Exposure Center',
             'status' => 'Urgent Care & Vaccination',
             'coverage' => 'Free Public Health Rabies Vaccines',
+            'gradient' => 'from-emerald-600 to-teal-700',
+            'glowColor' => 'bg-teal-500/20',
             'requirements' => ['Patient Valid ID', 'Details of Biting Animal (dog/cat status)', 'Vaccination History Card'],
         ],
     ];
@@ -48,12 +67,15 @@
     $uContact = is_array($unit) ? ($unit['contact_number'] ?? null) : $unit->contact_number;
     $uLocation = is_array($unit) ? ($unit['location'] ?? null) : $unit->location;
     $uServices = is_array($unit) ? ($unit['services_offered'] ?? []) : ($unit->services_offered ?? []);
+    $uImage = is_array($unit) ? ($unit['image_url'] ?? asset('assets/images/facilities/' . $uSlug . '.jpg')) : $unit->image_url;
 
     $m = $unitMeta[$uSlug] ?? [
         'icon' => '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
         'badge' => $uCategory ?: 'Silang RHU Facility',
         'status' => $uHours ?: 'Mon - Fri | 8:00 AM - 5:00 PM',
         'coverage' => 'Public Healthcare Service',
+        'gradient' => 'from-emerald-500 to-teal-600',
+        'glowColor' => 'bg-emerald-500/20',
         'requirements' => ['Valid ID', 'Medical Documents'],
     ];
 
@@ -83,74 +105,122 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
         
         {{-- Breadcrumb Navigation --}}
-        <div class="mb-6">
+        <div class="mb-6 flex items-center justify-between">
             <a href="{{ route('units.index') }}" 
                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-2xs text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 Back to All Facilities
             </a>
+
+            <div class="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <span>Rural Health Unit</span>
+                <span class="text-slate-300 dark:text-slate-600">/</span>
+                <span>Facilities</span>
+                <span class="text-slate-300 dark:text-slate-600">/</span>
+                <span class="text-slate-900 dark:text-white font-bold">{{ $uName }}</span>
+            </div>
         </div>
 
-        {{-- Facility Showcase Header Card --}}
-        <div class="relative rounded-3xl p-6 sm:p-10 lg:p-12 mb-10 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                
-                {{-- Left: Details --}}
-                <div class="lg:col-span-8">
-                    <div class="flex flex-wrap items-center gap-2 mb-4">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-slate-100 dark:bg-slate-700/80 text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-600/60">
-                            {{ $m['badge'] }}
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-700/50">
-                            {{ $m['coverage'] }}
-                        </span>
-                    </div>
+        {{-- Facility Showcase Header Card with Atmospheric Background Photography --}}
+        <div class="relative rounded-3xl overflow-hidden mb-10 bg-slate-950 border border-slate-800 shadow-2xl">
+            <!-- Background Image & Atmospheric Modern Overlays -->
+            <div class="absolute inset-0 z-0">
+                <img src="{{ $uImage }}" alt="{{ $uName }}" class="w-full h-full object-cover object-center filter blur-[1px] brightness-75 scale-105 transition-transform duration-1000">
+                <!-- Multi-layer Rich Modern Gradient -->
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-950/98 via-slate-950/92 to-slate-900/65"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40"></div>
+                <!-- Subtle Accent Color Glow -->
+                <div class="absolute -top-32 -left-32 w-96 h-96 {{ $m['glowColor'] ?? 'bg-emerald-500/20' }} rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-32 right-1/4 w-96 h-96 {{ $m['glowColor'] ?? 'bg-teal-500/15' }} rounded-full blur-3xl pointer-events-none"></div>
+            </div>
 
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-                            {!! $m['icon'] !!}
+            <!-- Content Grid over Background -->
+            <div class="relative z-10 p-6 sm:p-10 lg:p-12">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+                    
+                    {{-- Left: Details & Municipal Authority Header (7 cols) --}}
+                    <div class="lg:col-span-7 text-white space-y-4">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md text-emerald-300 text-[11px] font-bold uppercase tracking-widest rounded-lg border border-white/15 shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Municipality of Silang
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 backdrop-blur-md text-slate-200 border border-white/10">
+                                {{ $m['badge'] }}
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                {{ $m['coverage'] }}
+                            </span>
                         </div>
-                        <div>
-                            <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                                {{ $uName }}
-                            </h1>
-                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
-                                Municipality of Silang, Cavite
-                            </p>
+
+                        <div class="flex items-start sm:items-center gap-4">
+                            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br {{ $m['gradient'] ?? 'from-emerald-500 to-teal-600' }} text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-950/40 border border-white/20">
+                                {!! $m['icon'] !!}
+                            </div>
+                            <div>
+                                <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
+                                    {{ $uName }}
+                                </h1>
+                                <p class="text-xs sm:text-sm font-semibold text-slate-300 mt-1 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    {{ $uLocation ?: 'Main RHU Complex, Silang, Cavite' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="text-sm sm:text-base text-slate-300 font-normal leading-relaxed max-w-2xl">
+                            {{ $uDesc }}
+                        </p>
+
+                        <!-- Services Highlights Pills -->
+                        @if(count($uServices) > 0)
+                            <div class="flex flex-wrap gap-2 pt-2 border-t border-white/10">
+                                @foreach(array_slice($uServices, 0, 4) as $serv)
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 backdrop-blur-sm text-slate-200 text-xs font-medium border border-white/10">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        {{ $serv }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Right: High-Res Facility Visual Showcase Card & Quick Actions (5 cols) --}}
+                    <div class="lg:col-span-5">
+                        <div class="rounded-2xl p-4 bg-slate-900/85 backdrop-blur-xl border border-white/15 shadow-2xl space-y-4">
+                            <!-- Crisp High-Res Visual Photo -->
+                            <div class="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden border border-white/10 group shadow-inner">
+                                <img src="{{ $uImage }}" alt="{{ $uName }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent"></div>
+                                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/90 backdrop-blur-sm text-slate-950 uppercase tracking-wide">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span>
+                                        Clinical Unit
+                                    </span>
+                                    <span class="text-xs font-semibold text-slate-200 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        {{ $m['status'] }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Operating Stats & Action Buttons -->
+                            <div class="space-y-2.5 pt-1">
+                                <a href="{{ route('appointment.create') }}" 
+                                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-extrabold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] active:scale-95 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                    Book Appointment in this Unit
+                                </a>
+
+                                <a href="{{ route('appointment.manage') }}" 
+                                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-colors">
+                                    Manage Existing Booking
+                                </a>
+                            </div>
                         </div>
                     </div>
 
-                    <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-normal leading-relaxed max-w-3xl">
-                        {{ $uDesc }}
-                    </p>
                 </div>
-
-                {{-- Right: Quick Action Widget --}}
-                <div class="lg:col-span-4 flex flex-col gap-3 bg-slate-50/80 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80">
-                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        <span>Status</span>
-                        <span class="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-                            Accepting Patients
-                        </span>
-                    </div>
-                    <div class="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ $m['status'] }}</span>
-                    </div>
-
-                    <a href="{{ route('appointment.create') }}" 
-                       class="mt-2 w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-xs transition-colors cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                        Book Appointment
-                    </a>
-
-                    <a href="{{ route('appointment.manage') }}" 
-                       class="w-full inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition">
-                        Manage Existing Booking
-                    </a>
-                </div>
-
             </div>
         </div>
 

@@ -9,11 +9,14 @@
 @endpush
 
 @section('content')
+    @php
+        $homeState = \App\Http\Controllers\PublicController::getHomeUpdateState();
+    @endphp
     <div x-data="{ 
-            lastAnnouncementModified: '{{ \App\Models\Announcement::where("status", "published")->latest("updated_at")->first()?->updated_at?->toDateTimeString() ?? "" }}',
-            lastDoctorModified: '{{ \App\Models\User::where("role", "doctor")->latest("updated_at")->first()?->updated_at?->toDateTimeString() ?? "" }}',
-            announcementCount: {{ \App\Models\Announcement::where("status", "published")->count() }},
-            doctorCount: {{ \App\Models\User::where("role", "doctor")->count() }},
+            lastAnnouncementModified: '{{ $homeState['last_announcement_modified'] }}',
+            lastDoctorModified: '{{ $homeState['last_doctor_modified'] }}',
+            announcementCount: {{ $homeState['announcement_count'] }},
+            doctorCount: {{ $homeState['doctor_count'] }},
 
             checkForUpdates() {
                 fetch('{{ route('welcome.check-updates') }}')
@@ -48,12 +51,14 @@
                         let currentAnnouncements = document.querySelector('#announcements-container');
                         if (newAnnouncements && currentAnnouncements) {
                             currentAnnouncements.innerHTML = newAnnouncements.innerHTML;
+                            currentAnnouncements.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('is-visible'));
                         }
 
-                        let newSchedule = doc.querySelector('#schedule .grid');
-                        let currentSchedule = document.querySelector('#schedule .grid');
+                        let newSchedule = doc.querySelector('#schedule-container');
+                        let currentSchedule = document.querySelector('#schedule-container');
                         if (newSchedule && currentSchedule) {
                             currentSchedule.innerHTML = newSchedule.innerHTML;
+                            currentSchedule.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('is-visible'));
                         }
                     });
             },
@@ -209,18 +214,20 @@
             $totalPublished = \App\Models\Announcement::where('status', 'published')->count();
 
             // Semantic category tag inference
-            function inferAnnouncementTag($announcement) {
-                $text = strtolower(($announcement->title ?? '') . ' ' . strip_tags($announcement->content ?? ''));
-                if (preg_match('/health alert|outbreak|dengue|covid|virus|disease|warning/i', $text)) {
-                    return ['label' => 'Health Alert', 'class' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 border-rose-200 dark:border-rose-800/60', 'dot' => 'bg-rose-500'];
+            if (!function_exists('inferAnnouncementTag')) {
+                function inferAnnouncementTag($announcement) {
+                    $text = strtolower(($announcement->title ?? '') . ' ' . strip_tags($announcement->content ?? ''));
+                    if (preg_match('/health alert|outbreak|dengue|covid|virus|disease|warning/i', $text)) {
+                        return ['label' => 'Health Alert', 'class' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 border-rose-200 dark:border-rose-800/60', 'dot' => 'bg-rose-500'];
+                    }
+                    if (preg_match('/event|celebration|program|fiesta|activity|campaign|drive|mission/i', $text)) {
+                        return ['label' => 'Health Program', 'class' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border-blue-200 dark:border-blue-800/60', 'dot' => 'bg-blue-500'];
+                    }
+                    if (preg_match('/advisory|notice|schedule|closure|suspend|update|memo/i', $text)) {
+                        return ['label' => 'Advisory', 'class' => 'bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-200 dark:border-amber-800/60', 'dot' => 'bg-amber-500'];
+                    }
+                    return ['label' => 'Public Bulletin', 'class' => 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60', 'dot' => 'bg-emerald-500'];
                 }
-                if (preg_match('/event|celebration|program|fiesta|activity|campaign|drive|mission/i', $text)) {
-                    return ['label' => 'Health Program', 'class' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border-blue-200 dark:border-blue-800/60', 'dot' => 'bg-blue-500'];
-                }
-                if (preg_match('/advisory|notice|schedule|closure|suspend|update|memo/i', $text)) {
-                    return ['label' => 'Advisory', 'class' => 'bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-200 dark:border-amber-800/60', 'dot' => 'bg-amber-500'];
-                }
-                return ['label' => 'Public Bulletin', 'class' => 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60', 'dot' => 'bg-emerald-500'];
             }
         @endphp
 
@@ -350,48 +357,122 @@
 
         {{-- ============================================================
              LIVE SCHEDULE SECTION — Doctor Directory with Real Availability
-             Only shown when there are doctors currently online/scheduled/occupied
+             Displays active/online doctors, or an informative empty state if none are on duty
         ============================================================ --}}
-        @if(count($doctors) > 0)
         <div id="schedule" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-            <div class="text-center mb-12" data-reveal>
-                <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Medical Staff Availability</span>
+            <div class="text-center mb-10 sm:mb-12" data-reveal>
+                <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">{{ __('Medical Staff Availability') }}</span>
                 <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">{{ __("Doctor's Daily Schedule") }}</h2>
                 <p class="text-slate-500 dark:text-slate-400 mt-2 text-base sm:text-lg max-w-xl mx-auto">
                     {{ __('Real-time duty and consultation status of our municipal medical professionals') }}
                 </p>
             </div>
 
-            @if(count($doctors) > 3)
-                {{-- Horizontal scroll carousel for 4+ doctors --}}
-                <div class="relative" x-data="{
-                    scrollEl: null,
-                    canLeft: false,
-                    canRight: false,
-                    init() {
-                        this.scrollEl = this.$refs.doctorScroll;
-                        this.check();
-                        this.scrollEl.addEventListener('scroll', () => this.check());
-                        window.addEventListener('resize', () => this.check());
-                    },
-                    check() {
-                        if (!this.scrollEl) return;
-                        this.canLeft = this.scrollEl.scrollLeft > 10;
-                        this.canRight = this.scrollEl.scrollLeft < (this.scrollEl.scrollWidth - this.scrollEl.clientWidth - 10);
-                    },
-                    goLeft() { this.scrollEl.scrollBy({ left: -380, behavior: 'smooth' }); },
-                    goRight() { this.scrollEl.scrollBy({ left: 380, behavior: 'smooth' }); }
-                }">
-                    {{-- Scroll buttons --}}
-                    <button x-show="canLeft" x-transition @click="goLeft()" aria-label="Scroll left"
-                        class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                    </button>
+            <div id="schedule-container">
+            @if(count($doctors) > 0)
+                @if(count($doctors) > 3)
+                    {{-- Horizontal scroll carousel for 4+ doctors --}}
+                    <div class="relative" x-data="{
+                        scrollEl: null,
+                        canLeft: false,
+                        canRight: false,
+                        init() {
+                            this.scrollEl = this.$refs.doctorScroll;
+                            this.check();
+                            this.scrollEl.addEventListener('scroll', () => this.check());
+                            window.addEventListener('resize', () => this.check());
+                        },
+                        check() {
+                            if (!this.scrollEl) return;
+                            this.canLeft = this.scrollEl.scrollLeft > 10;
+                            this.canRight = this.scrollEl.scrollLeft < (this.scrollEl.scrollWidth - this.scrollEl.clientWidth - 10);
+                        },
+                        goLeft() { this.scrollEl.scrollBy({ left: -380, behavior: 'smooth' }); },
+                        goRight() { this.scrollEl.scrollBy({ left: 380, behavior: 'smooth' }); }
+                    }">
+                        {{-- Scroll buttons --}}
+                        <button x-show="canLeft" x-transition @click="goLeft()" aria-label="Scroll left"
+                            class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
 
-                    <div x-ref="doctorScroll" class="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth doctor-scroll">
+                        <div x-ref="doctorScroll" class="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth doctor-scroll">
+                            @foreach($doctors as $index => $doctor)
+                                @php
+                                    $displayStatus = $doctor->is_present ? 'Online' : (in_array(strtolower($doctor->status ?? ''), ['occupied', 'seminar']) ? 'Occupied' : 'Offline');
+                                    if ($displayStatus === 'Offline') {
+                                        continue;
+                                    }
+                                    $statusDotClass = match (strtolower($displayStatus)) {
+                                        'online' => 'status-dot-available',
+                                        'occupied' => 'status-dot-away',
+                                        default => 'status-dot-offline',
+                                    };
+                                    $statusBadge = match (strtolower($displayStatus)) {
+                                        'online' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+                                        'occupied' => 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+                                        default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+                                    };
+                                    $roleLabel = match (true) {
+                                        str_contains($doctor->role ?? '', 'pedia') => 'Pediatrician',
+                                        str_contains($doctor->role ?? '', 'doctor') => 'Municipal Physician',
+                                        default => 'Medical Specialist',
+                                    };
+                                @endphp
+                                <div class="shrink-0 w-[320px] sm:w-[340px] snap-start" data-reveal style="transition-delay: {{ $index * 60 }}ms">
+                                    <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-6 card-hover h-full shadow-2xs">
+                                        <div class="flex items-start gap-4 mb-4">
+                                            {{-- Avatar with status dot --}}
+                                            <div class="relative shrink-0">
+                                                <div class="h-14 w-14 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-700 flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-xs">
+                                                    @if($doctor->avatar_url)
+                                                        <img src="{{ $doctor->avatar_url }}" alt="{{ $doctor->name }}" class="w-full h-full object-cover" loading="lazy">
+                                                    @else
+                                                        <span class="text-emerald-700 dark:text-emerald-400 font-bold text-lg">{{ $doctor->initials }}</span>
+                                                    @endif
+                                                </div>
+                                                <span class="status-dot {{ $statusDotClass }} absolute -bottom-0.5 -right-0.5 border-2 border-white dark:border-slate-800"></span>
+                                            </div>
+                                            {{-- Name & role --}}
+                                            <div class="min-w-0 flex-1">
+                                                <h3 class="text-base font-bold text-slate-900 dark:text-white truncate">{{ $doctor->formatted_name }}</h3>
+                                                <p class="text-emerald-700 dark:text-emerald-400 font-medium text-xs">{{ $roleLabel }}</p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Status badge + schedule --}}
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
+                                        </div>
+
+                                        <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-2 font-normal">
+                                            @if($doctor->formatted_schedule)
+                                                <svg class="w-3.5 h-3.5 inline-block mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                {{ $doctor->formatted_schedule }}
+                                            @else
+                                                Available for standard municipal consultation.
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Scroll right button --}}
+                        <button x-show="canRight" x-transition @click="goRight()" aria-label="Scroll right"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                @else
+                    {{-- Standard grid for 3 or fewer doctors --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         @foreach($doctors as $index => $doctor)
                             @php
                                 $displayStatus = $doctor->is_present ? 'Online' : (in_array(strtolower($doctor->status ?? ''), ['occupied', 'seminar']) ? 'Occupied' : 'Offline');
+                                if ($displayStatus === 'Offline') {
+                                    continue;
+                                }
                                 $statusDotClass = match (strtolower($displayStatus)) {
                                     'online' => 'status-dot-available',
                                     'occupied' => 'status-dot-away',
@@ -408,110 +489,96 @@
                                     default => 'Medical Specialist',
                                 };
                             @endphp
-                            <div class="shrink-0 w-[320px] sm:w-[340px] snap-start" data-reveal style="transition-delay: {{ $index * 60 }}ms">
-                                <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-6 card-hover h-full shadow-2xs">
-                                    <div class="flex items-start gap-4 mb-4">
-                                        {{-- Avatar with status dot --}}
-                                        <div class="relative shrink-0">
-                                            <div class="h-14 w-14 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-700 flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-xs">
-                                                @if($doctor->avatar_url)
-                                                    <img src="{{ $doctor->avatar_url }}" alt="{{ $doctor->name }}" class="w-full h-full object-cover" loading="lazy">
-                                                @else
-                                                    <span class="text-emerald-700 dark:text-emerald-400 font-bold text-lg">{{ $doctor->initials }}</span>
-                                                @endif
-                                            </div>
-                                            <span class="status-dot {{ $statusDotClass }} absolute -bottom-0.5 -right-0.5 border-2 border-white dark:border-slate-800"></span>
+                            <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-6 card-hover shadow-2xs"
+                                 data-reveal style="transition-delay: {{ $index * 60 }}ms">
+                                <div class="flex items-start gap-4 mb-4">
+                                    <div class="relative shrink-0">
+                                        <div class="h-14 w-14 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-700 flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-xs">
+                                            @if($doctor->avatar_url)
+                                                <img src="{{ $doctor->avatar_url }}" alt="{{ $doctor->name }}" class="w-full h-full object-cover" loading="lazy">
+                                            @else
+                                                <span class="text-emerald-700 dark:text-emerald-400 font-bold text-lg">{{ $doctor->initials }}</span>
+                                            @endif
                                         </div>
-                                        {{-- Name & role --}}
-                                        <div class="min-w-0 flex-1">
-                                            <h3 class="text-base font-bold text-slate-900 dark:text-white truncate">{{ $doctor->formatted_name }}</h3>
-                                            <p class="text-emerald-700 dark:text-emerald-400 font-medium text-xs">{{ $roleLabel }}</p>
-                                        </div>
+                                        <span class="status-dot {{ $statusDotClass }} absolute -bottom-0.5 -right-0.5 border-2 border-white dark:border-slate-800"></span>
                                     </div>
-
-                                    {{-- Status badge + schedule --}}
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-base font-bold text-slate-900 dark:text-white truncate">{{ $doctor->formatted_name }}</h3>
+                                        <p class="text-emerald-700 dark:text-emerald-400 font-medium text-xs">{{ $roleLabel }}</p>
                                     </div>
-
-                                    <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-2 font-normal">
-                                        @if($doctor->formatted_schedule)
-                                            <svg class="w-3.5 h-3.5 inline-block mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            {{ $doctor->formatted_schedule }}
-                                        @else
-                                            Available for standard municipal consultation.
-                                        @endif
-                                    </p>
                                 </div>
+
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
+                                </div>
+
+                                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-2 font-normal">
+                                    @if($doctor->formatted_schedule)
+                                        <svg class="w-3.5 h-3.5 inline-block mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        {{ $doctor->formatted_schedule }}
+                                    @else
+                                        Available for standard municipal consultation.
+                                    @endif
+                                </p>
                             </div>
                         @endforeach
                     </div>
-
-                    {{-- Scroll right button --}}
-                    <button x-show="canRight" x-transition @click="goRight()" aria-label="Scroll right"
-                        class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                </div>
+                @endif
             @else
-                {{-- Standard grid for 3 or fewer doctors --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach($doctors as $index => $doctor)
-                        @php
-                            $displayStatus = $doctor->is_present ? 'Online' : (in_array(strtolower($doctor->status ?? ''), ['occupied', 'seminar']) ? 'Occupied' : 'Offline');
-                            $statusDotClass = match (strtolower($displayStatus)) {
-                                'online' => 'status-dot-available',
-                                'occupied' => 'status-dot-away',
-                                default => 'status-dot-offline',
-                            };
-                            $statusBadge = match (strtolower($displayStatus)) {
-                                'online' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
-                                'occupied' => 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
-                                default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
-                            };
-                            $roleLabel = match (true) {
-                                str_contains($doctor->role ?? '', 'pedia') => 'Pediatrician',
-                                str_contains($doctor->role ?? '', 'doctor') => 'Municipal Physician',
-                                default => 'Medical Specialist',
-                            };
-                        @endphp
-                        <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-6 card-hover shadow-2xs"
-                             data-reveal style="transition-delay: {{ $index * 60 }}ms">
-                            <div class="flex items-start gap-4 mb-4">
-                                <div class="relative shrink-0">
-                                    <div class="h-14 w-14 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-700 flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-xs">
-                                        @if($doctor->avatar_url)
-                                            <img src="{{ $doctor->avatar_url }}" alt="{{ $doctor->name }}" class="w-full h-full object-cover" loading="lazy">
-                                        @else
-                                            <span class="text-emerald-700 dark:text-emerald-400 font-bold text-lg">{{ $doctor->initials }}</span>
-                                        @endif
-                                    </div>
-                                    <span class="status-dot {{ $statusDotClass }} absolute -bottom-0.5 -right-0.5 border-2 border-white dark:border-slate-800"></span>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <h3 class="text-base font-bold text-slate-900 dark:text-white truncate">{{ $doctor->formatted_name }}</h3>
-                                    <p class="text-emerald-700 dark:text-emerald-400 font-medium text-xs">{{ $roleLabel }}</p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $statusBadge }}">{{ $displayStatus }}</span>
-                            </div>
-
-                            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-2 font-normal">
-                                @if($doctor->formatted_schedule)
-                                    <svg class="w-3.5 h-3.5 inline-block mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    {{ $doctor->formatted_schedule }}
-                                @else
-                                    Available for standard municipal consultation.
-                                @endif
-                            </p>
+                {{-- Empty state: No doctors currently online --}}
+                <div class="max-w-2xl mx-auto text-center">
+                    <div class="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-8 sm:p-10 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs backdrop-blur-sm transition-all">
+                        {{-- Icon badge --}}
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 flex items-center justify-center border border-slate-200 dark:border-slate-600/50">
+                            <svg class="w-8 h-8 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 10h4" />
+                            </svg>
                         </div>
-                    @endforeach
+
+                        {{-- Status pill --}}
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 text-xs font-semibold mb-3 border border-slate-200 dark:border-slate-600">
+                            <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                            <span>{{ __('Offline / Off Duty') }}</span>
+                        </div>
+
+                        {{-- Title --}}
+                        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                            {{ __('No Doctors Online') }}
+                        </h3>
+
+                        {{-- Description --}}
+                        <p class="text-slate-500 dark:text-slate-400 text-sm sm:text-base mt-2 max-w-md mx-auto leading-relaxed">
+                            {{ __('There are currently no municipal doctors online or on duty. Our medical professionals will be available during regular clinic consultation hours.') }}
+                        </p>
+
+                        {{-- Quick Info Card --}}
+                        <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700/60 grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                            <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/40">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ __('Regular Clinic Hours') }}</p>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/40">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ __('Emergency Hotlines') }}</p>
+                                    <p class="text-xs font-bold text-red-600 dark:text-red-400 truncate">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endif
+            </div>
         </div>
-        @endif
 
         {{-- ============================================================
              CIVIC CONTACT & ACCESS DIRECTORY — High Contrast Structure

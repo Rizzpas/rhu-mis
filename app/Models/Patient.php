@@ -61,6 +61,22 @@ class Patient extends Model
         static::saving(function ($patient) {
             // Automatically push expiration 10 years from now whenever touched/saved
             $patient->expires_at = now()->addYears(10);
+
+            // ── Auto-correct classification based on DOB ──────────────
+            // PWD is not age-based, so skip auto-correction for that classification
+            if ($patient->dob && $patient->classification !== 'PWD') {
+                $age = \Carbon\Carbon::parse($patient->dob)->age;
+
+                if ($age <= self::MAX_PEDIATRIC_AGE && $patient->classification !== 'Pediatric') {
+                    $patient->classification = 'Pediatric';
+                } elseif ($age > self::MAX_PEDIATRIC_AGE && $age < 60 && $patient->classification === 'Pediatric') {
+                    $patient->classification = 'Regular Adult';
+                } elseif ($age >= 60 && $patient->classification !== 'Senior Citizen') {
+                    $patient->classification = 'Senior Citizen';
+                } elseif ($age > self::MAX_PEDIATRIC_AGE && $age < 60 && $patient->classification === 'Senior Citizen') {
+                    $patient->classification = 'Regular Adult';
+                }
+            }
         });
     }
 

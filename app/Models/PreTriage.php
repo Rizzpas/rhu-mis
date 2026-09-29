@@ -47,6 +47,10 @@ class PreTriage extends Model
         return $this->belongsTo(User::class, 'recorded_by');
     }
 
+    protected $casts = [
+        'dob' => 'date',
+    ];
+
     public function patient()
     {
         return $this->belongsTo(Patient::class, 'patient_id', 'patient_id');

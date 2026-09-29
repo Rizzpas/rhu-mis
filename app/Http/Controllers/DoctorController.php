@@ -156,9 +156,9 @@ class DoctorController extends Controller
         \App\Models\AuditLog::record("Accessed Patient Medical Folder: {$patient->patient_id}", $patient);
 
         // Check department statuses
-        $isPharmacyOnline = \App\Models\User::where('role', 'pharmacy')->whereIn('status', ['Online', 'online', 'Present'])->exists();
-        $isLabOnline = \App\Models\User::where('role', 'laboratory')->whereIn('status', ['Online', 'online', 'Present'])->exists();
-        $isRadOnline = \App\Models\User::where('role', 'radiology')->whereIn('status', ['Online', 'online', 'Present'])->exists();
+        $isPharmacyOnline = \App\Models\User::where('role', 'pharmacy')->present()->exists();
+        $isLabOnline = \App\Models\User::where('role', 'laboratory')->present()->exists();
+        $isRadOnline = \App\Models\User::where('role', 'radiology')->present()->exists();
 
         return view('doctor.consultation', compact('consultation', 'patient', 'pastConsultations', 'isPharmacyOnline', 'isLabOnline', 'isRadOnline'));
     }

@@ -3,6 +3,81 @@
 @section('header', 'Detailed Analytics')
 
 @section('content')
+<style>
+    @media print {
+        /* ── Page Setup ──────────────────────────────────────────────── */
+        @page { margin: 1cm; size: A4 landscape; }
+        
+        /* ── Hide non-printable elements ─────────────────────────────── */
+        button, form, .print\\:hidden, 
+        nav, aside, footer, 
+        [x-data*="tab"], [x-show],
+        .shadow-md, .shadow-lg, .shadow-xl { 
+            box-shadow: none !important; 
+        }
+        button[onclick*="print"], form[action*="analytics"] { 
+            display: none !important; 
+        }
+        
+        /* ── Layout Reset ────────────────────────────────────────────── */
+        body, main, .max-w-7xl { 
+            background: white !important; 
+            color: black !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .dark body, .dark main { 
+            background: white !important; 
+            color: black !important; 
+        }
+        
+        /* ── Chart Container Constraints ─────────────────────────────── */
+        canvas {
+            max-width: 100% !important;
+            max-height: 280px !important;
+            width: 100% !important;
+            height: auto !important;
+            page-break-inside: avoid;
+        }
+        .chart-container, [class*="chart"], 
+        div:has(> canvas) {
+            max-width: 100% !important;
+            overflow: hidden !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        /* ── Grid Layout for Print ───────────────────────────────────── */
+        .grid { 
+            display: grid !important; 
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        .grid > div, .grid > section {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        /* ── Card Styling ────────────────────────────────────────────── */
+        [class*="rounded-"] {
+            border: 1px solid #e5e7eb !important;
+            background: white !important;
+            box-shadow: none !important;
+        }
+        [class*="dark:bg-"] { background: white !important; }
+        [class*="dark:text-"] { color: #1f2937 !important; }
+        
+        /* ── Typography ──────────────────────────────────────────────── */
+        h2, h3, h4 { color: #111827 !important; }
+        p, span, label { color: #374151 !important; }
+        
+        /* ── Page Breaks ─────────────────────────────────────────────── */
+        h2 { page-break-after: avoid; }
+        .mb-8, .mb-6 { margin-bottom: 8px !important; }
+    }
+</style>
 <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
     <div>
         <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Epidemiological & Operational Analytics</h2>

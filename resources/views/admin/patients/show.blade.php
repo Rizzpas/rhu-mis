@@ -226,12 +226,34 @@
                                         <label class="block text-xs font-bold text-gray-400 mb-2">Medications Prescribed</label>
                                         @php
                                             $parsedPrescriptions = null;
-                                            if ($case->prescription) {
-                                                $decoded = json_decode($case->prescription, true);
-                                                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                            $prescriptionText = $case->prescription;
+                                            
+                                            // Try to parse as JSON first
+                                            if ($prescriptionText && !in_array(trim($prescriptionText), ['', '[]', 'null'])) {
+                                                $decoded = json_decode($prescriptionText, true);
+                                                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && count($decoded) > 0) {
                                                     $parsedPrescriptions = $decoded;
                                                 }
                                             }
+
+                                            // Fallback: check structured prescription items from the Prescription model
+                                            if (!$parsedPrescriptions && $case->consultation && $case->consultation->prescriptionRecord) {
+                                                $items = $case->consultation->prescriptionRecord->items;
+                                                if ($items && $items->count() > 0) {
+                                                    $parsedPrescriptions = $items->map(function($item) {
+                                                        return [
+                                                            'medicine' => $item->medicine_name,
+                                                            'instruction' => trim(($item->dosage ?? '') . ' ' . ($item->frequency ?? '') . ' ' . ($item->duration ?? '')),
+                                                            'amount' => $item->quantity ? $item->quantity . ' pcs' : '',
+                                                        ];
+                                                    })->toArray();
+                                                }
+                                            }
+
+                                            // Determine if there's any meaningful text prescription (not empty/brackets)
+                                            $hasTextPrescription = $prescriptionText 
+                                                && !in_array(trim($prescriptionText), ['', '[]', 'null', '{}']) 
+                                                && !$parsedPrescriptions;
                                         @endphp
                                         
                                         @if($parsedPrescriptions)
@@ -246,9 +268,13 @@
                                                     </div>
                                                 @endforeach
                                             </div>
-                                        @else
+                                        @elseif($hasTextPrescription)
                                             <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-sm text-emerald-900 dark:text-emerald-200 border border-emerald-100 dark:border-emerald-800 font-mono">
-                                                {!! nl2br(e($case->prescription ?: 'No medication prescribed.')) !!}
+                                                {!! nl2br(e($prescriptionText)) !!}
+                                            </div>
+                                        @else
+                                            <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-sm text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 italic">
+                                                No medication prescribed.
                                             </div>
                                         @endif
                                     </div>

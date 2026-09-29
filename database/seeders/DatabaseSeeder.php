@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,         // Super Admin + Admin accounts
             SiteSettingsSeeder::class,  // CMS content defaults
             MedicineSeeder::class,      // Medicine catalogue
+            FacilityUnitSeeder::class,  // Health facilities & clinical units
         ]);
     }
 }

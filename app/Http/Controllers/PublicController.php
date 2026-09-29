@@ -27,22 +27,33 @@ class PublicController extends Controller
 
         $doctors = \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])
             ->with('practitionerSchedules')
-            ->where(function ($q) use ($today, $currentTime) {
-                // Currently Online or Occupied (manual status)
-                $q->whereIn('status', ['Online', 'Occupied'])
-                  // OR currently within an active schedule slot
-                  ->orWhereHas('practitionerSchedules', function ($schedQ) use ($today, $currentTime) {
-                      $schedQ->where('day_of_week', $today)
-                             ->where('time_in', '<=', $currentTime)
-                             ->where('time_out', '>=', $currentTime);
-                  });
-            })
-            // Exclude doctors who manually went offline
             ->where(function ($q) {
                 $q->whereNull('schedule_override')
                   ->orWhere('schedule_override', '!=', 'manual_offline');
             })
-            ->get();
+            ->get()
+            ->filter(function ($doctor) use ($today, $currentTime) {
+                // Must be present (online with recent heartbeat OR actively scheduled right now)
+                if ($doctor->is_present) {
+                    return true;
+                }
+
+                // If occupied or seminar, only show if doctor has recent activity or is in schedule
+                $status = strtolower($doctor->status ?? '');
+                if (in_array($status, ['occupied', 'seminar'])) {
+                    $hasActiveSchedule = $doctor->practitionerSchedules->contains(function ($s) use ($today, $currentTime) {
+                        return $s->day_of_week === $today
+                            && $s->time_in <= $currentTime
+                            && $s->time_out >= $currentTime;
+                    });
+
+                    return $doctor->isActive(10) || $hasActiveSchedule;
+                }
+
+                return false;
+            })
+            ->values();
+
         // Fetch up to 7 latest published announcements for the carousel (Total 8 slides with hero)
         $announcements = Announcement::where('status', 'published')
             ->orderBy('created_at', 'desc')
@@ -59,6 +70,10 @@ class PublicController extends Controller
 
     public function units()
     {
+        if (\App\Models\FacilityUnit::count() === 0) {
+            (new \Database\Seeders\FacilityUnitSeeder())->run();
+        }
+
         $units = \App\Models\FacilityUnit::active()->ordered()->get();
 
         return view('units.index', compact('units'));
@@ -66,12 +81,27 @@ class PublicController extends Controller
 
     public function showUnit($slug)
     {
-        $unit = \App\Models\FacilityUnit::where('slug', $slug)->firstOrFail();
+        if (\App\Models\FacilityUnit::count() === 0) {
+            (new \Database\Seeders\FacilityUnitSeeder())->run();
+        }
+
+        $unit = \App\Models\FacilityUnit::where('slug', $slug)->first();
+
+        // Flexible fallback matching if slug differs slightly (e.g., center vs facility)
+        if (! $unit) {
+            $normalizedSlug = str_replace(['center', 'facility'], ['facility', 'center'], $slug);
+            $unit = \App\Models\FacilityUnit::where('slug', $normalizedSlug)->first()
+                ?? \App\Models\FacilityUnit::where('name', 'like', '%' . str_replace('-', ' ', $slug) . '%')->first();
+        }
+
+        if (! $unit) {
+            abort(404);
+        }
 
         return view('units.show', compact('unit'));
     }
 
-    public function checkHomeUpdates()
+    public static function getHomeUpdateState(): array
     {
         // Check for the latest update timestamp across all published announcements
         $latestAnnouncement = Announcement::where('status', 'published')
@@ -79,14 +109,47 @@ class PublicController extends Controller
             ->first();
 
         // Check for the latest update timestamp across all doctors
-        $latestDoctor = \App\Models\User::where('role', 'doctor')->latest('updated_at')->first();
+        $doctors = \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])
+            ->with('practitionerSchedules')
+            ->get();
 
-        return response()->json([
+        $now = now();
+        $today = $now->format('D');
+        $currentTime = $now->format('H:i:s');
+
+        $onlineDoctorCount = $doctors->filter(function ($doctor) use ($today, $currentTime) {
+            if ($doctor->schedule_override === 'manual_offline') {
+                return false;
+            }
+            if ($doctor->is_present) {
+                return true;
+            }
+            $status = strtolower($doctor->status ?? '');
+            if (in_array($status, ['occupied', 'seminar'])) {
+                return $doctor->isActive(10) || $doctor->practitionerSchedules->contains(function ($s) use ($today, $currentTime) {
+                    return $s->day_of_week === $today
+                        && $s->time_in <= $currentTime
+                        && $s->time_out >= $currentTime;
+                });
+            }
+            return false;
+        })->count();
+
+        $latestDoctorModified = $doctors->max(function ($d) {
+            return max($d->updated_at?->timestamp ?? 0, $d->last_activity_at?->timestamp ?? 0);
+        });
+
+        return [
             'last_announcement_modified' => $latestAnnouncement ? $latestAnnouncement->updated_at->toDateTimeString() : '',
-            'last_doctor_modified' => $latestDoctor ? $latestDoctor->updated_at->toDateTimeString() : '',
+            'last_doctor_modified' => (string) ($latestDoctorModified ?? ''),
             'announcement_count' => Announcement::where('status', 'published')->count(),
-            'doctor_count' => \App\Models\User::where('role', 'doctor')->count(),
-        ]);
+            'doctor_count' => $onlineDoctorCount,
+        ];
+    }
+
+    public function checkHomeUpdates()
+    {
+        return response()->json(self::getHomeUpdateState());
     }
 
     public static function getAnnouncementCategory($announcement)

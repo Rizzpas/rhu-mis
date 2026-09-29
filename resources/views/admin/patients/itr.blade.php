@@ -184,10 +184,14 @@
                     </div>
                     @endif
 
-                    @if($case->prescription || $case->treatment_plan)
+                    @php
+                        $itrPrescriptionText = $case->prescription;
+                        $itrHasPrescription = $itrPrescriptionText && !in_array(trim($itrPrescriptionText), ['', '[]', 'null', '{}']);
+                    @endphp
+                    @if($itrHasPrescription || $case->treatment_plan)
                     <div class="mb-4">
                         <div class="info-label">Treatment Plan & Prescriptions</div>
-                        <p class="text-sm mt-1">{{ $case->prescription ?: 'No prescription recorded.' }}</p>
+                        <p class="text-sm mt-1">{{ $itrHasPrescription ? $itrPrescriptionText : 'No prescription recorded.' }}</p>
                         @if($case->treatment_plan)
                             <p class="text-sm mt-2">{{ $case->treatment_plan }}</p>
                         @endif

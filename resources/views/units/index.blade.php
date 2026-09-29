@@ -123,7 +123,7 @@
 
         {{-- Facility Cards Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            @foreach($units as $index => $unit)
+            @forelse($units as $index => $unit)
                 @php
                     $uSlug = is_array($unit) ? $unit['slug'] : $unit->slug;
                     $uName = is_array($unit) ? $unit['name'] : $unit->name;
@@ -131,6 +131,7 @@
                     $uCategory = is_array($unit) ? ($unit['category'] ?? 'primary') : ($unit->category ?? 'primary');
                     $uHours = is_array($unit) ? ($unit['operating_hours'] ?? null) : $unit->operating_hours;
                     $uServices = is_array($unit) ? ($unit['services_offered'] ?? null) : $unit->services_offered;
+                    $uImg = is_array($unit) ? ($unit['image_url'] ?? asset('assets/images/facilities/' . $uSlug . '.jpg')) : $unit->image_url;
 
                     $m = $unitMeta[$uSlug] ?? [
                         'category' => strtolower($uCategory) == 'maternity' || strtolower($uCategory) == 'women\'s health' ? 'maternal' : (strtolower($uCategory) == 'general medicine' || strtolower($uCategory) == 'dental care' ? 'primary' : 'specialized'),
@@ -149,53 +150,79 @@
                 @endphp
 
                 <div x-show="matchesFilter('{{ $m['category'] }}', '{{ addslashes($uName) }}', '{{ addslashes($uDesc) }}', {{ json_encode($m['tags']) }})"
-                     class="group flex flex-col justify-between rounded-2xl p-7 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:shadow-md transition-all duration-200">
+                     class="group flex flex-col justify-between rounded-3xl overflow-hidden bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     
                     <div>
-                        {{-- Top Header: Icon & Operating Badge --}}
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/50 flex items-center justify-center shrink-0">
-                                {!! $m['icon'] !!}
-                            </div>
-                            <div class="text-right">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/70 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-600/60">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                                    {{ $m['status'] }}
+                        {{-- Facility Image Header --}}
+                        <div class="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-900">
+                            <img src="{{ $uImg }}" alt="{{ $uName }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-transparent"></div>
+                            
+                            {{-- Top Status & Badge Bar --}}
+                            <div class="absolute top-3.5 inset-x-3.5 flex items-center justify-between gap-2">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wide uppercase bg-slate-900/85 backdrop-blur-md text-white border border-white/15 shadow-sm">
+                                    {{ $m['badge'] }}
                                 </span>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-emerald-950/85 backdrop-blur-md text-emerald-300 border border-emerald-400/30 shadow-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    Operational
+                                </span>
+                            </div>
+
+                            {{-- Floating Department Icon --}}
+                            <div class="absolute -bottom-4 left-5 w-12 h-12 rounded-xl bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 border-2 border-emerald-500/40 shadow-lg flex items-center justify-center shrink-0 z-10 transition-transform group-hover:scale-110">
+                                {!! $m['icon'] !!}
                             </div>
                         </div>
 
-                        {{-- Facility Title & Description --}}
-                        <h3 class="font-display text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                            {{ $uName }}
-                        </h3>
-                        <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 font-normal">
-                            {{ $uDesc }}
-                        </p>
-
-                        {{-- Key Service Tags --}}
-                        <div class="flex flex-wrap gap-1.5 mb-6">
-                            @foreach($m['tags'] as $tag)
-                                <span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100/90 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-600/50">
-                                    {{ $tag }}
+                        {{-- Card Body --}}
+                        <div class="p-6 pt-7">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {{ $m['status'] }}
                                 </span>
-                            @endforeach
+                            </div>
+
+                            <h3 class="font-display text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                {{ $uName }}
+                            </h3>
+                            <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed mb-5 line-clamp-3 font-normal">
+                                {{ $uDesc }}
+                            </p>
+
+                            {{-- Key Service Tags --}}
+                            <div class="flex flex-wrap gap-1.5 mb-2">
+                                @foreach($m['tags'] as $tag)
+                                    <span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100/90 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-600/50">
+                                        {{ $tag }}
+                                    </span>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
 
                     {{-- Footer Action Link --}}
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700/70 flex items-center justify-between">
+                    <div class="px-6 pb-6 pt-3 border-t border-slate-100 dark:border-slate-700/70 flex items-center justify-between">
                         <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">
                             Silang RHU
                         </span>
                         <a href="{{ route('units.show', $uSlug) }}" 
-                           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-xs transition-colors cursor-pointer">
+                           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-xs transition-colors cursor-pointer group-hover:shadow-md">
                             View Clinical Guide
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </a>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="col-span-full py-16 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No Facilities Currently Available</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Please check back later or visit the Rural Health Unit main desk.</p>
+                </div>
+            @endforelse
         </div>
 
     </div>

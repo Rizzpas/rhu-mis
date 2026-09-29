@@ -121,6 +121,7 @@ class FacilityUnitSeeder extends Seeder
         ];
 
         foreach ($units as $unit) {
+            $unit['image_path'] = 'assets/images/facilities/' . $unit['slug'] . '.jpg';
             FacilityUnit::updateOrCreate(
                 ['slug' => $unit['slug']],
                 $unit

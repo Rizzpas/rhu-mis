@@ -770,6 +770,7 @@
                                 <input type="hidden" name="house_no" :value="house_no">
                                 <input type="hidden" name="street" :value="street">
                                 <input type="hidden" name="building" :value="building">
+                                <input type="hidden" name="barangay" :value="barangay">
                                 <input type="hidden" name="city_province" :value="city_province">
                                 <p x-show="errors.address" class="text-red-500 text-xs mt-1" x-text="errors.address"></p>
                             </div>

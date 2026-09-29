@@ -136,12 +136,20 @@
             <div class="lg:col-span-4 flex justify-center">
                 <div class="relative">
                     <div class="relative w-44 h-44 sm:w-56 sm:h-56 rounded-full overflow-hidden border-4 border-emerald-400/40 shadow-2xl shadow-emerald-500/30 bg-slate-900 flex items-center justify-center ring-8 ring-emerald-500/10 transition-transform duration-500 hover:scale-105">
-                        <img src="{{ asset('assets/images/rhu-facility.jpg') }}" alt="RHU Facility" class="w-full h-full object-cover">
+                        @if(auth()->user()?->avatar_url)
+                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
+                        @elseif(auth()->user()?->initials)
+                            <div class="w-full h-full flex items-center justify-center bg-emerald-950/60 text-emerald-300 font-extrabold text-5xl sm:text-6xl">
+                                {{ auth()->user()->initials }}
+                            </div>
+                        @else
+                            <img src="{{ asset('assets/images/rhu-facility.jpg') }}" alt="RHU Facility" class="w-full h-full object-cover">
+                        @endif
                     </div>
                     <!-- Overlaid status badge -->
                     <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-emerald-400/30 text-[10px] font-bold text-emerald-300 shadow-lg flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                        Main Clinical Facility
+                        {{ auth()->user()?->name ?? 'RHU Admin' }}
                     </div>
                 </div>
             </div>

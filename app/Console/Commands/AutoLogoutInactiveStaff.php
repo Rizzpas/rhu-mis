@@ -26,8 +26,8 @@ class AutoLogoutInactiveStaff extends Command
         $minutes = (int) $this->option('minutes');
         $cutoff = Carbon::now()->subMinutes($minutes);
 
-        // Find clinical staff who are "Present" or "Online" but haven't had any activity within the cutoff
-        $inactiveStaff = User::present()
+        // Find clinical staff who have status Online/Present/Occupied but haven't had any activity within the cutoff
+        $inactiveStaff = User::whereIn('status', ['Online', 'online', 'Present', 'present', 'Occupied', 'occupied'])
             ->whereIn('role', [
                 'regular_doctor', 'pedia_doctor',
                 'clinical_nurse', 'vitals_nurse',

@@ -749,11 +749,15 @@ class AdminController extends Controller
 
         if ($request->filled('status') && $request->status !== 'all') {
             if ($request->status === 'Online') {
-                $query->whereIn('status', ['Online', 'online', 'Present', 'Active', 'In Office']);
+                // Use the same present() scope logic that the homepage uses
+                $query->present();
             } elseif ($request->status === 'Offline') {
-                $query->whereIn('status', ['Offline', 'offline', 'Out of Office', 'Unavailable', 'inactive']);
-            } elseif ($request->status === 'Occupied') {
-                $query->whereIn('status', ['Occupied', 'occupied', 'Seminar', 'On Seminar', 'in meeting', 'In Meeting']);
+                // Everyone who is NOT present is offline
+                $query->whereNotIn('status', ['Online', 'online'])
+                      ->where(function ($q) {
+                          $q->whereNull('last_activity_at')
+                            ->orWhere('last_activity_at', '<', now()->subMinutes(10));
+                      });
             } else {
                 $query->where('status', $request->status);
             }

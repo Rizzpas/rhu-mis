@@ -55,6 +55,7 @@ class FacilityUnitController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = 'facility_' . time() . '.' . $image->getClientOriginalExtension();
+            @mkdir(public_path('uploads/facilities'), 0755, true);
             $image->move(public_path('uploads/facilities'), $imageName);
             $validated['image_path'] = 'facilities/' . $imageName;
         }
@@ -99,8 +100,17 @@ class FacilityUnitController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {
+            // Delete old uploaded image file if present in uploads/facilities/
+            if ($facility->image_path && str_starts_with($facility->image_path, 'facilities/')) {
+                $oldFile = public_path('uploads/' . $facility->image_path);
+                if (file_exists($oldFile)) {
+                    @unlink($oldFile);
+                }
+            }
+
             $image = $request->file('image');
             $imageName = 'facility_' . time() . '.' . $image->getClientOriginalExtension();
+            @mkdir(public_path('uploads/facilities'), 0755, true);
             $image->move(public_path('uploads/facilities'), $imageName);
             $validated['image_path'] = 'facilities/' . $imageName;
         }

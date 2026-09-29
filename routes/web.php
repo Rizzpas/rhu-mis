@@ -260,10 +260,15 @@ Route::prefix('lab')->middleware(['auth', RoleMiddleware::class.':laboratory,rad
 use App\Http\Controllers\PharmacyController;
 
 Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,admin,super_admin'])->group(function () {
+    // Read-only routes — Admin can view dashboards, history, and medicine lists
     Route::get('/dashboard', [PharmacyController::class, 'dashboard'])->name('pharmacy.dashboard');
     Route::get('/history', [PharmacyController::class, 'history'])->name('pharmacy.history');
-    Route::post('/dispense/{prescription}', [PharmacyController::class, 'dispense'])->name('pharmacy.dispense');
     Route::get('/medicines', [PharmacyController::class, 'medicines'])->name('pharmacy.medicines');
+});
+
+Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,super_admin'])->group(function () {
+    // Operational routes — Only Pharmacy staff and Super Admin can dispense/modify inventory
+    Route::post('/dispense/{prescription}', [PharmacyController::class, 'dispense'])->name('pharmacy.dispense');
     Route::post('/medicines', [PharmacyController::class, 'storeMedicine'])->name('pharmacy.medicines.store');
     Route::put('/medicines/{medicine}', [PharmacyController::class, 'updateMedicine'])->name('pharmacy.medicines.update');
     Route::post('/medicines/{medicine}/add-stock', [PharmacyController::class, 'addStock'])->name('pharmacy.medicines.add-stock');

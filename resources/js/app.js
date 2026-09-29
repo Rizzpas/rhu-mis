@@ -100,6 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             mutationObserver.observe(announcementsContainer, { childList: true, subtree: true });
         }
+
+        const scheduleContainer = document.querySelector('#schedule-container');
+        if (scheduleContainer) {
+            const scheduleMutationObserver = new MutationObserver(() => {
+                scheduleContainer.querySelectorAll('[data-reveal]:not(.is-visible)').forEach(el => {
+                    revealObserver.observe(el);
+                });
+            });
+            scheduleMutationObserver.observe(scheduleContainer, { childList: true, subtree: true });
+        }
     } else {
         // Reduced motion: make everything visible immediately
         document.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('is-visible'));

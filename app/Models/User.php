@@ -161,22 +161,27 @@ class User extends Authenticatable
 
         // If manually set to 'Online' or 'Present', they are present
         // (requires recent heartbeat to avoid ghost "online" users)
-        if (in_array($status, ['online', 'present'])) {
-            return $this->isActive(10);
+        if (in_array($status, ['online', 'present']) && $this->isActive(10)) {
+            return true;
         }
 
         // Auto-online via schedule: check if they have an active schedule slot RIGHT NOW
-        // This is the key fix: doctors with status=Offline can still be "present" 
-        // if their schedule says they should be working now
+        // This is the key fix: doctors can still be "present" if their schedule says they should be working now
         $now = now();
         $dayOfWeek = $now->format('D');
         $timeNow = $now->format('H:i:s');
 
-        $hasActiveScheduleSlot = $this->practitionerSchedules()
-            ->where('day_of_week', $dayOfWeek)
-            ->where('time_in', '<=', $timeNow)
-            ->where('time_out', '>=', $timeNow)
-            ->exists();
+        $hasActiveScheduleSlot = $this->relationLoaded('practitionerSchedules')
+            ? $this->practitionerSchedules->contains(function ($s) use ($dayOfWeek, $timeNow) {
+                return $s->day_of_week === $dayOfWeek
+                    && $s->time_in <= $timeNow
+                    && $s->time_out >= $timeNow;
+            })
+            : $this->practitionerSchedules()
+                ->where('day_of_week', $dayOfWeek)
+                ->where('time_in', '<=', $timeNow)
+                ->where('time_out', '>=', $timeNow)
+                ->exists();
 
         return $hasActiveScheduleSlot;
     }

@@ -73,7 +73,10 @@
                         </div>
                         <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Demographics</h3>
                     </div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Permanent</span>
+                    <button @click="$dispatch('open-edit-demographics')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[10px] font-bold uppercase tracking-wider transition cursor-pointer">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Edit
+                    </button>
                 </div>
                 <div class="p-5 space-y-4">
                     <div class="grid grid-cols-2 gap-4 text-xs">
@@ -355,3 +358,206 @@ document.addEventListener('alpine:init', () => {
 });
 </script>
 @endpush
+
+{{-- ── Edit Demographics Modal ─────────────────────────────────────── --}}
+<div x-data="{ open: false }" @open-edit-demographics.window="open = true" x-show="open" x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+    {{-- Backdrop --}}
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="open = false"></div>
+    
+    {{-- Modal --}}
+    <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[85vh] overflow-y-auto"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+        
+        {{-- Header --}}
+        <div class="sticky top-0 z-10 bg-white dark:bg-slate-900 px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between rounded-t-3xl">
+            <div>
+                <h2 class="text-lg font-black text-slate-900 dark:text-white">Edit Patient Demographics</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Update contact, address, and personal information. Clinical records cannot be modified here.</p>
+            </div>
+            <button @click="open = false" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center justify-center transition cursor-pointer">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        {{-- Form --}}
+        <form action="{{ route('frontdesk.patients.update', $patient) }}" method="POST" class="p-6 space-y-5">
+            @csrf
+            @method('PUT')
+
+            <div class="grid grid-cols-2 gap-4">
+                {{-- First Name --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">First Name *</label>
+                    <input type="text" name="first_name" value="{{ old('first_name', $patient->first_name) }}" required
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- Last Name --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Last Name *</label>
+                    <input type="text" name="last_name" value="{{ old('last_name', $patient->last_name) }}" required
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- Middle Name --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Middle Name</label>
+                    <input type="text" name="middle_name" value="{{ old('middle_name', $patient->middle_name) }}"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- Suffix --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Suffix</label>
+                    <input type="text" name="suffix" value="{{ old('suffix', $patient->suffix) }}"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                {{-- Sex --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Sex *</label>
+                    <select name="sex" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                        <option value="Male" {{ $patient->sex === 'Male' ? 'selected' : '' }}>Male</option>
+                        <option value="Female" {{ $patient->sex === 'Female' ? 'selected' : '' }}>Female</option>
+                    </select>
+                </div>
+                {{-- DOB --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Date of Birth *</label>
+                    <input type="date" name="dob" value="{{ old('dob', $patient->dob?->format('Y-m-d')) }}" required
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- Civil Status --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Civil Status</label>
+                    <select name="civil_status" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                        @foreach(['Single', 'Married', 'Widowed', 'Separated', 'Divorced'] as $cs)
+                            <option value="{{ $cs }}" {{ ($patient->civil_status ?? '') === $cs ? 'selected' : '' }}>{{ $cs }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                {{-- Blood Type --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Blood Type *</label>
+                    <select name="blood_type" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                        @foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $bt)
+                            <option value="{{ $bt }}" {{ ($patient->blood_type ?? '') === $bt ? 'selected' : '' }}>{{ $bt }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                {{-- Classification --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Classification *</label>
+                    <select name="classification" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                        @foreach(['Pediatric', 'Regular Adult', 'Senior Citizen', 'PWD'] as $cl)
+                            <option value="{{ $cl }}" {{ ($patient->classification ?? 'Regular Adult') === $cl ? 'selected' : '' }}>{{ $cl }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                {{-- Contact Number --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Contact Number</label>
+                    <input type="text" name="contact_number" value="{{ old('contact_number', $patient->contact_number) }}" placeholder="09XXXXXXXXX"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- Email --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Email</label>
+                    <input type="email" name="email" value="{{ old('email', $patient->email) }}"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+            </div>
+
+            {{-- Address --}}
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Full Address *</label>
+                <input type="text" name="address" value="{{ old('address', $patient->address) }}" required
+                       class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                {{-- Barangay --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Barangay</label>
+                    <input type="text" name="barangay" value="{{ old('barangay', $patient->barangay) }}"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- PhilHealth --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">PhilHealth No.</label>
+                    <input type="text" name="philhealth_number" value="{{ old('philhealth_number', $patient->philhealth_number) }}" placeholder="XX-XXXXXXXXX-X"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Mother's Maiden Name *</label>
+                <input type="text" name="mothers_maiden_name" value="{{ old('mothers_maiden_name', $patient->mothers_maiden_name) }}" required
+                       class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                {{-- Education --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Education</label>
+                    <input type="text" name="education" value="{{ old('education', $patient->education) }}"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- Occupation --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Occupation</label>
+                    <input type="text" name="occupation" value="{{ old('occupation', $patient->occupation) }}"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+                {{-- Religion --}}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Religion</label>
+                    <input type="text" name="religion" value="{{ old('religion', $patient->religion) }}"
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                </div>
+            </div>
+
+            {{-- Guardian Section (Pediatric only) --}}
+            @if($patient->classification === 'Pediatric')
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider mb-3">Guardian Information</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Guardian First Name</label>
+                        <input type="text" name="guardian_first_name" value="{{ old('guardian_first_name', $patient->guardian_first_name) }}"
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Guardian Last Name</label>
+                        <input type="text" name="guardian_last_name" value="{{ old('guardian_last_name', $patient->guardian_last_name) }}"
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Relation</label>
+                        <input type="text" name="guardian_relation" value="{{ old('guardian_relation', $patient->guardian_relation) }}"
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Guardian Contact</label>
+                        <input type="text" name="guardian_contact" value="{{ old('guardian_contact', $patient->guardian_contact) }}" placeholder="09XXXXXXXXX"
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            {{-- Submit --}}
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" @click="open = false" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-xs font-bold shadow-md shadow-emerald-600/20 active:scale-[0.98] transition cursor-pointer">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
