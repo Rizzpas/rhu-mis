@@ -414,7 +414,7 @@
                     </p>
                     <a href="tel:{{ preg_replace('/[^0-9+]/', '', explode('|', \App\Models\SiteSetting::get('emergency_hotlines', '911'))[0]) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-900 font-bold text-xs shadow-xs hover:bg-slate-100 transition">
                         <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 4V3z"/></svg>
-                        Hotlines: {{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}
+                        RHU Contact: {{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}
                     </a>
                 </div>
 

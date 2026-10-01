@@ -47,6 +47,9 @@
                     if (!res.valid) {
                         this.uploadError = res.message;
                         if (input) input.value = '';
+                        if (window.toast && typeof window.toast.error === 'function') {
+                            window.toast.error(res.message, 'Invalid Image');
+                        }
                         return;
                     }
                 }
@@ -60,7 +63,8 @@
                         this.photoPreview = previewUrl;
                         this.photoName = file.name;
                         this.uploadError = null;
-                        setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                        const defaultName = (blob && blob.type === 'image/webp') ? 'avatar.webp' : 'avatar.jpg';
+                        setCroppedFile(input, blob, file.name || defaultName);
                         window.dispatchEvent(new CustomEvent('profile-avatar-changed', {
                             detail: { previewUrl: previewUrl, fileName: file.name }
                         }));

@@ -1504,7 +1504,7 @@ INSERT INTO `site_settings` (`id`, `group`, `key`, `value`, `type`, `created_at`
 (10, 'hero', 'carousel_hero_subtitle', 'Providing Quality Healthcare for All Citizens', 'text', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),
 (11, 'footer', 'footer_address_line1', 'M.H del Pilar St.', 'text', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),
 (12, 'footer', 'footer_address_line2', 'Silang, Cavite', 'text', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),
-(13, 'footer', 'footer_phone', '(046) 414-0209', 'text', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),
+(13, 'footer', 'footer_phone', '911 | (046) 432-1234', 'text', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),
 (14, 'footer', 'footer_email', 'contact@silang.gov.ph', 'text', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),
 (15, 'about', 'mission_statement', '\"To provide responsive, equitable, and quality primary healthcare services to all citizens. We commit to transparency and excellence by utilizing modern management systems to eliminate barriers to health access and pharmaceutical needs.\"', 'textarea', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),
 (16, 'about', 'vision_statement', '\"A healthy and empowered community served by a world-class Rural Health Unit that champions technological advancement and medical integrity for the well-being of every family, ensuring that quality healthcare is a reliable and efficient right for every citizen.\"', 'textarea', '2026-04-25 10:43:14', '2026-04-25 10:43:14'),

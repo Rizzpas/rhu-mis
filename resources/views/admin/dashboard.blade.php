@@ -76,7 +76,7 @@
                         Municipality of Silang
                     </span>
                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-slate-300 border border-white/10">
-                        {{ ucfirst(Auth::user()->role ?? 'Admin') }} Portal
+                        {{ ucwords(str_replace('_', ' ', Auth::user()->role ?? 'Admin')) }} Portal
                     </span>
                 </div>
 

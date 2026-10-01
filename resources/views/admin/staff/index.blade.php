@@ -3,14 +3,6 @@
 @section('header', 'Staff Management')
 
 @section('content')
-    {{-- Fallback toast dispatcher for staff creation/update success --}}
-    @if(session('success'))
-    <div x-data x-init="setTimeout(() => { $dispatch('add-toast', { type: 'success', message: {{ Js::from(session('success')) }} }) }, 150)" class="hidden"></div>
-    @endif
-    @if(session('error'))
-    <div x-data x-init="setTimeout(() => { $dispatch('add-toast', { type: 'error', message: {{ Js::from(session('error')) }} }) }, 150)" class="hidden"></div>
-    @endif
-
     <div class="bg-slate-50 dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 overflow-hidden"
         x-data="{
             showAddDoctor: {{ old('_form') == 'add_staff' && $errors->any() ? 'true' : 'false' }},
@@ -306,7 +298,7 @@
                                 this.avatarPreview = previewUrl;
                                 this.avatarFileName = file.name;
                                 this.avatarError = null;
-                                setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                setCroppedFile(input, blob, file.name || ((blob && blob.type === 'image/webp') ? 'avatar.webp' : 'avatar.jpg'));
                                 this.isProcessingAvatar = false;
                                 this.avatarUploadSuccess = true;
                                 setTimeout(() => { this.avatarUploadSuccess = false; }, 4000);
@@ -1459,7 +1451,7 @@
                                 this.editAvatarPreview = previewUrl;
                                 this.editAvatarFileName = file.name;
                                 this.editAvatarError = null;
-                                setCroppedFile(input, blob, file.name || 'avatar.jpg');
+                                setCroppedFile(input, blob, file.name || ((blob && blob.type === 'image/webp') ? 'avatar.webp' : 'avatar.jpg'));
                                 this.isProcessingAvatar = false;
                                 this.avatarUploadSuccess = true;
                                 setTimeout(() => { this.avatarUploadSuccess = false; }, 4000);

@@ -186,7 +186,7 @@
                         this.mainImageName = file.name;
                         this.mainPreviews = [previewUrl];
                         this.mainError = null;
-                        setCroppedFile(input, blob, file.name || 'cover.jpg');
+                        setCroppedFile(input, blob, file.name || ((blob && blob.type === 'image/webp') ? 'cover.webp' : 'cover.jpg'));
                     }
                 });
             },
@@ -226,7 +226,7 @@
                     onApply: (blob, previewUrl) => {
                         if (label) label.innerText = file.name;
                         delete this.existingErrors[sectionId];
-                        setCroppedFile(input, blob, file.name || 'section.jpg');
+                        setCroppedFile(input, blob, file.name || ((blob && blob.type === 'image/webp') ? 'section.webp' : 'section.jpg'));
                     }
                 });
             },
@@ -255,7 +255,7 @@
                         this.new_sections[index].fileName = file.name;
                         this.new_sections[index].preview = previewUrl;
                         this.new_sections[index].error = null;
-                        setCroppedFile(input, blob, file.name || 'section.jpg');
+                        setCroppedFile(input, blob, file.name || ((blob && blob.type === 'image/webp') ? 'section.webp' : 'section.jpg'));
                     }
                 });
             },

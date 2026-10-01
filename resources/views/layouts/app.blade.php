@@ -198,7 +198,7 @@
         <div class="flex items-center gap-4 text-emerald-100/90 mx-auto md:mx-0">
             <span><span class="hidden sm:inline text-emerald-300/80">Clinic Hours: </span>{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</span>
             <span class="text-emerald-400 opacity-60">•</span>
-            <span><span class="hidden sm:inline text-emerald-300/80">Hotlines: </span><span class="font-bold text-white">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span></span>
+            <span><span class="hidden sm:inline text-emerald-300/80">RHU Contact: </span><span class="font-bold text-white">{{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}</span></span>
         </div>
     </div>
 
@@ -638,15 +638,6 @@
                             </a>
                         </div>
 
-                        <div class="flex items-center gap-2.5 text-emerald-200/90">
-                            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209')) }}"
-                               class="hover:text-white underline underline-offset-2 decoration-emerald-500/40 hover:decoration-white transition font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
-                                {{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}
-                            </a>
-                        </div>
 
                         <div class="flex items-center gap-2.5 text-emerald-200/90">
                             <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -658,14 +649,16 @@
                             </a>
                         </div>
 
-                        <!-- Emergency Hotlines -->
-                        <div class="flex items-center gap-2.5 text-rose-300 font-semibold pt-0.5">
-                            <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        <!-- RHU Contact / Landline -->
+                        <div class="flex items-center gap-2.5 text-emerald-200/90 font-medium pt-0.5">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                             <span class="text-xs">
-                                <span class="text-rose-300 font-bold">Emergency:</span>
-                                <span class="text-white ml-1">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span>
+                                <span class="text-emerald-300 font-bold">RHU Contact:</span>
+                                <a href="tel:{{ preg_replace('/[^0-9+]/', '', explode('|', \App\Models\SiteSetting::get('emergency_hotlines'))[0]) }}" class="text-white ml-1 hover:underline">
+                                    {{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}
+                                </a>
                             </span>
                         </div>
                     </div>
@@ -692,10 +685,10 @@
                                 </svg>
                             </a>
                             <!-- Telephone Direct Call -->
-                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209')) }}"
+                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', explode('|', \App\Models\SiteSetting::get('emergency_hotlines'))[0]) }}"
                                class="w-9 h-9 rounded-xl bg-emerald-950/70 border border-emerald-700/60 hover:border-emerald-400 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none cursor-pointer"
-                               aria-label="Call Rural Health Unit Telephone Line"
-                               title="Call Telephone Desk ({{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }})">
+                               aria-label="Call Rural Health Unit Contact"
+                               title="Call RHU Contact ({{ \App\Models\SiteSetting::get('emergency_hotlines') }})">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
@@ -735,49 +728,49 @@
                             <ul class="space-y-1 sm:space-y-1.5" role="list">
                                 <li>
                                     <a href="{{ route('about') }}"
-                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>About RHU Silang</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('announcements.index') }}"
-                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                                         <span>Health Bulletins &amp; News</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ url('/#announcements') }}"
-                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                                         <span>Community Advisories &amp; Alerts</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('units.index') }}"
-                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                         <span>RHU Facilities &amp; Clinics Directory</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ url('/#schedule') }}"
-                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                         <span>Doctors' Consultation Schedule</span>
                                     </a>
                                 </li>
                                 <li>
                                     <button type="button" @click="showFaq = true"
-                                            class="w-full py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded cursor-pointer text-left">
+                                            class="w-full py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded cursor-pointer text-left">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>Frequently Asked Questions</span>
                                     </button>
                                 </li>
                                 <li>
                                     <a href="{{ route('about') }}#charter"
-                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         <span>Citizen's Charter &amp; Standards</span>
                                     </a>
@@ -785,7 +778,7 @@
                                 <li>
                                     <!-- Direct Helpdesk Inquiry (TODO: Dedicated Contact Us form page) -->
                                     <a href="mailto:{{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}?subject=RHU%20Public%20Inquiry"
-                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded"
                                        title="Email Helpdesk (TODO: Create dedicated /contact route)">
                                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                                         <span>Contact &amp; Citizen Inquiries</span>

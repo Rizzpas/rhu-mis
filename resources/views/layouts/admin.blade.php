@@ -326,7 +326,7 @@
                     <p class="text-base font-semibold text-gray-800 dark:text-white truncate">
                         {{ auth()->user()->name ?? 'Admin User' }}
                     </p>
-                    <p class="text-xs text-gray-400 truncate capitalize">{{ ucfirst(auth()->user()->role ?? 'Admin') }}
+                    <p class="text-xs text-gray-400 truncate capitalize">{{ ucwords(str_replace('_', ' ', auth()->user()->role ?? 'Admin')) }}
                     </p>
                 </div>
             </div>

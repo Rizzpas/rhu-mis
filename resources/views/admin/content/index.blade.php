@@ -526,7 +526,7 @@
                          onApply: (blob, previewUrl) => {
                              this.imagePreview = previewUrl;
                              this.heroError = null;
-                             setCroppedFile(input, blob, file.name || 'hero.jpg');
+                             setCroppedFile(input, blob, file.name || ((blob && blob.type === 'image/webp') ? 'hero.webp' : 'hero.jpg'));
                          }
                      });
                  }
@@ -840,7 +840,7 @@
                  province: '{{ old('settings.topbar_province', $settings['topbar']['topbar_province']->value ?? 'Province of Cavite') }}',
                  municipality: '{{ old('settings.topbar_municipality', $settings['topbar']['topbar_municipality']->value ?? 'Municipality of Silang') }}',
                  hours: '{{ old('settings.clinic_hours', $settings['topbar']['clinic_hours']->value ?? 'Mon - Fri | 8:00 AM - 5:00 PM') }}',
-                 hotlines: '{{ old('settings.emergency_hotlines', $settings['topbar']['emergency_hotlines']->value ?? '911 | (046) 432-1234') }}'
+                 hotlines: '{{ old('settings.emergency_hotlines', $settings['topbar']['emergency_hotlines']->value ?? '(046) 432-1234') }}'
              }">
 
             {{-- Live Top Bar Preview --}}
@@ -868,9 +868,9 @@
                             <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span x-text="hours || 'Mon - Fri | 8:00 AM - 5:00 PM'"></span>
                         </div>
-                        <div class="flex items-center gap-1.5 bg-rose-500/20 text-rose-200 px-2.5 py-1 rounded-lg border border-rose-500/30 font-semibold">
-                            <svg class="w-3.5 h-3.5 text-rose-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <span x-text="hotlines || '911 | (046) 432-1234'"></span>
+                        <div class="flex items-center gap-1.5 bg-emerald-950/60 text-emerald-200 px-2.5 py-1 rounded-lg border border-emerald-800/60 font-semibold">
+                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            <span x-text="hotlines || '(046) 432-1234'"></span>
                         </div>
                     </div>
                 </div>
@@ -912,7 +912,7 @@
                 </div>
             </div>
 
-            {{-- Clinic Hours & Hotlines Card --}}
+            {{-- Clinic Hours & Contact Card --}}
             <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
                 <div class="border-b border-slate-100 dark:border-slate-800/80 pb-4">
                     <div class="flex items-center gap-3">
@@ -940,7 +940,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Emergency Hotlines</label>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">RHU Contact / Landline</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
@@ -948,7 +948,7 @@
                             <input type="text" name="settings[emergency_hotlines]" x-model="hotlines"
                                    class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Universal hotlines synced across Top Bar, Footer, About Page, Facilities, and Appointments.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Universal RHU contact/landline synced across Top Bar, Footer, About Page, Facilities, and Appointments.</p>
                     </div>
                 </div>
             </div>
@@ -2899,7 +2899,7 @@
                                                          onApply: (blob, previewUrl) => {
                                                              step._preview = previewUrl;
                                                              this.stepError = null;
-                                                             setCroppedFile(input, blob, file.name || 'step.jpg');
+                                                             setCroppedFile(input, blob, file.name || ((blob && blob.type === 'image/webp') ? 'step.webp' : 'step.jpg'));
                                                          }
                                                      });
                                                  }
@@ -3151,7 +3151,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         </div>
-                        <input type="text" name="settings[footer_phone]" value="{{ old('settings.footer_phone', $settings['footer']['footer_phone']->value ?? '(046) 414-0209') }}"
+                        <input type="text" name="settings[footer_phone]" value="{{ old('settings.footer_phone', $settings['footer']['footer_phone']->value ?? $settings['topbar']['emergency_hotlines']->value ?? '') }}"
                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
                     </div>
                     <p class="text-[11px] text-slate-400 mt-1">Landline telephone or direct health office line.</p>
@@ -3170,20 +3170,20 @@
                 </div>
             </div>
 
-            {{-- Connected Emergency Hotlines Notice --}}
+            {{-- Connected RHU Contact Notice --}}
             <div class="mt-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                     </div>
                     <div>
-                        <span class="font-bold text-slate-800 dark:text-white">Emergency Hotline Displayed in Footer:</span>
-                        <span class="font-semibold text-rose-600 dark:text-rose-400 ml-1">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Emergency hotlines are universally synced across the Top Bar, Footer, About Page, and Facility Cards.</p>
+                        <span class="font-bold text-slate-800 dark:text-white">RHU Contact / Landline Displayed in Footer:</span>
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400 ml-1">{{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}</span>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">RHU contact/landline is universally synced across the Top Bar, Footer, About Page, and Facility Cards.</p>
                     </div>
                 </div>
                 <button type="button" @click="activeTab = 'topbar'" class="shrink-0 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800 transition cursor-pointer">
-                    Edit Hotlines &rarr;
+                    Edit Contact &rarr;
                 </button>
             </div>
         </div>

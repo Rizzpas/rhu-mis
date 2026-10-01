@@ -30,7 +30,7 @@ class SiteSettingsSeeder extends Seeder
             // ── Footer ──────────────────────────────────────────
             ['group' => 'footer', 'key' => 'footer_address_line1', 'value' => 'M.H del Pilar St.', 'type' => 'text'],
             ['group' => 'footer', 'key' => 'footer_address_line2', 'value' => 'Silang, Cavite', 'type' => 'text'],
-            ['group' => 'footer', 'key' => 'footer_phone', 'value' => '(046) 414-0209', 'type' => 'text'],
+            ['group' => 'footer', 'key' => 'footer_phone', 'value' => '(046) 432-1234', 'type' => 'text'],
             ['group' => 'footer', 'key' => 'footer_email', 'value' => 'contact@silang.gov.ph', 'type' => 'text'],
 
             // ── About (Mission, Vision & Public Service Charter) ───

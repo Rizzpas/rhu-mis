@@ -673,13 +673,10 @@
                         <div class="flex items-start gap-3">
                             <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                             <div>
-                                <span class="font-bold text-slate-900 dark:text-white block">Official Telephone Desk</span>
-                                <a href="tel:{{ preg_replace('/[^0-9+]/', '', \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209')) }}" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
-                                    {{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}
+                                <span class="font-bold text-slate-900 dark:text-white block">RHU Contact / Landline</span>
+                                <a href="tel:{{ preg_replace('/[^0-9+]/', '', explode('|', \App\Models\SiteSetting::get('emergency_hotlines'))[0]) }}" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
+                                    {{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}
                                 </a>
-                                <span class="block text-[11px] font-bold text-rose-600 dark:text-rose-400 mt-1">
-                                    Emergency: {{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}
-                                </span>
                             </div>
                         </div>
                     </div>

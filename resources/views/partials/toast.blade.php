@@ -23,6 +23,13 @@
             type = 'info';
         }
 
+        // Deduplicate identical toasts appearing at the same time
+        const normType = type || 'info';
+        const normMsg = message || '';
+        if (this.toasts.some(t => t.visible && t.type === normType && t.message === normMsg)) {
+            return;
+        }
+
         // Limit maximum concurrent toasts to 5 to maintain clean viewport hierarchy
         if (this.toasts.length >= 5) {
             const oldest = this.toasts[0];
@@ -123,24 +130,28 @@
             this.addToast(type, msg, duration, title);
         };
 
-        // Flash session messages from backend
-        @if(session('success'))
-            this.addToast('success', @js(session('success')));
-        @endif
-        @if(session('error'))
-            this.addToast('error', @js(session('error')));
-        @endif
-        @if(session('warning'))
-            this.addToast('warning', @js(session('warning')));
-        @endif
-        @if(session('info'))
-            this.addToast('info', @js(session('info')));
-        @endif
-        @if(isset($errors) && $errors->any())
-            @foreach($errors->all() as $error)
-                this.addToast('error', @js($error));
-            @endforeach
-        @endif
+        // Flash session messages from backend with a delay so Alpine DOM mounting & enter transitions complete reliably
+        setTimeout(() => {
+            @if(session('success'))
+                this.addToast('success', @js(session('success')));
+            @elseif(session('status'))
+                this.addToast('success', @js(session('status')));
+            @endif
+            @if(session('error'))
+                this.addToast('error', @js(session('error')));
+            @endif
+            @if(session('warning'))
+                this.addToast('warning', @js(session('warning')));
+            @endif
+            @if(session('info'))
+                this.addToast('info', @js(session('info')));
+            @endif
+            @if(isset($errors) && $errors->any())
+                @foreach($errors->all() as $error)
+                    this.addToast('error', @js($error));
+                @endforeach
+            @endif
+        }, 120);
     }
 }"
 class="fixed top-4 inset-x-4 sm:inset-x-auto sm:top-5 sm:right-5 z-[9999] flex flex-col items-end gap-2.5 pointer-events-none sm:w-[390px] max-w-full"

@@ -569,8 +569,8 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ __('Emergency Hotlines') }}</p>
-                                    <p class="text-xs font-bold text-red-600 dark:text-red-400 truncate">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</p>
+                                    <p class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ __('RHU Contact Number') }}</p>
+                                    <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate">{{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -593,9 +593,9 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         </div>
                         <div>
-                            <p class="font-bold text-slate-900 dark:text-white text-sm">{{ __('Emergency Hotlines') }}</p>
-                            <p class="text-emerald-700 dark:text-emerald-400 text-sm font-bold mt-0.5">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</p>
-                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">24/7 Municipal First Response</p>
+                            <p class="font-bold text-slate-900 dark:text-white text-sm">{{ __('RHU Contact Number') }}</p>
+                            <p class="text-emerald-700 dark:text-emerald-400 text-sm font-bold mt-0.5">{{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}</p>
+                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Direct Landline & Public Desk</p>
                         </div>
                     </div>
 
@@ -624,7 +624,7 @@
 
                 {{-- Action Banner --}}
                 <div class="text-center" data-reveal>
-                    <div class="bg-white dark:bg-slate-800/95 rounded-3xl p-8 sm:p-10 border border-slate-200/90 dark:border-slate-700/80 shadow-sm max-w-4xl mx-auto">
+                    <div class="p-8 sm:p-10 max-w-4xl mx-auto">
                         <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Public Healthcare Access</span>
                         <h3 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 mb-2">{{ __('Schedule Your Clinic Visit Online') }}</h3>
                         <p class="text-slate-500 dark:text-slate-400 text-sm sm:text-base mb-6 max-w-lg mx-auto font-normal">{{ __('Book your consultation ahead to reduce queue times. Walk-in consultations remain welcome during official operating hours.') }}</p>

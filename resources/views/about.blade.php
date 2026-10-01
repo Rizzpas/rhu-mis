@@ -262,25 +262,22 @@
                                 </div>
                             </div>
 
-                            {{-- Hotlines & Phone --}}
+                            {{-- RHU Landline & Contact --}}
                             <div class="flex items-start gap-3.5">
                                 <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                 </div>
                                 <div>
-                                    <span class="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Hotlines & Telephone</span>
+                                    <span class="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">RHU Landline & Contact</span>
                                     <div class="flex flex-wrap gap-x-3 gap-y-1 mt-0.5">
-                                        <a href="tel:{{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}" class="text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">
-                                            {{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}
+                                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', explode('|', \App\Models\SiteSetting::get('emergency_hotlines'))[0]) }}" class="text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">
+                                            {{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}
                                         </a>
                                         <span class="text-slate-300 dark:text-slate-600">•</span>
                                         <a href="mailto:{{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">
                                             {{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}
                                         </a>
                                     </div>
-                                    <p class="text-[11px] text-rose-600 dark:text-rose-400 font-bold mt-1">
-                                        Emergency: {{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}
-                                    </p>
                                 </div>
                             </div>
                         </div>
