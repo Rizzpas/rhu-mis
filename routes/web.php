@@ -115,16 +115,24 @@ Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class.':admin,in
     Route::get('/queue-slip/{visit}', [RegistrationController::class, 'queueSlip'])->name('frontdesk.queue-slip');
     Route::get('/queue-overview', [\App\Http\Controllers\FrontDeskController::class, 'queueOverview'])->name('frontdesk.queue-overview');
     Route::post('/appointments/{appointment}/check-in', [RegistrationController::class, 'checkIn'])->name('frontdesk.appointments.check-in');
+    Route::post('/appointments/{appointment}/cancel', [RegistrationController::class, 'cancelAppointment'])->name('frontdesk.appointments.cancel');
+    Route::post('/appointments/{appointment}/no-show', [RegistrationController::class, 'markNoShow'])->name('frontdesk.appointments.no-show');
 
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\FrontDeskController::class, 'dashboard'])->name('frontdesk.dashboard');
     Route::get('/api/appointments', [\App\Http\Controllers\FrontDeskController::class, 'getAppointments'])->name('frontdesk.api.appointments');
+    Route::get('/api/stats', [\App\Http\Controllers\FrontDeskController::class, 'getStats'])->name('frontdesk.api.stats');
 
     // Patient Master List
     Route::get('/patients', [\App\Http\Controllers\PatientController::class, 'index'])->name('frontdesk.patients.index');
     Route::get('/patients/{patient}', [\App\Http\Controllers\PatientController::class, 'show'])->name('frontdesk.patients.show');
     // New patient from PreTriage: register + queue in one step
     Route::post('/register-and-queue/{preTriage}', [RegistrationController::class, 'registerAndQueue'])->name('frontdesk.registerAndQueue');
+
+    // Follow-Up Management Tracker
+    Route::get('/followups', [\App\Http\Controllers\FrontDesk\FollowUpController::class, 'index'])->name('frontdesk.followups.index');
+    Route::post('/followups/{consultation}/reschedule', [\App\Http\Controllers\FrontDesk\FollowUpController::class, 'reschedule'])->name('frontdesk.followups.reschedule');
+    Route::post('/followups/{consultation}/fulfill', [\App\Http\Controllers\FrontDesk\FollowUpController::class, 'fulfill'])->name('frontdesk.followups.fulfill');
 });
 
 // Vitals / Triage Nurse Routes
@@ -176,12 +184,16 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_
     Route::get('/patients', [AdminController::class, 'patientRecordsIndex'])->name('admin.patients.index');
     Route::get('/patients/{patient}', [AdminController::class, 'showPatient'])->name('admin.patients.show');
     Route::get('/patients/{patient}/print', [AdminController::class, 'printItr'])->name('admin.patients.print');
+    Route::get('/patients/{patient}/ancillary/print', [AdminController::class, 'printAncillary'])->name('admin.patients.ancillary.print');
+    Route::get('/ancillary/{ancillary}/print', [AdminController::class, 'printAncillarySingle'])->name('admin.ancillary.print');
 
     // Audit Trail
     Route::get('/audit', [AdminController::class, 'auditLogs'])->name('admin.audit.index');
 
     // Archive Routes
     Route::get('/archive', [\App\Http\Controllers\ArchiveController::class, 'index'])->name('admin.archive.index');
+    Route::post('/archive/truncate-all-year', [\App\Http\Controllers\ArchiveController::class, 'truncateAllOneYear'])->name('admin.archive.truncate-all-year');
+    Route::post('/archive/{type}/truncate-year', [\App\Http\Controllers\ArchiveController::class, 'truncateCategoryOneYear'])->name('admin.archive.truncate-year');
     Route::post('/archive/{type}/bulk/restore', [\App\Http\Controllers\ArchiveController::class, 'bulkRestore'])->name('admin.archive.bulk-restore');
     Route::delete('/archive/{type}/bulk/force-delete', [\App\Http\Controllers\ArchiveController::class, 'bulkForceDelete'])->name('admin.archive.bulk-force-delete');
     Route::get('/archive/{type}', [\App\Http\Controllers\ArchiveController::class, 'show'])->name('admin.archive.show');
@@ -206,8 +218,12 @@ Route::prefix('doctor')->middleware(['auth', RoleMiddleware::class.':regular_doc
     Route::get('/waiting-results', [DoctorController::class, 'waitingResults'])->name('doctor.waiting-results');
     Route::get('/consultation/{consultation}/start', [DoctorController::class, 'startConsultation'])->name('doctor.consultation.start');
     Route::post('/consultation/{consultation}/complete', [DoctorController::class, 'completeConsultation'])->name('doctor.consultation.complete');
+    Route::post('/consultation/{consultation}/cancel', [DoctorController::class, 'cancelConsultation'])->name('doctor.consultation.cancel');
+    Route::post('/consultation/{consultation}/prescription/cancel', [DoctorController::class, 'cancelByPrescriber'])->name('doctor.prescription.cancel');
     Route::get('/patients/{patient}', [DoctorController::class, 'showPatient'])->name('doctor.patients.show');
     Route::post('/consultation/{consultation}/ancillary', [DoctorController::class, 'storeAncillaryRequest'])->name('doctor.ancillary.store');
+    Route::post('/ancillary/{ancillary}/repeat', [DoctorController::class, 'repeatAncillaryRequest'])->name('doctor.ancillary.repeat');
+    Route::post('/ancillary/{ancillary}/cancel', [DoctorController::class, 'cancelAncillaryRequest'])->name('doctor.ancillary.cancel');
 });
 
 // Medicine API (for autocomplete in prescriptions)
@@ -243,7 +259,11 @@ Route::prefix('nurse')->middleware(['auth', RoleMiddleware::class.':clinical_nur
     Route::post('/forward/{consultation}', [NurseController::class, 'forwardToDoctor'])->name('nurse.forward');
     Route::get('/consultation/{consultation}/start', [NurseController::class, 'startConsultation'])->name('nurse.consultation.start');
     Route::post('/consultation/{consultation}/complete', [NurseController::class, 'completeConsultation'])->name('nurse.consultation.complete');
+    Route::post('/consultation/{consultation}/cancel', [NurseController::class, 'cancelConsultation'])->name('nurse.consultation.cancel');
+    Route::post('/consultation/{consultation}/prescription/cancel', [NurseController::class, 'cancelByPrescriber'])->name('nurse.prescription.cancel');
     Route::post('/consultation/{consultation}/ancillary', [NurseController::class, 'storeAncillaryRequest'])->name('nurse.ancillary.store');
+    Route::post('/ancillary/{ancillary}/repeat', [NurseController::class, 'repeatAncillaryRequest'])->name('nurse.ancillary.repeat');
+    Route::post('/ancillary/{ancillary}/cancel', [NurseController::class, 'cancelAncillaryRequest'])->name('nurse.ancillary.cancel');
 });
 
 // Laboratory / Radiology Routes
@@ -251,7 +271,12 @@ use App\Http\Controllers\LabController;
 
 Route::prefix('lab')->middleware(['auth', RoleMiddleware::class.':laboratory,radiology'])->group(function () {
     Route::get('/dashboard', [LabController::class, 'dashboard'])->name('lab.dashboard');
+    Route::post('/ancillary/{ancillary}/collect-specimen', [LabController::class, 'collectSpecimen'])->name('lab.ancillary.collect-specimen');
+    Route::post('/ancillary/{ancillary}/start-processing', [LabController::class, 'startProcessing'])->name('lab.ancillary.start-processing');
     Route::post('/ancillary/{ancillary}/complete', [LabController::class, 'completeRequest'])->name('lab.ancillary.complete');
+    Route::post('/ancillary/{ancillary}/amend', [LabController::class, 'amendResult'])->name('lab.ancillary.amend');
+    Route::post('/ancillary/{ancillary}/reject', [LabController::class, 'rejectRequest'])->name('lab.ancillary.reject');
+    Route::post('/ancillary/{ancillary}/cancel', [LabController::class, 'cancelRequest'])->name('lab.ancillary.cancel');
     Route::post('/ancillary/{ancillary}/archive', [LabController::class, 'archiveRequest'])->name('lab.ancillary.archive');
     Route::post('/ancillary/{ancillary}/restore', [LabController::class, 'restoreRequest'])->name('lab.ancillary.restore');
 });
@@ -264,14 +289,19 @@ Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,
     Route::get('/dashboard', [PharmacyController::class, 'dashboard'])->name('pharmacy.dashboard');
     Route::get('/history', [PharmacyController::class, 'history'])->name('pharmacy.history');
     Route::get('/medicines', [PharmacyController::class, 'medicines'])->name('pharmacy.medicines');
+    Route::get('/written-off', [PharmacyController::class, 'writtenOff'])->name('pharmacy.written-off');
 });
 
 Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,super_admin'])->group(function () {
     // Operational routes — Only Pharmacy staff and Super Admin can dispense/modify inventory
     Route::post('/dispense/{prescription}', [PharmacyController::class, 'dispense'])->name('pharmacy.dispense');
+    Route::post('/prescriptions/{prescription}/cancel', [PharmacyController::class, 'cancel'])->name('pharmacy.prescription.cancel');
     Route::post('/medicines', [PharmacyController::class, 'storeMedicine'])->name('pharmacy.medicines.store');
     Route::put('/medicines/{medicine}', [PharmacyController::class, 'updateMedicine'])->name('pharmacy.medicines.update');
     Route::post('/medicines/{medicine}/add-stock', [PharmacyController::class, 'addStock'])->name('pharmacy.medicines.add-stock');
+    Route::post('/medicines/{medicine}/toggle-status', [PharmacyController::class, 'toggleMedicineStatus'])->name('pharmacy.medicines.toggle-status');
+    Route::post('/batches/{batch}/dispose', [PharmacyController::class, 'disposeBatch'])->name('pharmacy.batches.dispose');
+    Route::post('/batches/{batch}/adjust', [PharmacyController::class, 'adjustStock'])->name('pharmacy.batches.adjust');
 });
 
 // Profile Routes

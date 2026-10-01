@@ -251,7 +251,23 @@
                                                 </div>
                                                 @if($req->status === 'Done')
                                                     <span class="text-[9px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 shrink-0">
-                                                        ✓ Ready
+                                                        ✓ {{ $req->amended_at ? 'Amended' : 'Ready' }}
+                                                    </span>
+                                                @elseif($req->status === 'Specimen Collected')
+                                                    <span class="text-[9px] font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800 shrink-0">
+                                                        Collected
+                                                    </span>
+                                                @elseif($req->status === 'In Progress')
+                                                    <span class="text-[9px] font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800 shrink-0 animate-pulse">
+                                                        Testing
+                                                    </span>
+                                                @elseif($req->status === 'Rejected')
+                                                    <span class="text-[9px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-800 shrink-0">
+                                                        ✗ Rejected
+                                                    </span>
+                                                @elseif($req->status === 'Cancelled')
+                                                    <span class="text-[9px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
+                                                        Cancelled
                                                     </span>
                                                 @else
                                                     <span class="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800 shrink-0">

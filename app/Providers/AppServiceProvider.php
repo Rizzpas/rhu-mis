@@ -19,10 +19,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            try {
+                $facilities = \Illuminate\Support\Facades\Cache::remember('global_facility_units', 3600, function () {
+                    return \App\Models\FacilityUnit::active()->ordered()->get();
+                });
+                $view->with('globalFacilityUnits', $facilities);
+            } catch (\Throwable $e) {
+                $view->with('globalFacilityUnits', collect());
+            }
+        });
+
         try {
             \Illuminate\Support\Facades\View::share('globalServices', \App\Models\Service::all());
-        } catch (\Exception $e) {
-            // Fails during migration if table doesn't exist yet
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\View::share('globalServices', collect());
         }
 
         \Illuminate\Support\Facades\Gate::define('view-audit-logs', function (\App\Models\User $user) {
@@ -30,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\Gate::define('force-delete', function (\App\Models\User $user) {
+            return $user->hasRole('admin', 'super_admin');
+        });
+
+        \Illuminate\Support\Facades\Gate::define('truncate-archive', function (\App\Models\User $user) {
             return $user->hasRole('super_admin');
         });
 

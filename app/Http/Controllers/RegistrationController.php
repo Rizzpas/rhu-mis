@@ -44,13 +44,13 @@ class RegistrationController extends Controller
             ->get();
 
         $todayAppointments = \App\Models\Appointment::whereDate('preferred_date', Carbon::today())
-            ->whereIn('status', ['approved', 'rescheduled', 'arrived'])
+            ->whereIn('status', ['approved', 'rescheduled', 'arrived', 'triaged', 'registered', 'no_show', 'cancelled'])
             ->orderBy('preferred_date', 'asc')
             ->get();
 
         // Patients with a consultation today (already triaged)
         $todaysPatients = \App\Models\Consultation::whereDate('created_at', Carbon::today())
-            ->with(['patient', 'doctor', 'nurse'])
+            ->with(['patient', 'doctor', 'nurse', 'ancillaryRequests'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -131,6 +131,57 @@ class RegistrationController extends Controller
             ->with('success', 'Patient Checked In! Please instruct the patient to proceed to the Vitals Station.');
     }
 
+    public function cancelAppointment(Request $request, \App\Models\Appointment $appointment)
+    {
+        if (! in_array($appointment->status, ['pending', 'approved', 'rescheduled'])) {
+            return back()->with('error', "Cannot cancel an appointment that is already in '{$appointment->status}' status.");
+        }
+
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $reason = !empty($validated['reason']) ? $validated['reason'] : 'Cancelled by Front Desk staff';
+
+        $appointment->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $reason,
+            'cancelled_by' => auth()->id(),
+            'cancelled_at' => now(),
+        ]);
+
+        if (!empty($appointment->email)) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($appointment->email)->send(
+                    new \App\Mail\AppointmentCancellationMail($appointment, $reason)
+                );
+            } catch (\Throwable $e) {
+                // Email failure should not block cancellation
+            }
+        }
+
+        \App\Models\AuditLog::record('Appointment Cancelled by Staff', $appointment, ['reason' => $reason]);
+        broadcast(new \App\Events\QueueUpdated('Appointment cancelled', 'general'));
+
+        return back()->with('success', "Appointment #{$appointment->reference_number} has been cancelled.");
+    }
+
+    public function markNoShow(\App\Models\Appointment $appointment)
+    {
+        if (! in_array($appointment->status, ['approved', 'rescheduled', 'pending'])) {
+            return back()->with('error', "Cannot mark an appointment as no-show when it is already '{$appointment->status}'.");
+        }
+
+        $appointment->update([
+            'status' => 'no_show',
+        ]);
+
+        \App\Models\AuditLog::record('Appointment Marked No-Show', $appointment);
+        broadcast(new \App\Events\QueueUpdated('Appointment marked as no-show', 'general'));
+
+        return back()->with('success', "Appointment #{$appointment->reference_number} has been marked as No-Show.");
+    }
+
     public function searchJson(Request $request)
     {
         $search = $request->query('query');
@@ -201,7 +252,7 @@ class RegistrationController extends Controller
             });
 
         $todayAppointments = \App\Models\Appointment::whereDate('preferred_date', Carbon::today())
-            ->whereIn('status', ['approved', 'rescheduled', 'arrived'])
+            ->whereIn('status', ['approved', 'rescheduled', 'arrived', 'triaged', 'registered', 'no_show', 'cancelled'])
             ->orderBy('preferred_date', 'asc')
             ->get()
             ->map(function ($apt) {
@@ -215,8 +266,11 @@ class RegistrationController extends Controller
                     'status'           => $apt->status,
                     'type'             => $apt->type,
                     'is_follow_up'     => (bool) $apt->is_follow_up,
+                    'cancellation_reason' => $apt->cancellation_reason,
                     // action URLs
                     'checkin_url'      => route('frontdesk.appointments.check-in', $apt),
+                    'cancel_url'       => route('frontdesk.appointments.cancel', $apt),
+                    'noshow_url'       => route('frontdesk.appointments.no-show', $apt),
                     'register_url'     => url('/frontdesk/registration?prefill_apt='.$apt->id.'&new_patient=1'),
                 ];
             });
@@ -571,10 +625,12 @@ class RegistrationController extends Controller
                 $pediaDoctor = \App\Models\User::where('role', 'pedia_doctor')->present()
                     ->withCount(['consultationsAsDoctor' => fn ($q) => $q->whereDate('created_at', today())])
                     ->orderBy('consultations_as_doctor_count')->first()
-                    ?? \App\Models\User::where('role', 'pedia_doctor')->present()->inRandomOrder()->first();
+                    ?? \App\Models\User::where('role', 'pedia_doctor')->present()->inRandomOrder()->first()
+                    ?? \App\Models\User::where('role', 'pedia_doctor')->whereIn('status', ['Present', 'present', 'Online', 'online'])->first()
+                    ?? \App\Models\User::where('role', 'pedia_doctor')->first();
 
                 if (! $pediaDoctor) {
-                    return back()->with('error', 'Cannot queue pediatric patient: No Pediatrician is currently available.');
+                    return back()->with('error', 'Cannot queue pediatric patient: No Pediatrician account exists in the system.');
                 }
                 $doctor_id = $pediaDoctor->id;
             } else {
@@ -829,9 +885,11 @@ class RegistrationController extends Controller
             $pediaDoc = User::where('role', 'pedia_doctor')->present()
                 ->withCount(['consultationsAsDoctor' => fn ($q) => $q->whereDate('created_at', today())])
                 ->orderBy('consultations_as_doctor_count')->first()
-                ?? User::where('role', 'pedia_doctor')->inRandomOrder()->first();
+                ?? User::where('role', 'pedia_doctor')->present()->inRandomOrder()->first()
+                ?? User::where('role', 'pedia_doctor')->whereIn('status', ['Present', 'present', 'Online', 'online'])->first()
+                ?? User::where('role', 'pedia_doctor')->first();
             if (! $pediaDoc) {
-                return back()->with('error', 'No Pediatrician available.')->withInput();
+                return back()->with('error', 'No Pediatrician account exists in the system.')->withInput();
             }
             $doctor_id = $pediaDoc->id;
         } else {

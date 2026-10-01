@@ -3,7 +3,7 @@
 @section('header', 'Front Desk Dashboard')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-8 pb-12 cursor-default" x-data="dashboardCalendar()">
+<div class="max-w-7xl mx-auto space-y-8 pb-12 cursor-default" x-data="dashboardCalendar(@js($dashboardStats ?? []))">
     
     <!-- Hero Operational Banner -->
     <div class="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-emerald-800 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(16,185,129,0.15)] text-white">
@@ -74,12 +74,12 @@
 
     <!-- Key Operational Metric Cards (KPI Strip) -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-        <!-- Today's Appointments -->
+        <!-- Today's Encounters / Expected -->
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
             <div>
                 <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Today's Visits</p>
                 <p class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white" x-text="stats.today">0</p>
-                <p class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">Scheduled for today</p>
+                <p class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">Walk-ins & appointments</p>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -103,7 +103,7 @@
             <div>
                 <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Queued / Triaged</p>
                 <p class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400" x-text="stats.registered">0</p>
-                <p class="text-[11px] font-medium text-slate-400 mt-0.5">Waiting for consult</p>
+                <p class="text-[11px] font-medium text-slate-400 mt-0.5">Waiting or in consult</p>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-amber-100/80 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20 shadow-2xs">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -127,7 +127,7 @@
             <div>
                 <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Total Scheduled</p>
                 <p class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400" x-text="stats.total">0</p>
-                <p class="text-[11px] font-medium text-slate-400 mt-0.5">All month calendar</p>
+                <p class="text-[11px] font-medium text-slate-400 mt-0.5">This month</p>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-indigo-100/80 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20 shadow-2xs">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
@@ -339,26 +339,59 @@
 
                                     <!-- Actions for the specific appointment -->
                                     <div class="flex sm:flex-col gap-2 shrink-0 sm:items-end sm:justify-center pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-700/60">
-                                        <template x-if="event.extendedProps.status === 'Approved'">
-                                            <form :action="`/frontdesk/appointments/${event.id}/check-in`" method="POST" class="w-full sm:w-auto">
-                                                @csrf
-                                                <button type="submit" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                                                    <span>Check In Patient</span>
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                                </button>
-                                            </form>
+                                        <template x-if="event.extendedProps.raw_status === 'approved' || event.extendedProps.raw_status === 'rescheduled'">
+                                            <div class="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto">
+                                                <template x-if="selectedDateIsToday">
+                                                    <form :action="`/frontdesk/appointments/${event.id}/check-in`" method="POST" class="w-full sm:w-auto">
+                                                        @csrf
+                                                        <button type="submit" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                                            <span>Check In Patient</span>
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                                        </button>
+                                                    </form>
+                                                </template>
+
+                                                <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                                                    <form :action="`/frontdesk/appointments/${event.id}/no-show`" method="POST" onsubmit="return confirm('Mark this patient appointment as No-Show?');" class="w-full sm:w-auto">
+                                                        @csrf
+                                                        <button type="submit" class="w-full sm:w-auto px-2.5 py-1 rounded-lg text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 border border-rose-200 dark:border-rose-900 transition-all cursor-pointer">
+                                                            No-Show
+                                                        </button>
+                                                    </form>
+
+                                                    <button type="button" @click="promptCancel(event.id, event.extendedProps.patient_name)" class="w-full sm:w-auto px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </template>
-                                        <template x-if="event.extendedProps.status === 'Registered' || event.extendedProps.status === 'Triaged'">
+                                        <template x-if="event.extendedProps.raw_status === 'registered' || event.extendedProps.raw_status === 'triaged'">
                                             <span class="w-full sm:w-auto bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1.5">
                                                 <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                                 <span>Active in Queue</span>
                                             </span>
                                         </template>
-                                        <template x-if="event.extendedProps.status === 'Done'">
+                                        <template x-if="event.extendedProps.raw_status === 'done'">
                                             <span class="w-full sm:w-auto bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-200 dark:border-emerald-800 flex items-center justify-center gap-1.5">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                                 <span>Visit Finished</span>
                                             </span>
+                                        </template>
+                                        <template x-if="event.extendedProps.raw_status === 'no_show'">
+                                            <span class="w-full sm:w-auto bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-200 dark:border-rose-900 flex items-center justify-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                <span>No-Show</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="event.extendedProps.raw_status === 'cancelled'">
+                                            <div class="flex flex-col items-end">
+                                                <span class="w-full sm:w-auto bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5">
+                                                    <span>Cancelled</span>
+                                                </span>
+                                                <template x-if="event.extendedProps.cancellation_reason">
+                                                    <span class="text-[10px] text-slate-400 italic max-w-[160px] truncate mt-0.5" :title="event.extendedProps.cancellation_reason" x-text="event.extendedProps.cancellation_reason"></span>
+                                                </template>
+                                            </div>
                                         </template>
                                     </div>
                                 </div>
@@ -377,21 +410,105 @@
             </div>
         </div>
     </div>
+
+    <!-- Staff Cancellation Modal -->
+    <div x-show="isCancelModalOpen" 
+         x-cloak
+         class="fixed inset-0 z-60 overflow-y-auto" 
+         style="display: none;">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="closeCancelModal()"></div>
+        <div class="flex min-h-screen items-center justify-center p-4">
+            <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900 dark:text-white">Cancel Appointment</h3>
+                        <p class="text-xs text-slate-400">Patient: <span class="font-bold text-slate-700 dark:text-slate-200" x-text="cancelPatientName"></span></p>
+                    </div>
+                </div>
+
+                <form :action="`/frontdesk/appointments/${cancelApptId}/cancel`" method="POST" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Reason for Cancellation</label>
+                        <select x-model="cancelReason" class="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-slate-800 dark:text-slate-100 focus:border-rose-500 mb-2">
+                            <option value="Patient requested cancellation via phone/in-person">Patient requested cancellation</option>
+                            <option value="Duplicate or conflicting appointment">Duplicate / Conflicting booking</option>
+                            <option value="Patient unreachable / invalid contact">Patient unreachable</option>
+                            <option value="Facility schedule adjustment / Doctor unavailable">Facility schedule adjustment</option>
+                            <option value="custom">Other / Custom reason...</option>
+                        </select>
+                        <template x-if="cancelReason === 'custom'">
+                            <input type="text" name="reason" placeholder="Specify custom reason..." required
+                                   class="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-slate-800 dark:text-slate-100 focus:border-rose-500">
+                        </template>
+                        <template x-if="cancelReason !== 'custom'">
+                            <input type="hidden" name="reason" :value="cancelReason">
+                        </template>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2.5 pt-2">
+                        <button type="button" @click="closeCancelModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            Back
+                        </button>
+                        <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-rose-600/20 transition-all cursor-pointer">
+                            Confirm Cancellation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @push('scripts')
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('dashboardCalendar', () => ({
+        Alpine.data('dashboardCalendar', (initialStats = {}) => ({
             isModalOpen: false,
+            isCancelModalOpen: false,
+            cancelApptId: null,
+            cancelPatientName: '',
+            cancelReason: 'Patient requested cancellation via phone/in-person',
             selectedDateText: '',
             selectedDateIsToday: false,
             selectedEvents: [],
             calendar: null,
-            stats: { total: 0, today: 0, approved: 0, registered: 0, done: 0, rescheduled: 0 },
+            stats: Object.assign({ total: 0, today: 0, approved: 0, registered: 0, done: 0, rescheduled: 0, no_show: 0, cancelled: 0 }, initialStats),
             activeFilter: 'all',
             isRefreshing: false,
+
+            promptCancel(id, name) {
+                this.cancelApptId = id;
+                this.cancelPatientName = name;
+                this.cancelReason = 'Patient requested cancellation via phone/in-person';
+                this.isCancelModalOpen = true;
+            },
+
+            closeCancelModal() {
+                this.isCancelModalOpen = false;
+                this.cancelApptId = null;
+            },
+
+            async fetchStats() {
+                try {
+                    const viewDate = this.calendar ? this.calendar.getDate() : new Date();
+                    const month = viewDate.getMonth() + 1;
+                    const year = viewDate.getFullYear();
+                    const res = await fetch(`/frontdesk/api/stats?month=${month}&year=${year}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.stats = Object.assign({}, this.stats, data);
+                    }
+                } catch (e) {
+                    console.error('Error fetching frontdesk stats:', e);
+                }
+            },
 
             init() {
                 var calendarEl = document.getElementById('calendar');
@@ -438,6 +555,12 @@
                         } else if (status.includes('rescheduled')) {
                             dotColor = '#7c3aed';
                             badgeBg = 'bg-purple-500/10 text-purple-800 dark:text-purple-200 border-purple-500/30';
+                        } else if (status.includes('no show') || status.includes('no_show')) {
+                            dotColor = '#e11d48';
+                            badgeBg = 'bg-rose-500/10 text-rose-800 dark:text-rose-200 border-rose-500/30';
+                        } else if (status.includes('cancelled')) {
+                            dotColor = '#64748b';
+                            badgeBg = 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30 opacity-75';
                         }
 
                         const container = document.createElement('div');
@@ -450,8 +573,12 @@
                         return { domNodes: [container] };
                     },
 
+                    datesSet: () => {
+                        this.fetchStats();
+                    },
+
                     eventsSet: (events) => {
-                        this.updateStats(events);
+                        // Keep stats synced
                     },
                     
                     dateClick: (info) => {
@@ -468,37 +595,15 @@
                 });
                 
                 this.calendar.render();
+
+                // Periodic refresh every 30 seconds
+                setInterval(() => {
+                    this.fetchStats();
+                }, 30000);
             },
 
             updateStats(events) {
-                const pad = n => String(n).padStart(2, '0');
-                const now = new Date();
-                const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-
-                let total = events.length;
-                let today = 0;
-                let approved = 0;
-                let registered = 0;
-                let done = 0;
-                let rescheduled = 0;
-
-                events.forEach(evt => {
-                    const status = (evt.extendedProps?.status || '').toLowerCase();
-                    const date = evt.start;
-                    if (date) {
-                        const evtDateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-                        if (evtDateStr === todayStr) {
-                            today++;
-                        }
-                    }
-
-                    if (status.includes('approved')) approved++;
-                    else if (status.includes('registered') || status.includes('triaged')) registered++;
-                    else if (status.includes('done')) done++;
-                    else if (status.includes('rescheduled')) rescheduled++;
-                });
-
-                this.stats = { total, today, approved, registered, done, rescheduled };
+                this.fetchStats();
             },
 
             openDayModal(dateStr) {

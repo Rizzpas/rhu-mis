@@ -37,7 +37,7 @@ class RoleMiddleware
     {
         if (! $request->user() || ! $request->user()->hasRole(...$roles)) {
             if ($request->user()) {
-                $home = self::homeForRole($request->user()->role);
+                $home = self::homeForRole((string) $request->user()->role);
 
                 return redirect($home)->with('warning', 'You do not have permission to access that page.');
             }

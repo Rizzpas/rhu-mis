@@ -15,6 +15,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Styles -->
+    <link rel="stylesheet" href="{{ asset('css/print.css') }}">
+    <script src="{{ asset('js/print-helper.js') }}"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -245,6 +247,24 @@
                 Patient Master List
             </a>
 
+            <a href="{{ route('frontdesk.followups.index') }}"
+                class="@if(request()->routeIs('frontdesk.followups.*')) bg-gradient-to-r from-emerald-600 to-emerald-800 text-white shadow-md shadow-emerald-600/20 font-semibold @else text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white @endif group flex items-center justify-between px-3 py-2.5 rounded-xl transition-all">
+                <div class="flex items-center">
+                    <svg class="mr-3 h-4 w-4 @if(request()->routeIs('frontdesk.followups.*')) text-white @else text-emerald-600 dark:text-emerald-400 @endif shrink-0 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Follow-Up Tracker</span>
+                </div>
+                @php
+                    $pendingFollowupsBadge = \App\Models\Consultation::where('is_followup_needed', true)->whereNull('followup_completed_at')->whereDate('followup_date', '<=', today())->count();
+                @endphp
+                @if($pendingFollowupsBadge > 0)
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('frontdesk.followups.*') ? 'bg-white text-emerald-800' : 'bg-rose-500 text-white animate-pulse' }} shadow-2xs">
+                        {{ $pendingFollowupsBadge }}
+                    </span>
+                @endif
+            </a>
+
             @if(auth()->check() && auth()->user()->hasRole('admin', 'super_admin'))
                 <a href="{{ route('admin.dashboard') }}"
                     class="text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group flex items-center px-3 py-2.5 rounded-xl transition-colors mt-4 border-t border-gray-100 dark:border-gray-700 pt-4 font-semibold">
@@ -299,7 +319,8 @@
                     { name: 'Dashboard', route: '{{ route('frontdesk.dashboard') }}', keywords: ['dashboard', 'home', 'overview', 'calendar', 'appointments'] },
                     { name: 'Registration & Triage', route: '{{ route('frontdesk.registration.index') }}', keywords: ['registration', 'triage', 'patient check-in', 'new patient', 'vitals'] },
                     { name: 'Queue Overview', route: '{{ route('frontdesk.queue-overview') }}', keywords: ['queue', 'waiting list', 'overview', 'status', 'doctors', 'nurses'] },
-                    { name: 'Patient Master List', route: '{{ route('frontdesk.patients.index') }}', keywords: ['patients', 'records', 'master list', 'search patient', 'clinical'] }
+                    { name: 'Patient Master List', route: '{{ route('frontdesk.patients.index') }}', keywords: ['patients', 'records', 'master list', 'search patient', 'clinical'] },
+                    { name: 'Follow-Up Tracker', route: '{{ route('frontdesk.followups.index') }}', keywords: ['followup', 'follow-up', 'overdue', 'returns', 'schedule', 'tracking'] }
                 ],
                 get filteredLinks() {
                     if (this.searchQuery.trim() === '') return [];
@@ -360,17 +381,7 @@
 
                 <div class="flex items-center gap-2 sm:gap-4 shrink-0">
                     <!-- Theme Toggle -->
-                    <button id="theme-toggle" type="button" class="relative inline-flex h-7 w-[48px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out shadow-sm" title="Toggle Light/Dark Theme">
-                        <span class="sr-only">Toggle theme</span>
-                        <span class="pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow ring-0 transition duration-200 ease-in-out translate-x-0.5 dark:translate-x-[22px]">
-                            <svg id="theme-toggle-dark-icon" class="hidden w-3.5 h-3.5 text-slate-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                            </svg>
-                            <svg id="theme-toggle-light-icon" class="hidden w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                            </svg>
-                        </span>
-                    </button>
+                    @include('partials.theme-toggle')
                     <span class="text-xs font-medium text-emerald-100 hidden lg:block">{{ now()->format('l, F j, Y') }}</span>
                 </div>
             </div>
@@ -450,35 +461,12 @@
     </template>
 
     <script>
-        var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-        var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-        if (themeToggleDarkIcon && themeToggleLightIcon) {
-            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                themeToggleLightIcon.classList.remove('hidden');
-            } else {
-                themeToggleDarkIcon.classList.remove('hidden');
-            }
-            document.getElementById('theme-toggle').addEventListener('click', function() {
-                themeToggleDarkIcon.classList.toggle('hidden');
-                themeToggleLightIcon.classList.toggle('hidden');
-                if (localStorage.getItem('color-theme')) {
-                    if (localStorage.getItem('color-theme') === 'light') {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    }
-                } else {
-                    if (document.documentElement.classList.contains('dark')) {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    } else {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    }
-                }
-            });
+        if (!window.toggleTheme) {
+            window.toggleTheme = function() {
+                var isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+                window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDark } }));
+            };
         }
     </script>
     @include('partials.idle-timeout')

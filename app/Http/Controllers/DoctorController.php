@@ -3,12 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Consultation;
+use App\Models\MedicalCase;
+use App\Models\Prescription;
+use App\Models\PrescriptionItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DoctorController extends Controller
 {
+    use \App\Traits\InteractsWithPrescriptions;
+
     public function dashboard()
     {
         $user = Auth::user();
@@ -94,16 +100,24 @@ class DoctorController extends Controller
             }
         }
 
-        $handledPatients = Consultation::where('doctor_id', $user->id)
+        $handledBase = Consultation::where('doctor_id', $user->id)
             ->whereIn('status', ['completed', 'done', 'cancelled'])
-            ->whereDate('consultation_end_time', today())
-            ->with('patient')
+            ->where(function ($q) {
+                $q->whereDate('consultation_end_time', today())
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('consultation_end_time')
+                          ->whereDate('updated_at', today());
+                  });
+            });
+
+        $handledCount = (clone $handledBase)->distinct('patient_id')->count('patient_id');
+        $handledPatients = $handledBase->with('patient')
             ->orderBy('updated_at', 'desc')
             ->get()
             ->unique('patient_id')
             ->take(20);
 
-        return view('doctor.dashboard', compact('user', 'queue', 'handledPatients', 'awaitingLabs'));
+        return view('doctor.dashboard', compact('user', 'queue', 'handledPatients', 'handledCount', 'awaitingLabs'));
     }
 
     /**
@@ -163,7 +177,7 @@ class DoctorController extends Controller
         return view('doctor.consultation', compact('consultation', 'patient', 'pastConsultations', 'isPharmacyOnline', 'isLabOnline', 'isRadOnline'));
     }
 
-    public function completeConsultation(Request $request, Consultation $consultation)
+public function completeConsultation(Request $request, Consultation $consultation)
     {
         $user = Auth::user();
         if ($consultation->doctor_id !== $user->id) {
@@ -172,13 +186,14 @@ class DoctorController extends Controller
 
         $validated = $request->validate([
             'diagnosis' => 'required|string',
-            'prescription' => 'nullable|string', // Legacy text
-            'prescriptions_list' => 'nullable|array', // New structured array
+            'prescriptions_list' => 'nullable|array',
             'prescriptions_list.*.medicine_name' => 'required|string',
             'prescriptions_list.*.dosage' => 'nullable|string',
             'prescriptions_list.*.frequency' => 'nullable|string',
             'prescriptions_list.*.duration' => 'nullable|string',
             'prescriptions_list.*.quantity' => 'nullable|integer',
+            'prescriptions_list.*.medicine_id' => 'nullable|integer|exists:medicines,id',
+            'prescriptions_list.*.is_otc' => 'nullable|boolean',
             'medical_notes' => 'nullable|string',
             'is_followup_needed' => 'nullable|boolean',
             'followup_date' => 'nullable|required_if:is_followup_needed,1|date|after_or_equal:today',
@@ -190,9 +205,17 @@ class DoctorController extends Controller
         $followupDate = $isFollowupNeeded ? ($validated['followup_date'] ?? now()->addDays(7)->toDateString()) : null;
         $followupReason = $isFollowupNeeded ? ($validated['followup_reason'] ?? 'Pending Diagnostic Results Review') : null;
 
+        // Resolve and split prescriptions into RHU vs OTC
+        $resolved = $this->resolvePrescriptionItems($validated['prescriptions_list'] ?? []);
+        $rhuItems = $resolved['rhu'];
+        $otcItems = $resolved['otc'];
+        $reclassified = $resolved['reclassified'];
+
+        $prescriptionText = $this->formatPrescriptionText($rhuItems, $otcItems);
+
         $consultation->update([
             'diagnosis' => $validated['diagnosis'],
-            'prescription' => $validated['prescription'],
+            'prescription' => $prescriptionText,
             'medical_notes' => $validated['medical_notes'],
             'is_followup_needed' => $isFollowupNeeded,
             'followup_date' => $followupDate,
@@ -210,41 +233,21 @@ class DoctorController extends Controller
             'status' => 'completed',
         ]);
 
-        if (! empty($validated['prescriptions_list'])) {
-            $prescriptionRecord = \App\Models\Prescription::create([
-                'consultation_id' => $consultation->id,
-                'patient_id' => $consultation->patient_id,
-                'doctor_id' => $user->id,
-                'status' => 'pending',
-            ]);
+        // Create Prescription record only if RHU items exist
+        $prescriptionRecord = $this->recordPrescription($consultation, $user, $rhuItems, $otcItems, $prescriptionText);
 
-            foreach ($validated['prescriptions_list'] as $item) {
-                \App\Models\PrescriptionItem::create([
-                    'prescription_id' => $prescriptionRecord->id,
-                    'medicine_name' => $item['medicine_name'],
-                    'dosage' => $item['dosage'] ?? null,
-                    'frequency' => $item['frequency'] ?? null,
-                    'duration' => $item['duration'] ?? null,
-                    'quantity' => $item['quantity'] ?? null,
-                ]);
-            }
+        if ($prescriptionRecord) {
+            $this->notifyPharmacy($prescriptionRecord, $user, $consultation);
+        }
 
-            $pharmacists = \App\Models\User::where('role', 'pharmacy')->get();
-            \Illuminate\Support\Facades\Notification::send(
-                $pharmacists,
-                new \App\Notifications\NewPrescriptionNotification(
-                    $consultation->patient->first_name.' '.$consultation->patient->last_name,
-                    $user->id,
-                    $prescriptionRecord->id
-                )
-            );
-
-            broadcast(new \App\Events\QueueUpdated('New prescription', 'pharmacy'));
+        if (! empty($reclassified)) {
+            $names = collect($reclassified)->pluck('medicine_name')->implode(', ');
+            session()->flash('warning', "The following items were not found in RHU inventory and have been marked as OTC: {$names}");
         }
 
         if ($consultation->preTriage) {
             $consultation->preTriage->update(['status' => 'completed']);
-            
+
             // Mark the original appointment as done so it drops off active calendar queues
             if ($consultation->preTriage->appointment_id) {
                 \App\Models\Appointment::where('id', $consultation->preTriage->appointment_id)
@@ -259,7 +262,7 @@ class DoctorController extends Controller
             'consultation_id' => $consultation->id,
             'pre_triage_id' => $consultation->pre_triage_id,
             'diagnosis' => $validated['diagnosis'],
-            'prescription' => $validated['prescription'],
+            'prescription' => $prescriptionText,
             'vitals_snapshot' => [
                 'bp' => $consultation->preTriage->blood_pressure ?? null,
                 'temp' => $consultation->preTriage->temperature ?? null,
@@ -379,8 +382,12 @@ class DoctorController extends Controller
     public function storeAncillaryRequest(Request $request, Consultation $consultation)
     {
         $user = Auth::user();
-        if ($consultation->doctor_id !== $user->id) {
+        if ($consultation->doctor_id && $consultation->doctor_id !== $user->id) {
             abort(403);
+        }
+        if (! $consultation->doctor_id) {
+            $consultation->doctor_id = $user->id;
+            $consultation->save();
         }
 
         $validated = $request->validate([
@@ -388,6 +395,28 @@ class DoctorController extends Controller
             'test_name' => 'required|string',
             'remarks' => 'nullable|string',
         ]);
+
+        // Restrict allowed tests strictly to RHU scope
+        $allowedLabTests = ['Complete Blood Count (CBC)', 'Urinalysis'];
+        $allowedRadTests = ['Chest X-Ray'];
+
+        if ($validated['type'] === 'Laboratory' && ! in_array($validated['test_name'], $allowedLabTests)) {
+            return back()->with('error', 'Invalid laboratory test selected. Available tests: Complete Blood Count (CBC), Urinalysis.');
+        }
+
+        if ($validated['type'] === 'Radiology' && ! in_array($validated['test_name'], $allowedRadTests)) {
+            return back()->with('error', 'Invalid radiology test selected. Available test: Chest X-Ray.');
+        }
+
+        // Enforce: only one active request per test type at a time for this consultation
+        $existingActive = \App\Models\AncillaryRequest::where('consultation_id', $consultation->id)
+            ->where('test_name', $validated['test_name'])
+            ->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress'])
+            ->exists();
+
+        if ($existingActive) {
+            return back()->with('error', "An active request for {$validated['test_name']} is already pending or in progress for this patient.");
+        }
 
         \App\Models\AncillaryRequest::create([
             'consultation_id' => $consultation->id,
@@ -402,6 +431,224 @@ class DoctorController extends Controller
 
         broadcast(new \App\Events\QueueUpdated('New '.$validated['type'].' request', strtolower($validated['type'])));
 
-        return back()->with('success', $validated['type'].' request sent to lab/radiology. Patient has been moved to the Waiting for Results queue.');
+        return back()->with('success', $validated['type'].' request for '.$validated['test_name'].' sent to queue. Patient moved to Waiting for Results.');
+    }
+
+    public function repeatAncillaryRequest(Request $request, \App\Models\AncillaryRequest $ancillary)
+    {
+        $consultation = $ancillary->consultation;
+        if (! $consultation) {
+            abort(404);
+        }
+
+        $user = Auth::user();
+        if ($consultation->doctor_id && $consultation->doctor_id !== $user->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'remarks' => 'nullable|string|max:500',
+        ]);
+
+        $newRemarks = $validated['remarks'] ?? ($ancillary->remarks ? "Repeat: {$ancillary->remarks}" : 'Repeat test requested');
+
+        $repeatRequest = \App\Models\AncillaryRequest::create([
+            'consultation_id' => $consultation->id,
+            'type' => $ancillary->type,
+            'test_name' => $ancillary->test_name,
+            'remarks' => $newRemarks,
+            'status' => 'Pending',
+            'parent_id' => $ancillary->id,
+            'is_repeat' => true,
+        ]);
+
+        $consultation->update(['status' => 'awaiting_results']);
+
+        \App\Models\AuditLog::record('Diagnostic Test Re-ordered / Repeated', $repeatRequest, [
+            'original_id' => $ancillary->id,
+            'reason' => $newRemarks,
+        ]);
+
+        broadcast(new \App\Events\QueueUpdated('Repeat diagnostic ordered', strtolower($ancillary->type)));
+
+        return back()->with('success', "Repeat order for {$ancillary->test_name} created. Patient returned to Waiting for Results.");
+    }
+
+    public function cancelAncillaryRequest(Request $request, \App\Models\AncillaryRequest $ancillary)
+    {
+        $consultation = $ancillary->consultation;
+        if (! $consultation) {
+            abort(404);
+        }
+
+        $user = Auth::user();
+        if ($consultation->doctor_id && $consultation->doctor_id !== $user->id) {
+            abort(403);
+        }
+
+        if ($ancillary->status === 'Done') {
+            return back()->with('error', 'Cannot cancel an already completed diagnostic test.');
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => 'nullable|string|max:255',
+        ]);
+
+        $reason = $validated['cancellation_reason'] ?? 'Cancelled by physician';
+
+        $ancillary->update([
+            'status' => 'Cancelled',
+            'cancellation_reason' => $reason,
+            'cancelled_by' => $user->id,
+            'cancelled_at' => now(),
+        ]);
+
+        $hasActiveUnfinished = $consultation->ancillaryRequests()
+            ->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress'])
+            ->exists();
+
+        if (! $hasActiveUnfinished) {
+            $hasDone = $consultation->ancillaryRequests()->where('status', 'Done')->exists();
+            $consultation->update(['status' => $hasDone ? 'results_ready' : 'active']);
+        }
+
+        \App\Models\AuditLog::record('Diagnostic Request Cancelled by Doctor', $ancillary, ['reason' => $reason]);
+        broadcast(new \App\Events\QueueUpdated('Diagnostic request cancelled', strtolower($ancillary->type)));
+
+        return back()->with('success', "{$ancillary->test_name} request has been cancelled.");
+    }
+
+    /**
+     * Cancel a prescription by the prescriber (doctor).
+     */
+    public function cancelByPrescriber(Request $request, Consultation $consultation)
+    {
+        $user = Auth::user();
+
+        $prescription = $consultation->prescriptionRecord;
+        if (! $prescription) {
+            return back()->with('error', 'No prescription found for this consultation.');
+        }
+
+        // Ownership check: must be the prescriber
+        if ($prescription->doctor_id !== $user->id) {
+            abort(403, 'You can only cancel prescriptions you created.');
+        }
+
+        // Cannot cancel already terminal statuses
+        if (in_array($prescription->status, ['dispensed', 'expired'])) {
+            return back()->with('error', 'Cannot cancel a prescription that is already dispensed or expired.');
+        }
+
+        // Check if any stock was already dispensed
+        $hasDispensedStock = $prescription->items->contains(function ($item) {
+            return ($item->dispensed_quantity ?? 0) > 0;
+        });
+
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|max:500',
+            'acknowledge_dispensed_stock' => $hasDispensedStock ? 'required|accepted' : 'nullable',
+        ]);
+
+        DB::transaction(function () use ($prescription, $user, $validated, $hasDispensedStock) {
+            $prescription->update([
+                'status' => 'cancelled',
+                'cancelled_by' => $user->id,
+                'cancelled_at' => now(),
+                'cancellation_reason' => $validated['cancellation_reason'],
+            ]);
+
+            \App\Models\AuditLog::record(
+                "Prescription Cancelled by Prescriber: {$validated['cancellation_reason']}",
+                $prescription,
+                [
+                    'had_dispensed_stock' => $hasDispensedStock,
+                    'acknowledged' => $hasDispensedStock && ($validated['acknowledge_dispensed_stock'] ?? false),
+                ]
+            );
+        });
+
+        broadcast(new \App\Events\QueueUpdated('Prescription cancelled', 'pharmacy'));
+
+        return back()->with('success', 'Prescription cancelled successfully.');
+    }
+
+    /**
+     * Cancel an active or queued consultation (e.g. Patient Walked Out, Refused, or Referred).
+     */
+    public function cancelConsultation(Request $request, Consultation $consultation)
+    {
+        $user = Auth::user();
+        if ($consultation->doctor_id && $consultation->doctor_id !== $user->id) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $reason = $validated['cancellation_reason'];
+        if (!empty($validated['notes'])) {
+            $reason .= ' - Notes: ' . $validated['notes'];
+        }
+
+        DB::transaction(function () use ($consultation, $user, $reason) {
+            $consultation->update([
+                'status' => 'cancelled',
+                'consultation_end_time' => now(),
+                'medical_notes' => trim(($consultation->medical_notes ? $consultation->medical_notes . "\n" : '') . "[CONSULTATION CANCELLED / WALKOUT]: {$reason}"),
+            ]);
+
+            // If pre-triage exists, cancel it and sync appointment
+            if ($consultation->preTriage) {
+                $consultation->preTriage->update(['status' => 'cancelled']);
+                if ($consultation->preTriage->appointment_id) {
+                    \App\Models\Appointment::where('id', $consultation->preTriage->appointment_id)
+                        ->update([
+                            'status' => 'cancelled',
+                            'cancellation_reason' => $reason,
+                            'cancelled_by' => $user->id,
+                            'cancelled_at' => now(),
+                        ]);
+                }
+            }
+
+            // Sync linked queue
+            \App\Models\Queue::where('patient_id', $consultation->patient_id)
+                ->where('queue_number', $consultation->queue_number)
+                ->whereDate('created_at', today())
+                ->update(['status' => 'Cancelled']);
+
+            // Cancel any pending ancillary requests for this consultation
+            $consultation->ancillaryRequests()
+                ->whereIn('status', ['Pending', 'Specimen Collected'])
+                ->update([
+                    'status' => 'Cancelled',
+                    'cancellation_reason' => "Consultation cancelled/walkout: {$reason}",
+                    'cancelled_by' => $user->id,
+                    'cancelled_at' => now(),
+                ]);
+
+            // If prescription was drafted and pending, cancel it
+            if ($consultation->prescriptionRecord && !in_array($consultation->prescriptionRecord->status, ['dispensed', 'cancelled'])) {
+                $consultation->prescriptionRecord->update([
+                    'status' => 'cancelled',
+                    'cancelled_by' => $user->id,
+                    'cancelled_at' => now(),
+                    'cancellation_reason' => "Consultation cancelled/walkout: {$reason}",
+                ]);
+            }
+
+            \App\Models\AuditLog::record("Consultation Cancelled / Patient Walked Out: {$reason}", $consultation, [
+                'reason' => $reason,
+                'doctor_id' => $user->id,
+            ]);
+        });
+
+        broadcast(new \App\Events\QueueUpdated('Consultation cancelled / patient walkout', 'general'));
+
+        return redirect()->route('doctor.dashboard')->with('success', 'Consultation marked as cancelled / walked out.');
     }
 }
+

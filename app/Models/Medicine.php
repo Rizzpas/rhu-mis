@@ -15,6 +15,11 @@ class Medicine extends Model
         'form',
         'category',
         'unit',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function batches()
@@ -27,8 +32,16 @@ class Medicine extends Model
         return $this->hasMany(InventoryLog::class);
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
     public function getTotalStockAttribute()
     {
-        return $this->batches()->whereDate('expiration_date', '>=', today())->sum('quantity');
+        return $this->batches()
+            ->where('status', 'active')
+            ->whereDate('expiration_date', '>=', today())
+            ->sum('quantity');
     }
 }

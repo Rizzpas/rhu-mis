@@ -87,8 +87,8 @@
                     </div>
                     <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                         <span class="font-bold text-slate-900 dark:text-white">Can't locate your Reference Number?</span>
-                        Please check the SMS notification or confirmation email received upon booking. For immediate assistance, call the RHU Silang hotline at
-                        <a href="tel:(046)432-1234" class="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">(046) 432-1234</a>.
+                        Please check the SMS notification or confirmation email received upon booking. For immediate assistance, call the RHU Silang help desk at
+                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209')) }}" class="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">{{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}</a> or Emergency Hotline at <span class="font-semibold text-rose-600 dark:text-rose-400">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span>.
                     </div>
                 </div>
             </div>

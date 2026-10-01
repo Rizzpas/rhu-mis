@@ -33,6 +33,7 @@ class Patient extends Model
         'expires_at' => 'datetime',
         'philhealth_number' => 'encrypted',
         'guardian_philhealth' => 'encrypted',
+        'next_followup_date' => 'date',
     ];
 
     public function getRouteKeyName()
@@ -77,7 +78,50 @@ class Patient extends Model
                     $patient->classification = 'Regular Adult';
                 }
             }
+
+            // ── Auto-populate / normalize barangay from address if missing ───
+            $patient->barangay = self::normalizeBarangay($patient->barangay, $patient->address);
         });
+    }
+
+    public const SILANG_BARANGAYS = [
+        'Biga I', 'Biga II', 'Biga 1', 'Biga 2', 'Biga Ii',
+        'Kalubkob', 'Bulihan', 'Lucsuhin', 'Balite I', 'Balite II', 'Balite 1', 'Balite 2',
+        'Acacia', 'Adlas', 'Anahaw I', 'Anahaw II', 'Balubad', 'Banaba',
+        'Batas', 'Biluso', 'Bucal', 'Buho', 'Cabangaan', 'Carmen', 'Hoyo',
+        'Hukay', 'Iba', 'Inchican', 'Ipil I', 'Ipil II', 'Kaong', 'Lalaan I',
+        'Lalaan II', 'Litlit', 'Lumil', 'Maguyam', 'Malabag', 'Malaking Tatyao',
+        'Mataas Na Burol', 'Munting Ilog', 'Narra I', 'Narra II', 'Narra III',
+        'Paligawan', 'Pasong Langka', 'Pooc I', 'Pooc II', 'Pulong Bunga',
+        'Pulong Saging', 'Puting Kahoy', 'Sabutan', 'San Miguel I', 'San Miguel II',
+        'San Vicente I', 'San Vicente II', 'Santol', 'Tartaria', 'Tibig', 'Toledo',
+        'Tubuan I', 'Tubuan II', 'Tubuan III', 'Ulat', 'Yakal',
+        'Barangay I', 'Barangay II', 'Barangay III', 'Barangay IV', 'Barangay V',
+    ];
+
+    public static function normalizeBarangay(?string $barangay, ?string $address = null): ?string
+    {
+        $brgy = trim($barangay ?? '');
+        if (!$brgy && !empty($address)) {
+            $known = self::SILANG_BARANGAYS;
+            usort($known, fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+            foreach ($known as $kb) {
+                if (preg_match('/\b' . preg_quote($kb, '/') . '\b/i', $address)) {
+                    $brgy = $kb;
+                    break;
+                }
+            }
+        }
+
+        if ($brgy) {
+            $normalized = preg_replace_callback('/\b(I|Ii|Iii|Iv|V)\b/i', fn($m) => strtoupper($m[0]), ucwords(strtolower($brgy)));
+            $normalized = preg_replace('/\b1\b/', 'I', $normalized);
+            $normalized = preg_replace('/\b2\b/', 'II', $normalized);
+            return $normalized;
+        }
+
+        return $barangay;
     }
 
     /**

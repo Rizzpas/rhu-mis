@@ -155,11 +155,13 @@
             mainPreviews: [],
             isMainDragging: false,
             
+            mainError: null,
             addSection() {
                 this.sections.push({
                     id: Date.now(),
                     fileName: '',
                     preview: '',
+                    error: null,
                     isDragging: false,
                     layout: 'middle',
                     textAlign: 'left'
@@ -170,29 +172,33 @@
                 this.sections.splice(index, 1);
             },
             
-            handleMainFiles(files) {
+            async handleMainFiles(files) {
                 if (!files || files.length === 0) return;
-                const file = files[0];
                 const input = document.getElementById('main_image');
-                
-                if (file.type.startsWith('image/')) {
-                    window.openImageCropper(file, {
-                        aspectRatio: NaN,
-                        subtitle: 'Announcement Cover Media — Free crop or choose ratio',
-                        onApply: (blob, previewUrl) => {
-                            this.mainImageName = file.name;
-                            this.mainPreviews = [previewUrl];
-                            setCroppedFile(input, blob, file.name || 'cover.jpg');
-                        }
-                    });
-                } else {
-                    // Non-image (e.g. video), bypass crop
-                    this.mainImageName = file.name;
-                    this.mainPreviews = [];
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    input.files = dt.files;
+
+                if (window.SecureImageValidator) {
+                    const res = await window.SecureImageValidator.validateFiles(files);
+                    if (!res.valid) {
+                        this.mainError = res.message;
+                        if (input) input.value = '';
+                        this.mainImageName = '';
+                        this.mainPreviews = [];
+                        return;
+                    }
                 }
+                this.mainError = null;
+
+                const file = files[0];
+                window.openImageCropper(file, {
+                    aspectRatio: NaN,
+                    subtitle: 'Announcement Cover Media — Free crop or choose ratio',
+                    onApply: (blob, previewUrl) => {
+                        this.mainImageName = file.name;
+                        this.mainPreviews = [previewUrl];
+                        this.mainError = null;
+                        setCroppedFile(input, blob, file.name || 'cover.jpg');
+                    }
+                });
             },
 
             handleMainImageChange(event) {
@@ -202,32 +208,38 @@
             removeMainImage() {
                 this.mainImageName = '';
                 this.mainPreviews = [];
+                this.mainError = null;
                 const input = document.getElementById('main_image');
                 if (input) input.value = '';
             },
             
-            handleSectionFiles(files, index) {
+            async handleSectionFiles(files, index) {
                 if (!files || files.length === 0) return;
-                const file = files[0];
                 const input = document.getElementById('file_' + this.sections[index].id);
-                
-                if (file.type.startsWith('image/')) {
-                    window.openImageCropper(file, {
-                        aspectRatio: NaN,
-                        subtitle: 'Free crop — Section Media',
-                        onApply: (blob, previewUrl) => {
-                            this.sections[index].fileName = file.name;
-                            this.sections[index].preview = previewUrl;
-                            setCroppedFile(input, blob, file.name || 'section.jpg');
-                        }
-                    });
-                } else {
-                    this.sections[index].fileName = file.name;
-                    this.sections[index].preview = '';
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    input.files = dt.files;
+
+                if (window.SecureImageValidator) {
+                    const res = await window.SecureImageValidator.validateFiles(files);
+                    if (!res.valid) {
+                        this.sections[index].error = res.message;
+                        if (input) input.value = '';
+                        this.sections[index].fileName = '';
+                        this.sections[index].preview = '';
+                        return;
+                    }
                 }
+                this.sections[index].error = null;
+
+                const file = files[0];
+                window.openImageCropper(file, {
+                    aspectRatio: NaN,
+                    subtitle: 'Free crop — Section Media',
+                    onApply: (blob, previewUrl) => {
+                        this.sections[index].fileName = file.name;
+                        this.sections[index].preview = previewUrl;
+                        this.sections[index].error = null;
+                        setCroppedFile(input, blob, file.name || 'section.jpg');
+                    }
+                });
             },
 
             handleSectionFileChange(event, index) {
@@ -305,7 +317,7 @@
                          @dragover.prevent="isMainDragging = true"
                          @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; isMainDragging = false"
                          @drop.prevent="isMainDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleMainFiles($event.dataTransfer.files)">
-                        <input type="file" name="images[]" id="main_image" class="hidden" multiple accept="image/*,video/mp4" @change="handleMainImageChange($event)">
+                        <input type="file" name="images[]" id="main_image" class="hidden" multiple accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" @change="handleMainImageChange($event)">
 
                         <div @click="document.getElementById('main_image').click()"
                              :class="isMainDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/70'"
@@ -314,8 +326,14 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                             <span class="text-slate-700 dark:text-slate-200 text-sm font-semibold pointer-events-none" x-text="mainImageName || 'Click or drag to upload cover image'"></span>
-                            <span class="text-xs text-slate-400 pointer-events-none">Supports JPG, PNG, GIF, MP4 · Free crop</span>
+                            <span class="text-xs text-slate-400 pointer-events-none">Supports JPG, PNG, WEBP · Free crop</span>
                         </div>
+                        <template x-if="mainError">
+                            <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-2 flex items-center gap-1.5" role="alert">
+                                <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span x-text="mainError"></span>
+                            </p>
+                        </template>
                     </div>
 
                     {{-- Preview Thumbnail --}}
@@ -611,13 +629,19 @@
                                          @dragover.prevent="section.isDragging = true"
                                          @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; section.isDragging = false"
                                          @drop.prevent="section.isDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleSectionFiles($event.dataTransfer.files, index)">
-                                        <input type="file" :name="`sections[${index}][image]`" :id="'file_' + section.id" class="hidden" accept="image/*,video/mp4" @change="handleSectionFileChange($event, index)">
+                                        <input type="file" :name="`sections[${index}][image]`" :id="'file_' + section.id" class="hidden" accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" @change="handleSectionFileChange($event, index)">
                                         <div @click="document.getElementById('file_' + section.id).click()" 
                                              :class="section.isDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 bg-white/70 dark:bg-slate-900/50'"
                                              class="flex items-center justify-between w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all">
-                                            <span class="text-slate-500 dark:text-slate-400 truncate text-xs pointer-events-none" x-text="section.fileName || 'Click to select media (Free crop)...'"></span>
+                                            <span class="text-slate-500 dark:text-slate-400 truncate text-xs pointer-events-none" x-text="section.fileName || 'Click to select image (Free crop)...'"></span>
                                             <svg class="w-4 h-4 text-emerald-600 shrink-0 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                         </div>
+                                        <template x-if="section.error">
+                                            <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1.5 mt-1.5" role="alert">
+                                                <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span x-text="section.error"></span>
+                                            </p>
+                                        </template>
                                     </div>
                                     <div x-show="section.preview" class="aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs max-h-40">
                                         <img :src="section.preview" class="w-full h-full object-cover">

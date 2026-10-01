@@ -20,6 +20,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <!-- Styles & Scripts -->
+    <link rel="stylesheet" href="{{ asset('css/print.css') }}">
+    <script src="{{ asset('js/print-helper.js') }}"></script>
+    <script src="{{ asset('js/secure-image-validator.js') }}"></script>
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
@@ -145,6 +148,7 @@
             iconBgClass: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
             showPrivacy: false,
             showFaq: false,
+            showTerms: false,
             
             show(detail) {
                 this.title = detail.title || 'Confirm Action';
@@ -261,24 +265,7 @@
 
                     <!-- Desktop Theme Toggle -->
                     <li>
-                        <button id="theme-toggle" type="button"
-                            class="theme-toggle-btn relative inline-flex h-7 w-[48px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out shadow-sm"
-                            title="Toggle Light/Dark Theme">
-                            <span class="sr-only">Toggle theme</span>
-                            <span
-                                class="theme-toggle-indicator pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow ring-0 transition duration-200 ease-in-out translate-x-0.5 dark:translate-x-[22px]">
-                                <svg class="theme-toggle-dark-icon hidden w-3.5 h-3.5 text-slate-700"
-                                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                                </svg>
-                                <svg class="theme-toggle-light-icon hidden w-3.5 h-3.5 text-amber-400"
-                                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                                        fill-rule="evenodd" clip-rule="evenodd"></path>
-                                </svg>
-                            </span>
-                        </button>
+                        @include('partials.theme-toggle', ['id' => 'theme-toggle'])
                     </li>
                     <!-- Desktop Book Appointment CTA -->
                     <li>
@@ -322,56 +309,24 @@
                         <!-- Collapsible Facility Links -->
                         <div x-show="open" x-collapse x-transition
                             class="mt-1.5 p-1.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800/80 space-y-1">
-                            <a href="{{ route('units.show', 'main-health-center') }}"
-                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
-                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                </span>
-                                <div class="flex-1 min-w-0">
-                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Main Health Center</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Check-ups & general consultations</span>
-                                </div>
-                            </a>
-                            <a href="{{ route('units.show', 'lying-in-clinic') }}"
-                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
-                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
-                                </span>
-                                <div class="flex-1 min-w-0">
-                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Lying-in Birthing Clinic</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">24/7 maternity & newborn care</span>
-                                </div>
-                            </a>
-                            <a href="{{ route('units.show', 'dental-clinic') }}"
-                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
-                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
-                                </span>
-                                <div class="flex-1 min-w-0">
-                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Dental Clinic</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Extraction & oral hygiene</span>
-                                </div>
-                            </a>
-                            <a href="{{ route('units.show', 'tb-dots-facility') }}"
-                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
-                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
-                                </span>
-                                <div class="flex-1 min-w-0">
-                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">TB DOTS Facility</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Screening & observed therapy</span>
-                                </div>
-                            </a>
-                            <a href="{{ route('units.show', 'animal-bite-center') }}"
-                                class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
-                                <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285zm0 13.036h.008v.008H12v-.008z"/></svg>
-                                </span>
-                                <div class="flex-1 min-w-0">
-                                    <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Animal Bite Treatment</span>
-                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">Anti-rabies vaccination & wound care</span>
-                                </div>
-                            </a>
+                            @forelse($globalFacilityUnits as $fUnit)
+                                <a href="{{ route('units.show', $fUnit->slug) }}"
+                                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
+                                    <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors overflow-hidden border border-emerald-200/50 dark:border-emerald-800/50">
+                                        @if($fUnit->image_url)
+                                            <img src="{{ $fUnit->image_url }}" alt="" class="w-full h-full object-cover">
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                        @endif
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">{{ $fUnit->name }}</span>
+                                        <span class="block text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ $fUnit->category ?: ($fUnit->operating_hours ?: 'Healthcare Facility') }}</span>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="px-3 py-2 text-xs text-slate-400 italic">No facilities available</div>
+                            @endforelse
                             <div class="pt-1 px-1 border-t border-slate-200/50 dark:border-slate-700/50">
                                 <a href="{{ route('units.index') }}"
                                     class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition">
@@ -482,24 +437,7 @@
                                 <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Switch Light / Dark Theme</span>
                             </div>
                         </div>
-                        <button id="mobile-theme-toggle" type="button"
-                            class="theme-toggle-btn relative inline-flex h-7 w-[48px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out shadow-sm"
-                            title="Toggle Light/Dark Theme">
-                            <span class="sr-only">Toggle theme</span>
-                            <span
-                                class="theme-toggle-indicator pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow ring-0 transition duration-200 ease-in-out translate-x-0.5 dark:translate-x-[22px]">
-                                <svg class="theme-toggle-dark-icon hidden w-3.5 h-3.5 text-slate-700"
-                                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                                </svg>
-                                <svg class="theme-toggle-light-icon hidden w-3.5 h-3.5 text-amber-400"
-                                    fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                                        fill-rule="evenodd" clip-rule="evenodd"></path>
-                                </svg>
-                            </span>
-                        </button>
+                        @include('partials.theme-toggle', ['id' => 'mobile-theme-toggle'])
                     </div>
 
                     <!-- Mobile Book Appointment Button -->
@@ -531,60 +469,29 @@
                 </div>
 
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <a href="{{ route('units.show', 'main-health-center') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Main Health Center</span>
-                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">Check-ups, diagnostics & general consultations</span>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('units.show', 'lying-in-clinic') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Lying-in Birthing Clinic</span>
-                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">24/7 maternity care, delivery & newborn screening</span>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('units.show', 'dental-clinic') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Dental Clinic</span>
-                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">Extraction, prophylaxis & dental hygiene</span>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('units.show', 'tb-dots-facility') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">TB DOTS Center</span>
-                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">TB screening, direct observation therapy & monitoring</span>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('units.show', 'animal-bite-center') }}"
-                        class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
-                        <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285zm0 13.036h.008v.008H12v-.008z"/></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Animal Bite Treatment Center</span>
-                            <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">Immediate wound care & anti-rabies vaccination</span>
-                        </span>
-                    </a>
+                    @forelse($globalFacilityUnits as $fUnit)
+                        <a href="{{ route('units.show', $fUnit->slug) }}"
+                            class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
+                            <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors overflow-hidden border border-emerald-200/50 dark:border-emerald-800/50">
+                                @if($fUnit->image_url)
+                                    <img src="{{ $fUnit->image_url }}" alt="" class="w-full h-full object-cover">
+                                @else
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                @endif
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block font-semibold text-slate-900 dark:text-white text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors truncate">{{ $fUnit->name }}</span>
+                                <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                                    {{ $fUnit->description ?: ($fUnit->operating_hours ?: 'Municipal health facility & clinic') }}
+                                </span>
+                                <span class="inline-block mt-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/50">
+                                    {{ $fUnit->category ?: 'Clinical Unit' }}
+                                </span>
+                            </span>
+                        </a>
+                    @empty
+                        <div class="col-span-full py-6 text-center text-slate-400 text-sm">No active facilities listed.</div>
+                    @endforelse
                 </div>
 
             </div>
@@ -683,56 +590,310 @@
         @yield('content')
     </main>
 
-    <!-- STAY INFORMED section removed -->
+    <footer class="bg-gradient-to-b from-[#143818] via-[#0f2d13] to-[#0a1e0d] dark:from-[#061814] dark:via-[#04120f] dark:to-[#020a08] border-t border-emerald-800/40 dark:border-emerald-950/80 text-emerald-100 text-sm w-full relative overflow-hidden" role="contentinfo" aria-label="Site Footer">
+        <!-- Ambient Top Accent Glow -->
+        <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" aria-hidden="true"></div>
+        <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
-    <footer class="bg-[#1e4620] pt-16 pb-8 text-green-100 text-sm w-full">
-        <div class="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-4 gap-10 mb-12 relative z-10">
-            <div class="col-span-1 md:col-span-2 flex flex-col sm:flex-row gap-6">
-                <div class="h-20 w-20 shrink-0 flex items-center justify-center p-2 shadow-inner">
-                    <img src="{{ asset('assets/images/logo.png') }}" class="w-full h-auto object-contain"
-                        alt="RHU Logo">
+        <!-- Main Navigation & Content Container -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 relative z-10" x-data="{ mobileCol: null }">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10">
+                
+                <!-- COLUMN 1: Brand, Identity & Direct Contact (lg:col-span-4) -->
+                <div class="lg:col-span-4 md:col-span-2 space-y-4">
+                    <div class="flex items-center gap-4">
+                        <a href="{{ route('welcome') }}"
+                        class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#051512]"
+                        aria-label="Rural Health Unit Silang - Back to Homepage">
+                            <img src="{{ asset('assets/images/logo.png') }}"
+                                class="h-16 w-16 object-contain sm:h-[58px] sm:w-[58px]"
+                                alt="Rural Health Unit Silang Official Seal">
+                        </a>
+
+                        <div class="min-w-0">
+                            <span class="block text-lg font-bold uppercase leading-tight tracking-tight text-white sm:text-xl">
+                                Rural Health Unit
+                            </span>
+                            <span class="block text-xs font-semibold uppercase leading-snug tracking-wider text-emerald-300 sm:text-[13px]">
+                                Municipality of Silang, Cavite
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-emerald-100/85 leading-relaxed max-w-sm">
+                        Dedicated to providing accessible, comprehensive, and compassionate public healthcare services to every citizen of Silang. Free medical consultations and community wellness.
+                    </p>
+
+                    <!-- Contact & Physical Address -->
+                    <div class="space-y-2 pt-1 text-xs">
+                        <div class="flex items-start gap-2.5 text-emerald-200/90">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <a href="https://maps.google.com/?q={{ urlencode(\App\Models\SiteSetting::get('footer_address_line1', 'M.H del Pilar St.').', '.\App\Models\SiteSetting::get('footer_address_line2', 'Silang, Cavite')) }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="hover:text-white underline underline-offset-2 decoration-emerald-500/40 hover:decoration-white transition focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                {{ \App\Models\SiteSetting::get('footer_address_line1', 'M.H del Pilar St.') }}, {{ \App\Models\SiteSetting::get('footer_address_line2', 'Silang, Cavite') }}
+                            </a>
+                        </div>
+
+                        <div class="flex items-center gap-2.5 text-emerald-200/90">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209')) }}"
+                               class="hover:text-white underline underline-offset-2 decoration-emerald-500/40 hover:decoration-white transition font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                {{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}
+                            </a>
+                        </div>
+
+                        <div class="flex items-center gap-2.5 text-emerald-200/90">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <a href="mailto:{{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}"
+                               class="hover:text-white underline underline-offset-2 decoration-emerald-500/40 hover:decoration-white transition font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                {{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}
+                            </a>
+                        </div>
+
+                        <!-- Emergency Hotlines -->
+                        <div class="flex items-center gap-2.5 text-rose-300 font-semibold pt-0.5">
+                            <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span class="text-xs">
+                                <span class="text-rose-300 font-bold">Emergency:</span>
+                                <span class="text-white ml-1">{{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Social Media Links (Inline SVGs with aria-labels) -->
+                    <div class="pt-2">
+                        <span class="sr-only">Official RHU and Municipal Links</span>
+                        <div class="flex items-center gap-2">
+                            <a href="https://www.facebook.com/silang.rhu" target="_blank" rel="noopener noreferrer"
+                               class="w-9 h-9 rounded-xl bg-emerald-950/70 border border-emerald-700/60 hover:border-emerald-400 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none cursor-pointer"
+                               aria-label="Visit Rural Health Unit Silang on Facebook (opens in new tab)"
+                               title="Official Facebook Page (TODO: update URL)">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                            <!-- Department of Health (DOH) Portal -->
+                            <a href="https://doh.gov.ph" target="_blank" rel="noopener noreferrer"
+                               class="w-9 h-9 rounded-xl bg-emerald-950/70 border border-emerald-700/60 hover:border-emerald-400 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none cursor-pointer"
+                               aria-label="Department of Health Portal (opens in new tab)"
+                               title="Department of Health (DOH)">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                </svg>
+                            </a>
+                            <!-- Telephone Direct Call -->
+                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209')) }}"
+                               class="w-9 h-9 rounded-xl bg-emerald-950/70 border border-emerald-700/60 hover:border-emerald-400 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none cursor-pointer"
+                               aria-label="Call Rural Health Unit Telephone Line"
+                               title="Call Telephone Desk ({{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }})">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </a>
+                            <!-- Email Direct Inquiry -->
+                            <a href="mailto:{{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}"
+                               class="w-9 h-9 rounded-xl bg-emerald-950/70 border border-emerald-700/60 hover:border-emerald-400 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none cursor-pointer"
+                               aria-label="Send Email Inquiry to RHU Silang"
+                               title="Email Helpdesk">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-lg font-medium text-white mb-1">{{ \App\Models\SiteSetting::get('footer_address_line1', 'M.H del Pilar St.') }}</p>
-                    <p class="text-lg font-medium text-white mb-4">{{ \App\Models\SiteSetting::get('footer_address_line2', 'Silang, Cavite') }}</p>
-                    <a href="tel:{{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}"
-                        class="block mb-2 hover:text-white underline underline-offset-4 decoration-green-600/50 font-medium transition">{{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}</a>
-                    <a href="mailto:{{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}"
-                        class="block hover:text-white underline underline-offset-4 decoration-green-600/50 font-medium transition">{{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}</a>
+
+                <!-- COLUMN 2: Public Information & Resources (lg:col-span-4 md:col-span-1) -->
+                <nav aria-label="Public Information and Community" class="lg:col-span-4 md:col-span-1">
+                    <div class="border-b border-emerald-800/40 md:border-b-0 pb-3 md:pb-0">
+                        <button type="button" @click="mobileCol = (mobileCol === 'info' ? null : 'info')"
+                                class="w-full flex items-center justify-between text-left font-bold text-white uppercase tracking-wider text-xs sm:text-[13px] md:cursor-default"
+                                :aria-expanded="mobileCol === 'info'">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>Public Information</span>
+                            </span>
+                            <svg class="w-4 h-4 text-emerald-400 transition-transform duration-200 md:hidden"
+                                 :class="mobileCol === 'info' ? 'rotate-180' : ''"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div :class="mobileCol === 'info' ? 'block' : 'hidden md:block'" class="pt-2 md:pt-2.5 pl-4 sm:pl-5">
+                            <ul class="space-y-1 sm:space-y-1.5" role="list">
+                                <li>
+                                    <a href="{{ route('about') }}"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>About RHU Silang</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('announcements.index') }}"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                                        <span>Health Bulletins &amp; News</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url('/#announcements') }}"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                        <span>Community Advisories &amp; Alerts</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('units.index') }}"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                        <span>RHU Facilities &amp; Clinics Directory</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url('/#schedule') }}"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <span>Doctors' Consultation Schedule</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <button type="button" @click="showFaq = true"
+                                            class="w-full py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded cursor-pointer text-left">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>Frequently Asked Questions</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <a href="{{ route('about') }}#charter"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <span>Citizen's Charter &amp; Standards</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <!-- Direct Helpdesk Inquiry (TODO: Dedicated Contact Us form page) -->
+                                    <a href="mailto:{{ \App\Models\SiteSetting::get('footer_email', 'contact@silang.gov.ph') }}?subject=RHU%20Public%20Inquiry"
+                                       class="py-1 flex items-center gap-2 text-emerald-100/85 hover:text-white hover:translate-x-1 transition-all duration-150 text-xs sm:text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded"
+                                       title="Email Helpdesk (TODO: Create dedicated /contact route)">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                        <span>Contact &amp; Citizen Inquiries</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- COLUMN 3: Book Your Appointment CTA (lg:col-span-4 md:col-span-1) -->
+                <div class="lg:col-span-4 md:col-span-1 space-y-3.5">
+                    <h3 class="font-bold text-white text-xs sm:text-[13px] uppercase tracking-wider flex items-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Book an Appointment</span>
+                    </h3>
+                    <p class="text-xs text-emerald-200/80 leading-relaxed">
+                        Skip the long lines. Secure your consultation slot with an RHU Silang healthcare provider online.
+                    </p>
+
+                    <div>
+
+                        <a href="{{ route('appointment.create') }}"
+                           class="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-sm shadow-emerald-900/40 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                            <span>Book Appointment Now</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </a>
+
+                        <div class="pt-2 border-t border-emerald-800/50 flex items-center justify-between text-[11px] text-emerald-200/80">
+                            <span>Already have a booking?</span>
+                            <a href="{{ route('appointment.manage') }}"
+                               class="text-emerald-300 hover:text-white font-medium underline underline-offset-2 decoration-emerald-500/50 hover:decoration-white transition">
+                                Manage / Reschedule
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SUB-FOOTER BOTTOM BAR -->
+            <div class="border-t border-emerald-800/40 dark:border-emerald-950/80 pt-6 mt-10">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+                    
+                    <!-- Left: Disguised Staff Access Portal Link & Copyright (Must be preserved for staff login access) -->
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                        <a href="{{ route('staff.access') }}"
+                           class="text-emerald-200/75 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded cursor-default no-underline"
+                           style="text-decoration: none;">
+                            &copy; <span x-text="new Date().getFullYear()">{{ date('Y') }}</span> Rural Health Unit &bull; Municipality of Silang, Cavite.
+                        </a>
+                        <span class="hidden sm:inline text-emerald-700 dark:text-emerald-800" aria-hidden="true">|</span>
+                        <span class="text-emerald-300/60 font-normal">All rights reserved.</span>
+                    </div>
+
+                    <!-- Center: Legal Links Nav -->
+                    <nav aria-label="Legal and Compliance Links" class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-emerald-200/80">
+                        <button type="button" @click="showPrivacy = true"
+                                class="hover:text-white hover:underline transition-colors focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded cursor-pointer min-h-[44px] sm:min-h-0 flex items-center">
+                            Data Privacy Policy
+                        </button>
+                        <span class="text-emerald-700/60" aria-hidden="true">&bull;</span>
+                        <button type="button" @click="showTerms = true"
+                                class="hover:text-white hover:underline transition-colors focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded cursor-pointer min-h-[44px] sm:min-h-0 flex items-center">
+                            Citizen's Terms of Service
+                        </button>
+                        <span class="text-emerald-700/60" aria-hidden="true">&bull;</span>
+                        <!-- TODO: Add dedicated comprehensive sitemap page (/sitemap) -->
+                        <a href="{{ route('units.index') }}"
+                           class="hover:text-white hover:underline transition-colors focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded min-h-[44px] sm:min-h-0 flex items-center"
+                           title="Directory of Facilities and Units (TODO: dedicated sitemap page)">
+                            Sitemap Directory
+                        </a>
+                        @auth
+                            <span class="text-emerald-700/60" aria-hidden="true">&bull;</span>
+                            <a href="{{ \App\Http\Controllers\AuthController::homeRouteForRole(auth()->user()->role ?? 'guest') }}"
+                               class="font-bold text-teal-300 hover:text-white hover:underline transition-colors focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded min-h-[44px] sm:min-h-0 flex items-center">
+                                Staff Dashboard
+                            </a>
+                        @endauth
+                    </nav>
+
+                    <!-- Right: Back to Top & MIS Attribution -->
+                    <div class="flex items-center gap-3">
+                        <button type="button"
+                                @click="window.scrollTo({top: 0, behavior: 'smooth'})"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-800/80 active:scale-95 border border-emerald-700/40 text-[11px] font-semibold text-emerald-200 hover:text-white transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none cursor-pointer min-h-[44px] sm:min-h-0"
+                                aria-label="Scroll back to top of page">
+                            <span>Back to top</span>
+                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                            </svg>
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
-            <div class="flex flex-col gap-3">
-                <h3 class="font-bold text-white mb-2 uppercase tracking-wide">Quick Links</h3>
-                <a href="{{ route('welcome') }}" class="hover:text-white hover:underline transition">Home</a>
-                <a href="{{ url('/#schedule') }}" class="hover:text-white hover:underline transition">Doctors
-                    Schedule</a>
-                <a href="{{ url('/#announcements') }}" class="hover:text-white hover:underline transition">Events &
-                    News</a>
-                <a href="{{ route('appointment.create') }}" class="hover:text-white hover:underline transition">Book
-                    Appointment</a>
-                <a href="{{ route('appointment.manage') }}" class="hover:text-white hover:underline transition">Manage
-                    Appointment</a>
-                <a href="#" @click.prevent="showFaq = true" class="hover:text-white hover:underline transition">FAQs</a>
-            </div>
-
-            <div class="flex flex-col gap-3">
-                <h3 class="font-bold text-white mb-2 uppercase tracking-wide">Legal</h3>
-                <a href="#" @click.prevent="showPrivacy = true" class="hover:text-white hover:underline transition">Data
-                    Privacy Policy</a>
-                @auth
-                    <a href="{{ \App\Http\Controllers\AuthController::homeRouteForRole(auth()->user()->role ?? 'guest') }}"
-                        class="hover:text-white hover:underline transition mt-4 font-bold text-teal-300">Go to Dashboard</a>
-                @endauth
-            </div>
-        </div>
-        <div
-            class="text-center text-xs text-green-800 dark:text-green-400/60 mt-8 pt-8 border-t border-green-800/30 flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto px-4 md:px-8 relative z-10">
-            <a href="{{ route('staff.access') }}" class="text-green-200/60 font-medium hover:text-green-200/60 no-underline" style="cursor: default; text-decoration: none;">&copy; {{ date('Y') }} Rural Health Unit. All rights reserved.</a>
-            <p class="text-green-200/60 mt-2 md:mt-0 font-medium">Refined by <span class="text-green-400 font-bold">MIS
-                    Team</span></p>
         </div>
     </footer>
+
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
@@ -933,43 +1094,63 @@
         </div>
     </div>
 
+    <!-- Global Terms & Conditions / Citizen's Charter Modal -->
+    <div x-show="showTerms" style="display: none;" class="fixed inset-0 z-100 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/75 transition-opacity" @click="showTerms = false"></div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transform transition-all max-w-2xl w-full max-h-[80vh] flex flex-col z-110 border border-slate-200 dark:border-slate-700">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-teal-50 dark:bg-teal-900/30">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-400 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </span>
+                    <h3 class="text-base sm:text-lg font-bold text-teal-950 dark:text-white">Citizen's Charter &amp; Service Terms</h3>
+                </div>
+                <button type="button" @click="showTerms = false"
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg focus-visible:ring-2 focus-visible:ring-teal-500 focus:outline-none"
+                        aria-label="Close Terms modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed custom-scrollbar">
+                <p class="font-semibold text-gray-800 dark:text-gray-200">
+                    Terms of Public Health Service &amp; Community Engagement &mdash; RHU Silang
+                </p>
+                <div class="space-y-3">
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-xs uppercase tracking-wide mb-1">1. Non-Emergency Consultations</h4>
+                        <p class="text-xs">The online appointment booking system is intended for non-emergency healthcare consultations, routine medical checkups, and specialized clinical visits. In case of life-threatening medical emergencies, please dial 911 or proceed immediately to the nearest hospital emergency room.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-xs uppercase tracking-wide mb-1">2. Verification &amp; Punctuality</h4>
+                        <p class="text-xs">Patients are advised to arrive 15 minutes prior to their scheduled appointment slot with a valid government ID or PhilHealth document. Walk-in queues are accommodated in accordance with triage urgency and clinic capacity.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-xs uppercase tracking-wide mb-1">3. Accurate Medical Information</h4>
+                        <p class="text-xs">Patients are responsible for providing truthful and accurate personal and clinical information during scheduling and triage admissions to ensure safety and quality healthcare guidance.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-xs uppercase tracking-wide mb-1">4. Equal Access &amp; ARTA Compliance</h4>
+                        <p class="text-xs">RHU Silang strictly adheres to the Anti-Red Tape Authority (ARTA) mandates and the Universal Health Care Act (RA 11223), ensuring non-discriminatory, prompt, and dignified health services for all citizens.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+                <button type="button" @click="showTerms = false"
+                        class="bg-teal-600 text-white px-5 py-2 rounded-xl hover:bg-teal-700 shadow-md transition font-medium text-xs cursor-pointer">
+                    Understood
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function updateAllThemeToggles() {
-            var isDark = document.documentElement.classList.contains('dark');
-            document.querySelectorAll('.theme-toggle-dark-icon').forEach(function (icon) {
-                icon.classList.toggle('hidden', isDark);
-            });
-            document.querySelectorAll('.theme-toggle-light-icon').forEach(function (icon) {
-                icon.classList.toggle('hidden', !isDark);
-            });
-            document.querySelectorAll('.theme-toggle-indicator').forEach(function (indicator) {
-                indicator.classList.toggle('translate-x-[22px]', isDark);
-                indicator.classList.toggle('translate-x-0.5', !isDark);
-            });
+        if (!window.toggleTheme) {
+            window.toggleTheme = function() {
+                var isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+                window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDark } }));
+            };
         }
-
-        // Initialize state on load
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-        updateAllThemeToggles();
-
-        // Bind click events to both desktop and mobile theme toggle buttons
-        document.querySelectorAll('.theme-toggle-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var isDark = document.documentElement.classList.contains('dark');
-                if (isDark) {
-                    document.documentElement.classList.remove('dark');
-                    localStorage.setItem('color-theme', 'light');
-                } else {
-                    document.documentElement.classList.add('dark');
-                    localStorage.setItem('color-theme', 'dark');
-                }
-                updateAllThemeToggles();
-            });
-        });
     </script>
 
 </html>

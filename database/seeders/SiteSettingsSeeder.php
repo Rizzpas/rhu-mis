@@ -43,6 +43,9 @@ class SiteSettingsSeeder extends Seeder
                 ['number' => '04', 'title' => 'Universal Inclusivity', 'description' => 'Guaranteeing barrier-free medical access for all constituents regardless of status.']
             ]), 'type' => 'json'],
 
+            // ── Pharmacy Settings ─────────────────────────────────────
+            ['group' => 'pharmacy', 'key' => 'pharmacy.prescription_expiry_days', 'value' => '3', 'type' => 'integer'],
+
             // ── Step-by-Step Process (Per Unit) ─────────────────────────────
             ['group' => 'steps', 'key' => 'steps_data_main-health-center', 'value' => json_encode([
                 ['title' => 'Check-in & Enrollment', 'description' => 'Visit the Information Desk to check in. New patients are enrolled in the system, while existing records are retrieved instantly.'],

@@ -11,7 +11,7 @@
 
     <!-- Top-right Theme Toggle Skeleton -->
     <div class="absolute top-6 right-6 md:top-8 md:right-10">
-        <div class="h-7 w-12 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
+        <div class="h-7 w-14 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
     </div>
 
     <!-- Main Login Modal Container Skeleton -->

@@ -54,6 +54,7 @@
 @endphp
 
 <div class="relative custom-dropdown-container inline-block w-full {{ $containerClass }}"
+     :class="{ 'z-50': open }"
      x-data="{
         open: false,
         selected: @js($initialValue),

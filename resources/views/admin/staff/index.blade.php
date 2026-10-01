@@ -279,11 +279,23 @@
                         }
                     }
                 },
-                handleStaffAvatar(file) {
-                    if (!file || !file.type.startsWith('image/')) return;
+                avatarError: null,
+                async handleStaffAvatar(file) {
+                    const input = document.getElementById('staff_create_avatar_input');
+                    if (!file) return;
+
+                    if (window.SecureImageValidator) {
+                        const res = await window.SecureImageValidator.validateFile(file);
+                        if (!res.valid) {
+                            this.avatarError = res.message;
+                            if (input) input.value = '';
+                            return;
+                        }
+                    }
+                    this.avatarError = null;
+
                     this.isProcessingAvatar = true;
                     this.avatarUploadSuccess = false;
-                    const input = document.getElementById('staff_create_avatar_input');
                     $store.imageCropper.open(file, {
                         aspectRatio: 1,
                         circular: true,
@@ -293,6 +305,7 @@
                             setTimeout(() => {
                                 this.avatarPreview = previewUrl;
                                 this.avatarFileName = file.name;
+                                this.avatarError = null;
                                 setCroppedFile(input, blob, file.name || 'avatar.jpg');
                                 this.isProcessingAvatar = false;
                                 this.avatarUploadSuccess = true;
@@ -582,7 +595,7 @@
                                         </div>
 
                                         <!-- Hidden Input & Browse Area -->
-                                        <input type="file" id="staff_create_avatar_input" name="avatar" accept="image/*" class="hidden"
+                                        <input type="file" id="staff_create_avatar_input" name="avatar" accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" class="hidden"
                                                @change="if ($event.target.files.length) handleStaffAvatar($event.target.files[0])">
                                         
                                         <div class="pt-1 flex items-center gap-2">
@@ -597,7 +610,7 @@
 
                                             <template x-if="avatarPreview">
                                                 <button type="button" 
-                                                        @click="avatarPreview = null; avatarFileName = ''; document.getElementById('staff_create_avatar_input').value = ''"
+                                                        @click="avatarPreview = null; avatarFileName = ''; avatarError = null; document.getElementById('staff_create_avatar_input').value = ''"
                                                         class="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all border border-slate-200 dark:border-slate-700 cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold"
                                                         title="Remove photo">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -605,6 +618,12 @@
                                                 </button>
                                             </template>
                                         </div>
+                                        <template x-if="avatarError">
+                                            <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1.5 mt-1.5" role="alert">
+                                                <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span x-text="avatarError"></span>
+                                            </p>
+                                        </template>
                                     </div>
                                 </div>
 
@@ -1413,11 +1432,23 @@
                     }
                 },
 
-                handleStaffEditAvatar(file) {
-                    if (!file || !file.type.startsWith('image/')) return;
+                editAvatarError: null,
+                async handleStaffEditAvatar(file) {
+                    const input = document.getElementById('staff_edit_avatar_input');
+                    if (!file) return;
+
+                    if (window.SecureImageValidator) {
+                        const res = await window.SecureImageValidator.validateFile(file);
+                        if (!res.valid) {
+                            this.editAvatarError = res.message;
+                            if (input) input.value = '';
+                            return;
+                        }
+                    }
+                    this.editAvatarError = null;
+
                     this.isProcessingAvatar = true;
                     this.avatarUploadSuccess = false;
-                    const input = document.getElementById('staff_edit_avatar_input');
                     $store.imageCropper.open(file, {
                         aspectRatio: 1,
                         circular: true,
@@ -1427,6 +1458,7 @@
                             setTimeout(() => {
                                 this.editAvatarPreview = previewUrl;
                                 this.editAvatarFileName = file.name;
+                                this.editAvatarError = null;
                                 setCroppedFile(input, blob, file.name || 'avatar.jpg');
                                 this.isProcessingAvatar = false;
                                 this.avatarUploadSuccess = true;
@@ -1592,7 +1624,7 @@
                                     </div>
 
                                     <!-- Upload Input & Quick Browse / Drop Action -->
-                                    <input type="file" id="staff_edit_avatar_input" name="avatar" accept="image/*" class="hidden"
+                                    <input type="file" id="staff_edit_avatar_input" name="avatar" accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" class="hidden"
                                            @change="if ($event.target.files.length) handleStaffEditAvatar($event.target.files[0])">
                                     
                                     <div class="pt-1 flex items-center gap-2">
@@ -1607,7 +1639,7 @@
 
                                         <template x-if="editAvatarPreview">
                                             <button type="button" 
-                                                    @click="editAvatarPreview = null; editAvatarFileName = ''; document.getElementById('staff_edit_avatar_input').value = ''"
+                                                    @click="editAvatarPreview = null; editAvatarFileName = ''; editAvatarError = null; document.getElementById('staff_edit_avatar_input').value = ''"
                                                     class="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all border border-slate-200 dark:border-slate-700 cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold"
                                                     title="Revert photo changes">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -1615,6 +1647,12 @@
                                             </button>
                                         </template>
                                     </div>
+                                    <template x-if="editAvatarError">
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1.5 mt-1.5" role="alert">
+                                            <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span x-text="editAvatarError"></span>
+                                        </p>
+                                    </template>
                                 </div>
                             </div>
 
@@ -2328,6 +2366,12 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if($staff->hasPages())
+                <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
+                    {{ $staff->appends(request()->query())->links('vendor.pagination.shadcn') }}
+                </div>
+                @endif
                 <!-- Bulk Action Modal -->
                 <!-- Bulk Archive Modal -->
                 <template x-teleport="body">

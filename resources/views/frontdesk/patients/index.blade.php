@@ -318,38 +318,38 @@
         </div>
 
         <div id="patient-table-contents">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+            <div class="overflow-x-auto max-w-full">
+                <table class="w-full text-left border-collapse table-auto md:table-fixed">
                     <thead>
                         <tr class="bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">
-                            <th class="px-6 py-4">Citizen Patient</th>
-                            <th class="px-6 py-4">Demographics</th>
-                            <th class="px-6 py-4">Classification</th>
-                            <th class="px-6 py-4 text-center">Encounters</th>
-                            <th class="px-6 py-4">Registration Date</th>
-                            <th class="px-6 py-4 text-right">Desk Actions</th>
+                            <th class="px-5 py-4 md:w-[28%]">Citizen Patient</th>
+                            <th class="px-5 py-4 md:w-[18%]">Demographics</th>
+                            <th class="px-5 py-4 md:w-[16%]">Classification</th>
+                            <th class="px-5 py-4 md:w-[10%] text-center">Encounters</th>
+                            <th class="px-5 py-4 md:w-[14%]">Registration Date</th>
+                            <th class="px-5 py-4 md:w-[14%] text-right">Desk Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                         @forelse($patients as $patient)
                         <tr class="hover:bg-emerald-50/30 dark:hover:bg-slate-800/40 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
+                            <td class="px-5 py-4 overflow-hidden">
+                                <div class="flex items-center gap-3 min-w-0">
                                     <div class="w-10 h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-black flex items-center justify-center border border-emerald-500/20 shadow-2xs shrink-0 text-xs">
                                         {{ $patient->initials ?? strtoupper(substr($patient->first_name, 0, 1) . substr($patient->last_name, 0, 1)) }}
                                     </div>
-                                    <div>
-                                        <div class="font-bold text-slate-900 dark:text-white text-sm">{{ $patient->full_name }}</div>
-                                        <div class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">ID: {{ $patient->patient_id }}</div>
+                                    <div class="min-w-0 truncate">
+                                        <div class="font-bold text-slate-900 dark:text-white text-sm truncate" title="{{ $patient->full_name }}">{{ $patient->full_name }}</div>
+                                        <div class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 truncate">ID: {{ $patient->patient_id }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-5 py-4">
                                 <div class="text-slate-900 dark:text-white font-semibold text-xs sm:text-sm">{{ $patient->sex ?? 'N/A' }}, {{ $patient->dob ? $patient->dob->age . ' yrs' : 'N/A' }}</div>
-                                <div class="text-xs text-slate-400 mt-0.5">{{ $patient->blood_type ? 'Type '.$patient->blood_type : '' }} {{ $patient->civil_status ? '| ' . $patient->civil_status : '' }}</div>
+                                <div class="text-xs text-slate-400 mt-0.5 truncate">{{ $patient->blood_type ? 'Type '.$patient->blood_type : '' }} {{ $patient->civil_status ? '| ' . $patient->civil_status : '' }}</div>
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border shadow-2xs
+                            <td class="px-5 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border shadow-2xs whitespace-nowrap
                                     @if($patient->classification == 'Pediatric') bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:border-orange-800/60
                                     @elseif($patient->classification == 'Senior Citizen') bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60
                                     @elseif($patient->classification == 'PWD') bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60

@@ -15,6 +15,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
+    <link rel="stylesheet" href="{{ asset('css/print.css') }}">
+    <script src="{{ asset('js/print-helper.js') }}"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -108,9 +110,15 @@
             document.documentElement.classList.remove('dark')
         }
     </script>
+    <script>
+        function getCSRFToken() {
+            var el = document.querySelector('meta[name="csrf-token"]');
+            return el ? el.content : '';
+        }
+    </script>
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 flex h-screen overflow-hidden" x-data="{ 
+<body class="bg-gray-100 dark:bg-gray-900 flex h-screen overflow-hidden" x-data="{
             sidebarOpen: false,
             open: false,
             title: '',
@@ -118,15 +126,28 @@
             action: '',
             method: 'POST',
             confirmText: 'Confirm',
-            confirmClass: 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20', 
+            confirmClass: 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20',
             iconBgClass: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400',
-            
+            extraFields: [],
+            fieldValues: {},
+            ajax: false,
+            submitting: false,
+            errorMessage: '',
+
             show(detail) {
                 this.title = detail.title || 'Confirm Action';
                 this.message = detail.message || 'Are you sure you want to proceed?';
                 this.action = detail.action;
                 this.method = detail.method || 'POST';
                 this.confirmText = detail.confirmText || 'Confirm';
+                this.ajax = detail.ajax === true;
+                this.submitting = false;
+                this.errorMessage = '';
+                this.extraFields = Array.isArray(detail.fields) ? detail.fields : [];
+                this.fieldValues = {};
+                this.extraFields.forEach((field, index) => {
+                    this.fieldValues[index] = field.value ?? '';
+                });
                 if(detail.type === 'danger' || !detail.type) {
                     this.confirmClass = 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20';
                     this.iconBgClass = 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400';
@@ -135,6 +156,64 @@
                     this.iconBgClass = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400';
                 }
                 this.open = true;
+            },
+
+            close() {
+                if (this.submitting) return;
+                this.open = false;
+                this.errorMessage = '';
+            },
+
+            async submit() {
+                if (this.submitting) return;
+                if (!this.ajax) return;
+
+                this.submitting = true;
+                this.errorMessage = '';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('_method', this.method);
+                    this.extraFields.forEach((field, index) => {
+                        const name = field.name || ('field_' + index);
+                        const value = this.fieldValues[index];
+                        if (field.type === 'checkbox') {
+                            if (value) formData.append(name, value === true ? '1' : value);
+                        } else if (value !== undefined && value !== null && value !== '') {
+                            formData.append(name, value);
+                        } else if (field.required) {
+                            formData.append(name, '');
+                        }
+                    });
+
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': getCSRFToken()
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json().catch(() => null);
+
+                    if (response.ok && data && (data.success === true || data.ok === true)) {
+                        this.open = false;
+                        if (window.toast) {
+                            window.toast.success(data.message || 'Action completed.');
+                        } else {
+                            window.dispatchEvent(new CustomEvent('add-toast', { detail: { type: 'success', message: data.message || 'Action completed.' } }));
+                        }
+                        window.dispatchEvent(new CustomEvent('confirmed-action', { detail: { action: this.action, response: data } }));
+                    } else {
+                        this.errorMessage = (data && data.message) || 'The action could not be completed. Please try again.';
+                    }
+                } catch (e) {
+                    this.errorMessage = 'The action could not be completed. Check your connection and try again.';
+                } finally {
+                    this.submitting = false;
+                }
             }
         }" @open-confirmation.window="show($event.detail)">
     @include('partials.skeleton-dashboard')
@@ -186,6 +265,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
                 Medicine List
+            </a>
+            <a href="{{ route('pharmacy.written-off') }}"
+                class="@if(request()->routeIs('pharmacy.written-off')) bg-gradient-to-r from-emerald-600 to-emerald-800 text-white shadow-md font-semibold @else text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white @endif group flex items-center px-3 py-2.5 rounded-lg transition-colors">
+                <svg class="mr-3 h-4 w-4 @if(request()->routeIs('pharmacy.written-off')) text-white @else text-gray-900 dark:text-white @endif shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Written Off
             </a>
 
             @if(auth()->check() && auth()->user()->hasRole('admin', 'super_admin'))
@@ -298,17 +384,7 @@
                     @include('partials.notifications')
 
                     <!-- Theme Toggle -->
-                    <button id="theme-toggle" type="button" class="relative inline-flex h-7 w-[48px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out shadow-sm" title="Toggle Light/Dark Theme">
-                        <span class="sr-only">Toggle theme</span>
-                        <span class="pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow ring-0 transition duration-200 ease-in-out translate-x-0.5 dark:translate-x-[22px]">
-                            <svg id="theme-toggle-dark-icon" class="hidden w-3.5 h-3.5 text-slate-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                            </svg>
-                            <svg id="theme-toggle-light-icon" class="hidden w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                            </svg>
-                        </span>
-                    </button>
+                    @include('partials.theme-toggle')
                     <span class="text-xs text-emerald-100 hidden lg:block">{{ now()->format('l, F j, Y') }}</span>
                 </div>
             </div>
@@ -325,7 +401,7 @@
 
     <!-- Confirmation Modal -->
     <template x-teleport="body">
-        <div x-show="open" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" @keydown.escape.window="open = false">
+        <div x-show="open" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" @keydown.escape.window="close()">
             <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <!-- Background overlay -->
                 <div x-show="open" 
@@ -357,18 +433,93 @@
                         </div>
                     </div>
 
+                    <div x-show="errorMessage" x-cloak class="mx-6 mb-4 rounded-xl border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-4 py-3">
+                        <p class="text-xs font-semibold text-rose-800 dark:text-rose-200 leading-relaxed" x-text="errorMessage"></p>
+                    </div>
+
+                    <div x-show="extraFields.length > 0" x-cloak class="mx-6 mb-5 space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 p-4">
+                        <template x-for="(field, index) in extraFields" :key="index">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5"
+                                    :for="'confirm-field-' + index">
+                                    <span x-text="field.label"></span>
+                                    <span x-show="field.required" class="text-rose-500">*</span>
+                                </label>
+
+                                <template x-if="field.type === 'select'">
+                                    <select :id="'confirm-field-' + index"
+                                        x-model="fieldValues[index]"
+                                        :required="field.required"
+                                        class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white py-2.5 px-3 focus:border-rose-500 focus:ring-rose-500">
+                                        <template x-for="opt in (field.options || [])" :key="opt.value">
+                                            <option :value="opt.value" x-text="opt.label"></option>
+                                        </template>
+                                    </select>
+                                </template>
+
+                                <template x-if="field.type === 'checkbox'">
+                                    <label class="flex items-start gap-2.5 cursor-pointer">
+                                        <input type="checkbox"
+                                            :id="'confirm-field-' + index"
+                                            x-model="fieldValues[index]"
+                                            :disabled="field.disabled === true"
+                                            :name="field.disabled === true ? null : field.name"
+                                            class="mt-0.5 rounded text-amber-600 focus:ring-amber-500">
+                                        <span class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed" x-text="field.help || field.label"></span>
+                                    </label>
+                                </template>
+
+                                <template x-if="field.type === 'textarea'">
+                                    <textarea :id="'confirm-field-' + index"
+                                        x-model="fieldValues[index]"
+                                        :name="field.name"
+                                        :rows="field.rows || 2"
+                                        :placeholder="field.placeholder || ''"
+                                        :required="field.required"
+                                        class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white py-2.5 px-3 focus:border-rose-500 focus:ring-rose-500 no-uppercase"></textarea>
+                                </template>
+
+                                <template x-if="field.type === 'text'">
+                                    <input type="text"
+                                        :id="'confirm-field-' + index"
+                                        x-model="fieldValues[index]"
+                                        :name="field.name"
+                                        :placeholder="field.placeholder || ''"
+                                        :required="field.required"
+                                        class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white py-2.5 px-3 focus:border-rose-500 focus:ring-rose-500">
+                                </template>
+
+                                <p x-show="field.help && field.type !== 'checkbox'" x-cloak class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed" x-text="field.help"></p>
+                            </div>
+                        </template>
+                    </div>
+
                     <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
-                        <form :action="action" method="POST" class="inline-flex w-full sm:w-auto">
+                        <form :action="action" method="POST" class="inline-flex w-full sm:w-auto" x-show="!ajax" @submit="submit">
                             @csrf
                             <input type="hidden" name="_method" :value="method">
+                            <template x-for="(field, index) in extraFields" :key="'nf-' + index">
+                                <input type="hidden" :name="field.name" :value="fieldValues[index] ?? ''">
+                            </template>
                             <button type="submit"
                                 class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 text-sm font-bold text-white transition-all cursor-pointer"
                                 :class="confirmClass" x-text="confirmText">
                             </button>
                         </form>
+                        <button type="button" x-show="ajax" @click="submit"
+                            :disabled="submitting"
+                            class="w-full sm:w-auto inline-flex justify-center items-center gap-2 rounded-xl border border-transparent shadow-lg px-6 py-2 text-sm font-bold text-white transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                            :class="confirmClass">
+                            <svg x-show="submitting" x-cloak class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="submitting ? 'Working...' : confirmText"></span>
+                        </button>
                         <button type="button"
-                            class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
-                            @click="open = false">
+                            :disabled="submitting"
+                            class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer disabled:opacity-70"
+                            @click="close">
                             {{ __('Cancel') }}
                         </button>
                     </div>
@@ -378,35 +529,12 @@
     </template>
 
     <script>
-        var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-        var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-        if (themeToggleDarkIcon && themeToggleLightIcon) {
-            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                themeToggleLightIcon.classList.remove('hidden');
-            } else {
-                themeToggleDarkIcon.classList.remove('hidden');
-            }
-            document.getElementById('theme-toggle').addEventListener('click', function() {
-                themeToggleDarkIcon.classList.toggle('hidden');
-                themeToggleLightIcon.classList.toggle('hidden');
-                if (localStorage.getItem('color-theme')) {
-                    if (localStorage.getItem('color-theme') === 'light') {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    }
-                } else {
-                    if (document.documentElement.classList.contains('dark')) {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    } else {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    }
-                }
-            });
+        if (!window.toggleTheme) {
+            window.toggleTheme = function() {
+                var isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+                window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDark } }));
+            };
         }
     </script>
     @include('partials.idle-timeout')

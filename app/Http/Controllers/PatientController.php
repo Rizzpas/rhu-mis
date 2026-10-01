@@ -43,8 +43,8 @@ class PatientController extends Controller
             $query->where('created_at', '<=', $dateTo);
         }
 
-        // Paginate results
-        $patients = $query->withCount('consultations')->orderBy('last_name', 'asc')->orderBy('first_name', 'asc')->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        // Paginate results (10 per page to prevent excessive vertical stretching)
+        $patients = $query->withCount('consultations')->orderBy('last_name', 'asc')->orderBy('first_name', 'asc')->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
         \App\Models\AuditLog::record('Viewed Patient List (Information Desk)');
 

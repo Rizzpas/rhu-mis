@@ -33,4 +33,17 @@ return Application::configure(basePath: dirname(__DIR__))
 
             abort(404);
         });
+
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                $secureImageMsg = \App\Rules\SecureImage::errorMessage();
+                $allErrors = collect($e->errors())->flatten()->all();
+                if (in_array($secureImageMsg, $allErrors, true)) {
+                    return response()->json([
+                        'message' => $secureImageMsg,
+                        'errors' => $e->errors(),
+                    ], 415);
+                }
+            }
+        });
     })->create();

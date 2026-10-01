@@ -5,52 +5,10 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ 
     selectedCases: [],
-    medicalCaseIds: {{ json_encode($patient->medicalCases->pluck('id')->map(fn($id) => (string)$id)) }}
+    medicalCaseIds: {{ json_encode($patient->medicalCases->pluck('id')->map(fn($id) => (string)$id)) }},
+    showOverrideModal: false
 }">
-    <style>
-        @media print {
-            .print\:hidden { display: none !important; }
-            body { background: white !important; }
-            .bg-gray-50, .bg-emerald-50, .bg-blue-50, .bg-rose-50, .bg-purple-50, .bg-amber-50 { background-color: transparent !important; }
-            .border { border-color: #eee !important; }
-            .shadow-sm, .shadow-lg { shadow: none !important; }
-            [x-show] { display: block !important; } /* Ensure expanded content prints */
-            
-            /* Medical record styling */
-            .medical-header {
-                display: block !important;
-                border-bottom: 2px solid #333;
-                margin-bottom: 2rem;
-                padding-bottom: 1rem;
-            }
-        }
-        .medical-header { display: none; }
-    </style>
 
-    <!-- Medical Header (Print Only) -->
-    <div class="medical-header">
-        <div class="flex justify-between items-start mb-6">
-            <div>
-                <h1 class="text-3xl font-black uppercase text-emerald-700">Rural Health Unit - Silang</h1>
-                <p class="text-sm font-bold text-gray-600 uppercase tracking-widest">Medical Record & Clinical History</p>
-                <div class="mt-4 flex gap-8">
-                    <div>
-                        <p class="text-[10px] uppercase font-bold text-gray-400">Patient Name</p>
-                        <p class="text-lg font-bold">{{ $patient->full_name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase font-bold text-gray-400">Patient ID</p>
-                        <p class="text-lg font-mono">{{ $patient->patient_id }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="text-right">
-                <img src="{{ asset('assets/images/logo.png') }}" class="w-20 h-20 ml-auto mb-2">
-                <p class="text-xs font-bold">{{ now()->format('F d, Y') }}</p>
-                <p class="text-[10px] text-gray-500">Authorized System Export</p>
-            </div>
-        </div>
-    </div>
     
     <!-- Top Action Bar -->
     <div class="flex items-center justify-between mb-8 print:hidden">
@@ -63,7 +21,20 @@
                 <p class="text-sm text-gray-500 font-mono tracking-tight">{{ $patient->patient_id }}</p>
             </div>
         </div>
-        <div class="flex gap-3">
+        <div class="flex items-center gap-3">
+            @if($isUnmasked)
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>PHI Override Active</span>
+                    <a href="{{ route('admin.patients.show', $patient) }}" class="underline text-[11px] ml-1 text-amber-900 dark:text-amber-200">Re-mask</a>
+                </div>
+            @else
+                <button type="button" @click="showOverrideModal = true" class="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    <span>Authorized PHI Override</span>
+                </button>
+            @endif
+
             <template x-if="selectedCases.length > 0">
                 <button @click="window.open(`{{ route('admin.patients.print', $patient) }}?cases=${selectedCases.join(',')}`, '_blank')" class="px-5 py-2 rounded-xl bg-teal-600 text-white font-bold shadow-lg hover:bg-teal-700 transition flex items-center gap-2 animate-pulse">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
@@ -140,11 +111,11 @@
                 @endphp
                 <div class="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-2xl border border-rose-100 dark:border-rose-800">
                     <p class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-1">Latest BP</p>
-                    <p class="text-xl font-black text-rose-900 dark:text-rose-200">{{ $latestVitals->blood_pressure ?? '--/--' }}</p>
+                    <p class="text-xl font-black text-rose-900 dark:text-rose-200">{{ $isUnmasked ? ($latestVitals->blood_pressure ?? '--/--') : '••/••' }}</p>
                 </div>
                 <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800">
                     <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Latest Temp</p>
-                    <p class="text-xl font-black text-emerald-900 dark:text-emerald-200">{{ $latestVitals->temperature ?? '--' }}°C</p>
+                    <p class="text-xl font-black text-emerald-900 dark:text-emerald-200">{{ $isUnmasked ? (($latestVitals->temperature ?? '--') . '°C') : '••°C' }}</p>
                 </div>
                 <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
                     <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Total Cases</p>
@@ -158,6 +129,23 @@
 
             <!-- Detailed Medical Cases -->
             <div class="space-y-6">
+                @if(!$isUnmasked)
+                <!-- DPA Compliance Banner -->
+                <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-start gap-3 print:hidden">
+                    <div class="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <div class="text-xs">
+                        <h4 class="font-extrabold text-amber-900 dark:text-amber-200">Data Privacy Act (RA 10173) Protection Active</h4>
+                        <p class="text-amber-700 dark:text-amber-400 mt-0.5">
+                            Clinical diagnoses, physician notes, prescription specifics, and laboratory analyte values are masked for non-clinical administrative accounts. Use <strong>Authorized PHI Override</strong> only when conducting an official audit or emergency investigation.
+                        </p>
+                    </div>
+                </div>
+                @endif
+
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -170,6 +158,8 @@
                     </div>
                 </div>
 
+                <!-- Scrollable Cases Container with Vertical Limit -->
+                <div class="space-y-4 max-h-[820px] overflow-y-auto pr-1.5 custom-scrollbar print:max-h-none print:overflow-visible">
                 @forelse($patient->medicalCases as $index => $case)
                 <div x-data="{ expanded: {{ $index === 0 ? 'true' : 'false' }} }" 
                     class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-all duration-300"
@@ -208,13 +198,24 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-xs font-bold text-gray-400 mb-1">Diagnosis</label>
-                                        <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl text-sm text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-800 italic">
-                                            {{ $case->diagnosis }}
-                                        </div>
+                                        @if($isUnmasked)
+                                            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl text-sm text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-800 italic">
+                                                {{ $case->diagnosis }}
+                                            </div>
+                                        @else
+                                            <div class="p-3 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-xs font-mono text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                <span>[RESTRICTED — CLINICAL DIAGNOSIS MASKED UNDER RA 10173]</span>
+                                            </div>
+                                        @endif
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-400 mb-1">Medical Notes</label>
-                                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $case->consultation->medical_notes ?? 'No additional notes provided.' }}</p>
+                                        @if($isUnmasked)
+                                            <p class="text-sm text-gray-700 dark:text-gray-300">{{ $case->consultation->medical_notes ?? 'No additional notes provided.' }}</p>
+                                        @else
+                                            <p class="text-xs font-mono text-slate-400 italic">[Protected Clinical Notes — Licensed Healthcare Personnel Only]</p>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -256,25 +257,35 @@
                                                 && !$parsedPrescriptions;
                                         @endphp
                                         
-                                        @if($parsedPrescriptions)
-                                            <div class="space-y-2">
-                                                @foreach($parsedPrescriptions as $med)
-                                                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 flex justify-between items-center">
-                                                        <div>
-                                                            <p class="text-sm font-bold text-emerald-900 dark:text-emerald-200">{{ $med['medicine'] ?? 'Unknown Medicine' }}</p>
-                                                            <p class="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">{{ $med['instruction'] ?? '' }}</p>
+                                        @if($isUnmasked)
+                                            @if($parsedPrescriptions)
+                                                <div class="space-y-2">
+                                                    @foreach($parsedPrescriptions as $med)
+                                                        <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 flex justify-between items-center">
+                                                            <div>
+                                                                <p class="text-sm font-bold text-emerald-900 dark:text-emerald-200">{{ $med['medicine'] ?? 'Unknown Medicine' }}</p>
+                                                                <p class="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">{{ $med['instruction'] ?? '' }}</p>
+                                                            </div>
+                                                            <span class="text-xs font-bold px-2 py-1 bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 rounded">{{ $med['amount'] ?? '' }}</span>
                                                         </div>
-                                                        <span class="text-xs font-bold px-2 py-1 bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 rounded">{{ $med['amount'] ?? '' }}</span>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @elseif($hasTextPrescription)
-                                            <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-sm text-emerald-900 dark:text-emerald-200 border border-emerald-100 dark:border-emerald-800 font-mono">
-                                                {!! nl2br(e($prescriptionText)) !!}
-                                            </div>
+                                                    @endforeach
+                                                </div>
+                                            @elseif($hasTextPrescription)
+                                                <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-sm text-emerald-900 dark:text-emerald-200 border border-emerald-100 dark:border-emerald-800 font-mono">
+                                                    {!! nl2br(e($prescriptionText)) !!}
+                                                </div>
+                                            @else
+                                                <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-sm text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 italic">
+                                                    No medication prescribed.
+                                                </div>
+                                            @endif
                                         @else
-                                            <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-sm text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 italic">
-                                                No medication prescribed.
+                                            <div class="p-3 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-xs font-mono text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                                <span class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                    <span>[Confidential Prescription Record Masked]</span>
+                                                </span>
+                                                <span class="text-[10px] uppercase font-bold text-slate-400">Clinical Data</span>
                                             </div>
                                         @endif
                                     </div>
@@ -293,56 +304,147 @@
 
                             <div class="md:col-span-2 pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-3">Vitals Snapshot at Time of Case</p>
-                                <div class="grid grid-cols-4 md:grid-cols-8 gap-4 text-center">
-                                    @foreach($case->vitals_snapshot as $key => $val)
-                                    <div>
-                                        <p class="text-[9px] font-bold text-gray-400 uppercase">{{ $key }}</p>
-                                        <p class="text-sm font-bold text-gray-800 dark:text-white">{{ $val ?: '--' }}</p>
+                                @if($isUnmasked)
+                                    <div class="grid grid-cols-4 md:grid-cols-8 gap-4 text-center">
+                                        @foreach($case->vitals_snapshot as $key => $val)
+                                        <div>
+                                            <p class="text-[9px] font-bold text-gray-400 uppercase">{{ $key }}</p>
+                                            <p class="text-sm font-bold text-gray-800 dark:text-white">{{ $val ?: '--' }}</p>
+                                        </div>
+                                        @endforeach
                                     </div>
-                                    @endforeach
-                                </div>
+                                @else
+                                    <p class="text-xs font-mono text-slate-400 italic">[Vitals recorded by clinical staff at triage — Clinical clearance required to view]</p>
+                                @endif
                             </div>
                             
                             <!-- Ancillary / Laboratory Results Section -->
-                            @if($case->consultation && $case->consultation->ancillaryRequests->count() > 0)
-                            <div class="md:col-span-2 pt-4 border-t border-gray-100 dark:border-gray-700">
-                                <p class="text-[10px] uppercase font-bold text-indigo-500 tracking-widest mb-3">Diagnostic Results (Lab / Radiology)</p>
+                            @php
+                                $doneRequests = $case->consultation ? $case->consultation->ancillaryRequests->where('status', 'Done') : collect();
+                                $doneRequestIds = $doneRequests->pluck('id')->map(fn($id) => (string)$id)->values();
+                            @endphp
+
+                            @if($doneRequests->count() > 0)
+                            <div class="md:col-span-2 pt-4 border-t border-gray-100 dark:border-gray-700" 
+                                 x-data="{ 
+                                     selectedLabs: {{ json_encode($doneRequestIds) }},
+                                     allDoneIds: {{ json_encode($doneRequestIds) }},
+                                     toggleAllLabs() {
+                                         if (this.selectedLabs.length === this.allDoneIds.length) {
+                                             this.selectedLabs = [];
+                                         } else {
+                                             this.selectedLabs = [...this.allDoneIds];
+                                         }
+                                     },
+                                     printSelectedLabs() {
+                                         if (this.selectedLabs.length === 0) return;
+                                         window.open('{{ route('admin.patients.ancillary.print', $patient) }}?ids=' + this.selectedLabs.join(','), '_blank');
+                                     }
+                                 }">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                        </svg>
+                                        <p class="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 tracking-widest">
+                                            Diagnostic Results (Lab / Radiology) • {{ $doneRequests->count() }} {{ \Illuminate\Support\Str::plural('Test', $doneRequests->count()) }}
+                                        </p>
+                                    </div>
+
+                                    @if($doneRequests->count() > 1)
+                                    <div class="flex items-center gap-2 print:hidden">
+                                        <button type="button" @click="toggleAllLabs()" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
+                                            <span x-text="selectedLabs.length === allDoneIds.length ? 'Deselect All' : 'Select All'"></span>
+                                        </button>
+                                        <span class="text-gray-300">|</span>
+                                        <button type="button" @click="printSelectedLabs()" :disabled="selectedLabs.length === 0" 
+                                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                            <span>Print Selected Results (<span x-text="selectedLabs.length"></span>)</span>
+                                        </button>
+                                    </div>
+                                    @elseif($doneRequests->count() === 1)
+                                    <div class="print:hidden">
+                                        <button type="button" @click="window.open('{{ route('admin.ancillary.print', $doneRequests->first()->id) }}', '_blank')" 
+                                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                            <span>Print Diagnostic Report</span>
+                                        </button>
+                                    </div>
+                                    @endif
+                                </div>
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    @foreach($case->consultation->ancillaryRequests as $req)
-                                    <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div>
-                                                <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-200 text-indigo-800">{{ $req->department }}</span>
-                                                <h4 class="font-bold text-sm text-indigo-900 dark:text-indigo-200 mt-1">{{ $req->test_name }}</h4>
+                                    @foreach($doneRequests as $req)
+                                    <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl relative transition hover:border-indigo-300">
+                                        <div class="flex justify-between items-start mb-2 gap-2">
+                                            <div class="flex items-start gap-2.5">
+                                                <input type="checkbox" value="{{ $req->id }}" x-model="selectedLabs" 
+                                                       class="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer print:hidden">
+                                                <div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded {{ $req->type === 'Radiology' ? 'bg-indigo-200 text-indigo-900' : 'bg-purple-200 text-purple-900' }}">
+                                                            {{ $req->type }}
+                                                        </span>
+                                                        <span class="text-[10px] text-gray-500">Ref: #{{ $req->id }}</span>
+                                                    </div>
+                                                    <h4 class="font-bold text-sm text-indigo-950 dark:text-indigo-200 mt-1">{{ $req->test_name }}</h4>
+                                                </div>
                                             </div>
-                                            <span class="text-xs text-indigo-500 font-semibold">{{ $req->status }}</span>
+                                            <span class="text-xs px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                Done
+                                            </span>
                                         </div>
-                                        
+
                                         @if($req->result_data)
-                                            <div class="mt-2 space-y-1">
-                                                @foreach($req->result_data as $key => $val)
-                                                    @if(is_string($val))
-                                                        <div class="flex justify-between text-xs border-b border-indigo-100 dark:border-indigo-800/50 pb-1">
-                                                            <span class="text-indigo-700/70">{{ str_replace('_', ' ', $key) }}:</span>
-                                                            <span class="font-bold text-indigo-900 dark:text-indigo-300">{{ $val }}</span>
-                                                        </div>
+                                            @php
+                                                $testLower = strtolower($req->test_name);
+                                                $isRad = $req->type === 'Radiology' || str_contains($testLower, 'x-ray') || str_contains($testLower, 'xray') || isset($req->result_data['findings']);
+                                            @endphp
+                                            <div class="mt-2 space-y-1.5 text-xs bg-white/70 dark:bg-slate-900/50 p-2.5 rounded-lg border border-indigo-100 dark:border-indigo-900/40">
+                                                @if($isRad && isset($req->result_data['findings']))
+                                                    <div>
+                                                        <span class="font-bold text-slate-700 dark:text-slate-300 block text-[10px] uppercase">Findings:</span>
+                                                        <p class="text-slate-900 dark:text-white leading-relaxed line-clamp-3">{{ $req->result_data['findings'] }}</p>
+                                                    </div>
+                                                    @if(isset($req->result_data['impression']))
+                                                    <div class="pt-1 border-t border-indigo-100 dark:border-indigo-900/30">
+                                                        <span class="font-bold text-emerald-800 dark:text-emerald-400 block text-[10px] uppercase">Impression:</span>
+                                                        <p class="font-bold text-slate-900 dark:text-white">{{ $req->result_data['impression'] }}</p>
+                                                    </div>
                                                     @endif
-                                                @endforeach
+                                                @else
+                                                    @foreach($req->result_data as $key => $val)
+                                                        @if(is_string($val) && !in_array($key, ['remarks', 'exam_view']) && !empty($val))
+                                                            <div class="flex justify-between border-b border-indigo-50 dark:border-indigo-900/20 pb-0.5">
+                                                                <span class="text-indigo-700/80 dark:text-indigo-400">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
+                                                                <span class="font-bold text-slate-900 dark:text-white">{{ $val }}</span>
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                @endif
                                             </div>
                                         @endif
-                                        
-                                        @if($req->result_file_path)
-                                            <div class="mt-3 print:hidden flex gap-2">
-                                                <a href="{{ Storage::url($req->result_file_path) }}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded transition">
-                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                                    View Attachment File
+
+                                        {{-- Action buttons for this specific test --}}
+                                        <div class="mt-3 print:hidden flex flex-wrap items-center gap-2">
+                                            <button type="button" @click="window.open('{{ route('admin.ancillary.print', $req->id) }}', '_blank')" 
+                                                    class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-white dark:bg-slate-800 hover:bg-indigo-50 border border-indigo-300 dark:border-indigo-700 px-3 py-1.5 rounded-lg shadow-2xs transition cursor-pointer">
+                                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                Print Official {{ $req->type === 'Radiology' ? 'X-Ray' : 'Lab' }} Report
+                                            </button>
+
+                                            @if($req->result_file_path)
+                                                <a href="{{ Storage::url($req->result_file_path) }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 border border-slate-300 dark:border-slate-700 px-2.5 py-1.5 rounded-lg transition">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                    View Attachment Scan
                                                 </a>
-                                                <button type="button" onclick="printAttachment('{{ Storage::url($req->result_file_path) }}')" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 px-3 py-1.5 rounded transition">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                                                    Print Result
+                                                <button type="button" onclick="printAttachment('{{ Storage::url($req->result_file_path) }}')" class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 border border-slate-300 dark:border-slate-700 px-2.5 py-1.5 rounded-lg transition cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                                    Print Scan
                                                 </button>
-                                            </div>
-                                        @endif
+                                            @endif
+                                        </div>
                                     </div>
                                     @endforeach
                                 </div>
@@ -356,7 +458,52 @@
                     <p class="text-gray-500">No medical cases have been finalized for this patient yet.</p>
                 </div>
                 @endforelse
+                </div> <!-- Closes scrollable cases container -->
             </div>
+        </div>
+    </div>
+
+    <!-- Authorized PHI Override Modal -->
+    <div x-show="showOverrideModal" x-cloak class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+        <div @click.away="showOverrideModal = false" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+            <form action="{{ route('admin.patients.show', $patient) }}" method="GET" class="p-6">
+                <input type="hidden" name="unmask" value="1">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="p-2.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded-xl shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Authorized PHI Access Request</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Under RA 10173, viewing unmasked patient clinical records is tracked and logged permanently in the system audit trail.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3 mb-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Audit Justification / Purpose <span class="text-rose-500">*</span></label>
+                        <select name="override_reason" required class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-amber-500 focus:border-amber-500">
+                            <option value="">-- Select Purpose --</option>
+                            <option value="Official DOH / Regulatory Compliance Audit">Official DOH / Regulatory Compliance Audit</option>
+                            <option value="Legal Subpoena / Authorized Law Enforcement Inquiry">Legal Subpoena / Authorized Law Enforcement Inquiry</option>
+                            <option value="Technical Database Troubleshooting / System QA Audit">Technical Database Troubleshooting / System QA Audit</option>
+                            <option value="Medical Director Direct Written Authorization">Medical Director Direct Written Authorization</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" @click="showOverrideModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition cursor-pointer">
+                        Acknowledge & Access PHI
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -367,11 +514,15 @@
 function printAttachment(url) {
     const extension = url.split('.').pop().toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print Diagnostic Result</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;height:100vh;background:#f8f9fa;"><img src="' + url + '" style="max-width:100%;max-height:100%;object-fit:contain;" onload="window.print();window.close();"></body></html>');
-        printWindow.document.close();
+        window.printIsolated(`
+            <div style="text-align: center; padding: 12px 0;">
+                <h3 style="font-size: 13pt; font-weight: 800; margin-bottom: 12px; color: #0f172a; text-transform: uppercase;">Diagnostic Attachment Scan</h3>
+                <p style="font-size: 9pt; color: #64748b; margin-bottom: 16px;">Patient: {{ e($patient->full_name) }} ({{ e($patient->patient_id) }})</p>
+                <img src="${url}" style="max-width: 100%; max-height: 220mm; object-fit: contain; border: 1px solid #cbd5e1; border-radius: 4px; display: block; margin: 0 auto;" alt="Diagnostic Attachment">
+            </div>
+        `, { title: 'Diagnostic Attachment — {{ $patient->full_name }}' });
     } else {
-        // Fallback for PDFs or other documents
+        // Fallback for PDFs or external documents
         const printWindow = window.open(url, '_blank');
         if (printWindow) {
             printWindow.onload = function() {

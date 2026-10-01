@@ -7,6 +7,11 @@
      x-data="{
          searchFilter: '',
          categoryFilter: 'all',
+         cancelModalOpen: false,
+         cancelTargetId: null,
+         cancelTargetName: '',
+         cancelTargetQueue: '',
+         cancelActionUrl: '',
          init() {
              window.addEventListener('doctor-global-search', (e) => {
                  this.searchFilter = e.detail;
@@ -95,7 +100,7 @@
                     </span>
                 </div>
                 <div class="flex items-baseline gap-2">
-                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ count($handledPatients) }}</span>
+                    <span class="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $handledCount ?? count($handledPatients) }}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">patients finished</span>
                 </div>
             </div>
@@ -302,12 +307,20 @@
                                 </div>
 
                                 {{-- Action Buttons --}}
-                                <div class="pt-2">
+                                <div class="pt-2 flex items-center gap-2">
                                     <a href="{{ route('doctor.consultation.start', $consultation->id) }}"
-                                       class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-sm transition-all cursor-pointer {{ $isActive ? 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700' : ($isResultsReady ? 'bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-700 hover:to-emerald-800' : 'bg-gradient-to-r from-slate-900 to-slate-800 hover:from-emerald-700 hover:to-teal-800 dark:from-emerald-600 dark:to-teal-700') }}">
+                                       class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-sm transition-all cursor-pointer {{ $isActive ? 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700' : ($isResultsReady ? 'bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-700 hover:to-emerald-800' : 'bg-gradient-to-r from-slate-900 to-slate-800 hover:from-emerald-700 hover:to-teal-800 dark:from-emerald-600 dark:to-teal-700') }}">
                                         <span>{{ $isActive ? 'Resume Consultation' : ($isResultsReady ? 'Review Results & Consult' : 'Start Consultation') }}</span>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                     </a>
+                                    <button type="button" 
+                                            @click="cancelModalOpen = true; cancelTargetId = {{ $consultation->id }}; cancelTargetName = '{{ addslashes($consultation->patient->full_name) }}'; cancelTargetQueue = '{{ $consultation->queue_number }}'; cancelActionUrl = '{{ route('doctor.consultation.cancel', $consultation->id) }}'"
+                                            title="Mark as Walkout / Cancel Consultation"
+                                            class="px-3 py-2.5 rounded-xl text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-200 dark:border-rose-800/80 transition-all cursor-pointer shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -345,7 +358,7 @@
                 </a>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
                 @foreach($awaitingLabs as $consultation)
                     <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs flex items-center justify-between gap-3">
                         <div class="min-w-0">
@@ -389,10 +402,21 @@
                                 <strong class="text-slate-700 dark:text-slate-300">Dx:</strong> {{ $handled->diagnosis ?: 'Routine Consultation' }}
                             </p>
                         </div>
-                        @if($handled->prescription)
-                            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span>Prescription Issued</span>
+                        @if($handled->prescriptionRecord)
+                            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Prescription Issued</span>
+                                </span>
+                                @if($handled->prescriptionRecord->status === 'pending' || $handled->prescriptionRecord->status === 'partially_dispensed')
+                                    <form action="{{ route('doctor.prescription.cancel', $handled->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this prescription? This action cannot be undone.')">
+                                        @csrf
+                                        <input type="hidden" name="cancellation_reason" value="Cancelled by prescriber - clinical decision / patient no longer needs">
+                                        <button type="submit" class="px-2 py-1 text-[9px] font-bold text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/30 hover:bg-rose-200 dark:hover:bg-rose-950/50 rounded border border-rose-300 dark:border-rose-700 cursor-pointer">
+                                            Cancel Rx
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         @endif
                     </div>
@@ -403,6 +427,59 @@
                 No consultations completed yet today.
             </div>
         @endif
+    </div>
+
+    <!-- Global Doctor Walkout Modal -->
+    <div x-show="cancelModalOpen" x-cloak class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+        <div @click.away="cancelModalOpen = false" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200"
+             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+            <form :action="cancelActionUrl" method="POST" class="p-6">
+                @csrf
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900 dark:text-white">Cancel Consultation / Walkout</h3>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Patient: <span class="font-bold text-slate-800 dark:text-slate-200" x-text="cancelTargetName"></span> (<span x-text="cancelTargetQueue"></span>)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Reason for Cancellation <span class="text-rose-500">*</span></label>
+                        <select name="cancellation_reason" required class="w-full text-xs font-semibold rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-rose-500 focus:border-rose-500">
+                            <option value="">-- Select Reason --</option>
+                            <option value="Patient Walked Out / Left Premises">Patient Walked Out / Left Premises</option>
+                            <option value="Patient Refused Consultation / Treatment">Patient Refused Consultation / Treatment</option>
+                            <option value="Emergency Hospital Transfer / Endorsement">Emergency Hospital Transfer / Endorsement</option>
+                            <option value="Patient Unresponsive / Called Multiple Times">Patient Unresponsive / Called Multiple Times</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Additional Notes / Remarks <span class="text-slate-400 font-normal">(Optional)</span></label>
+                        <textarea name="notes" rows="3" placeholder="Provide details, reason for walkout, or hospital transfer notes..." class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-rose-500 focus:border-rose-500"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" @click="cancelModalOpen = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                        Keep on Queue
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/30 transition flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Confirm Cancellation
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
 </div>

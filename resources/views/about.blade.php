@@ -14,7 +14,7 @@
                     <svg class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
                     </svg>
-                    Municipality of Silang
+                    {{ \App\Models\SiteSetting::get('topbar_municipality', 'Municipality of Silang') }}
                 </span>
             </div>
 
@@ -22,14 +22,14 @@
                 {{-- Left Column: Headline --}}
                 <div class="lg:col-span-7">
                     <h1 class="font-display text-3xl sm:text-4xl lg:text-[3.25rem] font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.12]">
-                        Advancing Municipal Health with <span class="text-emerald-700 dark:text-emerald-400">Integrity & Care</span>
+                        {{ \App\Models\SiteSetting::get('mission_headline', 'Advancing Municipal Health with Integrity & Care') }}
                     </h1>
                 </div>
 
                 {{-- Right Column: Institutional Mandate Description --}}
                 <div class="lg:col-span-5 lg:pb-1">
                     <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                        The primary public healthcare authority of the Municipality of Silang, Cavite — dedicated to providing responsive, equitable, and professional medical services to every constituent across all 64 barangays.
+                        {{ \App\Models\SiteSetting::get('mission_subheadline', 'The primary public healthcare authority of the Municipality of Silang, Cavite — dedicated to providing responsive, equitable, and professional medical services to every constituent across all 64 barangays.') }}
                     </p>
                 </div>
             </div>
@@ -37,60 +37,37 @@
     </section>
 
     {{-- ============================================================
-         INSTITUTIONAL METRIC STRIP — Differentiated Treatments
+         INSTITUTIONAL METRIC STRIP — Dynamic Treatments
     ============================================================ --}}
+    @php
+        $aboutMetrics = \App\Models\SiteSetting::getJson('about_metrics', [
+            ['value' => '5 Units', 'title' => 'Specialized Facilities', 'subtitle' => 'Primary care, maternal, dental & labs'],
+            ['value' => '24/7 Care', 'title' => 'Maternal Birthing', 'subtitle' => 'Continuous newborn & maternal service'],
+            ['value' => '100k+', 'title' => 'Citizens Served', 'subtitle' => 'Across all Silang barangays'],
+            ['value' => '100% Free', 'title' => 'Primary Triage', 'subtitle' => 'No user fee for basic consultation'],
+        ]);
+        $metricIcons = [
+            '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
+            '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+            '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>',
+            '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>',
+        ];
+    @endphp
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs overflow-hidden">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-700/70">
-                
-                {{-- Metric 1: Clinical Facilities --}}
-                <div class="p-6 sm:p-7 flex items-start gap-4 group">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                @foreach($aboutMetrics as $idx => $m)
+                    <div class="p-6 sm:p-7 flex items-start gap-4 group">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                            {!! $metricIcons[$idx % count($metricIcons)] !!}
+                        </div>
+                        <div>
+                            <div class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $m['value'] ?? '' }}</div>
+                            <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">{{ $m['title'] ?? '' }}</div>
+                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{{ $m['subtitle'] ?? '' }}</p>
+                        </div>
                     </div>
-                    <div>
-                        <div class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">5 Units</div>
-                        <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">Specialized Facilities</div>
-                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Primary care, maternal, dental & labs</p>
-                    </div>
-                </div>
-
-                {{-- Metric 2: 24/7 Maternal Care --}}
-                <div class="p-6 sm:p-7 flex items-start gap-4 group">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <div class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">24/7 Care</div>
-                        <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">Maternal Birthing</div>
-                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Continuous newborn & maternal service</p>
-                    </div>
-                </div>
-
-                {{-- Metric 3: Population Served --}}
-                <div class="p-6 sm:p-7 flex items-start gap-4 group">
-                    <div class="w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                    <div>
-                        <div class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">100k+</div>
-                        <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">Citizens Served</div>
-                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Across all Silang barangays</p>
-                    </div>
-                </div>
-
-                {{-- Metric 4: Free Consultation --}}
-                <div class="p-6 sm:p-7 flex items-start gap-4 group">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300/60 dark:border-emerald-700/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                    </div>
-                    <div>
-                        <div class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">100% Free</div>
-                        <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">Primary Triage</div>
-                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">No user fee for basic consultation</p>
-                    </div>
-                </div>
-
+                @endforeach
             </div>
         </div>
     </div>
@@ -98,20 +75,28 @@
     {{-- ============================================================
          MISSION SECTION — Documentary Photo & Structured Narrative
     ============================================================ --}}
+    @php
+        $missionImgSetting = \App\Models\SiteSetting::get('mission_image');
+        $missionImgUrl = $missionImgSetting 
+            ? (\Illuminate\Support\Str::startsWith($missionImgSetting, ['uploads/', 'http']) ? asset($missionImgSetting) : asset('uploads/' . $missionImgSetting))
+            : asset('assets/images/rhu-consultation.jpg');
+        $missionPoints = \App\Models\SiteSetting::getJson('mission_points', [
+            'Equitable access across 64 Silang barangays',
+            'Digital queue & clinical record tracking',
+            'Continuous inventory & pharmacy transparency',
+            '24/7 dedicated maternal emergency care',
+        ]);
+    @endphp
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {{-- Left Column: Framed Documentary Photography --}}
             <div class="lg:col-span-6">
-                <div class="bg-slate-100 dark:bg-slate-900 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-md">
-                    <div class="relative rounded-xl overflow-hidden aspect-[16/11]">
-                        <img src="{{ asset('assets/images/rhu-consultation.jpg') }}" 
-                             alt="Silang RHU Healthcare Consultation" 
+                <div class="p-2.5 sm:p-3.5">
+                    <div class="relative rounded-sm overflow-hidden aspect-[16/11]">
+                        <img src="{{ $missionImgUrl }}" 
+                             alt="{{ \App\Models\SiteSetting::get('mission_image_caption', 'Silang RHU Healthcare Consultation') }}" 
                              class="w-full h-full object-cover">
-                    </div>
-                    {{-- Physical Caption Line --}}
-                    <div class="pt-3 px-2 pb-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-200/60 dark:border-slate-800 mt-2.5">
-                        <span class="font-medium">RHU Silang Medical Consultation Wing</span>
                     </div>
                 </div>
             </div>
@@ -123,37 +108,21 @@
                     <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Our Mission</span>
                 </div>
                 <h2 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
-                    Delivering Responsive, Equitable Public Healthcare
+                    {{ \App\Models\SiteSetting::get('mission_title', 'Delivering Responsive, Equitable Public Healthcare') }}
                 </h2>
                 <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6 font-normal">
                     {{ \App\Models\SiteSetting::get('mission_statement', 'To provide responsive, equitable, and quality primary healthcare services to all citizens of Silang. We commit to transparency and excellence by utilizing modern management systems to eliminate barriers to health access and pharmaceutical needs.') }}
                 </p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-4 border-t border-slate-100 dark:border-slate-700/70">
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    @foreach($missionPoints as $point)
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">{{ $point }}</span>
                         </div>
-                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Equitable access across 64 Silang barangays</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </div>
-                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Digital queue & clinical record tracking</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </div>
-                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Continuous inventory & pharmacy transparency</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </div>
-                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">24/7 dedicated maternal emergency care</span>
-                    </div>
+                    @endforeach
                 </div>
             </div>
 
@@ -163,6 +132,13 @@
     {{-- ============================================================
          VISION SECTION — Distinct Civic Manifesto / Aspiration Block
     ============================================================ --}}
+    @php
+        $visionPillars = \App\Models\SiteSetting::getJson('vision_pillars', [
+            ['title' => 'Universal Care', 'description' => 'A reliable, dignified right for every family in Silang'],
+            ['title' => 'Technological Leap', 'description' => 'Integrated health information MIS and online queues'],
+            ['title' => 'Medical Integrity', 'description' => 'Ethical diagnostics, certified medicine dispensing'],
+        ]);
+    @endphp
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-950 to-slate-900 text-white p-8 sm:p-12 lg:p-16 border border-emerald-800/50 shadow-xl">
             {{-- Background Municipal Watermark --}}
@@ -177,7 +153,7 @@
                 </div>
                 
                 <h2 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white mb-6">
-                    "A healthy, resilient, and empowered Silang served by modern healthcare integrity."
+                    "{{ \App\Models\SiteSetting::get('vision_headline', 'A healthy, resilient, and empowered Silang served by modern healthcare integrity.') }}"
                 </h2>
 
                 <p class="text-emerald-100/90 text-sm sm:text-base leading-relaxed mb-8 font-normal">
@@ -186,27 +162,15 @@
 
                 {{-- 3 Pillar Badges --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 border-t border-white/10">
-                    <div class="bg-white/10 backdrop-blur-xs rounded-xl p-4 border border-white/10 hover:bg-white/15 transition-colors">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-400/20 flex items-center justify-center text-emerald-300 mb-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    @foreach($visionPillars as $pillar)
+                        <div class="bg-white/10 backdrop-blur-xs rounded-xl p-4 border border-white/10 hover:bg-white/15 transition-colors">
+                            <div class="w-7 h-7 rounded-lg bg-emerald-400/20 flex items-center justify-center text-emerald-300 mb-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
+                            <p class="text-xs font-bold text-white">{{ $pillar['title'] ?? '' }}</p>
+                            <p class="text-[11px] text-emerald-200/80 mt-0.5">{{ $pillar['description'] ?? '' }}</p>
                         </div>
-                        <p class="text-xs font-bold text-white">Universal Care</p>
-                        <p class="text-[11px] text-emerald-200/80 mt-0.5">A reliable, dignified right for every family in Silang</p>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-xs rounded-xl p-4 border border-white/10 hover:bg-white/15 transition-colors">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-400/20 flex items-center justify-center text-emerald-300 mb-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        </div>
-                        <p class="text-xs font-bold text-white">Technological Leap</p>
-                        <p class="text-[11px] text-emerald-200/80 mt-0.5">Integrated health information MIS and online queues</p>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-xs rounded-xl p-4 border border-white/10 hover:bg-white/15 transition-colors">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-400/20 flex items-center justify-center text-emerald-300 mb-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        </div>
-                        <p class="text-xs font-bold text-white">Medical Integrity</p>
-                        <p class="text-[11px] text-emerald-200/80 mt-0.5">Ethical diagnostics, certified medicine dispensing</p>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -217,8 +181,8 @@
     ============================================================ --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div class="mb-8">
-            <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Public Service Charter</span>
-            <h3 class="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mt-1">Guiding Principles</h3>
+            <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">{{ \App\Models\SiteSetting::get('charter_title', 'Public Service Charter') }}</span>
+            <h3 class="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mt-1">{{ \App\Models\SiteSetting::get('charter_subtitle', 'Guiding Principles') }}</h3>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">The standards and ethics that govern every patient consultation, medical diagnosis, and administrative procedure.</p>
         </div>
 
@@ -295,10 +259,6 @@
                                     <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-0.5">
                                         {{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}
                                     </p>
-                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 mt-1">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
-                                        24/7 Maternity Birthing Unit Open
-                                    </span>
                                 </div>
                             </div>
 
@@ -366,25 +326,16 @@
         </div>
     </section>
 
-    {{-- ============================================================
-         ORGANIZATIONAL STRUCTURE
-    ============================================================ --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         @include('partials.orgchart')
     </div>
 
-    {{-- ============================================================
-         ACTION-ORIENTED CALL TO ACTION (CTA) SECTION
-    ============================================================ --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-white p-8 sm:p-12 lg:p-14 border border-slate-200/90 dark:border-slate-800 shadow-sm dark:shadow-xl">
-            {{-- Ambient aura glow --}}
+
             <div class="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
             <div class="relative z-10 max-w-3xl mb-10">
-                <span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100/80 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider rounded-full border border-emerald-200/80 dark:border-emerald-500/30 mb-3">
-                    Next Steps
-                </span>
                 <h3 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-3">
                     Connect With Municipal Healthcare Today
                 </h3>

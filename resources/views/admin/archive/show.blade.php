@@ -8,6 +8,7 @@
         selectAll: false,
         showBulkRestoreModal: false,
         showBulkDeleteModal: false,
+        showTruncateModal: false,
         toggleAll() {
             if (this.selectAll) {
                 this.selectedIds = [...document.querySelectorAll('.rowCheckbox')].map(cb => cb.value);
@@ -29,7 +30,7 @@
         <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ $title }}</span>
     </nav>
 
-    <!-- Header Section (Content Management Style) -->
+    <!-- Header Section -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
             <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
@@ -40,14 +41,27 @@
                 </span>
                 <span>{{ $title }}</span>
             </h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage deleted records for this category. Records older than 6 months are automatically purged.</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage archived, rejected, or unfinished records. Both Administrators and Super Admins can hard delete records.</p>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 flex-wrap">
             <a href="{{ route('admin.archive.index') }}" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer">
                 <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                <span>Back to All Categories</span>
+                <span>All Vaults</span>
             </a>
+
+            @can('truncate-archive')
+            <button type="button" @click="showTruncateModal = true" 
+                    class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Truncate &gt; 1 Year (Category)</span>
+                @if(isset($oneYearCount) && $oneYearCount > 0)
+                    <span class="px-1.5 py-0.5 rounded-full bg-white/20 text-[10px] font-black">{{ $oneYearCount }}</span>
+                @endif
+            </button>
+            @endcan
         </div>
     </div>
 
@@ -63,8 +77,8 @@
     <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
         <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-white">Deleted {{ $title }}</h3>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $records->count() }} archived item(s) available</span>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ $title }} Directory</h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $records->total() }} archived item(s) in database</span>
             </div>
             
             <div class="flex items-center gap-2.5" x-show="selectedIds.length > 0" x-cloak>
@@ -75,7 +89,7 @@
                 @can('force-delete')
                 <button @click="showBulkDeleteModal = true" class="h-10 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <span>Purge Selected (<span x-text="selectedIds.length"></span>)</span>
+                    <span>Hard Delete Selected (<span x-text="selectedIds.length"></span>)</span>
                 </button>
                 @endcan
             </div>
@@ -89,46 +103,124 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Archive is empty</h3>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">No deleted {{ strtolower($type) }} records found in this vault.</p>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Archive vault is clean</h3>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">No archived, rejected, or cancelled {{ strtolower($type) }} records found in this vault.</p>
                 </div>
             @else
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/90 dark:bg-slate-950/80 text-slate-500 dark:text-slate-400 text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
                             <th class="px-6 py-4 w-12">
-                                <input type="checkbox" x-model="selectAll" @change="toggleAll" class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 shadow-sm focus:ring-0 focus:ring-offset-0">
+                                <input type="checkbox" x-model="selectAll" @change="toggleAll" class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 shadow-sm focus:ring-0 focus:ring-offset-0 cursor-pointer">
                             </th>
                             <th class="px-6 py-4">ID</th>
-                            <th class="px-6 py-4">Name / Record Title</th>
-                            <th class="px-6 py-4">Deleted At</th>
-                            <th class="px-6 py-4">Prune Countdown</th>
+                            <th class="px-6 py-4">Record Details</th>
+                            <th class="px-6 py-4">Status / Archive State</th>
+                            <th class="px-6 py-4">Archived Date</th>
+                            <th class="px-6 py-4">Age / Truncate Status</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                         @foreach($records as $record)
+                            @php
+                                $recordDate = $record->deleted_at ?? $record->archived_at ?? $record->cancelled_at ?? $record->rejected_at ?? $record->expired_at ?? $record->updated_at ?? $record->created_at;
+                                $isOlderThanOneYear = $recordDate && $recordDate->lte(now()->subYear());
+                            @endphp
                             <tr class="hover:bg-emerald-50/30 dark:hover:bg-slate-800/40 transition-colors">
                                 <td class="px-6 py-4">
-                                    <input type="checkbox" value="{{ $record->id }}" x-model="selectedIds" @change="if(!selectedIds.includes('{{ $record->id }}')) selectAll = false" class="rowCheckbox rounded border-slate-300 dark:border-slate-700 text-emerald-600 shadow-sm focus:ring-0 focus:ring-offset-0">
+                                    <input type="checkbox" value="{{ $record->id }}" x-model="selectedIds" @change="if(!selectedIds.includes('{{ $record->id }}')) selectAll = false" class="rowCheckbox rounded border-slate-300 dark:border-slate-700 text-emerald-600 shadow-sm focus:ring-0 focus:ring-offset-0 cursor-pointer">
                                 </td>
                                 <td class="px-6 py-4 text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
                                     <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                         #{{ $record->id }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-slate-900 dark:text-white font-bold">
-                                    {{ Str::limit($record->{$nameField}, 50) }}
+                                <td class="px-6 py-4">
+                                    @if($type === 'ancillary')
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $record->type === 'Radiology' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300' }}">
+                                                    {{ $record->type }}
+                                                </span>
+                                                <span class="font-bold text-slate-900 dark:text-white">{{ $record->test_name }}</span>
+                                                @if($record->result_file_path)
+                                                    <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 text-[10px] font-bold">Scan Attached</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                Patient: <strong class="text-slate-700 dark:text-slate-300">{{ $record->consultation->patient->full_name ?? 'N/A' }}</strong>
+                                                @if($record->archived_reason || $record->rejection_reason || $record->cancellation_reason)
+                                                    • <span class="italic text-slate-400">Reason: {{ $record->archived_reason ?? $record->rejection_reason ?? $record->cancellation_reason }}</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                    @elseif($type === 'appointments')
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-slate-900 dark:text-white">{{ $record->first_name }} {{ $record->last_name }}</span>
+                                                <span class="text-xs font-mono text-slate-500 dark:text-slate-400">({{ $record->reference_number }})</span>
+                                            </div>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                Classification: <span class="capitalize font-semibold text-slate-700 dark:text-slate-300">{{ $record->classification ?? 'General' }}</span>
+                                                @if($record->cancellation_reason)
+                                                    • <span class="italic text-slate-400">Reason: {{ $record->cancellation_reason }}</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                    @elseif($type === 'prescriptions')
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-slate-900 dark:text-white">Prescription #{{ $record->id }}</span>
+                                                <span class="text-xs text-slate-500 dark:text-slate-400">— {{ $record->patient->full_name ?? $record->patient_id ?? 'Patient' }}</span>
+                                            </div>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                Doctor: <span class="text-slate-700 dark:text-slate-300">{{ $record->doctor->name ?? 'N/A' }}</span> • Items: <strong class="text-slate-700 dark:text-slate-300">{{ $record->items->count() }}</strong>
+                                                @if($record->cancellation_reason)
+                                                    • <span class="italic text-slate-400">Reason: {{ $record->cancellation_reason }}</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                    @else
+                                        <div class="font-bold text-slate-900 dark:text-white">
+                                            {{ Str::limit($record->{$nameField}, 50) }}
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($type === 'ancillary')
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $record->archived_at ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300' : ($record->status === 'Rejected' ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300' : ($record->status === 'Cancelled' ? 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300')) }}">
+                                            {{ $record->archived_at ? 'Archived (No-Show)' : $record->status }}
+                                        </span>
+                                    @elseif($type === 'appointments')
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $record->status === 'cancelled' ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300' }}">
+                                            {{ ucfirst(str_replace('_', ' ', $record->status)) }}
+                                        </span>
+                                    @elseif($type === 'prescriptions')
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $record->status === 'cancelled' ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300' }}">
+                                            {{ ucfirst($record->status) }}
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                                            Soft Deleted
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                                    {{ $record->deleted_at->format('M d, Y h:i A') }}
+                                    {{ $recordDate ? $recordDate->format('M d, Y h:i A') : 'N/A' }}
                                 </td>
-                                <td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-2xs" title="Record will be permanently purged after this date.">
-                                        {{ $record->deleted_at->copy()->addMonths(6)->format('M d, Y') }}
-                                    </span>
+                                <td class="px-6 py-4 text-xs whitespace-nowrap">
+                                    @if($isOlderThanOneYear)
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                                            &gt; 1 Year (Eligible for Truncate)
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                            {{ $recordDate ? $recordDate->diffForHumans() : 'Recent' }}
+                                        </span>
+                                    @endif
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-6 py-4 text-right whitespace-nowrap">
                                     <div class="flex justify-end items-center gap-2">
                                         <!-- Restore Button -->
                                         <button type="button" 
@@ -144,20 +236,21 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
                                             <span>Restore</span>
                                         </button>
-                                        <!-- Force Delete Button -->
+
+                                        <!-- Hard Delete / Force Delete Button (for admin and super_admin) -->
                                         @can('force-delete')
                                         <button type="button" 
                                             @click="$dispatch('open-confirmation', {
                                                 action: '{{ route('admin.archive.force-delete', ['type' => $type, 'id' => $record->id]) }}',
                                                 method: 'DELETE',
-                                                title: 'Permanently Purge Record?',
-                                                message: 'Are you sure you want to permanently delete record #{{ $record->id }}? This action cannot be undone.',
-                                                confirmText: 'Delete Permanently',
+                                                title: 'Permanently Hard Delete Record?',
+                                                message: 'Are you sure you want to hard delete record #{{ $record->id }}? All related data and uploaded physical files will be permanently purged.',
+                                                confirmText: 'Hard Delete',
                                                 type: 'danger'
                                             })"
                                             class="h-8 px-3 rounded-xl inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/60 shadow-2xs transition-all cursor-pointer active:scale-95">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                            <span>Purge</span>
+                                            <span>Hard Delete</span>
                                         </button>
                                         @endcan
                                     </div>
@@ -168,6 +261,12 @@
                 </table>
             @endif
         </div>
+
+        @if($records->hasPages())
+            <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
+                {{ $records->appends(request()->query())->links('vendor.pagination.shadcn') }}
+            </div>
+        @endif
     </div>
 
     <!-- Bulk Restore Modal -->
@@ -187,7 +286,7 @@
                             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                 <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Restore Confirmation</h3>
                                 <div class="mt-2">
-                                    <p class="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to restore <span class="font-black text-emerald-600 dark:text-emerald-400" x-text="selectedIds.length"></span> selected records? They will be moved back to active records.</p>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to restore <span class="font-black text-emerald-600 dark:text-emerald-400" x-text="selectedIds.length"></span> selected records? They will be moved back to active status.</p>
                                 </div>
                             </div>
                         </div>
@@ -207,11 +306,11 @@
                             <template x-for="id in selectedIds" :key="id">
                                 <input type="hidden" name="ids[]" :value="id">
                             </template>
-                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-emerald-600 text-sm font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer">
+                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2.5 bg-emerald-600 text-sm font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer">
                                 Restore Records
                             </button>
                         </form>
-                        <button type="button" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" @click="showBulkRestoreModal = false">
+                        <button type="button" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2.5 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" @click="showBulkRestoreModal = false">
                             Cancel
                         </button>
                     </div>
@@ -220,7 +319,8 @@
         </div>
     </template>
 
-    <!-- Bulk Delete Modal -->
+    <!-- Bulk Hard Delete Modal -->
+    @can('force-delete')
     <template x-teleport="body">
         <div x-show="showBulkDeleteModal" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -235,9 +335,10 @@
                                 </svg>
                             </div>
                             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Permanent Purge</h3>
-                                <div class="mt-2">
-                                    <p class="text-sm text-slate-500 dark:text-slate-400"><span class="font-bold text-rose-600 dark:text-rose-400">CRITICAL WARNING:</span> Are you sure you want to permanently purge <span class="font-black text-rose-600 dark:text-rose-400" x-text="selectedIds.length"></span> selected records? This operation cannot be reversed.</p>
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Bulk Hard Delete Confirmation</h3>
+                                <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                                    <p><span class="font-bold text-rose-600 dark:text-rose-400">CRITICAL WARNING:</span> Are you sure you want to permanently hard delete <span class="font-black text-rose-600 dark:text-rose-400" x-text="selectedIds.length"></span> selected records?</p>
+                                    <p>All associated files (uploaded diagnostic scans, avatars, etc.) will be permanently erased from storage disk. This operation cannot be reversed.</p>
                                 </div>
                             </div>
                         </div>
@@ -258,11 +359,11 @@
                             <template x-for="id in selectedIds" :key="id">
                                 <input type="hidden" name="ids[]" :value="id">
                             </template>
-                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all cursor-pointer">
-                                Purge Permanently
+                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2.5 bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all cursor-pointer">
+                                Hard Delete Permanently
                             </button>
                         </form>
-                        <button type="button" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" @click="showBulkDeleteModal = false">
+                        <button type="button" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2.5 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" @click="showBulkDeleteModal = false">
                             Cancel
                         </button>
                     </div>
@@ -270,5 +371,55 @@
             </div>
         </div>
     </template>
+    @endcan
+
+    <!-- Super Admin Category 1-Year Truncate Modal -->
+    @can('truncate-archive')
+    <template x-teleport="body">
+        <div x-show="showTruncateModal" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="showTruncateModal = false"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                    <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">Truncate 1-Year Records ({{ $title }})</h3>
+                                <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                                    <p>
+                                        Permanently delete all {{ strtolower($title) }} records that have been archived, rejected, or unfinished for over 1 year.
+                                    </p>
+                                    <div class="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300">
+                                        <p class="font-bold">Automated Bloat Prevention:</p>
+                                        <ul class="list-disc pl-4 mt-1 space-y-1">
+                                            <li>Associated physical files on server disk storage will be completely deleted.</li>
+                                            <li>Currently eligible in this category: <strong class="font-black text-rose-950 dark:text-white">{{ $oneYearCount ?? 0 }} records</strong> older than 1 year.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                        <form method="POST" action="{{ route('admin.archive.truncate-year', $type) }}">
+                            @csrf
+                            <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2.5 bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all cursor-pointer">
+                                Confirm Truncate &gt; 1 Year
+                            </button>
+                        </form>
+                        <button type="button" class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2.5 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" @click="showTruncateModal = false">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    @endcan
 </div>
 @endsection

@@ -194,7 +194,8 @@
                      x-transition:enter="transition ease-out duration-200" 
                      x-transition:enter-start="opacity-0 translate-y-2" 
                      x-transition:enter-end="opacity-100 translate-y-0"
-                     class="grow flex flex-col h-full">
+                     class="grow flex flex-col h-full"
+                     x-data="{ showCancelWalkout: false }">
                     
                     <div class="p-5 border-b border-slate-100 bg-white dark:bg-gray-800 rounded-tr-lg">
                         <h3 class="text-lg font-extrabold text-slate-800">Physician's Assessment</h3>
@@ -237,51 +238,157 @@
                                 </div>
                                 @endif
 
-                                <form action="{{ route('doctor.ancillary.store', $consultation->id) }}" method="POST" class="flex flex-col md:flex-row gap-3" x-data="{ requestType: 'Laboratory' }">
+                                @php
+                                    $activeTestNames = $consultation->ancillaryRequests
+                                        ? $consultation->ancillaryRequests->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress'])->pluck('test_name')->toArray()
+                                        : [];
+                                    $isCbcActive = in_array('Complete Blood Count (CBC)', $activeTestNames);
+                                    $isUrinalysisActive = in_array('Urinalysis', $activeTestNames);
+                                    $isChestXrayActive = in_array('Chest X-Ray', $activeTestNames);
+                                @endphp
+
+                                <form action="{{ route('doctor.ancillary.store', $consultation->id) }}" method="POST" 
+                                      class="space-y-3" 
+                                      x-data="{ requestType: 'Laboratory', testName: '' }"
+                                      @change="if($event.target.tagName==='INPUT'){
+                                          if($event.target.name==='type'){requestType=$event.target.value;testName=''}
+                                          else if($event.target.name==='lab_test_name'||$event.target.name==='rad_test_name'){testName=$event.target.value}
+                                      }">
                                     @csrf
-                                    <select name="type" x-model="requestType" class="text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" required>
-                                        <option value="Laboratory">Laboratory Request</option>
-                                        <option value="Radiology">Radiology Request</option>
-                                    </select>
-                                    <select name="test_name" x-show="requestType === 'Laboratory'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" required>
-                                        <option value="" disabled selected>-- Select Laboratory Test --</option>
-                                        <option value="Complete Blood Count (CBC)">CBC (Complete Blood Count)</option>
-                                        <option value="Urinalysis">Urinalysis</option>
-                                    </select>
-                                    <select name="test_name" x-show="requestType === 'Radiology'" class="flex-1 text-sm rounded-md border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white" x-cloak required>
-                                        <option value="" disabled selected>-- Select Radiology Test --</option>
-                                        <option value="Chest X-Ray">Chest X-Ray</option>
-                                    </select>
-                                    <button type="submit" class="bg-indigo-600 text-white px-5 py-2 flex items-center justify-center gap-2 rounded-md font-bold text-sm hover:bg-indigo-700 shadow-sm transition shrink-0">
-                                        Send Request
-                                    </button>
+                                    <input type="hidden" name="test_name" :value="testName">
+
+                                    <div class="flex flex-col md:flex-row gap-3 items-end">
+                                        <div class="w-full md:w-auto md:min-w-[180px]">
+                                            <x-select name="type" size="sm"
+                                                :options="['Laboratory' => 'Laboratory Request', 'Radiology' => 'Radiology Request']"
+                                                value="Laboratory" />
+                                        </div>
+
+                                        <div class="flex-1" x-show="requestType === 'Laboratory'">
+                                            <x-select name="lab_test_name" size="sm"
+                                                placeholder="-- Select Laboratory Test --"
+                                                :options="array_filter([
+                                                    !$isCbcActive ? ['value' => 'Complete Blood Count (CBC)', 'label' => 'CBC (Complete Blood Count)'] : null,
+                                                    !$isUrinalysisActive ? ['value' => 'Urinalysis', 'label' => 'Urinalysis'] : null,
+                                                ])" />
+                                        </div>
+
+                                        <div class="flex-1" x-show="requestType === 'Radiology'" x-cloak>
+                                            <x-select name="rad_test_name" size="sm"
+                                                placeholder="-- Select Radiology Test --"
+                                                :options="array_filter([
+                                                    !$isChestXrayActive ? ['value' => 'Chest X-Ray', 'label' => 'Chest X-Ray'] : null,
+                                                ])" />
+                                        </div>
+
+                                        <button type="submit" class="bg-indigo-600 text-white px-5 py-2 flex items-center justify-center gap-2 rounded-xl font-bold text-sm hover:bg-indigo-700 shadow-sm transition shrink-0">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                                            Send Request
+                                        </button>
+                                    </div>
+
+                                    @if($isCbcActive || $isUrinalysisActive || $isChestXrayActive)
+                                        <div class="flex flex-wrap gap-1.5 mt-1">
+                                            @if($isCbcActive)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    CBC — In Progress
+                                                </span>
+                                            @endif
+                                            @if($isUrinalysisActive)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    Urinalysis — In Progress
+                                                </span>
+                                            @endif
+                                            @if($isChestXrayActive)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    Chest X-Ray — In Progress
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </form>
                             </div>
                         </div>
 
                         <!-- Display Ancillary Results -->
                         @if($consultation->ancillaryRequests && $consultation->ancillaryRequests->count() > 0)
-                            <div class="mt-4 space-y-3">
-                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2">Laboratory / Radiology Results</h4>
+                            @php
+                                $cancelledRejectedCount = $consultation->ancillaryRequests->whereIn('status', ['Cancelled', 'Rejected'])->count();
+                            @endphp
+                            <div class="mt-4 space-y-3 max-w-full overflow-hidden" x-data="{ showDismissed: false }">
+                                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Laboratory / Radiology Results</h4>
+                                    @if($cancelledRejectedCount > 0)
+                                        <button type="button" @click="showDismissed = !showDismissed" 
+                                                class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors"
+                                                :class="showDismissed 
+                                                    ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' 
+                                                    : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                            <span x-text="showDismissed ? 'Hide Cancelled/Rejected' : 'Show Cancelled/Rejected ({{ $cancelledRejectedCount }})'" ></span>
+                                        </button>
+                                    @endif
+                                </div>
+                                <div class="space-y-3 max-h-[460px] overflow-y-auto pr-1.5 scrollbar-thin">
                                 @foreach($consultation->ancillaryRequests as $ancillary)
-                                    <div class="bg-white dark:bg-slate-800 border rounded-lg p-4 shadow-sm {{ $ancillary->status === 'Done' ? 'border-green-200 dark:border-green-800' : 'border-amber-200 dark:border-amber-800' }}">
+                                    <div class="bg-white dark:bg-slate-800 border rounded-xl p-4 shadow-sm {{ $ancillary->status === 'Done' ? 'border-green-200 dark:border-green-800' : ($ancillary->status === 'Rejected' ? 'border-rose-300 dark:border-rose-800 ring-2 ring-rose-200/50' : ($ancillary->status === 'Cancelled' ? 'border-slate-200 dark:border-slate-700' : 'border-amber-200 dark:border-amber-800')) }}"
+                                         x-data="{ showPrev: false, showCancel: false }"
+                                         @if(in_array($ancillary->status, ['Cancelled', 'Rejected'])) x-show="showDismissed" x-transition.opacity.duration.200ms @endif>
                                         <div class="flex items-start justify-between mb-2">
                                             <div>
-                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $ancillary->type === 'Laboratory' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' }}">
-                                                    {{ $ancillary->type }}
-                                                </span>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $ancillary->type === 'Laboratory' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' }}">
+                                                        {{ $ancillary->type }}
+                                                    </span>
+                                                    @if($ancillary->is_repeat || $ancillary->parent_id)
+                                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300">
+                                                            Repeat Test
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 <h5 class="font-bold text-slate-800 dark:text-white mt-1">{{ $ancillary->test_name }}</h5>
                                             </div>
                                             <div>
                                                 @if($ancillary->status === 'Done')
-                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-md border border-green-200 dark:border-green-800">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                                        Completed
+                                                    @if($ancillary->amended_at)
+                                                        <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 px-2 py-1 rounded-md border border-amber-300 dark:border-amber-800">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                            Completed (Amended)
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-md border border-green-200 dark:border-green-800">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                            Completed
+                                                        </span>
+                                                    @endif
+                                                @elseif($ancillary->status === 'Specimen Collected')
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-sky-700 bg-sky-50 dark:bg-sky-900/30 dark:text-sky-300 px-2 py-1 rounded-md border border-sky-300 dark:border-sky-800">
+                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                        Specimen Collected
+                                                    </span>
+                                                @elseif($ancillary->status === 'In Progress')
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-1 rounded-md border border-indigo-300 dark:border-indigo-800 animate-pulse">
+                                                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                        Processing
+                                                    </span>
+                                                @elseif($ancillary->status === 'Rejected')
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-rose-700 bg-rose-50 dark:bg-rose-900/30 dark:text-rose-400 px-2 py-1 rounded-md border border-rose-300 dark:border-rose-800">
+                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                        Sample Rejected
+                                                    </span>
+                                                @elseif($ancillary->status === 'Cancelled')
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-slate-600 bg-slate-100 dark:bg-slate-700 dark:text-slate-300 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600">
+                                                        Cancelled
                                                     </span>
                                                 @else
                                                     <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800">
                                                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                        Pending
+                                                        Pending Sample
                                                     </span>
                                                 @endif
                                             </div>
@@ -289,6 +396,54 @@
                                         
                                         @if($ancillary->remarks)
                                             <p class="text-xs text-slate-500 dark:text-slate-400 mb-2 italic">Remarks/Instructions: {{ $ancillary->remarks }}</p>
+                                        @endif
+
+                                        {{-- REJECTION ALERT & 1-CLICK RE-ORDER BUTTON --}}
+                                        @if($ancillary->status === 'Rejected')
+                                            <div class="mt-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                <div>
+                                                    <p class="text-xs font-extrabold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+                                                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                        Sample Compromised: {{ ucwords(str_replace('_', ' ', $ancillary->rejection_reason ?? 'Rejected')) }}
+                                                    </p>
+                                                    @if($ancillary->rejection_notes)
+                                                        <p class="text-xs text-rose-700 dark:text-rose-400 mt-1 italic">"{{ $ancillary->rejection_notes }}"</p>
+                                                    @endif
+                                                    <p class="text-[10px] text-rose-500 mt-0.5">Rejected by {{ $ancillary->rejector?->formatted_name ?? 'Laboratory Staff' }} &bull; {{ $ancillary->rejected_at?->format('M d, h:i A') }}</p>
+                                                </div>
+                                                <form action="{{ route('doctor.ancillary.repeat', $ancillary->id) }}" method="POST" class="shrink-0">
+                                                    @csrf
+                                                    <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-3 py-2 rounded-lg text-xs shadow-xs transition">
+                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                        Re-order / Repeat Test
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endif
+
+                                        {{-- AMENDMENT AUDIT ALERT --}}
+                                        @if($ancillary->status === 'Done' && $ancillary->amended_at)
+                                            <div class="mt-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs">
+                                                <p class="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                                                    <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    Results officially amended on {{ $ancillary->amended_at->format('M d, Y h:i A') }}
+                                                </p>
+                                                <p class="text-amber-800 dark:text-amber-300 mt-0.5"><strong>Reason:</strong> {{ $ancillary->amendment_reason }}</p>
+                                                <p class="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">Amended by {{ $ancillary->amender?->formatted_name ?? 'Technician' }}</p>
+                                                @if($ancillary->previous_result_data)
+                                                    <button type="button" @click="showPrev = !showPrev" class="mt-1.5 text-[11px] font-bold text-amber-800 dark:text-amber-300 underline">
+                                                        <span x-text="showPrev ? 'Hide Previous Values' : 'View Prior Unamended Values'"></span>
+                                                    </button>
+                                                    <div x-show="showPrev" class="mt-2 p-2 bg-white/70 dark:bg-slate-900/70 rounded-lg border border-amber-200 dark:border-amber-900 space-y-1">
+                                                        @foreach($ancillary->previous_result_data as $pk => $pv)
+                                                            <div class="flex justify-between text-[11px]">
+                                                                <span class="text-slate-500 font-bold uppercase">{{ str_replace('_', ' ', $pk) }}:</span>
+                                                                <span class="text-slate-700 dark:text-slate-300 font-mono">{{ $pv }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
                                         @endif
 
                                         <div class="mt-3 bg-slate-50 dark:bg-slate-900/50 rounded-md p-3 border border-slate-100 dark:border-slate-700">
@@ -319,12 +474,40 @@
                                                 @endif
                                             @elseif($ancillary->status === 'Done')
                                                 <p class="text-sm text-slate-800 dark:text-slate-200 font-medium">Results submitted (no structured data).</p>
+                                            @elseif($ancillary->status === 'Rejected')
+                                                <p class="text-xs text-rose-600 dark:text-rose-400 font-medium">No results produced due to sample rejection.</p>
+                                            @elseif($ancillary->status === 'Cancelled')
+                                                <p class="text-xs text-slate-500 font-medium italic">Request cancelled: "{{ $ancillary->cancellation_reason }}"</p>
                                             @else
-                                                <p class="text-sm text-slate-500 dark:text-slate-400 italic">Waiting for laboratory/radiology to submit results...</p>
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-sm text-slate-500 dark:text-slate-400 italic">Waiting for laboratory/radiology to submit results...</p>
+                                                    {{-- Doctor Cancel Option --}}
+                                                    <button type="button" @click="showCancel = true" class="text-xs font-bold text-slate-500 hover:text-rose-600 underline">
+                                                        Cancel Request
+                                                    </button>
+                                                </div>
+
+                                                {{-- Inline Cancel Modal for Doctor --}}
+                                                <div x-show="showCancel" style="display:none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showCancel = false"></div>
+                                                    <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-5 border border-slate-200 dark:border-slate-700 z-10 text-left">
+                                                        <h4 class="font-extrabold text-slate-900 dark:text-white mb-2">Cancel {{ $ancillary->test_name }}?</h4>
+                                                        <form action="{{ route('doctor.ancillary.cancel', $ancillary->id) }}" method="POST">
+                                                            @csrf
+                                                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Reason for Cancellation <span class="text-rose-500">*</span></label>
+                                                            <textarea name="cancellation_reason" required rows="2" placeholder="e.g. Ordered in error, patient declined..." class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-2 text-xs text-slate-900 dark:text-white mb-3"></textarea>
+                                                            <div class="flex justify-end gap-2">
+                                                                <button type="button" @click="showCancel = false" class="px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-bold text-slate-600">Back</button>
+                                                                <button type="submit" class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-bold">Confirm Cancel</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
                                             @endif
                                         </div>
                                     </div>
                                 @endforeach
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -487,7 +670,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                                     <!-- Instructions Field -->
                                     <div class="md:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Instructions / Frequency</label>
@@ -505,49 +688,127 @@
                                                placeholder="e.g. 30"
                                                class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
                                     </div>
+
+                                    <!-- Duration Field -->
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Duration (days)</label>
+                                        <input type="number" x-model="currentDuration" min="1"
+                                               @keydown.enter.prevent="addPrescription()"
+                                               placeholder="e.g. 7"
+                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                    </div>
                                 </div>
 
-                                <!-- Quick Analgesic Presets (Adult mg vs Pedia mL) -->
+                                <!-- Quick Clinical Presets -->
                                 <div class="mb-4 pb-3 border-b border-slate-200 space-y-3">
-                                    <div>
-                                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">⚡ Adult Analgesic Presets (Solid / mg):</span>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 500mg (Tablet)', amount: '500mg', instruction: '1 tab every 4-6 hours as needed for fever/pain', quantity: 10, isOtc: true })" 
-                                                    class="text-xs font-bold bg-teal-50 border border-teal-200 text-teal-800 hover:bg-teal-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                                <span>💊 Paracetamol 500mg Tab</span>
-                                            </button>
-                                            <button type="button" @click="applyPreset({ name: 'Ibuprofen 400mg (Tablet)', amount: '400mg', instruction: '1 tab 3x daily after meals for 5 days', quantity: 15, isOtc: true })" 
-                                                    class="text-xs font-bold bg-blue-50 border border-blue-200 text-blue-800 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                                <span>💊 Ibuprofen 400mg Tab</span>
-                                            </button>
-                                            <button type="button" @click="applyPreset({ name: 'Mefenamic Acid 500mg (Capsule)', amount: '500mg', instruction: '1 cap 3x daily after meals for pain', quantity: 9, isOtc: true })" 
-                                                    class="text-xs font-bold bg-purple-50 border border-purple-200 text-purple-800 hover:bg-purple-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                                <span>💊 Mefenamic Acid 500mg Cap</span>
-                                            </button>
-                                        </div>
-                                    </div>
+                                    @php
+                                        $isPediaRole = (auth()->user()->role === 'pedia_doctor') || ($consultation->doctor_type === 'pediatrician') || ($patient->classification === 'Pediatric');
+                                    @endphp
 
-                                    <div>
-                                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">🍼 Pediatric Presets (Liquid / mL & Drops):</span>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 250mg/5mL Syrup', amount: '250mg/5mL', instruction: '5 mL every 4-6 hours as needed for fever', quantity: 1, isOtc: true })" 
-                                                    class="text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                                <span>🍼 Paracetamol 250mg/5mL Syrup</span>
-                                            </button>
-                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 120mg/5mL Syrup', amount: '120mg/5mL', instruction: '5 mL every 4-6 hours as needed for fever', quantity: 1, isOtc: true })" 
-                                                    class="text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                                <span>🍼 Paracetamol 120mg/5mL Syrup</span>
-                                            </button>
-                                            <button type="button" @click="applyPreset({ name: 'Paracetamol 100mg/mL Drops', amount: '100mg/mL', instruction: '1 mL every 4-6 hours as needed for infant fever', quantity: 1, isOtc: true })" 
-                                                    class="text-xs font-bold bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                                <span>💧 Paracetamol 100mg/mL Drops</span>
-                                            </button>
-                                            <button type="button" @click="applyPreset({ name: 'Ibuprofen 100mg/5mL Syrup', amount: '100mg/5mL', instruction: '5 mL 3x daily after meals for 5 days', quantity: 1, isOtc: true })" 
-                                                    class="text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-800 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                                <span>🍼 Ibuprofen 100mg/5mL Syrup</span>
-                                            </button>
+                                    @if($isPediaRole)
+                                        <div>
+                                            <span class="block text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                                🍼 Pediatric Formulations (Liquid / mL & Drops):
+                                            </span>
+                                            <div class="flex flex-wrap gap-1.5">
+                                                <button type="button" @click="applyPreset({ name: 'Paracetamol 250mg/5mL Syrup', amount: '250mg/5mL', instruction: '5 mL every 4-6 hours as needed for fever', quantity: 1, isOtc: true })" 
+                                                        class="text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>🍼 Paracetamol 250mg/5mL</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Paracetamol 120mg/5mL Syrup', amount: '120mg/5mL', instruction: '5 mL every 4-6 hours as needed for fever', quantity: 1, isOtc: true })" 
+                                                        class="text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>🍼 Paracetamol 120mg/5mL</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Paracetamol 100mg/mL Drops', amount: '100mg/mL', instruction: '1 mL every 4-6 hours as needed for infant fever', quantity: 1, isOtc: true })" 
+                                                        class="text-xs font-bold bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💧 Paracetamol Drops 100mg/mL</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Ibuprofen 100mg/5mL Syrup', amount: '100mg/5mL', instruction: '5 mL 3x daily after meals for 5 days', quantity: 1, isOtc: true })" 
+                                                        class="text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-800 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>🍼 Ibuprofen 100mg/5mL</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Amoxicillin 250mg/5mL Oral Suspension', amount: '250mg/5mL', instruction: '5 mL every 8 hours for 7 days', quantity: 1, isOtc: true })" 
+                                                        class="text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>🍼 Amoxicillin Susp 250mg/5mL</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Cetirizine 2.5mg/5mL Syrup', amount: '2.5mg/5mL', instruction: '5 mL once daily at bedtime', quantity: 1, isOtc: true })" 
+                                                        class="text-xs font-bold bg-teal-50 border border-teal-200 text-teal-800 hover:bg-teal-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>🍼 Cetirizine Syrup 2.5mg/5mL</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Zinc Sulfate 55mg/5mL Syrup', amount: '55mg/5mL', instruction: '5 mL once daily for 14 days', quantity: 1, isOtc: true })" 
+                                                        class="text-xs font-bold bg-sky-50 border border-sky-200 text-sky-800 hover:bg-sky-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>🍼 Zinc Sulfate Syrup</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Oral Rehydration Salts (ORS)', amount: '1 sachet', instruction: 'Dissolve 1 sachet in 1 liter clean water, drink after each loose stool', quantity: 3, isOtc: true })" 
+                                                        class="text-xs font-bold bg-cyan-50 border border-cyan-200 text-cyan-800 hover:bg-cyan-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💧 ORS Sachet</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @else
+                                        <div class="space-y-2">
+                                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                ⚡ Adult Clinical Presets:
+                                            </span>
+                                            <div class="flex flex-wrap gap-1.5">
+                                                <!-- Analgesic / Anti-inflammatory -->
+                                                <button type="button" @click="applyPreset({ name: 'Paracetamol 500mg (Tablet)', amount: '500mg', instruction: '1 tab every 4-6 hours as needed for fever/pain', quantity: 10, isOtc: true })" 
+                                                        class="text-xs font-bold bg-teal-50 border border-teal-200 text-teal-800 hover:bg-teal-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Paracetamol 500mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Ibuprofen 400mg (Tablet)', amount: '400mg', instruction: '1 tab 3x daily after meals for 5 days', quantity: 15, isOtc: true })" 
+                                                        class="text-xs font-bold bg-blue-50 border border-blue-200 text-blue-800 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Ibuprofen 400mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Mefenamic Acid 500mg (Capsule)', amount: '500mg', instruction: '1 cap 3x daily after meals for pain', quantity: 9, isOtc: true })" 
+                                                        class="text-xs font-bold bg-purple-50 border border-purple-200 text-purple-800 hover:bg-purple-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Mefenamic Acid 500mg</span>
+                                                </button>
+
+                                                <!-- Antibiotics -->
+                                                <button type="button" @click="applyPreset({ name: 'Amoxicillin 500mg (Capsule)', amount: '500mg', instruction: '1 cap 3x daily (every 8 hrs) for 7 days', quantity: 21, isOtc: true })" 
+                                                        class="text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Amoxicillin 500mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Co-Amoxiclav 625mg (Tablet)', amount: '625mg', instruction: '1 tab 2x daily (every 12 hrs) with meals for 7 days', quantity: 14, isOtc: true })" 
+                                                        class="text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Co-Amoxiclav 625mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Cefalexin 500mg (Capsule)', amount: '500mg', instruction: '1 cap 3x daily for 7 days', quantity: 21, isOtc: true })" 
+                                                        class="text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Cefalexin 500mg</span>
+                                                </button>
+
+                                                <!-- Maintenance / Cardiovascular / Metabolic -->
+                                                <button type="button" @click="applyPreset({ name: 'Amlodipine 5mg (Tablet)', amount: '5mg', instruction: '1 tab once daily in the morning', quantity: 30, isOtc: true })" 
+                                                        class="text-xs font-bold bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>❤️ Amlodipine 5mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Losartan 50mg (Tablet)', amount: '50mg', instruction: '1 tab once daily in the morning', quantity: 30, isOtc: true })" 
+                                                        class="text-xs font-bold bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>❤️ Losartan 50mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Metformin 500mg (Tablet)', amount: '500mg', instruction: '1 tab 2x daily with meals', quantity: 60, isOtc: true })" 
+                                                        class="text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>🩺 Metformin 500mg</span>
+                                                </button>
+
+                                                <!-- Gastrointestinal & Allergy -->
+                                                <button type="button" @click="applyPreset({ name: 'Omeprazole 20mg (Capsule)', amount: '20mg', instruction: '1 cap once daily 30 minutes before breakfast for 14 days', quantity: 14, isOtc: true })" 
+                                                        class="text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-800 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Omeprazole 20mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Cetirizine 10mg (Tablet)', amount: '10mg', instruction: '1 tab once daily at bedtime', quantity: 10, isOtc: true })" 
+                                                        class="text-xs font-bold bg-sky-50 border border-sky-200 text-sky-800 hover:bg-sky-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💊 Cetirizine 10mg</span>
+                                                </button>
+                                                <button type="button" @click="applyPreset({ name: 'Oral Rehydration Salts (ORS)', amount: '1 sachet', instruction: 'Dissolve 1 sachet in 1 liter clean water, drink after each loose stool', quantity: 4, isOtc: true })" 
+                                                        class="text-xs font-bold bg-cyan-50 border border-cyan-200 text-cyan-800 hover:bg-cyan-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                                    <span>💧 ORS Sachet</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Quick Instruction Buttons -->
@@ -575,11 +836,12 @@
                                     <input type="hidden" :name="`prescriptions_list[${index}][medicine_name]`" :value="item.medicine">
                                     <input type="hidden" :name="`prescriptions_list[${index}][dosage]`" :value="item.amount">
                                     <input type="hidden" :name="`prescriptions_list[${index}][frequency]`" :value="item.instruction">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][duration]`" :value="item.duration || ''">
                                     <input type="hidden" :name="`prescriptions_list[${index}][quantity]`" :value="item.quantity">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][is_otc]`" :value="item.isOtc ? '1' : '0'">
+                                    <input type="hidden" :name="`prescriptions_list[${index}][medicine_id]`" :value="item.medicineId || ''">
                                 </div>
                             </template>
-                            <!-- Also send legacy prescription string if needed -->
-                            <input type="hidden" name="prescription" :value="JSON.stringify(prescriptions)">
                         </div>
 
                         <div class="grow mb-4" x-data="{ 
@@ -614,7 +876,7 @@
                         </div>
 
                         @php
-                            $hasPendingDiagnostics = $consultation->ancillaryRequests && $consultation->ancillaryRequests->where('status', 'Pending')->count() > 0;
+                            $hasPendingDiagnostics = $consultation->ancillaryRequests && $consultation->ancillaryRequests->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress'])->count() > 0;
                         @endphp
 
                         @if($hasPendingDiagnostics)
@@ -744,8 +1006,15 @@
                             </div>
                         </div>
 
-                        <div class="pt-4 border-t border-slate-100 mt-auto flex justify-end gap-3">
-                            <button type="button" @click="showConfirm = true" class="px-6 py-3 bg-teal-600 text-white border border-transparent rounded-lg font-extrabold shadow-lg shadow-teal-600/30 hover:bg-teal-700 hover:shadow-teal-700/40 transition flex items-center gap-2">
+                        <div class="pt-4 border-t border-slate-100 mt-auto flex items-center justify-between gap-3">
+                            <button type="button" @click="showCancelWalkout = true" class="px-4 py-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                                <span>Patient Walked Out / Cancel</span>
+                            </button>
+
+                            <button type="button" @click="showConfirm = true" class="px-6 py-3 bg-teal-600 text-white border border-transparent rounded-lg font-extrabold shadow-lg shadow-teal-600/30 hover:bg-teal-700 hover:shadow-teal-700/40 transition flex items-center gap-2 cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 Complete Consultation
                             </button>
@@ -770,6 +1039,57 @@
                             </div>
                         </div>
                     </form>
+
+                    <!-- Patient Walkout / Cancel Modal -->
+                    <div x-show="showCancelWalkout" x-cloak class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+                         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        <div @click.away="showCancelWalkout = false" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200"
+                             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+                            <form action="{{ route('doctor.consultation.cancel', $consultation->id) }}" method="POST" class="p-6">
+                                @csrf
+                                <div class="flex items-start gap-4 mb-4">
+                                    <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center shrink-0">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-black text-slate-900 dark:text-white">Cancel Consultation / Patient Walkout</h3>
+                                        <p class="text-xs text-slate-500 mt-1">Record patient walkout, consultation refusal, or urgent hospital referral. This will close the encounter and update queue records.</p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Reason for Cancellation <span class="text-rose-500">*</span></label>
+                                        <select name="cancellation_reason" required class="w-full text-xs font-semibold rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-rose-500 focus:border-rose-500">
+                                            <option value="">-- Select Reason --</option>
+                                            <option value="Patient Walked Out / Left Premises">Patient Walked Out / Left Premises</option>
+                                            <option value="Patient Refused Consultation / Treatment">Patient Refused Consultation / Treatment</option>
+                                            <option value="Emergency Hospital Transfer / Endorsement">Emergency Hospital Transfer / Endorsement</option>
+                                            <option value="Patient Unresponsive / Called Multiple Times">Patient Unresponsive / Called Multiple Times</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Additional Notes / Remarks <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                        <textarea name="notes" rows="3" placeholder="Provide details, vitals recorded prior to leaving, or transfer destination..." class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-rose-500 focus:border-rose-500"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                    <button type="button" @click="showCancelWalkout = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                                        Keep Encounter Open
+                                    </button>
+                                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/30 transition flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        Confirm Cancellation
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Past Cases -->
@@ -886,9 +1206,11 @@ document.addEventListener('alpine:init', () => {
         currentAmount: '',
         currentInstruction: '',
         currentQuantity: '',
+        currentDuration: '',
         suggestions: [],
         showSuggestions: false,
         isOtcMode: false,
+        selectedMedicineId: '',
         quickInstructions: [
             '1x a day',
             '2x a day',
@@ -920,6 +1242,9 @@ document.addEventListener('alpine:init', () => {
             this.searchQuery = med.name + (med.form ? ` (${med.form})` : '');
             this.showSuggestions = false;
             
+            // Store medicine_id for server-side validation
+            this.selectedMedicineId = med.id;
+            
             // Focus on amount input
             setTimeout(() => {
                 if (this.$refs.amountInput) this.$refs.amountInput.focus();
@@ -932,6 +1257,7 @@ document.addEventListener('alpine:init', () => {
             this.currentInstruction = preset.instruction;
             this.currentQuantity = preset.quantity;
             this.isOtcMode = preset.isOtc;
+            this.selectedMedicineId = preset.medicineId || '';
         },
         
         addPrescription() {
@@ -941,12 +1267,17 @@ document.addEventListener('alpine:init', () => {
                 amount: this.currentAmount || 'As prescribed',
                 instruction: this.currentInstruction || 'As directed',
                 quantity: this.currentQuantity || '',
+                duration: this.currentDuration || '',
                 isOtc: this.isOtcMode,
+                medicineId: this.selectedMedicineId || '',
             });
             this.searchQuery = '';
             this.currentAmount = '';
             this.currentInstruction = '';
             this.currentQuantity = '';
+            this.currentDuration = '';
+            this.isOtcMode = false;
+            this.selectedMedicineId = '';
             this.suggestions = [];
             
             // Focus back on search

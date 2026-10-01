@@ -1,0 +1,738 @@
+/**
+ * RHU MIS - Unified Print Stylesheet
+ * Single Source of Truth for all Printable Views & Reports
+ * Supports A4 (210 x 297 mm) and US Letter (215.9 x 279.4 mm)
+ * Rural Health Unit of Silang, Cavite, Philippines
+ */
+
+/* ==========================================================================
+   1. ROOT PAGE DEFINITION & CSS PAGED MEDIA
+   ========================================================================== */
+
+@page {
+    /* Auto allows printer/driver to default to user choice (A4 or Letter) */
+    size: auto;
+    margin: 12mm 14mm 16mm 14mm;
+
+    /* CSS Paged Media Margin Boxes (Chrome 110+, Edge, Opera, PDF Engines) */
+    @bottom-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 8pt;
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    @bottom-left {
+        content: "RHU MIS • Silang, Cavite";
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 7.5pt;
+        color: #94a3b8;
+    }
+}
+
+/* Specific Paper Size Overrides (Injected or set via class) */
+@page rhu-a4 {
+    size: A4 portrait;
+    margin: 12mm 14mm 16mm 14mm;
+}
+
+@page rhu-letter {
+    size: letter portrait;
+    margin: 12mm 14mm 16mm 14mm;
+}
+
+.paper-a4 {
+    page: rhu-a4;
+}
+
+.paper-letter {
+    page: rhu-letter;
+}
+
+/* ==========================================================================
+   2. SCREEN PREVIEW STYLES (Light Gray Canvas with Realistic Paper Sheet)
+   ========================================================================== */
+
+@media screen {
+    .rhu-print-preview-body {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Screen Preview Control Bar */
+    .rhu-screen-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 9999;
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #ffffff;
+        padding: 10px 20px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .rhu-toolbar-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+
+    .rhu-toolbar-badge {
+        background: #0f6b57;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 9999px;
+        letter-spacing: 0.05em;
+    }
+
+    .rhu-toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+    }
+
+    .rhu-toolbar-select {
+        background: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        outline: none;
+    }
+
+    .rhu-toolbar-select:focus {
+        border-color: #10b981;
+    }
+
+    .rhu-toolbar-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border: none;
+    }
+
+    .rhu-btn-primary {
+        background: #0f6b57;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(15, 107, 87, 0.3);
+    }
+
+    .rhu-btn-primary:hover {
+        background: #0d5c4b;
+        transform: translateY(-1px);
+    }
+
+    .rhu-btn-secondary {
+        background: #334155;
+        color: #f1f5f9;
+    }
+
+    .rhu-btn-secondary:hover {
+        background: #475569;
+    }
+
+    /* Paper Container (Screen Simulation) */
+    .rhu-paper-sheet {
+        background: #ffffff;
+        width: 100%;
+        max-width: 210mm; /* A4 width baseline on desktop */
+        margin: 28px auto 48px auto;
+        padding: 16mm 18mm 20mm 18mm;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        box-sizing: border-box;
+        position: relative;
+        transition: max-width 0.2s ease;
+    }
+
+    .rhu-paper-sheet.preview-letter {
+        max-width: 215.9mm; /* US Letter width */
+    }
+
+    .rhu-paper-sheet.preview-grayscale {
+        filter: grayscale(100%);
+    }
+}
+
+/* ==========================================================================
+   3. UNIVERSAL PRINT ENGINE RESET & DISPLAY TABLE MECHANISM
+   ========================================================================== */
+
+@media print {
+    /* Force exact color reproduction for charts, borders, badges */
+    *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        box-sizing: border-box;
+    }
+
+    /* Screen UI suppression */
+    nav, aside, footer.no-print, header.no-print, button, form.no-print,
+    .rhu-screen-toolbar, .no-print, .print\:hidden, .print-hidden,
+    [role="dialog"], .toast, .modal-backdrop, [x-show="sidebarOpen"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Global canvas & scrollbar expansion */
+    html, body {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        font-size: 10pt;
+        line-height: 1.45;
+    }
+
+    /* Unconstrain scrollable areas */
+    main, .overflow-y-auto, .overflow-x-auto, .custom-scrollbar,
+    [class*="overflow-"], .max-w-7xl, .max-w-6xl, .max-w-5xl {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Reset Paper Preview container for physical output */
+    .rhu-paper-sheet {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+}
+
+/* ==========================================================================
+   4. MULTI-PAGE REPEATING HEADER & FOOTER ARCHITECTURE
+   Utilizes the CSS Table Display Algorithm (Chrome/Edge Native Standard)
+   ========================================================================== */
+
+.rhu-print-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.rhu-print-thead {
+    display: table-header-group;
+}
+
+.rhu-print-tfoot {
+    display: table-footer-group;
+}
+
+.rhu-print-tbody {
+    display: table-row-group;
+}
+
+.rhu-print-header-cell,
+.rhu-print-body-cell,
+.rhu-print-footer-cell {
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+/* In-Page Integration: Invisible on Screen, Activates in Print */
+@media screen {
+    .rhu-print-table.in-page {
+        display: block !important;
+    }
+    .rhu-print-thead.in-page,
+    .rhu-print-tfoot.in-page {
+        display: none !important;
+    }
+    .rhu-print-tbody.in-page,
+    .rhu-print-table.in-page > tbody > tr,
+    .rhu-print-table.in-page > tbody > tr > td {
+        display: block !important;
+        width: 100% !important;
+    }
+}
+
+@media print {
+    .rhu-print-table.in-page {
+        display: table !important;
+        width: 100% !important;
+    }
+    .rhu-print-thead.in-page {
+        display: table-header-group !important;
+    }
+    .rhu-print-tfoot.in-page {
+        display: table-footer-group !important;
+    }
+    .rhu-print-tbody.in-page {
+        display: table-row-group !important;
+    }
+    .rhu-print-table.in-page > tbody > tr {
+        display: table-row !important;
+    }
+    .rhu-print-table.in-page > tbody > tr > td {
+        display: table-cell !important;
+    }
+}
+
+/* ==========================================================================
+   5. TEMPLATED LETTERHEAD HEADER (Every Page)
+   ========================================================================== */
+
+.rhu-print-header {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.rhu-letterhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 2px 0 6px 0;
+}
+
+.rhu-logo-left,
+.rhu-logo-right {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.rhu-letterhead-logo {
+    max-width: 64px;
+    max-height: 64px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.rhu-letterhead-center {
+    flex: 1;
+    text-align: center;
+    padding: 0 4px;
+}
+
+.rhu-lh-republic {
+    font-size: 8.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #475569;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.rhu-lh-province {
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    line-height: 1.2;
+    margin: 1px 0 0 0;
+}
+
+.rhu-lh-facility {
+    font-size: 13pt;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #0f172a;
+    line-height: 1.2;
+    margin: 3px 0 2px 0;
+}
+
+.rhu-lh-system {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #0f6b57;
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* Thin Double Rule in Brand Color (#0f6b57) */
+.rhu-letterhead-rule {
+    width: 100%;
+    height: 4px;
+    border-top: 1px solid #0f6b57;
+    border-bottom: 2px solid #0f6b57;
+    margin: 4px 0 10px 0;
+}
+
+/* ==========================================================================
+   6. TEMPLATED FOOTER (Every Page)
+   ========================================================================== */
+
+.rhu-print-footer {
+    width: 100%;
+    padding-top: 8px;
+    margin-top: 8px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.rhu-footer-rule {
+    width: 100%;
+    border-top: 1px solid #cbd5e1;
+    margin-bottom: 6px;
+}
+
+.rhu-footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 7pt;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+.rhu-footer-left {
+    flex: 1;
+    max-width: 65%;
+    text-align: justify;
+}
+
+.rhu-footer-right {
+    flex-shrink: 0;
+    text-align: right;
+    font-weight: 600;
+    color: #334155;
+}
+
+/* ==========================================================================
+   7. REPORT TITLE BLOCK (First Page Only)
+   ========================================================================== */
+
+.rhu-title-block {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+@media screen {
+    .rhu-title-block.in-page {
+        display: none !important;
+    }
+}
+
+@media print {
+    .rhu-title-block.in-page {
+        display: block !important;
+    }
+}
+
+.rhu-report-title {
+    font-size: 15pt;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 0 0 2px 0;
+}
+
+.rhu-report-subtitle {
+    font-size: 8.5pt;
+    font-weight: 500;
+    color: #64748b;
+    line-height: 1.3;
+    margin: 0 0 10px 0;
+}
+
+.rhu-meta-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 8pt;
+}
+
+@media (max-width: 640px) {
+    .rhu-meta-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.rhu-meta-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.rhu-meta-label {
+    font-size: 6.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+.rhu-meta-value {
+    font-size: 8pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 1px;
+    word-break: break-word;
+}
+
+/* ==========================================================================
+   8. CLEAN BREAK CONTROLS & COMPONENT STYLING
+   ========================================================================== */
+
+/* Page-break utility classes */
+.page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+}
+
+.avoid-break,
+.rhu-card,
+.rhu-kpi-card,
+.rhu-chart-card,
+.rhu-signature-block,
+tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.rhu-section-heading {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+}
+
+/* 4-column to 2-column responsive KPI Grids */
+.rhu-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 720px) {
+    .rhu-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media print and (max-width: 650px) {
+    .rhu-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.rhu-kpi-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 10px 12px;
+}
+
+.rhu-kpi-title {
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+
+.rhu-kpi-number {
+    font-size: 16pt;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.rhu-kpi-note {
+    font-size: 7pt;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* 2-column report layout grid */
+.rhu-report-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+/* Data Tables in Reports */
+.rhu-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    font-size: 8.5pt;
+    page-break-inside: auto;
+}
+
+.rhu-data-table thead {
+    display: table-header-group;
+}
+
+.rhu-data-table tfoot {
+    display: table-footer-group;
+}
+
+.rhu-data-table th {
+    background: #f1f5f9;
+    color: #1e293b;
+    font-size: 7.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 1px solid #cbd5e1;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.rhu-data-table td {
+    border: 1px solid #e2e8f0;
+    padding: 5px 8px;
+    color: #334155;
+    line-height: 1.3;
+}
+
+.rhu-data-table tr:nth-child(even) td {
+    background-color: #f8fafc;
+}
+
+.rhu-data-table td.num,
+.rhu-data-table th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.rhu-data-table tfoot td {
+    background: #f1f5f9;
+    font-weight: 800;
+    color: #0f172a;
+    border-top: 2px solid #94a3b8;
+}
+
+/* Chart containers */
+.rhu-chart-container {
+    width: 100%;
+    max-width: 100%;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.rhu-chart-container img.rhu-print-chart-replacement {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 250px !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto;
+}
+
+/* Signature Block */
+.rhu-signature-strip {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 24px;
+    margin-bottom: 8px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.rhu-signature-box {
+    flex: 1;
+    max-width: 200px;
+    text-align: center;
+}
+
+.rhu-signature-line {
+    border-bottom: 1px solid #000000;
+    height: 38px;
+    margin-bottom: 4px;
+}
+
+.rhu-signature-name {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #0f172a;
+}
+
+.rhu-signature-role {
+    font-size: 7pt;
+    color: #64748b;
+}
+
+/* Grayscale Printing Safety Rules */
+@media print {
+    .text-emerald-600, .text-emerald-700, .text-teal-600 {
+        color: #0f6b57 !important;
+    }
+    .bg-emerald-50, .bg-teal-50 {
+        background-color: #f1f5f9 !important;
+    }
+    .border-emerald-500, .border-teal-500 {
+        border-color: #0f6b57 !important;
+    }
+}

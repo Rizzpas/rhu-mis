@@ -17,6 +17,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
         'status',
         'schedule_override',
         'avatar_path',
@@ -159,9 +160,13 @@ class User extends Authenticatable
             return $this->isActive(720);
         }
 
-        // If manually set to 'Online' or 'Present', they are present
-        // (requires recent heartbeat to avoid ghost "online" users)
-        if (in_array($status, ['online', 'present']) && $this->isActive(10)) {
+        // If manually set to 'Present', they are physically in clinic
+        if (in_array($status, ['present'])) {
+            return true;
+        }
+
+        // If manually set to 'Online', check recent activity (generous 60-min window)
+        if (in_array($status, ['online']) && $this->isActive(60)) {
             return true;
         }
 
@@ -216,14 +221,17 @@ class User extends Authenticatable
             return $query;
         }
 
-        // Either: manually Online/Present with recent heartbeat
+        // Either: manually Present (on-duty)
+        // Or: Online with activity in last 60 minutes
         // Or: has an active schedule slot right now
-        $activeSince = $now->copy()->subMinutes(10);
+        $activeSince = $now->copy()->subMinutes(60);
 
         $query->where(function ($q) use ($dayOfWeek, $time, $activeSince) {
-            // Manually online with recent heartbeat
-            $q->where(function ($inner) use ($activeSince) {
-                $inner->whereIn('status', ['Online', 'online', 'Present', 'present'])
+            // Status explicitly Present (on duty)
+            $q->whereIn('status', ['Present', 'present'])
+            // OR manually online with recent heartbeat
+            ->orWhere(function ($inner) use ($activeSince) {
+                $inner->whereIn('status', ['Online', 'online'])
                       ->where('last_activity_at', '>=', $activeSince);
             })
             // OR has active schedule slot (no heartbeat required for schedule-based)

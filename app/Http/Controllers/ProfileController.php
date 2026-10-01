@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\SecureImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +31,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'in:Online,Offline,Occupied,online,offline,occupied,in meeting,Present,Unavailable,Seminar'],
-            'avatar' => ['nullable', 'image', 'max:2048'], // Max 2MB
+            'avatar' => ['nullable', 'file', 'max:2048', new SecureImage],
         ]);
 
         $user->name = $validated['name'];

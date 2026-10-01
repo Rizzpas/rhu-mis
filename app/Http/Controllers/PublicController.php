@@ -98,6 +98,10 @@ class PublicController extends Controller
             abort(404);
         }
 
+        if (! $unit->is_active && ! (auth()->check() && auth()->user()->hasRole('admin', 'super_admin'))) {
+            abort(404);
+        }
+
         return view('units.show', compact('unit'));
     }
 
@@ -899,7 +903,21 @@ class PublicController extends Controller
 
         $appointment = Appointment::findOrFail(session('manage_appointment_id'));
         $appointment->status = 'cancelled';
+        $appointment->cancelled_at = now();
+        $appointment->cancellation_reason = 'Cancelled by patient via online portal';
         $appointment->save();
+
+        if (! empty($appointment->email)) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($appointment->email)->send(
+                    new \App\Mail\AppointmentCancellationMail($appointment, $appointment->cancellation_reason)
+                );
+            } catch (\Throwable $e) {
+                // Email delivery failure should not prevent cancellation
+            }
+        }
+
+        \App\Models\AuditLog::record('Appointment Cancelled by Patient', $appointment);
 
         return back()->with('success', 'Appointment has been cancelled successfully.');
     }

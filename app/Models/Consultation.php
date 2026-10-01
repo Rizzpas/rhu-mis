@@ -73,4 +73,37 @@ class Consultation extends Model
     {
         return $this->hasOne(Prescription::class);
     }
+
+    public function followupDoctor()
+    {
+        return $this->belongsTo(User::class, 'followup_doctor_id');
+    }
+
+    public function scopeFollowups($query)
+    {
+        return $query->where('is_followup_needed', true);
+    }
+
+    public function scopeOverdueFollowups($query)
+    {
+        return $query->where('is_followup_needed', true)
+            ->whereNull('followup_completed_at')
+            ->whereDate('followup_date', '<', today());
+    }
+
+    public function scopeDueTodayFollowups($query)
+    {
+        return $query->where('is_followup_needed', true)
+            ->whereNull('followup_completed_at')
+            ->whereDate('followup_date', today());
+    }
+
+    public function scopeUpcomingFollowups($query, $days = 7)
+    {
+        return $query->where('is_followup_needed', true)
+            ->whereNull('followup_completed_at')
+            ->whereDate('followup_date', '>', today())
+            ->whereDate('followup_date', '<=', today()->addDays($days));
+    }
 }
+

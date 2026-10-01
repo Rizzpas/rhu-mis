@@ -221,6 +221,21 @@
                 this._flipX = 1;
                 this._flipY = 1;
 
+                // Detect source format to preserve WebP, PNG, or JPEG
+                let targetMime = 'image/jpeg';
+                if (file) {
+                    const ext = (file.name || '').split('.').pop().toLowerCase();
+                    const type = (file.type || '').toLowerCase();
+                    if (ext === 'webp' || type.includes('webp')) {
+                        targetMime = 'image/webp';
+                    } else if (ext === 'png' || type.includes('png')) {
+                        targetMime = 'image/png';
+                    } else {
+                        targetMime = 'image/jpeg';
+                    }
+                }
+                this._targetMime = targetMime;
+
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     this.isOpen = true;
@@ -299,13 +314,16 @@
                 });
 
                 if (canvas) {
+                    const mime = this._targetMime || 'image/jpeg';
+                    const quality = (mime === 'image/png') ? undefined : 0.92;
+
                     canvas.toBlob((blob) => {
                         if (blob && this._onApply) {
                             const previewUrl = URL.createObjectURL(blob);
                             this._onApply(blob, previewUrl);
                         }
                         this._destroy();
-                    }, 'image/jpeg', 0.92);
+                    }, mime, quality);
                 } else {
                     this._destroy();
                 }
@@ -405,8 +423,24 @@ window.openImageCropper = function(file, options) {
  * Helper: Set a cropped File on an input element programmatically.
  */
 function setCroppedFile(inputEl, blob, filename) {
-    if (!inputEl) return;
-    const file = new File([blob], filename || 'cropped.jpg', { type: 'image/jpeg' });
+    if (!inputEl || !blob) return;
+
+    // Resolve matching extension from blob MIME type
+    const mime = blob.type || 'image/jpeg';
+    let ext = '.jpg';
+    if (mime === 'image/webp') ext = '.webp';
+    else if (mime === 'image/png') ext = '.png';
+    else if (mime === 'image/jpeg') ext = '.jpg';
+
+    let name = filename || ('cropped' + ext);
+    const lastDot = name.lastIndexOf('.');
+    if (lastDot !== -1) {
+        name = name.substring(0, lastDot) + ext;
+    } else {
+        name = name + ext;
+    }
+
+    const file = new File([blob], name, { type: mime });
     const dt = new DataTransfer();
     dt.items.add(file);
     inputEl.files = dt.files;
@@ -417,9 +451,20 @@ function setCroppedFile(inputEl, blob, filename) {
  * Helper: Set multiple Files on an input element.
  */
 function setCroppedFiles(inputEl, filesArray) {
-    if (!inputEl) return;
+    if (!inputEl || !filesArray) return;
     const dt = new DataTransfer();
-    filesArray.forEach(f => dt.items.add(f));
+    filesArray.forEach((f, idx) => {
+        if (f instanceof Blob && !(f instanceof File)) {
+            const mime = f.type || 'image/jpeg';
+            let ext = '.jpg';
+            if (mime === 'image/webp') ext = '.webp';
+            else if (mime === 'image/png') ext = '.png';
+            const file = new File([f], `cropped_${idx + 1}${ext}`, { type: mime });
+            dt.items.add(file);
+        } else if (f instanceof File) {
+            dt.items.add(f);
+        }
+    });
     inputEl.files = dt.files;
 }
 </script>

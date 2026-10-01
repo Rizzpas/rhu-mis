@@ -3,89 +3,14 @@
 @section('header', 'Detailed Analytics')
 
 @section('content')
-<style>
-    @media print {
-        /* ── Page Setup ──────────────────────────────────────────────── */
-        @page { margin: 1cm; size: A4 landscape; }
-        
-        /* ── Hide non-printable elements ─────────────────────────────── */
-        button, form, .print\\:hidden, 
-        nav, aside, footer, 
-        [x-data*="tab"], [x-show],
-        .shadow-md, .shadow-lg, .shadow-xl { 
-            box-shadow: none !important; 
-        }
-        button[onclick*="print"], form[action*="analytics"] { 
-            display: none !important; 
-        }
-        
-        /* ── Layout Reset ────────────────────────────────────────────── */
-        body, main, .max-w-7xl { 
-            background: white !important; 
-            color: black !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        .dark body, .dark main { 
-            background: white !important; 
-            color: black !important; 
-        }
-        
-        /* ── Chart Container Constraints ─────────────────────────────── */
-        canvas {
-            max-width: 100% !important;
-            max-height: 280px !important;
-            width: 100% !important;
-            height: auto !important;
-            page-break-inside: avoid;
-        }
-        .chart-container, [class*="chart"], 
-        div:has(> canvas) {
-            max-width: 100% !important;
-            overflow: hidden !important;
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-        
-        /* ── Grid Layout for Print ───────────────────────────────────── */
-        .grid { 
-            display: grid !important; 
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 12px !important;
-        }
-        .grid > div, .grid > section {
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-        
-        /* ── Card Styling ────────────────────────────────────────────── */
-        [class*="rounded-"] {
-            border: 1px solid #e5e7eb !important;
-            background: white !important;
-            box-shadow: none !important;
-        }
-        [class*="dark:bg-"] { background: white !important; }
-        [class*="dark:text-"] { color: #1f2937 !important; }
-        
-        /* ── Typography ──────────────────────────────────────────────── */
-        h2, h3, h4 { color: #111827 !important; }
-        p, span, label { color: #374151 !important; }
-        
-        /* ── Page Breaks ─────────────────────────────────────────────── */
-        h2 { page-break-after: avoid; }
-        .mb-8, .mb-6 { margin-bottom: 8px !important; }
-    }
-</style>
-<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
     <div>
         <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Epidemiological & Operational Analytics</h2>
         <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Deep-dive into facility metrics, population demographics, and patient flow trends.</p>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
-        <button onclick="window.print()" class="hidden md:flex items-center gap-2 h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
+        <button onclick="printAnalyticsReport()" class="hidden md:flex items-center gap-2 h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             <span>Export Report</span>
         </button>
@@ -105,6 +30,8 @@
         </form>
     </div>
 </div>
+
+
 
 @php
     $totalPeriodVisits = array_sum($visitVolumeData['data'] ?? [0]);
@@ -930,7 +857,16 @@
                 </div>
             </div>
         </div>
-        <div class="relative flex-1 w-full min-h-0 overflow-y-auto" id="barangayChartContainer"><canvas id="barangayChart"></canvas></div>
+        <div class="relative flex-1 w-full min-h-0 overflow-y-auto" id="barangayChartContainer">
+            <canvas id="barangayChart" style="{{ empty($barangayData) || count($barangayData) === 0 ? 'display:none;' : '' }}"></canvas>
+            <div id="barangayEmptyState" style="{{ empty($barangayData) || count($barangayData) === 0 ? 'display:flex;' : 'display:none;' }}" class="flex-col items-center justify-center py-12 text-center h-full">
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 flex items-center justify-center mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-300">No Barangay Records in This Timeframe</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Select a broader timeframe above (e.g. This Year or All Time) to view community distributions.</p>
+            </div>
+        </div>
     </div>
 
     <!-- Row 6: Staff Productivity -->
@@ -1290,6 +1226,7 @@
 
 </div>
 
+
 <!-- Chart.js Setup -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
@@ -1454,15 +1391,19 @@
         const brgyHeight = Math.max(300, brgyCount * 45);
         document.getElementById('barangayChartContainer').style.height = brgyHeight + 'px';
         // Generate a gradient color palette based on value intensity
+        function computeBrgyColors(values) {
+            if (!values || values.length === 0) return [];
+            const maxVal = Math.max(...values, 1);
+            return values.map(v => {
+                const intensity = v / maxVal;
+                const r = Math.round(20 + (0 - 20) * intensity);
+                const g = Math.round(184 + (180 - 184) * intensity);
+                const b = Math.round(166 + (100 - 166) * intensity);
+                return `rgba(${r}, ${g}, ${b}, ${0.5 + intensity * 0.5})`;
+            });
+        }
         const brgyValues = Object.values(brgyDataRaw);
-        const brgyMax = Math.max(...brgyValues, 1);
-        const brgyColors = brgyValues.map(v => {
-            const intensity = v / brgyMax;
-            const r = Math.round(20 + (0 - 20) * intensity);
-            const g = Math.round(184 + (180 - 184) * intensity);
-            const b = Math.round(166 + (100 - 166) * intensity);
-            return `rgba(${r}, ${g}, ${b}, ${0.5 + intensity * 0.5})`;
-        });
+        const brgyColors = computeBrgyColors(brgyValues);
         charts['barangay'] = new Chart(brgyCtx, {
             type: 'bar',
             data: {
@@ -1563,6 +1504,30 @@
                                     return '#64748b';
                                 });
                             }
+
+                            // Dynamic update for Barangay Heatmap
+                            if (chartId === 'barangay') {
+                                const vals = json.data || [];
+                                chart.data.datasets[0].backgroundColor = computeBrgyColors(vals);
+
+                                const count = (json.labels || []).length;
+                                const container = document.getElementById('barangayChartContainer');
+                                if (container) {
+                                    container.style.height = Math.max(300, count * 45) + 'px';
+                                }
+
+                                const emptyState = document.getElementById('barangayEmptyState');
+                                const canvasEl = document.getElementById('barangayChart');
+                                if (emptyState && canvasEl) {
+                                    if (count === 0) {
+                                        emptyState.style.display = 'flex';
+                                        canvasEl.style.display = 'none';
+                                    } else {
+                                        emptyState.style.display = 'none';
+                                        canvasEl.style.display = 'block';
+                                    }
+                                }
+                            }
                         }
                         chart.update();
                     }
@@ -1612,6 +1577,249 @@
                 document.body.removeChild(link);
             }
         }
+    }
+</script>
+
+{{-- ═══════════════════════════════════════════════════════════════════
+     ANALYTICS PRINT REPORT GENERATOR
+     Builds a clean data-focused report with actual tables, numbers,
+     and rasterized chart images. Prints via isolated iframe.
+═══════════════════════════════════════════════════════════════════ --}}
+<script>
+    function printAnalyticsReport() {
+        // 1. Rasterize all chart canvases
+        function rasterize(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !canvas.offsetWidth) return '';
+            try {
+                if (window.Chart && Chart.getChart) {
+                    const ch = Chart.getChart(canvas);
+                    if (ch) { ch.stop(); ch.render(); }
+                }
+                return canvas.toDataURL('image/png', 1.0);
+            } catch(e) { return ''; }
+        }
+
+        const charts = {
+            visitVolume: rasterize('visitVolumeChart'),
+            peakHours: rasterize('peakHoursChart'),
+            workload: rasterize('workloadChart'),
+            ageSex: rasterize('ageSexChart'),
+            classification: rasterize('classificationChart'),
+            severity: rasterize('severityChart'),
+            barangay: rasterize('barangayChart'),
+            durationStaff: rasterize('durationStaffChart'),
+            encodingSpeed: rasterize('encodingSpeedChart'),
+        };
+
+        // 2. Build data tables from server-side data
+        @php
+            // Top Diagnoses Table
+            $diagRows = '';
+            if(isset($topDiagnoses) && count($topDiagnoses) > 0) {
+                foreach($topDiagnoses as $i => $diag) {
+                    $dName = addslashes($diag->diagnosis ?? 'Unknown');
+                    $diagRows .= '<tr' . ($i % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $diagRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . ($i+1) . '</td>';
+                    $diagRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . $dName . '</td>';
+                    $diagRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($diag->count) . '</td></tr>';
+                }
+            }
+
+            // Severity Table
+            $sevRows = '';
+            if(isset($severityData) && count($severityData) > 0) {
+                $sevArr = is_array($severityData) ? $severityData : $severityData->toArray();
+                $si = 0;
+                foreach($sevArr as $sev => $cnt) {
+                    $sevRows .= '<tr' . ($si % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $sevRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . ucfirst(addslashes($sev)) . '</td>';
+                    $sevRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td></tr>';
+                    $si++;
+                }
+            }
+
+            // Classification Table
+            $classRows = '';
+            if(isset($classificationData) && count($classificationData) > 0) {
+                $classArr = is_array($classificationData) ? $classificationData : $classificationData->toArray();
+                $ci = 0;
+                foreach($classArr as $cls => $cnt) {
+                    $classRows .= '<tr' . ($ci % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $classRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . ucfirst(addslashes($cls)) . '</td>';
+                    $classRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td></tr>';
+                    $ci++;
+                }
+            }
+
+            // Demographics Table
+            $demoRows = '';
+            if(isset($demoData['labels']) && count($demoData['labels']) > 0) {
+                foreach($demoData['labels'] as $di => $lbl) {
+                    $m = $demoData['Male'][$di] ?? 0;
+                    $f = $demoData['Female'][$di] ?? 0;
+                    $demoRows .= '<tr' . ($di % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . addslashes($lbl) . '</td>';
+                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($m) . '</td>';
+                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($f) . '</td>';
+                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($m + $f) . '</td></tr>';
+                }
+            }
+
+            // Barangay Table
+            $bgyRows = '';
+            if(isset($barangayData) && count($barangayData) > 0) {
+                $bgyArr = is_array($barangayData) ? $barangayData : $barangayData->toArray();
+                arsort($bgyArr);
+                $bi = 0;
+                foreach(array_slice($bgyArr, 0, 15, true) as $bgy => $cnt) {
+                    $bgyRows .= '<tr' . ($bi % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $bgyRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . addslashes($bgy) . '</td>';
+                    $bgyRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td></tr>';
+                    $bi++;
+                }
+            }
+        @endphp
+
+        // 3. Helper to make chart section
+        function chartBlock(img, title) {
+            if (!img) return '';
+            return '<div style="border:1px solid #e2e8f0;border-radius:4px;padding:10px;page-break-inside:avoid;">' +
+                '<div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">' + title + '</div>' +
+                '<img src="' + img + '" style="width:100%;height:auto;max-height:240px;object-fit:contain;display:block;">' +
+            '</div>';
+        }
+
+        function tableBlock(title, headers, rows) {
+            if (!rows) return '';
+            return '<div style="margin-bottom:14px;">' +
+                '<div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">' + title + '</div>' +
+                '<table style="width:100%;border-collapse:collapse;font-size:8.5pt;"><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+        }
+
+        const thStyle = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 8px;text-align:left;"';
+        const thStyleR = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 8px;text-align:right;"';
+
+        // 4. Build report HTML
+        const reportHTML = `
+            <table class="rhu-print-table" style="display:table;width:100%;border-collapse:collapse;">
+                <thead class="rhu-print-thead" style="display:table-header-group;">
+                    <tr><td style="padding:0;border:none;">
+                        <header style="width:100%;margin-bottom:12px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:2px 0 6px 0;">
+                                <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <img src="/assets/images/logo.png" alt="Seal" style="max-width:64px;max-height:64px;object-fit:contain;" onerror="this.style.display='none'">
+                                </div>
+                                <div style="flex:1;text-align:center;padding:0 4px;">
+                                    <div style="font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#475569;">{{ addslashes(\App\Models\SiteSetting::get('topbar_republic', 'Republic of the Philippines')) }}</div>
+                                    <div style="font-size:8pt;font-weight:600;letter-spacing:0.04em;color:#64748b;">{{ addslashes(\App\Models\SiteSetting::get('topbar_province', 'Province of Cavite')) }}</div>
+                                    <h2 style="font-size:13pt;font-weight:900;text-transform:uppercase;letter-spacing:0.04em;color:#0f172a;margin:3px 0 2px 0;">{{ addslashes(\App\Models\SiteSetting::get('topbar_municipality', 'Municipality of Silang')) }} — Rural Health Unit</h2>
+                                    <div style="font-size:8pt;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#0f6b57;">Rural Health Unit Management Information System (RHU MIS)</div>
+                                </div>
+                                <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width:64px;max-height:64px;"><circle cx="32" cy="32" r="30" stroke="#0f6b57" stroke-width="2.5" fill="#f0fdf4"/><circle cx="32" cy="32" r="25" stroke="#0f6b57" stroke-width="1" stroke-dasharray="2 2"/><path d="M32 14v36M22 24h20M24 38h16" stroke="#0f6b57" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="13" r="3" fill="#0f6b57"/><path d="M26 21c3-2 9-2 12 0M26 29c3-2 9-2 12 0M26 37c3-2 9-2 12 0" stroke="#0f6b57" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                </div>
+                            </div>
+                            <div style="width:100%;height:4px;border-top:1px solid #0f6b57;border-bottom:2px solid #0f6b57;margin:4px 0 10px 0;"></div>
+                        </header>
+                    </td></tr>
+                </thead>
+
+                <tbody style="display:table-row-group;"><tr><td style="padding:0;border:none;">
+                    <main style="font-family:'Inter',system-ui,sans-serif;">
+
+                        <!-- Title -->
+                        <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
+                            <h1 style="font-size:15pt;font-weight:800;color:#0f172a;letter-spacing:-0.02em;margin:0 0 2px 0;">Epidemiological & Operational Analytics Report</h1>
+                            <p style="font-size:8.5pt;font-weight:500;color:#64748b;margin:0 0 10px 0;">Deep-dive facility metrics, demographics, and patient flow trends.</p>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:8px 12px;font-size:8pt;">
+                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Period</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ ucfirst($timeFilter) }} — {{ now()->format('F Y') }}</div></div>
+                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Facility</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ addslashes(\App\Models\SiteSetting::get('topbar_municipality', 'Municipality of Silang')) }} — RHU</div></div>
+                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Generated By</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ auth()->check() ? auth()->user()->name : 'System Generated' }}</div></div>
+                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Date</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ now()->format('M d, Y h:i A') }}</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:16px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Summary Indicators</h3>
+                        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:8.5pt;">
+                            <thead><tr>
+                                <th ${thStyle}>Indicator</th>
+                                <th ${thStyleR}>Value</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Total Consultations</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ number_format($totalPeriodVisits) }}</td></tr>
+                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Peak Patient Flow Window</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $busiestHourLabel }}</td></tr>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Top Demographic Group</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $maxDemoGroup }}</td></tr>
+                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Prevalent Triage Priority</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $dominantSeverity }}</td></tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Visit Volume & Peak Hours Charts -->
+                        <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Patient Flow Analysis</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                            ${chartBlock(charts.visitVolume, 'Visit Volume Over Time')}
+                            ${chartBlock(charts.peakHours, 'Peak Hours Distribution')}
+                        </div>
+
+                        <!-- Demographics Chart + Table -->
+                        <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Demographics & Population</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                            ${chartBlock(charts.ageSex, 'Age-Sex Distribution')}
+                            <div>
+                                ${tableBlock('Age-Sex Breakdown', '<th ' + thStyle + '>#</th><th ' + thStyle + '>Age Group</th><th ' + thStyleR + '>Male</th><th ' + thStyleR + '>Female</th><th ' + thStyleR + '>Total</th>', '{!! addslashes($demoRows) !!}')}
+                            </div>
+                        </div>
+
+                        <!-- Classification & Severity -->
+                        <div style="page-break-before:auto;">
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Clinical Analysis</h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                                ${chartBlock(charts.classification, 'Patient Classification')}
+                                ${chartBlock(charts.severity, 'Triage Severity Distribution')}
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+                                ${tableBlock('Top Diagnoses', '<th ' + thStyle + '>#</th><th ' + thStyle + '>Diagnosis</th><th ' + thStyleR + '>Count</th>', '{!! addslashes($diagRows) !!}')}
+                                ${tableBlock('Classification', '<th ' + thStyle + '>Type</th><th ' + thStyleR + '>Count</th>', '{!! addslashes($classRows) !!}')}
+                                ${tableBlock('Severity', '<th ' + thStyle + '>Level</th><th ' + thStyleR + '>Count</th>', '{!! addslashes($sevRows) !!}')}
+                            </div>
+                        </div>
+
+                        <!-- Barangay & Workload -->
+                        <div style="page-break-before:auto;">
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Geographic & Staff Analysis</h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                                ${chartBlock(charts.barangay, 'Barangay Patient Distribution')}
+                                ${chartBlock(charts.workload, 'Staff Workload')}
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                                ${tableBlock('Top Barangays', '<th ' + thStyle + '>Barangay</th><th ' + thStyleR + '>Patients</th>', '{!! addslashes($bgyRows) !!}')}
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                    ${chartBlock(charts.durationStaff, 'Consultation Duration')}
+                                    ${chartBlock(charts.encodingSpeed, 'Encoding Speed')}
+                                </div>
+                            </div>
+                        </div>
+
+                    </main>
+                </td></tr></tbody>
+
+                <tfoot style="display:table-footer-group;"><tr><td style="padding:0;border:none;">
+                    <footer style="width:100%;padding-top:8px;margin-top:8px;">
+                        <div style="width:100%;border-top:1px solid #cbd5e1;margin-bottom:6px;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;font-size:7pt;color:#64748b;line-height:1.35;">
+                            <div style="flex:1;max-width:65%;text-align:justify;">CONFIDENTIAL HEALTH & ADMINISTRATIVE RECORD — Contains protected health information subject to Republic Act No. 10173 (Data Privacy Act of 2012). Unauthorized disclosure, copying, or distribution is strictly prohibited.</div>
+                            <div style="flex-shrink:0;text-align:right;font-weight:600;color:#334155;"><div>Epidemiological & Operational Analytics Report</div><div>Printed: {{ now()->format('M d, Y h:i A') }} &bull; {{ auth()->check() ? auth()->user()->name : 'System' }}</div></div>
+                        </div>
+                    </footer>
+                </td></tr></tfoot>
+            </table>
+        `;
+
+        window.printIsolated(reportHTML, {
+            title: 'Epidemiological & Operational Analytics Report',
+            paperSize: 'auto'
+        });
     }
 </script>
 @endsection

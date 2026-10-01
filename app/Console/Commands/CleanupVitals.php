@@ -27,24 +27,41 @@ class CleanupVitals extends Command
     {
         $today = \Carbon\Carbon::today();
 
-        // Find all records from today that are still waiting or claimed
-        $count = \App\Models\PreTriage::whereDate('created_at', $today)
-            ->whereIn('status', ['waiting', 'claimed'])
+        // 1. Clean stale pre-triage records from PAST days that were left abandoned in 'waiting'
+        $pastCount = \App\Models\PreTriage::whereDate('created_at', '<', $today)
+            ->where('status', 'waiting')
             ->delete();
 
-        if ($count > 0) {
-            $this->info("Quietly removed $count unfulfilled vitals entries from today's queue.");
-
-            // Record a system audit log
+        if ($pastCount > 0) {
+            $this->info("Cleaned up $pastCount abandoned waiting vitals entries from previous days.");
             \App\Models\AuditLog::create([
-                'action' => 'End-of-Day Vitals Cleanup',
+                'action' => 'EOD: Abandoned Vitals Cleanup (Past Days)',
                 'model_type' => \App\Models\PreTriage::class,
-                'changes' => ['deleted_count' => $count],
+                'changes' => ['deleted_count' => $pastCount],
                 'ip_address' => '127.0.0.1',
                 'user_agent' => 'System Scheduler',
             ]);
-        } else {
-            $this->info('No unfulfilled vitals entries to clean up today.');
+        }
+
+        // 2. Clean today's unfulfilled 'waiting' entries at end of day
+        $todayCount = \App\Models\PreTriage::whereDate('created_at', $today)
+            ->where('status', 'waiting')
+            ->delete();
+
+        if ($todayCount > 0) {
+            $this->info("Removed $todayCount unfulfilled waiting vitals entries from today.");
+            \App\Models\AuditLog::create([
+                'action' => 'End-of-Day Vitals Cleanup',
+                'model_type' => \App\Models\PreTriage::class,
+                'changes' => ['deleted_count' => $todayCount],
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'System Scheduler',
+            ]);
+        }
+
+        $totalCleaned = $pastCount + $todayCount;
+        if ($totalCleaned === 0) {
+            $this->info('No unfulfilled vitals entries to clean up.');
         }
     }
 }

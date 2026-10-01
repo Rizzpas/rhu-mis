@@ -17,9 +17,7 @@
                 </p>
             </div>
             
-            <button onclick="document.documentElement.classList.toggle('dark')" class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition-colors cursor-pointer">
-                Toggle Dark Mode
-            </button>
+            @include('partials.theme-toggle')
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">

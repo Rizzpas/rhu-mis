@@ -68,8 +68,8 @@
     <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
         <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/60 flex items-center justify-between">
             <div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-white">Fulfilled Orders</h3>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $prescriptions->total() }} total dispensed prescription(s)</span>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Closed Prescriptions</h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $prescriptions->total() }} total prescription(s)</span>
             </div>
         </div>
 
@@ -105,12 +105,30 @@
                             </td>
                             <td class="p-4 sm:p-5 align-top">
                                 <p class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ $request->doctor->formatted_name ?? 'Doctor' }}</p>
-                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{{ $request->items->count() }} item(s) dispensed</p>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{{ $request->items->count() }} item(s)</p>
                             </td>
                             <td class="p-4 sm:p-5 align-top">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
-                                    <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                    Dispensed
+                                @php
+                                    $statusColors = [
+                                        'dispensed' => ['bg-emerald-100', 'text-emerald-800', 'dark:bg-emerald-950/60', 'dark:text-emerald-300', 'border-emerald-200', 'dark:border-emerald-800/60'],
+                                        'partially_dispensed' => ['bg-amber-100', 'text-amber-800', 'dark:bg-amber-950/60', 'dark:text-amber-300', 'border-amber-200', 'dark:border-amber-800/60'],
+                                        'cancelled' => ['bg-rose-100', 'text-rose-800', 'dark:bg-rose-950/60', 'dark:text-rose-300', 'border-rose-200', 'dark:border-rose-800/60'],
+                                        'expired' => ['bg-slate-100', 'text-slate-800', 'dark:bg-slate-800', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-700'],
+                                    ];
+                                    $colors = $statusColors[$request->status] ?? ['bg-slate-100', 'text-slate-800', 'dark:bg-slate-800', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-700'];
+                                @endphp
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold
+                                    {{ $colors[0] }} {{ $colors[1] }} {{ $colors[2] }} {{ $colors[3] }} {{ $colors[4] }} {{ $colors[5] }} border shadow-2xs">
+                                    @if($request->status === 'dispensed')
+                                        <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                    @elseif($request->status === 'partially_dispensed')
+                                        <svg class="w-3 h-3 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    @elseif($request->status === 'cancelled')
+                                        <svg class="w-3 h-3 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    @elseif($request->status === 'expired')
+                                        <svg class="w-3 h-3 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    @endif
+                                    {{ ucfirst(str_replace('_', ' ', $request->status)) }}
                                 </span>
                             </td>
                             <td class="p-4 sm:p-5 align-top text-right">
@@ -127,7 +145,7 @@
                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 </div>
                                 <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">No historical prescriptions</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">No dispensed records match your search criteria.</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">No closed records match your search criteria.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -169,33 +187,36 @@
     <div id="viewModal-{{ $request->id }}" class="fixed inset-0 z-[999] hidden bg-slate-950/70 backdrop-blur-sm overflow-y-auto w-full h-full text-left">
         <div class="flex items-center justify-center min-h-screen px-4 py-8">
             <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 max-w-xl w-full">
-                <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/60">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-2xs">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-2xs">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Prescription #{{ $request->id }}</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Dispensed on {{ $request->updated_at->format('M d, Y h:i A') }}</p>
+                            </div>
+                        </div>
+                        <button onclick="closeViewModal({{ $request->id }})" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    <!-- Patient & Prescribing Doctor Metadata directly in Header -->
+                    <div class="grid grid-cols-2 gap-4 pt-3.5 border-t border-slate-200/90 dark:border-slate-700/80">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Patient</span>
+                            <span class="font-bold text-slate-900 dark:text-white text-sm block mt-0.5">{{ $request->patient->full_name ?? 'Unknown' }}</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 font-mono block mt-0.5">ID: {{ $request->patient->patient_id ?? '—' }}</span>
                         </div>
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Prescription #{{ $request->id }}</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Dispensed on {{ $request->updated_at->format('M d, Y h:i A') }}</p>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Prescribing Doctor</span>
+                            <span class="font-bold text-slate-900 dark:text-white text-sm block mt-0.5">{{ $request->doctor->formatted_name ?? 'Clinician' }}</span>
                         </div>
                     </div>
-                    <button onclick="closeViewModal({{ $request->id }})" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
                 </div>
-                <div class="p-6 sm:p-7">
-                    <!-- Patient & Doctor Card -->
-                    <div class="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 mb-6">
-                        <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Patient</p>
-                            <p class="font-bold text-slate-900 dark:text-white text-sm mt-0.5">{{ $request->patient->full_name ?? 'Unknown' }}</p>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">ID: {{ $request->patient->patient_id ?? '—' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Prescribing Doctor</p>
-                            <p class="font-bold text-slate-900 dark:text-white text-sm mt-0.5">{{ $request->doctor->formatted_name ?? 'Clinician' }}</p>
-                        </div>
-                    </div>
+                <div class="p-6">
 
                     <!-- Dispensed Items List -->
                     <div>
@@ -214,7 +235,7 @@
                                             </span>
                                         </div>
                                         <div class="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                                            <span class="font-bold text-slate-700 dark:text-slate-300">Directions (Sig):</span> {{ $item->instruction }}
+                                            <span class="font-bold text-slate-700 dark:text-slate-300">Directions (Sig):</span> {{ $item->frequency }}
                                         </div>
                                     </div>
                                 </li>

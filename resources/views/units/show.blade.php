@@ -206,16 +206,45 @@
 
                             <!-- Operating Stats & Action Buttons -->
                             <div class="space-y-2.5 pt-1">
-                                <a href="{{ route('appointment.create') }}" 
-                                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-extrabold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] active:scale-95 cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                                    Book Appointment in this Unit
-                                </a>
+                                @if(!is_array($unit) ? $unit->is_main_center : ($uSlug === 'main-health-center'))
+                                    <a href="{{ route('appointment.create') }}" 
+                                       class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-extrabold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] active:scale-95 cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                        Book Online Appointment
+                                    </a>
 
-                                <a href="{{ route('appointment.manage') }}" 
-                                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-colors">
-                                    Manage Existing Booking
-                                </a>
+                                    <a href="{{ route('appointment.manage') }}" 
+                                       class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-colors">
+                                        Manage Existing Booking
+                                    </a>
+                                @else
+                                    <div class="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 text-xs">
+                                        <div class="flex items-center gap-1.5 font-bold text-emerald-400 mb-1">
+                                            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Walk-in & Specialized Clinical Unit
+                                        </div>
+                                        <p class="text-[11px] leading-relaxed text-slate-300">
+                                            Online appointments are processed exclusively for the Main Health Center. This facility serves walk-ins, emergency admissions, and direct physician referrals.
+                                        </p>
+                                    </div>
+
+                                    @if(!empty($uContact))
+                                        @php
+                                            $telDigits = preg_replace('/[^\d+]/', '', $uContact);
+                                        @endphp
+                                        <a href="tel:{{ $telDigits }}" 
+                                           class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-950/40 transition-all hover:scale-[1.01] active:scale-95 cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                            Call Facility Line: {{ $uContact }}
+                                        </a>
+                                    @endif
+
+                                    <a href="{{ route('appointment.create') }}" 
+                                       class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-200 bg-white/10 hover:bg-white/15 border border-white/10 transition-colors">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Book Appointment at Main Health Center
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -319,19 +348,42 @@
                     <div class="space-y-3.5 text-xs">
                         <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800/70">
                             <p class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">Hours of Service</p>
-                            <p class="text-slate-600 dark:text-slate-300 mt-1">{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</p>
+                            <p class="text-slate-600 dark:text-slate-300 mt-1 font-medium">{{ $uHours }}</p>
                         </div>
 
                         <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800/70">
                             <p class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">Location</p>
-                            <p class="text-slate-600 dark:text-slate-300 mt-1">{{ \App\Models\SiteSetting::get('footer_address_line1', 'M.H del Pilar St.') }}, {{ \App\Models\SiteSetting::get('footer_address_line2', 'Silang, Cavite') }}</p>
+                            <p class="text-slate-600 dark:text-slate-300 mt-1 font-medium">{{ $uLocation ?: 'Main RHU Complex, Silang, Cavite' }}</p>
                         </div>
 
                         <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800/70">
-                            <p class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">Direct Helpline</p>
-                            <a href="tel:{{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}" class="text-emerald-700 dark:text-emerald-400 font-bold mt-1 block hover:underline">
-                                {{ \App\Models\SiteSetting::get('footer_phone', '(046) 414-0209') }}
-                            </a>
+                            <p class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">Direct Contact Lines</p>
+                            @php
+                                $contactsList = !is_array($unit) ? $unit->contact_list : [];
+                            @endphp
+                            @if(count($contactsList) > 0)
+                                <div class="mt-1.5 space-y-1.5">
+                                    @foreach($contactsList as $c)
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px]">{{ $c['label'] }}:</span>
+                                            <a href="tel:{{ $c['tel'] }}" class="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                {{ $c['number'] }}
+                                            </a>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @elseif(!empty($uContact))
+                                @php
+                                    $digits = preg_replace('/[^\d+]/', '', $uContact);
+                                @endphp
+                                <a href="tel:{{ $digits }}" class="text-emerald-700 dark:text-emerald-400 font-bold mt-1 block hover:underline flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    {{ $uContact }}
+                                </a>
+                            @else
+                                <p class="text-slate-500 mt-1 italic">Contact Main Health Center</p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -360,9 +412,9 @@
                     <p class="text-xs text-slate-300 mb-4 leading-relaxed font-normal">
                         For acute trauma, urgent obstetric labor, or critical animal bite emergency response.
                     </p>
-                    <a href="tel:911" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-900 font-bold text-xs shadow-xs hover:bg-slate-100 transition">
+                    <a href="tel:{{ preg_replace('/[^0-9+]/', '', explode('|', \App\Models\SiteSetting::get('emergency_hotlines', '911'))[0]) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-900 font-bold text-xs shadow-xs hover:bg-slate-100 transition">
                         <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 4V3z"/></svg>
-                        Call 911 Municipal Hotline
+                        Hotlines: {{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}
                     </a>
                 </div>
 

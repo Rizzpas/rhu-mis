@@ -1,231 +1,385 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITR - {{ $patient->full_name }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        body {
-            background-color: #fff;
-            color: #000;
-            font-family: 'Inter', 'Arial', sans-serif;
-            letter-spacing: -0.025em;
-            margin: 0;
-            padding: 0;
-        }
-        @media print {
-            body { background: white !important; }
-            .print-hidden { display: none !important; }
-            .page-break { page-break-before: always; }
-            .avoid-break { page-break-inside: avoid; }
-            @page { margin: 1cm; size: auto; }
-        }
-        .itr-container {
-            max-w-4xl;
-            margin: 0 auto;
-            padding: 2rem;
-            background: white;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-            position: relative;
-        }
-        .header img {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 80px;
-        }
-        .section-title {
-            background-color: #f3f4f6 !important;
-            padding: 0.5rem;
-            font-weight: bold;
-            border: 1px solid #d1d5db;
-            margin-top: 1.5rem;
-            text-transform: uppercase;
-            font-size: 0.875rem;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid #d1d5db;
-            padding: 1rem;
-        }
-        .info-item {
-            font-size: 0.875rem;
-        }
-        .info-label {
-            font-weight: bold;
-            color: #4b5563;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-        }
-        .case-block {
-            border: 1px solid #000;
-            margin-bottom: 2rem;
-        }
-        .case-header {
-            background-color: #e5e7eb !important;
-            padding: 0.5rem 1rem;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #000;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .case-body {
-            padding: 1rem;
-        }
-        .vitals-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1rem;
-            background: #f9fafb !important;
-            padding: 0.5rem;
-            border: 1px dashed #9ca3af;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-    </style>
-</head>
-<body onload="window.print()">
-
-    <!-- Print Action Bar -->
-    <div class="print-hidden bg-gray-100 p-4 flex justify-between items-center border-b">
-        <div>
-            <p class="font-bold">Individual Treatment Record (ITR)</p>
-            <p class="text-sm text-gray-600">Please use the browser print dialog to save as PDF or print.</p>
+<x-print-layout 
+    title="Individual Treatment Record (ITR)"
+    subtitle="Official Clinical Encounter & Patient Diagnostic History"
+    :period="$cases->isNotEmpty() ? $cases->last()->created_at->format('M d, Y') . ' — ' . $cases->first()->created_at->format('M d, Y') : 'Current Record'"
+    :generatedBy="auth()->check() ? auth()->user()->name : 'Authorized Medical Officer'"
+>
+    {{-- Patient Demographics Block --}}
+    <section class="avoid-break mb-6 border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
+        <div class="bg-slate-100 border-b border-slate-300 px-4 py-2 flex items-center justify-between">
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <svg class="w-4 h-4 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                Patient Demographics & Identification
+            </h3>
+            <span class="font-mono text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded">
+                {{ $patient->patient_id }}
+            </span>
         </div>
-        <div class="flex gap-2">
-            <button onclick="window.close()" class="px-4 py-2 bg-gray-300 text-gray-700 font-bold rounded">Close</button>
-            <button onclick="window.print()" class="px-4 py-2 bg-teal-600 text-white font-bold rounded shadow">Print Document</button>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 text-xs">
+            <div class="col-span-2">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Full Name</span>
+                <span class="text-sm font-black text-slate-900">{{ $patient->full_name }}</span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Classification</span>
+                <span class="font-bold text-slate-900">{{ $patient->classification ?? 'General Public' }}</span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Civil Status / Blood Type</span>
+                <span class="font-semibold text-slate-900">{{ $patient->civil_status ?? 'Single' }} • {{ $patient->blood_type ?? 'N/A' }}</span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Date of Birth / Age</span>
+                <span class="font-semibold text-slate-900">
+                    {{ $patient->dob ? \Carbon\Carbon::parse($patient->dob)->format('M d, Y') : 'N/A' }} 
+                    ({{ $patient->dob ? \Carbon\Carbon::parse($patient->dob)->age : '—' }} yrs)
+                </span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Sex</span>
+                <span class="font-semibold text-slate-900">{{ ucfirst($patient->sex ?? 'Unspecified') }}</span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Contact Number</span>
+                <span class="font-semibold text-slate-900">{{ $patient->contact_number ?: 'None provided' }}</span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">PhilHealth Number</span>
+                <span class="font-semibold text-slate-900">{{ $patient->philhealth_number ?: ($patient->guardian_philhealth ?: 'Not Registered') }}</span>
+            </div>
+            <div class="col-span-2">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Complete Address</span>
+                <span class="font-semibold text-slate-900">{{ $patient->address ?: 'Silang, Cavite' }}</span>
+            </div>
+            @if($patient->guardian_name || $patient->guardian_first_name)
+            <div class="col-span-2">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Guardian / Emergency Contact</span>
+                <span class="font-semibold text-slate-900">
+                    {{ $patient->guardian_full_name }} ({{ $patient->guardian_relation ?? 'Guardian' }}) 
+                    @if($patient->guardian_contact) • {{ $patient->guardian_contact }} @endif
+                </span>
+            </div>
+            @endif
         </div>
-    </div>
+    </section>
 
-    <div class="itr-container">
-        
-        <!-- Header -->
-        <div class="header">
-            <h1 class="text-2xl font-black uppercase">Rural Health Unit - Silang</h1>
-            <p class="text-sm font-bold uppercase tracking-widest text-gray-600">Individual Treatment Record</p>
-            <img src="{{ asset('assets/images/logo.png') }}" alt="Logo">
+    {{-- Clinical Encounters & Medical Cases Loop --}}
+    <section class="space-y-6">
+        <div class="flex items-center justify-between pb-1.5 border-b border-slate-300 mb-4">
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <svg class="w-4 h-4 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Clinical Encounters ({{ $cases->count() }} Recorded {{ $cases->count() === 1 ? 'Case' : 'Cases' }})
+            </h3>
+            <span class="text-[10px] text-slate-500 font-semibold">Chronological Order (Latest First)</span>
         </div>
 
-        <!-- Patient Demographics -->
-        <div class="section-title">Patient Demographics</div>
-        <div class="info-grid">
-            <div class="info-item col-span-2">
-                <div class="info-label">Full Name</div>
-                <div>{{ $patient->full_name }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Patient ID</div>
-                <div class="font-mono">{{ $patient->patient_id }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Classification</div>
-                <div>{{ $patient->classification }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Date of Birth</div>
-                <div>{{ \Carbon\Carbon::parse($patient->dob)->format('F d, Y') }} ({{ \Carbon\Carbon::parse($patient->dob)->age }} yrs)</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Sex</div>
-                <div>{{ $patient->sex }}</div>
-            </div>
-            <div class="info-item col-span-2">
-                <div class="info-label">Address</div>
-                <div>{{ $patient->address ?: 'N/A' }}</div>
-            </div>
-        </div>
+        @forelse($cases as $index => $case)
+            @php
+                // Vital signs extraction from snapshot or relations
+                $vitals = is_array($case->vitals_snapshot) ? $case->vitals_snapshot : (json_decode($case->vitals_snapshot, true) ?? []);
+                $bp = $vitals['bp'] ?? ($case->preTriage->blood_pressure ?? ($case->consultation->blood_pressure ?? null));
+                $temp = $vitals['temp'] ?? ($case->preTriage->temperature ?? ($case->consultation->temperature ?? null));
+                $wt = $vitals['wt'] ?? ($case->preTriage->weight ?? ($case->consultation->weight ?? null));
+                $ht = $vitals['ht'] ?? ($case->preTriage->height ?? ($case->consultation->height ?? null));
+                $hr = $vitals['hr'] ?? ($case->preTriage->heart_rate ?? ($case->consultation->heart_rate ?? null));
+                $rr = $vitals['rr'] ?? ($case->preTriage->respiratory_rate ?? ($case->consultation->respiratory_rate ?? null));
+                $pr = $vitals['pr'] ?? ($case->preTriage->pulse_rate ?? ($case->consultation->pulse_rate ?? null));
+                $spo2 = $vitals['spo2'] ?? ($case->preTriage->spo2 ?? ($case->consultation->spo2 ?? null));
 
-        <!-- Cases Loop -->
-        @forelse($cases as $case)
-            <div class="case-block avoid-break">
-                <div class="case-header">
-                    <span>Date: {{ $case->created_at->format('F d, Y') }}</span>
-                    <span>Type: {{ ucfirst($case->type) }}</span>
+                // Doctor / Clinician name
+                $attendingDoctor = $case->consultation && $case->consultation->doctor 
+                    ? $case->consultation->doctor->formatted_name 
+                    : ($case->consultation && $case->consultation->nurse ? $case->consultation->nurse->name . ' (Clinical Nurse)' : 'Attending Medical Officer');
+
+                // Complaint / Symptoms
+                $complaint = $case->preTriage->symptoms 
+                    ?? ($case->consultation && $case->consultation->preTriage ? $case->consultation->preTriage->symptoms : null);
+
+                // Prescription parsing
+                $rawPrescription = $case->prescription;
+                $parsedMedications = [];
+                $hasStructuredPrescription = false;
+                $plainPrescriptionText = '';
+
+                if ($rawPrescription && !in_array(trim($rawPrescription), ['', '[]', 'null', '{}'])) {
+                    $decoded = json_decode($rawPrescription, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && count($decoded) > 0) {
+                        $parsedMedications = $decoded;
+                        $hasStructuredPrescription = true;
+                    } else {
+                        $plainPrescriptionText = $rawPrescription;
+                    }
+                }
+
+                // Fallback to Consultation Prescription Record items
+                if (!$hasStructuredPrescription && empty($plainPrescriptionText) && $case->consultation && $case->consultation->prescriptionRecord) {
+                    $recordItems = $case->consultation->prescriptionRecord->items;
+                    if ($recordItems && $recordItems->count() > 0) {
+                        $parsedMedications = $recordItems->map(function($item) {
+                            return [
+                                'medicine' => $item->medicine_name,
+                                'amount' => $item->quantity ? $item->quantity . ' pcs' : ($item->dosage ?? ''),
+                                'instruction' => trim(($item->dosage ?? '') . ' • ' . ($item->frequency ?? '') . ' • ' . ($item->duration ?? '')),
+                                'quantity' => $item->quantity ?? '',
+                                'isOtc' => false,
+                            ];
+                        })->toArray();
+                        $hasStructuredPrescription = true;
+                    }
+                }
+            @endphp
+
+            <article class="avoid-break border border-slate-300 rounded-lg bg-white overflow-hidden mb-6 shadow-xs">
+                
+                {{-- Case Header Strip --}}
+                <div class="bg-slate-100 border-b border-slate-300 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-3">
+                        <span class="font-black text-slate-900 text-sm">{{ $case->case_number }}</span>
+                        <span class="text-slate-400">•</span>
+                        <span class="font-semibold text-slate-700">Date: {{ $case->created_at->format('F d, Y — h:i A') }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            {{ $case->consultation && $case->consultation->queue_number ? 'Queue: ' . $case->consultation->queue_number : 'Encounter #' . ($case->consultation_id ?? $case->id) }}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-slate-200 text-slate-800 border border-slate-300">
+                            Completed Visit
+                        </span>
+                    </div>
                 </div>
-                <div class="case-body">
+
+                <div class="p-4 space-y-4 text-xs">
                     
-                    @if($case->blood_pressure || $case->temperature || $case->heart_rate || $case->respiratory_rate)
-                    <div class="vitals-grid">
-                        <div><span class="info-label">BP:</span> {{ $case->blood_pressure ?: '--' }}</div>
-                        <div><span class="info-label">Temp:</span> {{ $case->temperature ?: '--' }} °C</div>
-                        <div><span class="info-label">HR:</span> {{ $case->heart_rate ?: '--' }} bpm</div>
-                        <div><span class="info-label">RR:</span> {{ $case->respiratory_rate ?: '--' }} cpm</div>
-                        <div><span class="info-label">Height:</span> {{ $case->height ?: '--' }} cm</div>
-                        <div><span class="info-label">Weight:</span> {{ $case->weight ?: '--' }} kg</div>
-                        <div><span class="info-label">SpO2:</span> {{ $case->spo2 ?: '--' }} %</div>
+                    {{-- Vital Signs Strip --}}
+                    @if($bp || $temp || $hr || $rr || $spo2 || $wt || $ht)
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            Triage & Vital Signs Snapshot
+                        </div>
+                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 text-center text-slate-800">
+                            <div class="bg-white p-2 rounded border border-slate-200 shadow-2xs">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase">Blood Press.</span>
+                                <span class="font-mono font-black text-xs text-slate-900">{{ $bp ?: '—' }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200 shadow-2xs">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase">Temp</span>
+                                <span class="font-mono font-black text-xs text-slate-900">{{ $temp ? $temp . '°C' : '—' }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200 shadow-2xs">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase">Heart Rate</span>
+                                <span class="font-mono font-black text-xs text-slate-900">{{ $hr ? $hr . ' bpm' : '—' }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200 shadow-2xs">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase">Resp. Rate</span>
+                                <span class="font-mono font-black text-xs text-slate-900">{{ $rr ? $rr . ' cpm' : '—' }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200 shadow-2xs">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase">Oxygen (SpO2)</span>
+                                <span class="font-mono font-black text-xs text-slate-900">{{ $spo2 ? $spo2 . '%' : '—' }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200 shadow-2xs">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase">Weight</span>
+                                <span class="font-mono font-black text-xs text-slate-900">{{ $wt ? $wt . ' kg' : '—' }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200 shadow-2xs">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase">Height</span>
+                                <span class="font-mono font-black text-xs text-slate-900">{{ $ht ? $ht . ' cm' : '—' }}</span>
+                            </div>
+                        </div>
                     </div>
                     @endif
 
-                    <div class="mb-4">
-                        <div class="info-label">Chief Complaint / Symptoms</div>
-                        <p class="text-sm mt-1">{{ $case->complaint ?: 'None recorded.' }}</p>
+                    {{-- Chief Complaint / Presenting Symptoms --}}
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">Chief Complaint / Presenting Symptoms</span>
+                        <div class="p-2.5 rounded bg-slate-50 border border-slate-200 text-slate-800 leading-relaxed font-medium">
+                            {{ $complaint ?: 'No primary complaint or symptom notes recorded at triage.' }}
+                        </div>
                     </div>
 
-                    @if($case->diagnosis)
-                    <div class="mb-4">
-                        <div class="info-label">Diagnosis / Clinical Impression</div>
-                        <p class="text-sm mt-1 font-bold">{{ $case->diagnosis }}</p>
+                    {{-- Diagnosis --}}
+                    <div class="p-3 rounded-lg bg-emerald-50/70 border border-emerald-300">
+                        <span class="block text-[10px] font-black uppercase tracking-wider text-emerald-900 mb-1">Primary Clinical Diagnosis / Impression</span>
+                        <p class="text-slate-900 font-black text-sm uppercase tracking-tight">{{ $case->diagnosis ?: 'Clinical Follow-up & Evaluation' }}</p>
+                    </div>
+
+                    {{-- Clinical Notes --}}
+                    @if($case->consultation && $case->consultation->medical_notes && !in_array(trim($case->consultation->medical_notes), ['Nothing New', '[Auto-Closed At End Of Day]', '[Auto-closed at End of Day]']))
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">Physician Examination & Progress Notes</span>
+                        <p class="text-slate-700 p-2.5 bg-slate-50 rounded border border-slate-200 leading-relaxed">{{ $case->consultation->medical_notes }}</p>
                     </div>
                     @endif
 
+                    {{-- Formatted Treatment Plan & Medications Table (NO RAW JSON) --}}
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Treatment Plan & Prescribed Medications</span>
+                        
+                        @if($hasStructuredPrescription && count($parsedMedications) > 0)
+                            <div class="border border-slate-300 rounded-lg overflow-hidden">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-slate-100 border-b border-slate-300 text-slate-700 font-bold uppercase text-[10px] tracking-wider">
+                                        <tr>
+                                            <th class="py-1.5 px-3 w-8 text-center">#</th>
+                                            <th class="py-1.5 px-3">Medication & Formulation</th>
+                                            <th class="py-1.5 px-3">Dosage / Strength</th>
+                                            <th class="py-1.5 px-3">Instructions / Sig</th>
+                                            <th class="py-1.5 px-3 w-20 text-center">Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-200">
+                                        @foreach($parsedMedications as $idx => $med)
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="py-2 px-3 text-center font-bold text-slate-400">{{ $idx + 1 }}</td>
+                                            <td class="py-2 px-3 font-bold text-slate-900">
+                                                {{ $med['medicine'] ?? ($med['name'] ?? 'Prescribed Medicine') }}
+                                                @if(!empty($med['isOtc']))
+                                                    <span class="ml-1 text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">OTC</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2 px-3 font-semibold text-slate-700">
+                                                {{ $med['amount'] ?? ($med['dosage'] ?? '—') }}
+                                            </td>
+                                            <td class="py-2 px-3 text-slate-700 leading-relaxed">
+                                                {{ $med['instruction'] ?? ($med['sig'] ?? 'As directed by physician') }}
+                                            </td>
+                                            <td class="py-2 px-3 text-center font-mono font-bold text-slate-800">
+                                                {{ !empty($med['quantity']) ? $med['quantity'] : '—' }}
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @elseif(!empty($plainPrescriptionText))
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-mono text-xs text-slate-800 whitespace-pre-line leading-relaxed">
+                                {!! nl2br(e($plainPrescriptionText)) !!}
+                            </div>
+                        @else
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-500 italic text-xs">
+                                No prescription medications ordered for this encounter.
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Diagnostic & Laboratory Results Summary --}}
                     @php
-                        $itrPrescriptionText = $case->prescription;
-                        $itrHasPrescription = $itrPrescriptionText && !in_array(trim($itrPrescriptionText), ['', '[]', 'null', '{}']);
+                        $doneAncillary = $case->consultation ? $case->consultation->ancillaryRequests->where('status', 'Done') : collect();
                     @endphp
-                    @if($itrHasPrescription || $case->treatment_plan)
-                    <div class="mb-4">
-                        <div class="info-label">Treatment Plan & Prescriptions</div>
-                        <p class="text-sm mt-1">{{ $itrHasPrescription ? $itrPrescriptionText : 'No prescription recorded.' }}</p>
-                        @if($case->treatment_plan)
-                            <p class="text-sm mt-2">{{ $case->treatment_plan }}</p>
+                    @if($doneAncillary->count() > 0)
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1.5">Diagnostic & Ancillary Examinations</span>
+                        <div class="space-y-2">
+                            @foreach($doneAncillary as $anc)
+                                <div class="p-2.5 bg-indigo-50/60 rounded-lg border border-indigo-200 text-xs">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-indigo-200 text-indigo-800">
+                                                {{ $anc->type }}
+                                            </span>
+                                            <span class="font-black text-slate-900">{{ $anc->test_name }}</span>
+                                        </div>
+                                        <span class="font-bold text-[10px] text-emerald-700">
+                                            Status: Done
+                                        </span>
+                                    </div>
+
+                                    @if($anc->result_data)
+                                        @php
+                                            $rd = $anc->result_data;
+                                        @endphp
+                                        @if(isset($rd['findings']) || isset($rd['impression']))
+                                            {{-- Radiology Chest X-Ray findings --}}
+                                            <div class="mt-1 text-slate-800 bg-white p-2 rounded border border-indigo-100 space-y-1">
+                                                @if(!empty($rd['findings']))
+                                                    <p class="text-[11px] leading-relaxed"><strong class="text-slate-700">Findings:</strong> {{ $rd['findings'] }}</p>
+                                                @endif
+                                                @if(!empty($rd['impression']))
+                                                    <p class="text-[11px] font-bold text-emerald-900"><strong class="text-slate-700">Impression:</strong> {{ $rd['impression'] }}</p>
+                                                @endif
+                                            </div>
+                                        @elseif(isset($rd['wbc']) || isset($rd['hemoglobin']))
+                                            {{-- CBC summary --}}
+                                            <div class="mt-1 text-[11px] text-slate-800 bg-white p-2 rounded border border-indigo-100 flex flex-wrap gap-x-4 gap-y-1">
+                                                <span><strong>WBC:</strong> {{ $rd['wbc'] ?? '—' }} x10^9/L</span>
+                                                <span><strong>RBC:</strong> {{ $rd['rbc'] ?? '—' }} x10^12/L</span>
+                                                <span><strong>Hgb:</strong> {{ $rd['hemoglobin'] ?? '—' }} g/L</span>
+                                                <span><strong>Hct:</strong> {{ $rd['hematocrit'] ?? '—' }}%</span>
+                                                @if(!empty($rd['platelet_count']))
+                                                    <span><strong>Platelets:</strong> {{ $rd['platelet_count'] }} x10^9/L</span>
+                                                @endif
+                                            </div>
+                                        @elseif(isset($rd['color']) || isset($rd['pus_cells_wbc']))
+                                            {{-- Urinalysis summary --}}
+                                            <div class="mt-1 text-[11px] text-slate-800 bg-white p-2 rounded border border-indigo-100 flex flex-wrap gap-x-4 gap-y-1">
+                                                <span><strong>Color:</strong> {{ $rd['color'] ?? '—' }}</span>
+                                                <span><strong>Transparency:</strong> {{ $rd['transparency'] ?? '—' }}</span>
+                                                <span><strong>pH:</strong> {{ $rd['ph'] ?? '—' }}</span>
+                                                <span><strong>Protein:</strong> {{ $rd['protein'] ?? 'Negative' }}</span>
+                                                <span><strong>Pus Cells:</strong> {{ $rd['pus_cells_wbc'] ?? '—' }}/hpf</span>
+                                                <span><strong>RBC:</strong> {{ $rd['rbc_urine'] ?? '—' }}/hpf</span>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Follow-Up Note (if scheduled) --}}
+                    @if($case->consultation && $case->consultation->is_followup_needed)
+                    <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-between text-xs">
+                        <div>
+                            <span class="font-bold text-amber-900">Scheduled Follow-up Date:</span>
+                            <span class="font-black text-amber-950 ml-1">
+                                {{ $case->consultation->followup_date ? \Carbon\Carbon::parse($case->consultation->followup_date)->format('F d, Y') : 'As needed' }}
+                            </span>
+                            @if($case->consultation->followup_reason)
+                                <span class="text-amber-800 ml-2">({{ $case->consultation->followup_reason }})</span>
+                            @endif
+                        </div>
+                        @if($case->consultation->followup_completed_at)
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded">
+                                Fulfilled on {{ $case->consultation->followup_completed_at->format('M d, Y') }}
+                            </span>
                         @endif
                     </div>
                     @endif
 
-                    @if($case->lab_requests)
-                    <div class="mb-4">
-                        <div class="info-label">Laboratory / Diagnostics Requested</div>
-                        <p class="text-sm mt-1">{{ $case->lab_requests }}</p>
-                    </div>
-                    @endif
-
-                    <div class="mt-8 flex justify-end">
-                        <div class="text-center w-64">
-                            <div class="border-b border-black mb-1 h-8"></div>
-                            <div class="info-label">{{ $case->doctor ? $case->doctor->formatted_name : 'Attending Physician' }}</div>
-                            <div class="text-[10px]">Signature over Printed Name</div>
+                    {{-- Attending Physician Signature Block --}}
+                    <div class="pt-4 mt-2 border-t border-slate-200 flex justify-end">
+                        <div class="rhu-signature-box text-center w-64">
+                            <div class="rhu-signature-line"></div>
+                            <div class="rhu-signature-name text-xs font-black text-slate-900">{{ $attendingDoctor }}</div>
+                            <div class="rhu-signature-role text-[10px] text-slate-500">License / Signature over Printed Name</div>
                         </div>
                     </div>
+
                 </div>
-            </div>
+            </article>
         @empty
-            <div class="p-8 text-center text-gray-500">
-                No clinical records found for the selected criteria.
+            <div class="p-12 text-center text-slate-500 bg-slate-50 border border-slate-200 rounded-lg">
+                <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="font-bold">No clinical encounter records found for this patient.</p>
+                <p class="text-xs text-slate-400 mt-1">Encounters are recorded when consultations are concluded by clinical staff.</p>
             </div>
         @endforelse
+    </section>
 
-        <div class="text-center text-xs text-gray-400 mt-8 avoid-break">
-            <p>*** END OF MEDICAL RECORD ***</p>
-            <p>Printed on {{ now()->format('F d, Y h:i A') }}</p>
-        </div>
-
+    {{-- Official End Of Record Marker --}}
+    <div class="avoid-break text-center text-[10px] text-slate-400 mt-8 pt-4 border-t border-slate-200">
+        <p class="font-bold tracking-widest uppercase">*** END OF OFFICIAL TREATMENT RECORD ***</p>
+        <p class="mt-0.5">Rural Health Unit — Silang, Cavite • Document Verification ID: {{ strtoupper(substr(md5($patient->patient_id . now()->toDateString()), 0, 12)) }}</p>
     </div>
 
-</body>
-</html>
+</x-print-layout>

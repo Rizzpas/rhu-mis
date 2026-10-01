@@ -159,28 +159,36 @@
             fullscreenImage: null,
             isMainDragging: false,
 
-            handleMainFiles(files) {
+            mainError: null,
+            existingErrors: {},
+
+            async handleMainFiles(files) {
                 if (!files || files.length === 0) return;
                 const file = files[0];
                 const input = document.getElementById('main_image');
                 
-                if (file.type.startsWith('image/')) {
-                    window.openImageCropper(file, {
-                        aspectRatio: NaN,
-                        subtitle: 'Announcement Cover Media — Free crop or choose ratio',
-                        onApply: (blob, previewUrl) => {
-                            this.mainImageName = file.name;
-                            this.mainPreviews = [previewUrl];
-                            setCroppedFile(input, blob, file.name || 'cover.jpg');
-                        }
-                    });
-                } else {
-                    this.mainImageName = file.name;
-                    this.mainPreviews = [];
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    input.files = dt.files;
+                if (window.SecureImageValidator) {
+                    const res = await window.SecureImageValidator.validateFiles(files);
+                    if (!res.valid) {
+                        this.mainError = res.message;
+                        if (input) input.value = '';
+                        this.mainImageName = '';
+                        this.mainPreviews = [];
+                        return;
+                    }
                 }
+                this.mainError = null;
+
+                window.openImageCropper(file, {
+                    aspectRatio: NaN,
+                    subtitle: 'Announcement Cover Media — Free crop or choose ratio',
+                    onApply: (blob, previewUrl) => {
+                        this.mainImageName = file.name;
+                        this.mainPreviews = [previewUrl];
+                        this.mainError = null;
+                        setCroppedFile(input, blob, file.name || 'cover.jpg');
+                    }
+                });
             },
 
             handleMainImageChange(event) {
@@ -190,60 +198,71 @@
             removeMainImage() {
                 this.mainImageName = '';
                 this.mainPreviews = [];
+                this.mainError = null;
                 const input = document.getElementById('main_image');
                 if (input) input.value = '';
             },
 
-            handleExistingSectionFiles(files, sectionId) {
+            async handleExistingSectionFiles(files, sectionId) {
                 if (!files || files.length === 0) return;
                 const file = files[0];
                 const input = document.getElementById('existing_image_' + sectionId);
                 const label = document.getElementById('filename_' + sectionId);
                 
-                if (file.type.startsWith('image/')) {
-                    window.openImageCropper(file, {
-                        aspectRatio: NaN,
-                        subtitle: 'Free crop — Section Media',
-                        onApply: (blob, previewUrl) => {
-                            if (label) label.innerText = file.name;
-                            setCroppedFile(input, blob, file.name || 'section.jpg');
-                        }
-                    });
-                } else {
-                    if (label) label.innerText = file.name;
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    input.files = dt.files;
+                if (window.SecureImageValidator) {
+                    const res = await window.SecureImageValidator.validateFiles(files);
+                    if (!res.valid) {
+                        this.existingErrors[sectionId] = res.message;
+                        if (input) input.value = '';
+                        if (label) label.innerText = 'Replace Media (Free crop)...';
+                        return;
+                    }
                 }
+                delete this.existingErrors[sectionId];
+
+                window.openImageCropper(file, {
+                    aspectRatio: NaN,
+                    subtitle: 'Free crop — Section Media',
+                    onApply: (blob, previewUrl) => {
+                        if (label) label.innerText = file.name;
+                        delete this.existingErrors[sectionId];
+                        setCroppedFile(input, blob, file.name || 'section.jpg');
+                    }
+                });
             },
 
-            handleNewSectionFiles(files, index) {
+            async handleNewSectionFiles(files, index) {
                 if (!files || files.length === 0) return;
                 const file = files[0];
                 const input = document.getElementById('new_section_image_' + index);
                 
-                if (file.type.startsWith('image/')) {
-                    window.openImageCropper(file, {
-                        aspectRatio: NaN,
-                        subtitle: 'Free crop — Section Media',
-                        onApply: (blob, previewUrl) => {
-                            this.new_sections[index].fileName = file.name;
-                            this.new_sections[index].preview = previewUrl;
-                            setCroppedFile(input, blob, file.name || 'section.jpg');
-                        }
-                    });
-                } else {
-                    this.new_sections[index].fileName = file.name;
-                    this.new_sections[index].preview = '';
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    input.files = dt.files;
+                if (window.SecureImageValidator) {
+                    const res = await window.SecureImageValidator.validateFiles(files);
+                    if (!res.valid) {
+                        this.new_sections[index].error = res.message;
+                        if (input) input.value = '';
+                        this.new_sections[index].fileName = '';
+                        this.new_sections[index].preview = '';
+                        return;
+                    }
                 }
+                this.new_sections[index].error = null;
+
+                window.openImageCropper(file, {
+                    aspectRatio: NaN,
+                    subtitle: 'Free crop — Section Media',
+                    onApply: (blob, previewUrl) => {
+                        this.new_sections[index].fileName = file.name;
+                        this.new_sections[index].preview = previewUrl;
+                        this.new_sections[index].error = null;
+                        setCroppedFile(input, blob, file.name || 'section.jpg');
+                    }
+                });
             },
             
             addSection() {
                 if(this.new_sections.length < 5) {
-                    this.new_sections.push({ fileName: '', layout: 'middle', textAlign: 'left', preview: null, isDragging: false });
+                    this.new_sections.push({ fileName: '', layout: 'middle', textAlign: 'left', preview: null, isDragging: false, error: null });
                 } else {
                     alert('Maximum of 5 additional sections allowed.');
                 }
@@ -350,7 +369,7 @@
                          @dragover.prevent="isMainDragging = true"
                          @dragleave.prevent="if ($event.currentTarget.contains($event.relatedTarget)) return; isMainDragging = false"
                          @drop.prevent="isMainDragging = false; if ($event.dataTransfer && $event.dataTransfer.files.length) handleMainFiles($event.dataTransfer.files)">
-                        <input type="file" name="images[]" id="main_image" class="hidden" multiple accept="image/*,video/mp4" @change="handleMainImageChange($event)">
+                        <input type="file" name="images[]" id="main_image" class="hidden" multiple accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" @change="handleMainImageChange($event)">
 
                         <div @click="document.getElementById('main_image').click()"
                              :class="isMainDragging ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20' : 'border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/70'"
@@ -359,8 +378,14 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                             <span class="text-slate-700 dark:text-slate-200 text-sm font-semibold pointer-events-none" x-text="mainImageName || '{{ $announcement->image_path ? 'Click or drag to replace cover image' : 'Click or drag to upload cover image' }}'"></span>
-                            <span class="text-xs text-slate-400 pointer-events-none">Supports JPG, PNG, GIF, MP4 · Free crop</span>
+                            <span class="text-xs text-slate-400 pointer-events-none">Supports JPG, PNG, WEBP · Free crop</span>
                         </div>
+                        <template x-if="mainError">
+                            <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-2 flex items-center gap-1.5" role="alert">
+                                <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span x-text="mainError"></span>
+                            </p>
+                        </template>
                     </div>
 
                     {{-- New Cover Preview --}}
@@ -581,12 +606,18 @@
                                             </div>
                                         @endif
 
-                                        <input type="file" name="existing_sections[{{ $section->id }}][image]" id="existing_image_{{ $section->id }}" class="hidden" accept="image/*,video/mp4" @change="handleExistingSectionFiles($event.target.files, {{ $section->id }})">
+                                        <input type="file" name="existing_sections[{{ $section->id }}][image]" id="existing_image_{{ $section->id }}" class="hidden" accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" @change="handleExistingSectionFiles($event.target.files, {{ $section->id }})">
                                         <div @click="document.getElementById('existing_image_{{ $section->id }}').click()" 
                                              class="flex items-center justify-between w-full px-4 py-3 border-2 border-dashed rounded-xl border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 bg-white/70 dark:bg-slate-900/50 cursor-pointer transition-all">
                                             <span id="filename_{{ $section->id }}" class="text-xs text-slate-500 dark:text-slate-400 truncate">Replace Media (Free crop)...</span>
                                             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                         </div>
+                                        <template x-if="existingErrors[{{ $section->id }}]">
+                                            <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1.5 mt-1.5" role="alert">
+                                                <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span x-text="existingErrors[{{ $section->id }}]"></span>
+                                            </p>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -784,12 +815,18 @@
 
                                 <div class="space-y-3">
                                     <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Media</label>
-                                    <input type="file" :name="'new_sections[' + index + '][image]'" :id="'new_section_image_' + index" class="hidden" accept="image/*,video/mp4" @change="handleNewSectionFiles($event.target.files, index)">
+                                    <input type="file" :name="'new_sections[' + index + '][image]'" :id="'new_section_image_' + index" class="hidden" accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" @change="handleNewSectionFiles($event.target.files, index)">
                                     <div @click="document.getElementById('new_section_image_' + index).click()" 
                                          class="flex items-center justify-between w-full px-4 py-3 border-2 border-dashed rounded-xl border-emerald-300 dark:border-emerald-700/60 bg-white/80 dark:bg-slate-900/60 cursor-pointer hover:bg-emerald-50/50 transition">
                                         <span class="text-slate-500 dark:text-slate-400 truncate text-xs" x-text="section.fileName || 'Select media (Free crop)...'"></span>
                                         <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </div>
+                                    <template x-if="section.error">
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1.5 mt-1.5" role="alert">
+                                            <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span x-text="section.error"></span>
+                                        </p>
+                                    </template>
                                     <div x-show="section.preview" class="aspect-video max-h-40 rounded-xl overflow-hidden border border-emerald-200 dark:border-emerald-800 shadow-xs">
                                         <img :src="section.preview" class="w-full h-full object-cover">
                                     </div>

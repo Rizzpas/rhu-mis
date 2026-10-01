@@ -15,14 +15,17 @@ class NewPrescriptionNotification extends Notification
 
     public $prescriptionId;
 
+    public $type;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct($patientName, $doctorId, $prescriptionId)
+    public function __construct($patientName, $doctorId, $prescriptionId, $type = 'pending')
     {
         $this->patientName = $patientName;
         $this->doctorId = $doctorId;
         $this->prescriptionId = $prescriptionId;
+        $this->type = $type;
     }
 
     /**
@@ -42,12 +45,21 @@ class NewPrescriptionNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $message = $this->type === 'expired'
+            ? "Prescription #{$this->prescriptionId} for {$this->patientName} has expired."
+            : "New prescription pending for {$this->patientName}.";
+
+        $url = $this->type === 'expired'
+            ? (auth()->user()?->role === 'nurse' ? route('nurse.dashboard') : route('doctor.dashboard'))
+            : route('pharmacy.dashboard');
+
         return [
             'patient_name' => $this->patientName,
             'doctor_id' => $this->doctorId,
             'prescription_id' => $this->prescriptionId,
-            'message' => "New prescription pending for {$this->patientName}.",
-            'url' => route('pharmacy.dashboard'),
+            'type' => $this->type,
+            'message' => $message,
+            'url' => $url,
         ];
     }
 }

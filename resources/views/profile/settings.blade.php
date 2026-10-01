@@ -35,11 +35,23 @@
     <div x-data="{ 
             photoName: null, 
             photoPreview: null,
+            uploadError: null,
             isDragging: false,
             dragCounter: 0,
-            handleAvatarFile(file) {
-                if (!file || !file.type.startsWith('image/')) return;
+            async handleAvatarFile(file) {
                 const input = document.getElementById('profile_avatar_input');
+                if (!file) return;
+
+                if (window.SecureImageValidator) {
+                    const res = await window.SecureImageValidator.validateFile(file);
+                    if (!res.valid) {
+                        this.uploadError = res.message;
+                        if (input) input.value = '';
+                        return;
+                    }
+                }
+                this.uploadError = null;
+
                 $store.imageCropper.open(file, {
                     aspectRatio: 1,
                     circular: true,
@@ -47,6 +59,7 @@
                     onApply: (blob, previewUrl) => {
                         this.photoPreview = previewUrl;
                         this.photoName = file.name;
+                        this.uploadError = null;
                         setCroppedFile(input, blob, file.name || 'avatar.jpg');
                         window.dispatchEvent(new CustomEvent('profile-avatar-changed', {
                             detail: { previewUrl: previewUrl, fileName: file.name }
@@ -245,7 +258,13 @@
                         <span>Square Crop • Max 2MB</span>
                     </div>
                 </div>
-                <template x-if="photoPreview">
+                <template x-if="uploadError">
+                    <p class="text-xs text-center text-rose-600 dark:text-rose-400 font-semibold mt-2 flex items-center justify-center gap-1.5" role="alert">
+                        <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span x-text="uploadError"></span>
+                    </p>
+                </template>
+                <template x-if="photoPreview && !uploadError">
                     <p class="text-xs text-center text-emerald-600 dark:text-emerald-400 font-semibold mt-2 flex items-center justify-center gap-1">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         New photo selected (Click Save Changes below)
@@ -255,7 +274,7 @@
         </div>
 
         <!-- Hidden input connected to form -->
-        <input type="file" id="profile_avatar_input" name="avatar" form="profile-info-form" accept="image/*" class="hidden"
+        <input type="file" id="profile_avatar_input" name="avatar" form="profile-info-form" accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp" class="hidden"
             @change="if ($event.target.files.length) handleAvatarFile($event.target.files[0])">
     </div>
 

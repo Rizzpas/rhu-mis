@@ -41,7 +41,7 @@
                 </svg>
             </div>
             <div class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                <strong class="text-slate-800 dark:text-white">Need Urgent Assistance?</strong> For medical emergency or immediate booking verification, please visit the Rural Health Unit of Silang frontdesk or call the Municipal Health Hotline.
+                <strong class="text-slate-800 dark:text-white">Need Urgent Assistance?</strong> For medical emergency or immediate booking verification, please visit the Rural Health Unit of Silang frontdesk or call the Municipal Health Hotline ({{ \App\Models\SiteSetting::get('emergency_hotlines', '911 | (046) 432-1234') }}).
             </div>
         </div>
 

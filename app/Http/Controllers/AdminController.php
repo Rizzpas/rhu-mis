@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\AuditLog;
 use App\Models\InventoryLog;
 use App\Models\Patient;
+use App\Rules\SecureImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -114,15 +115,7 @@ class AdminController extends Controller
         $avgWaitTime = $avgWaitTimeRaw ? round($avgWaitTimeRaw) : 0;
 
         // 7. Barangay Heatmap (Filtered)
-        $barangayData = \App\Models\Consultation::join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
-            ->where('consultations.created_at', '>=', $startDate)
-            ->whereNotNull('patients.barangay')
-            ->where('patients.barangay', '!=', '')
-            ->select(\Illuminate\Support\Facades\DB::raw('patients.barangay, COUNT(consultations.id) as count'))
-            ->groupBy('patients.barangay')
-            ->orderByDesc('count')
-            ->limit(10)
-            ->pluck('count', 'barangay');
+        $barangayData = $this->getBarangayData($startDate);
 
         // 8. Age-Sex Demographics (Filtered)
         $demographics = \Illuminate\Support\Facades\DB::select("
@@ -312,15 +305,7 @@ class AdminController extends Controller
             ->pluck('count', 'severity');
 
         // 6. Barangay Heatmap
-        $barangayData = \App\Models\Consultation::join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
-            ->where('consultations.created_at', '>=', $startDate)
-            ->whereNotNull('patients.barangay')
-            ->where('patients.barangay', '!=', '')
-            ->select(\Illuminate\Support\Facades\DB::raw('patients.barangay, COUNT(consultations.id) as count'))
-            ->groupBy('patients.barangay')
-            ->orderByDesc('count')
-            ->limit(10)
-            ->pluck('count', 'barangay');
+        $barangayData = $this->getBarangayData($startDate);
 
         // 7. Age-Sex Demographics
         $demographics = \Illuminate\Support\Facades\DB::select("
@@ -459,17 +444,9 @@ class AdminController extends Controller
         }
 
         if ($chart === 'barangay') {
-            $data = \App\Models\Consultation::join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
-                ->where('consultations.created_at', '>=', $startDate)
-                ->whereNotNull('patients.barangay')
-                ->where('patients.barangay', '!=', '')
-                ->select(\Illuminate\Support\Facades\DB::raw('patients.barangay, COUNT(consultations.id) as count'))
-                ->groupBy('patients.barangay')
-                ->orderByDesc('count')
-                ->limit(10)
-                ->pluck('count', 'barangay');
+            $data = $this->getBarangayData($startDate);
 
-            return response()->json(['labels' => array_keys($data->toArray()), 'data' => array_values($data->toArray())]);
+            return response()->json(['labels' => array_keys($data), 'data' => array_values($data)]);
         }
 
         if ($chart === 'demographics') {
@@ -763,7 +740,7 @@ class AdminController extends Controller
             }
         }
 
-        $staff = $query->with('practitionerSchedules')->orderBy('created_at', 'desc')->get();
+        $staff = $query->with('practitionerSchedules')->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         return view('admin.staff.index', compact('staff'));
     }
@@ -880,13 +857,13 @@ class AdminController extends Controller
             'content' => 'required|string',
             'content_align' => 'nullable|in:left,center,right,justify',
 
-            'images' => 'nullable|array',
-            'images.*' => 'file|mimes:jpeg,png,jpg,gif,mp4|max:51200', // Increased max size for video (50MB)
+            'images' => 'nullable',
+            'images.*' => ['nullable', 'file', 'max:51200', new SecureImage],
             'display_type' => 'nullable|in:list,carousel',
             'display_mode' => 'nullable|in:standard,infographic',
             'sections' => 'nullable|array',
             'sections.*.content' => 'nullable|string',
-            'sections.*.image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4|max:51200',
+            'sections.*.image' => ['nullable', 'file', 'max:51200', new SecureImage],
             'sections.*.video_url' => 'nullable|url',
             'sections.*.layout' => 'nullable|in:left,right,middle',
             'sections.*.text_align' => 'nullable|in:left,center,right,justify',
@@ -985,20 +962,20 @@ class AdminController extends Controller
             'end_time' => 'nullable|date_format:H:i',
             'content' => 'required|string',
             'content_align' => 'nullable|in:left,center,right,justify',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
+            'images' => 'nullable',
+            'images.*' => ['nullable', 'file', 'max:51200', new SecureImage],
             'display_type' => 'nullable|in:list,carousel',
             'display_mode' => 'nullable|in:standard,infographic',
             // Update existing sections
             'existing_sections' => 'nullable|array',
             'existing_sections.*.content' => 'nullable|string',
-            'existing_sections.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'existing_sections.*.image' => ['nullable', 'file', 'max:10240', new SecureImage],
             'existing_sections.*.layout' => 'nullable|in:left,right,middle',
             'existing_sections.*.text_align' => 'nullable|in:left,center,right,justify',
             // Simple gallery append for now
             'new_sections' => 'nullable|array',
             'new_sections.*.content' => 'nullable|string',
-            'new_sections.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'new_sections.*.image' => ['nullable', 'file', 'max:10240', new SecureImage],
             'new_sections.*.layout' => 'nullable|in:left,right,middle',
             'new_sections.*.text_align' => 'nullable|in:left,center,right,justify',
             'status' => 'nullable|in:draft,pending,published',
@@ -1199,7 +1176,7 @@ class AdminController extends Controller
             'role' => 'required|in:super_admin,admin,regular_doctor,pedia_doctor,laboratory,radiology,vitals_nurse,clinical_nurse,information_desk,pharmacy',
             'status' => 'required|string',
             'schedule' => 'nullable|string',
-            'avatar' => 'nullable|image|max:2048',
+            'avatar' => ['nullable', 'file', 'max:2048', new SecureImage],
         ]);
 
         // Only super_admin can create admin/super_admin accounts
@@ -1264,7 +1241,7 @@ class AdminController extends Controller
             'status' => 'required|string',
             'schedule' => 'nullable|string',
             'password' => 'nullable|string|min:8',
-            'avatar' => 'nullable|image|max:2048',
+            'avatar' => ['nullable', 'file', 'max:2048', new SecureImage],
         ]);
 
         // Only super_admin can assign admin/super_admin roles
@@ -1459,8 +1436,40 @@ class AdminController extends Controller
         return view('admin.patients.index', compact('patients'));
     }
 
-    public function showPatient(Patient $patient)
+    public function showPatient(Request $request, Patient $patient)
     {
+        // Self-heal: ensure any completed consultations have an archived MedicalCase
+        foreach ($patient->consultations()->where('status', 'completed')->with('preTriage')->get() as $c) {
+            if (!\App\Models\MedicalCase::where('consultation_id', $c->id)->exists()) {
+                $datePrefix = $c->created_at ? $c->created_at->format('Ymd') : now()->format('Ymd');
+                $caseNumber = 'CASE-' . $datePrefix . '-' . str_pad($c->id, 5, '0', STR_PAD_LEFT);
+                if (\App\Models\MedicalCase::where('case_number', $caseNumber)->exists()) {
+                    $caseNumber .= '-C' . $c->id;
+                }
+                \App\Models\MedicalCase::create([
+                    'case_number' => $caseNumber,
+                    'patient_id' => $c->patient_id,
+                    'consultation_id' => $c->id,
+                    'pre_triage_id' => $c->pre_triage_id,
+                    'diagnosis' => $c->diagnosis ?: 'Clinical Follow-up & Evaluation',
+                    'prescription' => $c->prescription ?: '[]',
+                    'vitals_snapshot' => [
+                        'bp' => $c->preTriage->blood_pressure ?? $c->blood_pressure ?? null,
+                        'temp' => $c->preTriage->temperature ?? $c->temperature ?? null,
+                        'wt' => $c->preTriage->weight ?? $c->weight ?? null,
+                        'ht' => $c->preTriage->height ?? $c->height ?? null,
+                        'hr' => $c->preTriage->heart_rate ?? $c->heart_rate ?? null,
+                        'rr' => $c->preTriage->respiratory_rate ?? $c->respiratory_rate ?? null,
+                        'pr' => $c->preTriage->pulse_rate ?? $c->pulse_rate ?? null,
+                        'spo2' => $c->preTriage->spo2 ?? $c->spo2 ?? ($c->preTriage->oxygen_saturation ?? null),
+                    ],
+                    'closed_at' => $c->consultation_end_time ?? $c->updated_at ?? now(),
+                    'created_at' => $c->created_at ?? now(),
+                    'updated_at' => $c->updated_at ?? now(),
+                ]);
+            }
+        }
+
         $patient->load([
             'consultations' => function ($q) {
                 $q->orderBy('consultation_date', 'desc')->orderBy('created_at', 'desc');
@@ -1469,11 +1478,23 @@ class AdminController extends Controller
             'consultations.nurse',
             'medicalCases.consultation.ancillaryRequests.technician',
             'medicalCases.consultation.prescriptionRecord.items',
+            'medicalCases.preTriage',
         ]);
 
-        AuditLog::record('Viewed Full Patient Record', $patient);
+        $isUnmasked = false;
+        if ($request->has('unmask') && $request->get('unmask') == '1') {
+            $reason = $request->input('override_reason', 'Administrative clinical record inspection');
+            AuditLog::record("Admin Clinical PHI Override Accessed: {$reason}", $patient, [
+                'admin_id' => auth()->id(),
+                'reason' => $reason,
+                'ip' => $request->ip(),
+            ]);
+            $isUnmasked = true;
+        } else {
+            AuditLog::record('Viewed Patient Demographics & Administrative Record', $patient);
+        }
 
-        return view('admin.patients.show', compact('patient'));
+        return view('admin.patients.show', compact('patient', 'isUnmasked'));
     }
 
     public function bulkDeleteAnnouncements(Request $request)
@@ -1568,13 +1589,52 @@ class AdminController extends Controller
 
     public function contentUpdate(Request $request)
     {
-        // Only super_admin can modify system content settings
+        // Only super_admin or admin can modify system content settings
         \Illuminate\Support\Facades\Gate::authorize('manage-content');
 
         $request->validate([
             'settings' => 'required|array',
-            'hero_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+            'settings.footer_email' => 'nullable|email|max:255',
+            'settings.footer_phone' => 'nullable|string|max:100',
+            'settings.clinic_hours' => 'nullable|string|max:255',
+            'settings.emergency_hotlines' => 'nullable|string|max:255',
+            'hero_image_file' => ['nullable', 'file', 'max:10240', new SecureImage],
+            'mission_image_file' => ['nullable', 'file', 'max:10240', new SecureImage],
+            'step_images' => 'nullable|array',
+            'step_images.*.*' => ['nullable', 'file', 'max:10240', new SecureImage],
         ]);
+
+        $groupMap = [
+            'hero_badge_text' => 'hero',
+            'hero_title_line1' => 'hero',
+            'hero_title_highlight' => 'hero',
+            'hero_title_line2' => 'hero',
+            'hero_description' => 'hero',
+            'hero_image' => 'hero',
+            'carousel_hero_title' => 'hero',
+            'carousel_hero_subtitle' => 'hero',
+            'topbar_republic' => 'topbar',
+            'topbar_province' => 'topbar',
+            'topbar_municipality' => 'topbar',
+            'clinic_hours' => 'topbar',
+            'emergency_hotlines' => 'topbar',
+            'mission_headline' => 'about',
+            'mission_subheadline' => 'about',
+            'mission_title' => 'about',
+            'mission_statement' => 'about',
+            'mission_image' => 'about',
+            'mission_image_caption' => 'about',
+            'vision_headline' => 'about',
+            'vision_statement' => 'about',
+            'charter_title' => 'about',
+            'charter_subtitle' => 'about',
+            'footer_address_line1' => 'footer',
+            'footer_address_line2' => 'footer',
+            'footer_phone' => 'footer',
+            'footer_email' => 'footer',
+            'privacy_intro' => 'privacy',
+            'privacy_footer' => 'privacy',
+        ];
 
         if ($request->hasFile('hero_image_file')) {
             $oldHeroImage = \App\Models\SiteSetting::get('hero_image');
@@ -1585,23 +1645,39 @@ class AdminController extends Controller
                 }
             }
             $path = $request->file('hero_image_file')->store('content', 'uploads');
-            \App\Models\SiteSetting::set('hero_image', 'uploads/'.$path);
+            \App\Models\SiteSetting::set('hero_image', 'uploads/'.$path, 'hero', 'image');
+        }
+
+        if ($request->hasFile('mission_image_file')) {
+            $oldMissionImage = \App\Models\SiteSetting::get('mission_image');
+            if ($oldMissionImage && \Illuminate\Support\Str::startsWith($oldMissionImage, 'uploads/')) {
+                $oldPath = str_replace('uploads/', '', $oldMissionImage);
+                if (\Illuminate\Support\Facades\Storage::disk('uploads')->exists($oldPath)) {
+                    \Illuminate\Support\Facades\Storage::disk('uploads')->delete($oldPath);
+                }
+            }
+            $path = $request->file('mission_image_file')->store('content/mission', 'uploads');
+            \App\Models\SiteSetting::set('mission_image', 'uploads/'.$path, 'about', 'image');
         }
 
         foreach ($request->settings as $key => $value) {
-            \App\Models\SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);
+            $group = $groupMap[$key] ?? 'general';
+            $trimmedValue = is_string($value) ? trim($value) : $value;
+            \App\Models\SiteSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $trimmedValue, 'group' => $group, 'type' => 'text']
+            );
         }
 
         if ($request->has('steps')) {
             foreach ($request->steps as $unitSlug => $unitSteps) {
                 if (is_array($unitSteps)) {
                     $steps = array_values(array_filter($unitSteps, function ($s) {
-                        return ! empty($s['title']) || ! empty($s['description']);
+                        return ! empty(trim($s['title'] ?? '')) || ! empty(trim($s['description'] ?? ''));
                     }));
 
                     // Handle step image uploads
                     foreach ($steps as $index => &$step) {
-                        // Check for new uploaded image
                         if ($request->hasFile("step_images.{$unitSlug}.{$index}")) {
                             if (! empty($step['image'])) {
                                 $oldStepPath = str_replace('uploads/', '', $step['image']);
@@ -1613,8 +1689,6 @@ class AdminController extends Controller
                             $path = $file->store('content/steps', 'uploads');
                             $step['image'] = $path;
                         }
-                        // If image was cleared (empty string), keep it empty
-                        // Otherwise preserve the existing image path from hidden field
                     }
                     unset($step);
 
@@ -1641,21 +1715,56 @@ class AdminController extends Controller
             );
         }
 
+        if ($request->has('mission_points') && is_array($request->mission_points)) {
+            $points = array_values(array_filter(array_map('trim', $request->mission_points)));
+            \App\Models\SiteSetting::updateOrCreate(
+                ['key' => 'mission_points'],
+                ['group' => 'about', 'value' => json_encode($points), 'type' => 'json']
+            );
+        }
+
+        if ($request->has('vision_pillars') && is_array($request->vision_pillars)) {
+            $pillars = array_values(array_filter($request->vision_pillars, function ($p) {
+                return !empty(trim($p['title'] ?? '')) || !empty(trim($p['description'] ?? ''));
+            }));
+            \App\Models\SiteSetting::updateOrCreate(
+                ['key' => 'vision_pillars'],
+                ['group' => 'about', 'value' => json_encode($pillars), 'type' => 'json']
+            );
+        }
+
+        if ($request->has('about_metrics') && is_array($request->about_metrics)) {
+            $metrics = array_values(array_filter($request->about_metrics, function ($m) {
+                return !empty(trim($m['value'] ?? '')) || !empty(trim($m['title'] ?? ''));
+            }));
+            \App\Models\SiteSetting::updateOrCreate(
+                ['key' => 'about_metrics'],
+                ['group' => 'about', 'value' => json_encode($metrics), 'type' => 'json']
+            );
+        }
+
         if ($request->has('faq')) {
             $faq = array_values(array_filter($request->faq, function ($f) {
-                return ! empty($f['question']) || ! empty($f['answer']);
+                return ! empty(trim($f['question'] ?? '')) || ! empty(trim($f['answer'] ?? ''));
             }));
-            \App\Models\SiteSetting::where('key', 'faq_items')->update(['value' => json_encode($faq)]);
+            \App\Models\SiteSetting::updateOrCreate(
+                ['key' => 'faq_items'],
+                ['group' => 'faq', 'value' => json_encode($faq), 'type' => 'json']
+            );
         }
 
         if ($request->has('privacy_list')) {
-            $items = array_values(array_filter($request->privacy_list));
-            \App\Models\SiteSetting::where('key', 'privacy_items')->update(['value' => json_encode($items)]);
+            $items = array_values(array_filter(array_map('trim', $request->privacy_list)));
+            \App\Models\SiteSetting::updateOrCreate(
+                ['key' => 'privacy_items'],
+                ['group' => 'privacy', 'value' => json_encode($items), 'type' => 'json']
+            );
         }
 
         \App\Models\SiteSetting::clearCache();
+        \Illuminate\Support\Facades\Cache::forget('global_facility_units');
 
-        \App\Models\AuditLog::record('Updated Landing Page Content');
+        \App\Models\AuditLog::record('Updated Landing Page & CMS Content');
 
         return back()->with('success', 'Content updated successfully!');
     }
@@ -1664,18 +1773,91 @@ class AdminController extends Controller
     {
         $caseIds = $request->input('cases', []);
 
-        if (empty($caseIds)) {
-            // Print all if none specified
-            $cases = $patient->medicalCases()->orderBy('created_at', 'desc')->get();
-        } else {
-            // Convert to array if it comes as a comma-separated string or just an array
+        $query = $patient->medicalCases()
+            ->with([
+                'consultation.doctor',
+                'consultation.nurse',
+                'consultation.ancillaryRequests.technician',
+                'consultation.prescriptionRecord.items',
+                'preTriage',
+            ])
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($caseIds)) {
             if (is_string($caseIds)) {
                 $caseIds = explode(',', $caseIds);
             }
-            $cases = $patient->medicalCases()->whereIn('id', $caseIds)->orderBy('created_at', 'desc')->get();
+            $query->whereIn('id', $caseIds);
         }
 
+        $cases = $query->get();
+
         return view('admin.patients.itr', compact('patient', 'cases'));
+    }
+
+    public function printAncillary(Request $request, Patient $patient)
+    {
+        $ids = $request->input('ids', []);
+        $caseId = $request->input('case_id');
+
+        $query = \App\Models\AncillaryRequest::with([
+                'consultation.doctor',
+                'consultation.nurse',
+                'consultation.patient',
+                'technician',
+                'amender',
+                'collector',
+            ])
+            ->whereHas('consultation', function ($q) use ($patient) {
+                $q->where('patient_id', $patient->patient_id)
+                  ->orWhere('patient_id', (string)$patient->id);
+            })
+            ->where('status', 'Done');
+
+        if (!empty($ids)) {
+            if (is_string($ids)) {
+                $ids = array_filter(explode(',', $ids));
+            }
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        if ($caseId) {
+            $case = \App\Models\MedicalCase::find($caseId);
+            if ($case && $case->consultation_id) {
+                $query->where('consultation_id', $case->consultation_id);
+            }
+        }
+
+        $requests = $query->orderBy('completed_at', 'desc')->get();
+
+        if ($requests->isEmpty()) {
+            return back()->with('error', 'No completed diagnostic results found to print.');
+        }
+
+        return view('admin.ancillary.print', compact('patient', 'requests'));
+    }
+
+    public function printAncillarySingle(Request $request, \App\Models\AncillaryRequest $ancillary)
+    {
+        $ancillary->load([
+            'consultation.doctor',
+            'consultation.nurse',
+            'consultation.patient',
+            'technician',
+            'amender',
+            'collector',
+        ]);
+
+        $patient = $ancillary->consultation ? $ancillary->consultation->patient : null;
+        if (!$patient) {
+            return back()->with('error', 'No patient record linked to this diagnostic request.');
+        }
+
+        $requests = collect([$ancillary]);
+
+        return view('admin.ancillary.print', compact('patient', 'requests'));
     }
 
     /**
@@ -1736,5 +1918,27 @@ class AdminController extends Controller
         }
 
         return ['labels' => $labels, 'data' => $counts];
+    }
+
+    /**
+     * Aggregated barangay consultation distribution with address fallback.
+     */
+    protected function getBarangayData($startDate)
+    {
+        $records = \App\Models\Consultation::join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
+            ->where('consultations.created_at', '>=', $startDate)
+            ->select('consultations.id', 'patients.barangay', 'patients.address')
+            ->get();
+
+        $counts = [];
+        foreach ($records as $r) {
+            $normalized = \App\Models\Patient::normalizeBarangay($r->barangay, $r->address);
+            if ($normalized) {
+                $counts[$normalized] = ($counts[$normalized] ?? 0) + 1;
+            }
+        }
+
+        arsort($counts);
+        return array_slice($counts, 0, 10, true);
     }
 }

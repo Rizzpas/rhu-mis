@@ -55,6 +55,10 @@ class Appointment extends Model
         'guardian_contact',
         'guardian_philhealth',
         'is_follow_up',
+        'cancellation_reason',
+        'cancelled_by',
+        'cancelled_at',
+        'reminder_sent_at',
     ];
 
     protected $casts = [
@@ -63,14 +67,29 @@ class Appointment extends Model
         'data_privacy_agreed' => 'boolean',
         'philhealth_number' => 'encrypted',
         'guardian_philhealth' => 'encrypted',
+        'cancelled_at' => 'datetime',
+        'reminder_sent_at' => 'datetime',
     ];
+
+    protected static function booted()
+    {
+        static::saving(function ($apt) {
+            $apt->barangay = \App\Models\Patient::normalizeBarangay($apt->barangay, $apt->address);
+        });
+    }
 
     use \Illuminate\Database\Eloquent\Prunable;
 
     public function prunable()
     {
+        // Retain cancelled records for 30 days before automated pruning
         return static::where('status', 'cancelled')
-            ->where('updated_at', '<=', now()->subHours(12));
+            ->where('updated_at', '<=', now()->subDays(30));
+    }
+
+    public function cancelledBy()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'cancelled_by');
     }
 
     public function getGuardianFullNameAttribute()

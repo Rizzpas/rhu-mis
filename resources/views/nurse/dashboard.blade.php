@@ -132,14 +132,19 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="mt-auto grid grid-cols-2 gap-2">
-                                <a href="{{ route('nurse.consultation.start', $consultation->id) }}" class="flex items-center justify-center gap-1.5 {{ $consultation->status === 'active' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900 ring-2 ring-yellow-400/30' : 'bg-slate-900 dark:bg-white hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white dark:text-slate-900' }} font-bold py-2.5 px-2 rounded-xl shadow-sm transition-all duration-300 text-xs">
+                            <div class="mt-auto grid grid-cols-5 gap-2">
+                                <a href="{{ route('nurse.consultation.start', $consultation->id) }}" class="col-span-2 flex items-center justify-center gap-1.5 {{ $consultation->status === 'active' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900 ring-2 ring-yellow-400/30' : 'bg-slate-900 dark:bg-white hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white dark:text-slate-900' }} font-bold py-2.5 px-2 rounded-xl shadow-sm transition-all duration-300 text-xs cursor-pointer">
                                     <span>{{ $consultation->status === 'active' ? 'Resume' : 'Admit' }}</span>
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                 </a>
-                                <button type="button" @click="$dispatch('open-modal', 'forward-modal-{{ $consultation->id }}')" class="flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold py-2.5 px-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-xs">
+                                <button type="button" @click="$dispatch('open-modal', 'forward-modal-{{ $consultation->id }}')" class="col-span-2 flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold py-2.5 px-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-xs cursor-pointer">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                     <span>Forward</span>
+                                </button>
+                                <button type="button" @click="$dispatch('open-modal', 'cancel-walkout-modal-{{ $consultation->id }}')" title="Mark as Walkout / Cancel Consultation" class="col-span-1 flex items-center justify-center text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-200 dark:border-rose-800/80 rounded-xl transition-all cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
@@ -214,6 +219,84 @@
                             </div>
                         </div>
 
+                        <!-- Walkout / Cancel Modal -->
+                        <div x-data="{ show: false }" 
+                             @open-modal.window="if ($event.detail === 'cancel-walkout-modal-{{ $consultation->id }}') show = true" 
+                             @close-modal.window="if ($event.detail === 'cancel-walkout-modal-{{ $consultation->id }}') show = false"
+                             x-show="show" 
+                             x-cloak
+                             style="display: none;" 
+                             class="fixed inset-0 z-50 overflow-y-auto" 
+                             role="dialog" aria-modal="true">
+                            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                <div x-show="show"
+                                     x-transition:enter="ease-out duration-300"
+                                     x-transition:enter-start="opacity-0"
+                                     x-transition:enter-end="opacity-100"
+                                     x-transition:leave="ease-in duration-200"
+                                     x-transition:leave-start="opacity-100"
+                                     x-transition:leave-end="opacity-0"
+                                     class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+                                     @click="show = false"
+                                     aria-hidden="true"></div>
+                                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                <div x-show="show"
+                                     x-transition:enter="ease-out duration-300"
+                                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                     x-transition:leave="ease-in duration-200"
+                                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                     @click.stop
+                                     class="relative z-50 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                                    <form action="{{ route('nurse.consultation.cancel', $consultation->id) }}" method="POST">
+                                        @csrf
+                                        <div class="p-6 sm:p-8">
+                                            <div class="sm:flex sm:items-start">
+                                                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl sm:mx-0 sm:h-10 sm:w-10 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+                                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">Cancel Consultation / Walkout</h3>
+                                                    <div class="mt-2 text-sm text-slate-500 dark:text-slate-400 space-y-1.5 border-y border-slate-100 dark:border-slate-700 py-3 mb-4">
+                                                        <p><strong class="text-slate-700 dark:text-slate-300">Patient:</strong> {{ $consultation->patient->full_name }}</p>
+                                                        <p><strong class="text-slate-700 dark:text-slate-300">Queue:</strong> {{ $consultation->queue_number }}</p>
+                                                    </div>
+                                                    <div class="space-y-3">
+                                                        <div>
+                                                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Reason for Cancellation <span class="text-rose-500">*</span></label>
+                                                            <select name="cancellation_reason" required class="w-full text-xs font-semibold rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-rose-500 focus:border-rose-500">
+                                                                <option value="">-- Select Reason --</option>
+                                                                <option value="Patient Walked Out / Left Premises">Patient Walked Out / Left Premises</option>
+                                                                <option value="Patient Refused Consultation / Treatment">Patient Refused Consultation / Treatment</option>
+                                                                <option value="Emergency Hospital Transfer / Endorsement">Emergency Hospital Transfer / Endorsement</option>
+                                                                <option value="Patient Unresponsive / Called Multiple Times">Patient Unresponsive / Called Multiple Times</option>
+                                                                <option value="Other">Other</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Additional Notes / Remarks <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                                            <textarea name="notes" rows="3" placeholder="Provide details, reason for walkout, or hospital transfer notes..." class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 focus:ring-rose-500 focus:border-rose-500"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                                            <button type="submit" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-all cursor-pointer">
+                                                Confirm Cancellation
+                                            </button>
+                                            <button type="button" @click="$dispatch('close-modal', 'cancel-walkout-modal-{{ $consultation->id }}')" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer">
+                                                Back
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 @endforeach
             </div>
@@ -277,7 +360,7 @@
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </span>
             Completed Today
-            <span class="ml-2 text-sm font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-0.5 px-2.5 rounded-full">{{ count($handledPatients) }}</span>
+            <span class="ml-2 text-sm font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-0.5 px-2.5 rounded-full">{{ $handledCount ?? count($handledPatients) }}</span>
         </h3>
         
         @if(count($handledPatients) > 0)
@@ -298,6 +381,23 @@
                                 <span class="text-slate-400 font-bold mr-1">Notes:</span>{{ $handled->diagnosis ?: 'No notes' }}
                             </p>
                         </div>
+                        @if($handled->prescriptionRecord)
+                            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Prescription Issued</span>
+                                </span>
+                                @if($handled->prescriptionRecord->status === 'pending' || $handled->prescriptionRecord->status === 'partially_dispensed')
+                                    <form action="{{ route('nurse.prescription.cancel', $handled->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this prescription? This action cannot be undone.')">
+                                        @csrf
+                                        <input type="hidden" name="cancellation_reason" value="Cancelled by prescriber - clinical decision / patient no longer needs">
+                                        <button type="submit" class="px-2 py-1 text-[9px] font-bold text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/30 hover:bg-rose-200 dark:hover:bg-rose-950/50 rounded border border-rose-300 dark:border-rose-700 cursor-pointer">
+                                            Cancel Rx
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
                         <div class="flex justify-between items-center text-[10px] text-slate-400 font-semibold mt-auto pt-2 border-t border-slate-100 dark:border-slate-800">
                             <span>{{ \Carbon\Carbon::parse($handled->consultation_date)->format('M d') }}</span>
                             <span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">{{ $handled->updated_at->format('h:i A') }}</span>

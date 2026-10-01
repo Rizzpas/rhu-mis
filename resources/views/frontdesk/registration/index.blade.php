@@ -177,11 +177,30 @@
                     'status'           => $apt->status,
                     'type'             => $apt->type,
                     'is_follow_up'     => (bool) $apt->is_follow_up,
+                    'cancellation_reason' => $apt->cancellation_reason,
                     'checkin_url'      => route('frontdesk.appointments.check-in', $apt),
+                    'cancel_url'       => route('frontdesk.appointments.cancel', $apt),
+                    'noshow_url'       => route('frontdesk.appointments.no-show', $apt),
                     'register_url'     => url('/frontdesk/registration?prefill_apt='.$apt->id.'&new_patient=1'),
                 ];
             })) }},
             searchApt: '',
+            isCancelModalOpen: false,
+            cancelUrl: '',
+            cancelName: '',
+            cancelRef: '',
+            cancelReason: 'Patient requested cancellation via phone/in-person',
+            promptCancel(url, name, ref) {
+                this.cancelUrl = url;
+                this.cancelName = name;
+                this.cancelRef = ref;
+                this.cancelReason = 'Patient requested cancellation via phone/in-person';
+                this.isCancelModalOpen = true;
+            },
+            closeCancelModal() {
+                this.isCancelModalOpen = false;
+                this.cancelUrl = '';
+            },
             async fetchLiveQueue() {
                 try {
                     const res = await fetch('{{ route('frontdesk.registration.queue-json') }}');
@@ -331,14 +350,27 @@
                                             </template>
                                         </p>
                                     </div>
-                                    <div class="flex flex-col items-end gap-1 shrink-0">
+                                    <div class="flex flex-col items-end gap-1.5 shrink-0">
                                         <template x-if="apt.status === 'approved' || apt.status === 'rescheduled'">
-                                            <form :action="apt.checkin_url" method="POST">
-                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                <button type="submit" class="text-[10px] font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-3 py-1.5 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer">
-                                                    Check-In
-                                                </button>
-                                            </form>
+                                            <div class="flex flex-col items-end gap-1">
+                                                <form :action="apt.checkin_url" method="POST">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="text-[10px] font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-3 py-1.5 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer">
+                                                        Check-In
+                                                    </button>
+                                                </form>
+                                                <div class="flex items-center gap-1">
+                                                    <form :action="apt.noshow_url" method="POST" onsubmit="return confirm('Mark this patient appointment as No-Show?');">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="text-[9px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900 transition-all cursor-pointer">
+                                                            No-Show
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" @click="promptCancel(apt.cancel_url, apt.name, apt.reference_number)" class="text-[9px] font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </template>
                                         <template x-if="apt.status === 'arrived'">
                                             <span class="text-[10px] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 font-extrabold px-2 py-0.5 rounded-full">Waiting Vitals</span>
@@ -354,6 +386,12 @@
                                         <template x-if="apt.status === 'registered'">
                                             <span class="text-[10px] bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800 font-extrabold px-2 py-0.5 rounded-full">In Queue ✓</span>
                                         </template>
+                                        <template x-if="apt.status === 'no_show'">
+                                            <span class="text-[10px] bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900 font-extrabold px-2 py-0.5 rounded-full">No-Show</span>
+                                        </template>
+                                        <template x-if="apt.status === 'cancelled'">
+                                            <span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-extrabold px-2 py-0.5 rounded-full" :title="apt.cancellation_reason || 'Cancelled'">Cancelled</span>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -361,6 +399,57 @@
                     </div>
                 </div>
             </template>
+
+            <!-- Registration Staff Cancellation Modal -->
+            <div x-show="isCancelModalOpen" 
+                 x-cloak
+                 class="fixed inset-0 z-60 overflow-y-auto" 
+                 style="display: none;">
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="closeCancelModal()"></div>
+                <div class="flex min-h-screen items-center justify-center p-4">
+                    <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white">Cancel Appointment</h3>
+                                <p class="text-xs text-slate-400">Patient: <span class="font-bold text-slate-700 dark:text-slate-200" x-text="cancelName"></span> (<span x-text="cancelRef"></span>)</p>
+                            </div>
+                        </div>
+
+                        <form :action="cancelUrl" method="POST" class="space-y-4">
+                            @csrf
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Reason for Cancellation</label>
+                                <select x-model="cancelReason" class="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-slate-800 dark:text-slate-100 focus:border-rose-500 mb-2">
+                                    <option value="Patient requested cancellation via phone/in-person">Patient requested cancellation</option>
+                                    <option value="Duplicate or conflicting appointment">Duplicate / Conflicting booking</option>
+                                    <option value="Patient unreachable / invalid contact">Patient unreachable</option>
+                                    <option value="Facility schedule adjustment / Doctor unavailable">Facility schedule adjustment</option>
+                                    <option value="custom">Other / Custom reason...</option>
+                                </select>
+                                <template x-if="cancelReason === 'custom'">
+                                    <input type="text" name="reason" placeholder="Specify custom reason..." required
+                                           class="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-slate-800 dark:text-slate-100 focus:border-rose-500">
+                                </template>
+                                <template x-if="cancelReason !== 'custom'">
+                                    <input type="hidden" name="reason" :value="cancelReason">
+                                </template>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-2.5 pt-2">
+                                <button type="button" @click="closeCancelModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                    Back
+                                </button>
+                                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-rose-600/20 transition-all cursor-pointer">
+                                    Confirm Cancellation
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Live Queue Summary for Doctors -->
@@ -419,6 +508,19 @@
                                         @endif
                                         <span class="uppercase font-extrabold text-[10px] tracking-wider {{ $consultation->status === 'queued' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">{{ $consultation->status }}</span>
                                     </div>
+                                    @if($consultation->ancillaryRequests && $consultation->ancillaryRequests->count() > 0)
+                                        <div class="mt-2 flex flex-wrap gap-1 items-center">
+                                            @foreach($consultation->ancillaryRequests->take(2) as $anc)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $anc->status === 'Done' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800' }}">
+                                                    <span class="w-1.5 h-1.5 rounded-full {{ $anc->status === 'Done' ? 'bg-emerald-500' : 'bg-purple-500 animate-pulse' }}"></span>
+                                                    {{ $anc->test_name }}: {{ $anc->status }}
+                                                </span>
+                                            @endforeach
+                                            @if($consultation->ancillaryRequests->count() > 2)
+                                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">+{{ $consultation->ancillaryRequests->count() - 2 }} more</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
 
                                 <td class="p-4 text-right">
@@ -1555,17 +1657,21 @@
                             </div>
                             @php
                                 $presetAddress = isset($prefillApt) && $prefillApt ? $prefillApt->address : '';
-                                $aptAddressParts = $presetAddress ? explode(', ', $presetAddress) : [];
-                                $pStreet = $aptAddressParts[0] ?? '';
-                                $pBarangay = $aptAddressParts[1] ?? '';
+                                $presetBarangay = isset($prefillApt) && $prefillApt ? ($prefillApt->barangay ?? '') : '';
+                                if (! $presetBarangay && $presetAddress) {
+                                    $presetBarangay = \App\Models\Patient::normalizeBarangay(null, $presetAddress) ?? '';
+                                }
+                                $presetHouseNo = isset($prefillApt) && $prefillApt ? ($prefillApt->house_no ?? '') : '';
+                                $presetStreet = isset($prefillApt) && $prefillApt ? ($prefillApt->street ?? '') : '';
+                                $presetBuilding = isset($prefillApt) && $prefillApt ? ($prefillApt->building ?? '') : '';
                             @endphp
                             <div class="md:col-span-2" x-data="{
                                 mode: '{{ $presetAddress ? 'readonly' : 'edit' }}',
                                 combinedAddress: '{{ addslashes($presetAddress) }}',
-                                house_no: '{{ addslashes(old('house_no', '')) }}',
-                                street: '{{ addslashes(old('street', '')) }}',
-                                building: '{{ addslashes(old('building', '')) }}',
-                                barangay: '{{ addslashes(old('barangay', '')) }}',
+                                house_no: '{{ addslashes(old('house_no', $presetHouseNo)) }}',
+                                street: '{{ addslashes(old('street', $presetStreet)) }}',
+                                building: '{{ addslashes(old('building', $presetBuilding)) }}',
+                                barangay: '{{ addslashes(old('barangay', $presetBarangay)) }}',
                                 city_province: 'Silang, Cavite',
                                 barangays: [],
                                 loading: true,
@@ -1604,6 +1710,11 @@
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Address <span class="text-rose-500">*</span></label>
                                 
                                 <input type="hidden" name="address" :value="fullAddress">
+                                <input type="hidden" name="house_no" :value="house_no">
+                                <input type="hidden" name="street" :value="street">
+                                <input type="hidden" name="building" :value="building">
+                                <input type="hidden" name="barangay" :value="barangay">
+                                <input type="hidden" name="city_province" :value="city_province">
 
                                 <template x-if="mode === 'readonly'">
                                     <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl">
@@ -1617,19 +1728,19 @@
                                 <template x-if="mode === 'edit'">
                                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                                         <div class="md:col-span-3">
-                                            <input type="text" :required="mode === 'edit'" x-model="house_no" name="house_no" placeholder="House No." class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                            <input type="text" :required="mode === 'edit'" x-model="house_no" placeholder="House No." class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                         </div>
                                         <div class="md:col-span-4">
-                                            <input type="text" x-model="street" name="street" placeholder="Street Name (Opt)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                            <input type="text" x-model="street" placeholder="Street Name (Opt)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                         </div>
                                         <div class="md:col-span-5">
-                                            <input type="text" x-model="building" name="building" placeholder="Building/Subd. (Opt)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                            <input type="text" x-model="building" placeholder="Building/Subd. (Opt)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                         </div>
                                         <div class="md:col-span-6 relative">
                                             <div x-show="loading" class="absolute right-3 top-3" style="display: none;">
                                                 <svg class="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                             </div>
-                                            <select :required="mode === 'edit'" x-model="barangay" name="barangay" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" :disabled="loading">
+                                            <select :required="mode === 'edit'" x-model="barangay" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" :disabled="loading">
                                                 <option value="">Select Barangay...</option>
                                                 <template x-for="bg in barangays" :key="bg.code">
                                                     <option :value="bg.name" x-text="bg.name" :selected="barangay === bg.name"></option>
@@ -1637,7 +1748,7 @@
                                             </select>
                                         </div>
                                         <div class="md:col-span-6">
-                                            <input type="text" x-model="city_province" name="city_province" readonly class="w-full rounded-xl border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 px-3.5 py-2.5 sm:text-xs font-semibold uppercase cursor-not-allowed">
+                                            <input type="text" x-model="city_province" readonly class="w-full rounded-xl border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 px-3.5 py-2.5 sm:text-xs font-semibold uppercase cursor-not-allowed">
                                         </div>
                                     </div>
                                 </template>

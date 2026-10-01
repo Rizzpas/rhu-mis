@@ -135,7 +135,7 @@
     </div>
 
     <!-- Filters Toolbar (Floating Container with Styled <option> Tags) -->
-    <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
+    <div class="relative z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
         <form id="filterForm" x-ref="filterForm" action="{{ route('admin.audit.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
             <!-- Search -->
             <div class="md:col-span-6">
@@ -153,7 +153,7 @@
             </div>
 
             <!-- Action Category Custom Listbox -->
-            <div class="md:col-span-3">
+            <div class="md:col-span-3 relative z-30">
                 <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Action Category</label>
                 <x-select 
                     name="type" 
@@ -185,7 +185,7 @@
     </div>
 
     <!-- Log Table Container -->
-    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden relative min-h-[400px]">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden relative z-10 min-h-[400px]">
         <!-- Loading Overlay -->
         <div x-show="loading" class="absolute inset-0 bg-white/70 dark:bg-slate-900/70 z-50 flex flex-col items-center justify-center backdrop-blur-[1px] transition-opacity duration-300" style="display: none;">
             <div class="w-8 h-8 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin mb-2"></div>

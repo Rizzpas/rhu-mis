@@ -11,7 +11,7 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button onclick="window.print()" class="hidden md:flex items-center gap-2 h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
+            <button onclick="printDashboardReport()" class="hidden md:flex items-center gap-2 h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                 <span>Print Report</span>
             </button>
@@ -36,8 +36,8 @@
         </div>
     </div>
 
-    <!-- Hero Banner / Quick Status (Mockup Chrome + Black-Green Gradient) -->
-    <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-10 text-white bg-gradient-to-br from-slate-950 via-[#0a1513] to-[#04241d] border border-emerald-500/20 shadow-2xl">
+    <!-- Hero Banner / Quick Status (Mockup Chrome + Black-Green Gradient) — Screen Only -->
+    <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-10 text-white bg-gradient-to-br from-slate-950 via-[#0a1513] to-[#04241d] border border-emerald-500/20 shadow-2xl print-hidden">
         <!-- Ambient radial glow -->
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -125,7 +125,7 @@
                         <span>Launch Analytics</span>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
-                    <button onclick="window.print()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/10 transition-all flex items-center gap-2 cursor-pointer">
+                    <button onclick="printDashboardReport()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/10 transition-all flex items-center gap-2 cursor-pointer">
                         <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                         <span>Print Report</span>
                     </button>
@@ -155,6 +155,8 @@
             </div>
         </div>
     </div>
+
+
 
     <!-- Key Performance Indicators (KPIs) -->
     <div class="grid grid-cols-2 lg:grid-cols-6 gap-5 xl:gap-6 mb-10" x-data="{
@@ -364,8 +366,8 @@
     <!-- Dashboard Main Layout Restructure -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
 
-        <!-- Left Column: Announcements & System Alerts -->
-        <div class="xl:col-span-1 space-y-8 order-2 xl:order-2">
+        <!-- Left Column: Announcements & System Alerts — Screen Only -->
+        <div class="xl:col-span-1 space-y-8 order-2 xl:order-2 print-hidden">
             <!-- Recent Announcements -->
             <div
                 class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs border border-slate-200/90 dark:border-slate-700/80 h-fit overflow-hidden">
@@ -554,8 +556,8 @@
                 </div>
             </div>
 
-            <!-- Analytics Call To Action (Matching Dark Black-Green Aesthetic) -->
-            <div class="mt-8 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 rounded-3xl p-8 border border-emerald-500/20 shadow-xl relative overflow-hidden group text-white">
+            <!-- Analytics Call To Action (Matching Dark Black-Green Aesthetic) — Screen Only -->
+            <div class="mt-8 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 rounded-3xl p-8 border border-emerald-500/20 shadow-xl relative overflow-hidden group text-white print-hidden">
                 <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div class="max-w-xl space-y-2">
                         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-full border border-emerald-500/20">
@@ -577,6 +579,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Chart.js Setup for Summary Dashboard -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -845,6 +848,202 @@
             @endif
         });
     </script>
+
+    {{-- ═══════════════════════════════════════════════════════════════════
+         PRINT REPORT GENERATOR
+         Builds a clean data-focused report document with actual numbers,
+         data tables, and rasterized chart images. Uses printIsolated()
+         to print in a clean iframe — zero screen UI leaks.
+    ═══════════════════════════════════════════════════════════════════ --}}
+    <script>
+        function printDashboardReport() {
+            // 1. Read current KPI values from Alpine store
+            const store = Alpine.store('dashboard');
+            const stats = document.querySelector('[x-data]').__x ? null : null; // fallback
+            
+            const kpis = {
+                presentDoctors: store?.filtered?.presentDoctors ?? {{ $presentDoctors }},
+                totalDoctors: store?.filtered?.totalDoctors ?? {{ $totalDoctors }},
+                presentNurses: store?.filtered?.presentNurses ?? {{ $presentNurses }},
+                todayAppointments: store?.filtered?.todayAppointments ?? {{ $todayAppointments }},
+                periodVolume: store?.filtered?.currentPeriodConsultations ?? '{{ number_format($currentPeriodConsultations) }}',
+                trendPercentage: store?.filtered?.trendPercentage ?? {{ $trendPercentage }},
+                avgWaitTime: store?.filtered?.avgWaitTime ?? {{ $avgWaitTime }},
+                complianceRate: store?.filtered?.complianceRate ?? {{ $complianceRate }},
+                totalFollowupsNeeded: store?.filtered?.totalFollowupsNeeded ?? '{{ number_format($totalFollowupsNeeded) }}',
+            };
+            const timeLabel = store?.filterLabel ?? '{{ $timeFilter }}';
+
+            // 2. Rasterize all chart canvases to data URLs
+            function rasterize(canvasId) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas || !canvas.offsetWidth) return '';
+                try {
+                    if (window.Chart && Chart.getChart) {
+                        const ch = Chart.getChart(canvas);
+                        if (ch) { ch.stop(); ch.render(); }
+                    }
+                    return canvas.toDataURL('image/png', 1.0);
+                } catch(e) { return ''; }
+            }
+
+            const chartImages = {
+                visitVolume: rasterize('visitVolumeChart'),
+                peakHours: rasterize('peakHoursChart'),
+                topDispensed: rasterize('adminTopDispensedChart'),
+                monthlyTrend: rasterize('adminMonthlyTrendChart'),
+            };
+
+            // 3. Build pharmacy dispensing data table from server-side data
+            @php
+                $dispensedRows = '';
+                if(isset($topDispensed) && $topDispensed->count() > 0) {
+                    foreach($topDispensed as $i => $d) {
+                        $name = addslashes($d->medicine->name ?? $d->medicine->generic_name ?? 'Unknown');
+                        $dispensedRows .= '<tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . ($i+1) . '</td>';
+                        $dispensedRows .= '<td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . $name . '</td>';
+                        $dispensedRows .= '<td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($d->total_dispensed) . '</td></tr>';
+                    }
+                }
+                $trendRows = '';
+                if(isset($monthlyTrend) && $monthlyTrend->count() > 0) {
+                    foreach($monthlyTrend as $t) {
+                        $trendRows .= '<tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . addslashes($t->label) . '</td>';
+                        $trendRows .= '<td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($t->total_dispensed) . '</td></tr>';
+                    }
+                }
+            @endphp
+
+            // 4. Trend badge
+            const trendSign = kpis.trendPercentage > 0 ? '+' : '';
+            const trendColor = kpis.trendPercentage > 0 ? '#059669' : (kpis.trendPercentage < 0 ? '#dc2626' : '#64748b');
+
+            // 5. Build the full report HTML
+            const reportHTML = `
+                <table class="rhu-print-table" style="display:table;width:100%;border-collapse:collapse;">
+                    <thead class="rhu-print-thead" style="display:table-header-group;">
+                        <tr><td class="rhu-print-header-cell" style="padding:0;border:none;">
+                            <header class="rhu-print-header" style="width:100%;margin-bottom:12px;">
+                                <div class="rhu-letterhead" style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:2px 0 6px 0;">
+                                    <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <img src="/assets/images/logo.png" alt="Municipal Seal" style="max-width:64px;max-height:64px;object-fit:contain;" onerror="this.style.display='none'">
+                                    </div>
+                                    <div style="flex:1;text-align:center;padding:0 4px;">
+                                        <div style="font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#475569;">{{ addslashes(\App\Models\SiteSetting::get('topbar_republic', 'Republic of the Philippines')) }}</div>
+                                        <div style="font-size:8pt;font-weight:600;letter-spacing:0.04em;color:#64748b;">{{ addslashes(\App\Models\SiteSetting::get('topbar_province', 'Province of Cavite')) }}</div>
+                                        <h2 style="font-size:13pt;font-weight:900;text-transform:uppercase;letter-spacing:0.04em;color:#0f172a;margin:3px 0 2px 0;">{{ addslashes(\App\Models\SiteSetting::get('topbar_municipality', 'Municipality of Silang')) }} — Rural Health Unit</h2>
+                                        <div style="font-size:8pt;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#0f6b57;">Rural Health Unit Management Information System (RHU MIS)</div>
+                                    </div>
+                                    <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width:64px;max-height:64px;"><circle cx="32" cy="32" r="30" stroke="#0f6b57" stroke-width="2.5" fill="#f0fdf4"/><circle cx="32" cy="32" r="25" stroke="#0f6b57" stroke-width="1" stroke-dasharray="2 2"/><path d="M32 14v36M22 24h20M24 38h16" stroke="#0f6b57" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="13" r="3" fill="#0f6b57"/><path d="M26 21c3-2 9-2 12 0M26 29c3-2 9-2 12 0M26 37c3-2 9-2 12 0" stroke="#0f6b57" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                    </div>
+                                </div>
+                                <div style="width:100%;height:4px;border-top:1px solid #0f6b57;border-bottom:2px solid #0f6b57;margin:4px 0 10px 0;"></div>
+                            </header>
+                        </td></tr>
+                    </thead>
+
+                    <tbody style="display:table-row-group;"><tr><td style="padding:0;border:none;">
+                        <main style="font-family:'Inter',system-ui,sans-serif;">
+
+                            <!-- Report Title Block -->
+                            <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
+                                <h1 style="font-size:15pt;font-weight:800;color:#0f172a;letter-spacing:-0.02em;margin:0 0 2px 0;">RHU Operational Dashboard Report</h1>
+                                <p style="font-size:8.5pt;font-weight:500;color:#64748b;margin:0 0 10px 0;">Operational metrics, patient queues, and service utilization overview.</p>
+                                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:8px 12px;font-size:8pt;">
+                                    <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Reporting Period</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ ucfirst($timeFilter) }} — {{ now()->format('F Y') }}</div></div>
+                                    <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Facility</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ addslashes(\App\Models\SiteSetting::get('topbar_municipality', 'Municipality of Silang')) }} — Rural Health Unit</div></div>
+                                    <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Generated By</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ auth()->check() ? auth()->user()->name : 'System Generated' }}</div></div>
+                                    <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Date Generated</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ now()->format('M d, Y h:i A') }}</div></div>
+                                </div>
+                            </div>
+
+                            <!-- Section 1: Key Performance Indicators -->
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:16px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Key Performance Indicators</h3>
+                            <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:8.5pt;">
+                                <thead style="display:table-header-group;">
+                                    <tr>
+                                        <th style="background:#f1f5f9;color:#1e293b;font-size:7.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;border:1px solid #cbd5e1;padding:6px 10px;text-align:left;">Metric</th>
+                                        <th style="background:#f1f5f9;color:#1e293b;font-size:7.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;border:1px solid #cbd5e1;padding:6px 10px;text-align:right;">Value</th>
+                                        <th style="background:#f1f5f9;color:#1e293b;font-size:7.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;border:1px solid #cbd5e1;padding:6px 10px;text-align:left;">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Doctors Present</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">${kpis.presentDoctors} / ${kpis.totalDoctors}</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#64748b;">Active in clinic</td></tr>
+                                    <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Nurses Present</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">${kpis.presentNurses}</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#64748b;">Triage & Vitals duty</td></tr>
+                                    <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Today's Appointments</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">${kpis.todayAppointments}</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#64748b;">Scheduled today</td></tr>
+                                    <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Period Consultation Volume</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">${kpis.periodVolume}</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:${trendColor};font-weight:600;">${trendSign}${kpis.trendPercentage}% vs prior period</td></tr>
+                                    <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Average Wait Time</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">${kpis.avgWaitTime} min</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#64748b;">Triage to Doctor</td></tr>
+                                    <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Follow-up Return Rate</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">${kpis.complianceRate}%</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#64748b;">${kpis.totalFollowupsNeeded} patients requiring follow-up</td></tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Section 2: Charts -->
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Operational Charts</h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                                ${chartImages.visitVolume ? '<div style="border:1px solid #e2e8f0;border-radius:4px;padding:10px;page-break-inside:avoid;"><div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Daily Visit Volume</div><img src="' + chartImages.visitVolume + '" style="width:100%;height:auto;max-height:220px;object-fit:contain;display:block;"></div>' : ''}
+                                ${chartImages.peakHours ? '<div style="border:1px solid #e2e8f0;border-radius:4px;padding:10px;page-break-inside:avoid;"><div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Peak Hours Distribution</div><img src="' + chartImages.peakHours + '" style="width:100%;height:auto;max-height:220px;object-fit:contain;display:block;"></div>' : ''}
+                            </div>
+
+                            <!-- Section 3: Pharmacy Inventory -->
+                            <div style="page-break-before:auto;">
+                                <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Pharmacy Inventory Insights</h3>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                                    <div>
+                                        <div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Top Dispensed Medicines (30 Days)</div>
+                                        @if($topDispensed->count() > 0)
+                                        <table style="width:100%;border-collapse:collapse;font-size:8.5pt;">
+                                            <thead><tr>
+                                                <th style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 10px;text-align:left;">#</th>
+                                                <th style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 10px;text-align:left;">Medicine</th>
+                                                <th style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 10px;text-align:right;">Units</th>
+                                            </tr></thead>
+                                            <tbody>{!! $dispensedRows !!}</tbody>
+                                        </table>
+                                        @else
+                                        <p style="font-size:8pt;color:#94a3b8;font-style:italic;">No dispensing data available for this period.</p>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Monthly Dispensing Trend</div>
+                                        @if($monthlyTrend->count() > 0)
+                                        <table style="width:100%;border-collapse:collapse;font-size:8.5pt;">
+                                            <thead><tr>
+                                                <th style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 10px;text-align:left;">Month</th>
+                                                <th style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 10px;text-align:right;">Units Dispensed</th>
+                                            </tr></thead>
+                                            <tbody>{!! $trendRows !!}</tbody>
+                                        </table>
+                                        @else
+                                        <p style="font-size:8pt;color:#94a3b8;font-style:italic;">No trend data available yet.</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                ${(chartImages.topDispensed || chartImages.monthlyTrend) ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">' + (chartImages.topDispensed ? '<div style="border:1px solid #e2e8f0;border-radius:4px;padding:10px;page-break-inside:avoid;"><div style="font-size:7pt;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:4px;">Top Dispensed — Chart</div><img src="' + chartImages.topDispensed + '" style="width:100%;height:auto;max-height:200px;object-fit:contain;"></div>' : '') + (chartImages.monthlyTrend ? '<div style="border:1px solid #e2e8f0;border-radius:4px;padding:10px;page-break-inside:avoid;"><div style="font-size:7pt;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:4px;">Monthly Trend — Chart</div><img src="' + chartImages.monthlyTrend + '" style="width:100%;height:auto;max-height:200px;object-fit:contain;"></div>' : '') + '</div>' : ''}
+                            </div>
+
+                        </main>
+                    </td></tr></tbody>
+
+                    <tfoot style="display:table-footer-group;"><tr><td style="padding:0;border:none;">
+                        <footer style="width:100%;padding-top:8px;margin-top:8px;">
+                            <div style="width:100%;border-top:1px solid #cbd5e1;margin-bottom:6px;"></div>
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;font-size:7pt;color:#64748b;line-height:1.35;">
+                                <div style="flex:1;max-width:65%;text-align:justify;">CONFIDENTIAL HEALTH & ADMINISTRATIVE RECORD — Contains protected health information subject to Republic Act No. 10173 (Data Privacy Act of 2012). Unauthorized disclosure, copying, or distribution is strictly prohibited.</div>
+                                <div style="flex-shrink:0;text-align:right;font-weight:600;color:#334155;"><div>RHU Operational Dashboard Report</div><div>Printed: {{ now()->format('M d, Y h:i A') }} &bull; {{ auth()->check() ? auth()->user()->name : 'System' }}</div></div>
+                            </div>
+                        </footer>
+                    </td></tr></tfoot>
+                </table>
+            `;
+
+            // 6. Print via isolated iframe
+            window.printIsolated(reportHTML, {
+                title: 'RHU Operational Dashboard Report',
+                paperSize: 'auto'
+            });
+        }
+    </script>
     <style>
         /* Custom Scrollbar for Diagnoses list */
         .custom-scrollbar::-webkit-scrollbar {
@@ -862,57 +1061,6 @@
 
         .dark .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #475569;
-        }
-
-        /* Print Styles for A4 Layout */
-        @media print {
-            @page {
-                size: A4 portrait;
-                margin: 15mm;
-            }
-            body {
-                background: white !important;
-                color: black !important;
-                font-size: 11px !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .print\:hidden, nav, header, aside, button, select, .no-print {
-                display: none !important;
-            }
-            main {
-                overflow: visible !important;
-                padding: 0 !important;
-            }
-            .rounded-3xl, .rounded-2xl {
-                border-radius: 8px !important;
-            }
-            .shadow-sm, .shadow-lg, [class*='shadow-'] {
-                box-shadow: none !important;
-            }
-            .grid {
-                display: block !important;
-            }
-            .grid > * {
-                page-break-inside: avoid;
-                break-inside: avoid;
-                margin-bottom: 12px;
-            }
-            canvas {
-                max-height: 220px !important;
-            }
-            .mb-10, .mb-8 {
-                margin-bottom: 12px !important;
-            }
-            .p-8 {
-                padding: 12px !important;
-            }
-            .gap-8, .gap-6 {
-                gap: 8px !important;
-            }
-            h1, h2, h3 {
-                page-break-after: avoid;
-            }
         }
     </style>
 @endsection

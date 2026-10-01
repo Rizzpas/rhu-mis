@@ -617,7 +617,7 @@
                         <div>
                             <p class="font-bold text-slate-900 dark:text-white text-sm">{{ __('Official Clinic Hours') }}</p>
                             <p class="text-slate-600 dark:text-slate-300 text-sm font-medium mt-0.5">{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</p>
-                            <p class="text-xs text-emerald-700 dark:text-emerald-400 font-semibold mt-1">Birthing Unit: 24/7 Service</p>
+                            <p class="text-xs text-emerald-700 dark:text-emerald-400 font-semibold mt-1">RHU Silang</p>
                         </div>
                     </div>
                 </div>

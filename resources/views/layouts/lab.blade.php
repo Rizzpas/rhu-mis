@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>RHU - Silang | Diagnostic Portal</title>
+    <title>RHU - Silang | {{ auth()->check() && auth()->user()->role === 'radiology' ? 'Radiology Portal' : 'Diagnostic Portal' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/logo.png') }}">
 
     <!-- Fonts -->
@@ -15,12 +15,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
+    <link rel="stylesheet" href="{{ asset('css/print.css') }}">
+    <script src="{{ asset('js/print-helper.js') }}"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
         }
     </script>
+    <script src="{{ asset('js/secure-image-validator.js') }}"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         body {
@@ -144,7 +147,7 @@
                 <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Logo" class="w-9 h-9 object-contain shrink-0">
                 <div>
                     <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight uppercase whitespace-nowrap">Rural Health Unit</p>
-                    <p class="text-xs text-gray-400 leading-tight">Diagnostic Portal</p>
+                    <p class="text-xs text-gray-400 leading-tight">{{ auth()->check() && auth()->user()->role === 'radiology' ? 'Radiology Portal' : 'Laboratory Portal' }}</p>
                 </div>
             </div>
             <button @click="sidebarOpen = false" class="md:hidden p-1.5 text-gray-400 hover:text-gray-600">
@@ -155,7 +158,7 @@
         <!-- Navigation -->
         <nav class="flex-1 px-4 py-4 space-y-0.5 text-sm overflow-y-auto custom-scrollbar">
             <a href="{{ route('lab.dashboard') }}"
-                class="@if(request()->routeIs('lab.dashboard')) bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md font-semibold @else text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white @endif group flex items-center px-3 py-2.5 rounded-lg transition-colors">
+                class="@if(request()->routeIs('lab.dashboard')) bg-gradient-to-r from-emerald-600 to-emerald-800 text-white shadow-md shadow-emerald-600/20 font-semibold @else text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white @endif group flex items-center px-3 py-2.5 rounded-lg transition-colors">
                 <svg class="mr-3 h-4 w-4 @if(request()->routeIs('lab.dashboard')) text-white @else text-gray-900 dark:text-white @endif shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
@@ -166,7 +169,7 @@
                 <div class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700">
                     <a href="{{ route('admin.dashboard') }}"
                         class="text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group flex items-center px-3 py-2.5 rounded-lg transition-colors font-semibold">
-                        <svg class="mr-3 h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="mr-3 h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
                         Back to Admin
@@ -178,11 +181,11 @@
         <!-- Bottom User Panel -->
         <div class="border-t border-gray-100 dark:border-gray-700 px-6 py-8">
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0 overflow-hidden border border-blue-200 dark:border-blue-800">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0 overflow-hidden border border-emerald-200 dark:border-emerald-800">
                     @if(auth()->user()->avatar_url)
                         <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
                     @else
-                        <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ auth()->user()->initials }}</span>
+                        <span class="text-sm font-bold text-emerald-700 dark:text-emerald-400">{{ auth()->user()->initials }}</span>
                     @endif
                 </div>
                 <div class="min-w-0">
@@ -210,7 +213,7 @@
     <!-- Main Content -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
         <!-- Top bar -->
-        <header class="bg-blue-600 dark:bg-blue-800 shadow-md z-20 sticky top-0"
+        <header class="bg-gradient-to-r from-emerald-600 to-emerald-800 dark:from-emerald-800 dark:to-emerald-950 shadow-md z-20 sticky top-0 transition-colors duration-200"
             x-data="{
                 searchQuery: '',
                 showResults: false,
@@ -228,7 +231,7 @@
             
             <div class="flex justify-between items-center px-4 sm:px-6 py-3.5 gap-4">
                 <div class="flex items-center gap-4 flex-1">
-                    <button @click="sidebarOpen = true" class="md:hidden text-white hover:bg-blue-700 p-1.5 rounded-md transition-colors">
+                    <button @click="sidebarOpen = true" class="md:hidden text-white hover:bg-black/20 p-1.5 rounded-md transition-colors">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                     
@@ -239,10 +242,10 @@
                     <!-- Search Bar -->
                     <div class="relative w-full max-w-xl sm:ml-6 group">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-4 w-4 text-blue-800 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <svg class="h-4 w-4 text-emerald-800 dark:text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
-                        <input type="text" x-model="searchQuery" @focus="showResults = true" @keydown.escape="showResults = false" placeholder="Search" 
-                            class="w-full pl-10 pr-4 py-2 bg-white rounded-full border-none shadow-inner focus:ring-2 focus:ring-blue-300 focus:outline-none text-sm text-blue-900 placeholder-blue-800/60 dark:bg-blue-950 dark:text-blue-100 dark:placeholder-blue-400/50 transition-shadow">
+                        <input type="text" x-model="searchQuery" @focus="showResults = true" @keydown.escape="showResults = false" placeholder="Search diagnostic portal..." 
+                            class="w-full pl-10 pr-4 py-2 bg-white rounded-full border-none shadow-inner focus:ring-2 focus:ring-emerald-300 text-emerald-950 placeholder-emerald-800/60 dark:bg-emerald-950/80 dark:text-emerald-100 dark:placeholder-emerald-400/50 text-sm transition-shadow">
                         
                         <!-- Search Dropdown -->
                         <div x-show="showResults && searchQuery.length > 0" style="display: none;" class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden top-full left-0 py-2">
@@ -250,9 +253,9 @@
                                 <ul class="max-h-64 overflow-y-auto custom-scrollbar">
                                     <template x-for="link in filteredLinks" :key="link.name">
                                         <li>
-                                            <a :href="link.route" class="block px-4 py-3 hover:bg-blue-50 dark:hover:bg-slate-700/50 text-sm transition-colors group/item">
+                                            <a :href="link.route" class="block px-4 py-3 hover:bg-emerald-50 dark:hover:bg-slate-700/50 text-sm transition-colors group/item">
                                                 <div class="flex items-center gap-3">
-                                                    <div class="p-1.5 rounded-md bg-blue-100 dark:bg-slate-900 text-blue-600 dark:text-blue-400">
+                                                    <div class="p-1.5 rounded-md bg-emerald-100 dark:bg-slate-900 text-emerald-600 dark:text-emerald-400">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
                                                     </div>
                                                     <div>
@@ -271,17 +274,7 @@
 
                 <div class="flex items-center gap-2 sm:gap-4 shrink-0">
                     <!-- Theme Toggle -->
-                    <button id="theme-toggle" type="button" class="relative inline-flex h-7 w-[48px] shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent bg-slate-200 dark:bg-slate-700 transition-colors duration-200 ease-in-out shadow-sm" title="Toggle Light/Dark Theme">
-                        <span class="sr-only">Toggle theme</span>
-                        <span class="pointer-events-none relative inline-flex h-5 w-5 transform items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow ring-0 transition duration-200 ease-in-out translate-x-0.5 dark:translate-x-[22px]">
-                            <svg id="theme-toggle-dark-icon" class="hidden w-3.5 h-3.5 text-slate-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                            </svg>
-                            <svg id="theme-toggle-light-icon" class="hidden w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                            </svg>
-                        </span>
-                    </button>
+                    @include('partials.theme-toggle')
                     <span class="text-xs text-blue-100 hidden lg:block">{{ now()->format('l, F j, Y') }}</span>
                 </div>
             </div>
@@ -291,7 +284,7 @@
             @include('partials.toast')
             @yield('content')
             <footer class="mt-12 border-t border-gray-200 dark:border-gray-700 pt-6 text-center text-sm text-gray-500 dark:text-gray-400 pb-6">
-                <p>&copy; {{ date('Y') }} Rural Health Unit Diagnostic Portal. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} Rural Health Unit {{ auth()->check() && auth()->user()->role === 'radiology' ? 'Radiology' : 'Diagnostic' }} Portal. All rights reserved.</p>
             </footer>
         </main>
     </div>
@@ -351,35 +344,12 @@
     </template>
 
     <script>
-        var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-        var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-        if (themeToggleDarkIcon && themeToggleLightIcon) {
-            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                themeToggleLightIcon.classList.remove('hidden');
-            } else {
-                themeToggleDarkIcon.classList.remove('hidden');
-            }
-            document.getElementById('theme-toggle').addEventListener('click', function() {
-                themeToggleDarkIcon.classList.toggle('hidden');
-                themeToggleLightIcon.classList.toggle('hidden');
-                if (localStorage.getItem('color-theme')) {
-                    if (localStorage.getItem('color-theme') === 'light') {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    }
-                } else {
-                    if (document.documentElement.classList.contains('dark')) {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    } else {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    }
-                }
-            });
+        if (!window.toggleTheme) {
+            window.toggleTheme = function() {
+                var isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+                window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDark } }));
+            };
         }
     </script>
     @include('partials.idle-timeout')
@@ -401,10 +371,19 @@
                     if (openModals.length > 0) return;
 
                     try {
-                        const url = new URL(window.location.href);
-                        url.searchParams.append('polling', '1');
+                        const url = new URL(window.location.pathname, window.location.origin);
+                        url.search = window.location.search;
+                        url.searchParams.set('polling', '1');
+                        url.searchParams.set('_t', Date.now().toString());
                         
-                        const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        const response = await fetch(url.toString(), {
+                            cache: 'no-store',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                                'Pragma': 'no-cache'
+                            }
+                        });
                         if (!response.ok) return;
                         const html = await response.text();
                         const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -412,7 +391,12 @@
                         dynamicBlocks.forEach(block => {
                             if (block.id) {
                                 const newBlock = doc.getElementById(block.id);
-                                if (newBlock) block.innerHTML = newBlock.innerHTML;
+                                if (newBlock) {
+                                    block.innerHTML = newBlock.innerHTML;
+                                    if (window.Alpine && window.Alpine.initTree) {
+                                        window.Alpine.initTree(block);
+                                    }
+                                }
                             }
                         });
                     } catch (error) {}
