@@ -53,6 +53,28 @@
     {{-- Breadcrumb --}}
     <x-breadcrumb :items="['Nurse Portal' => '', 'Vitals Station' => '']" />
 
+    <!-- Header Section (Content Management Style) -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </span>
+                <span>Vitals Station & Pre-Triage Queue</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Real-time intake queue, vital signs assessment, and pre-consultation patient triaging.</p>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-500/20 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 text-xs font-semibold shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Vitals Sync Active</span>
+            </span>
+        </div>
+    </div>
+
     {{-- Top Bento Metrics Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-5">
         

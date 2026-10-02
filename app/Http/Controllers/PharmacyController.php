@@ -315,12 +315,20 @@ class PharmacyController extends Controller
                         $deductAmount = min($batch->quantity, $remainingToDeduct);
                         $batch->decrement('quantity', $deductAmount);
 
+                        if ($batch->fresh()->quantity <= 0) {
+                            $batch->update(['status' => 'depleted']);
+                        }
+
+                        $patient = $prescription->patient;
+                        $patientName = $patient ? $patient->full_name : 'Patient';
+                        $patientId = $patient ? $patient->patient_id : 'N/A';
+
                         InventoryLog::create([
                             'medicine_id' => $medicine->id,
                             'batch_id' => $batch->id,
                             'action' => 'Dispensed',
                             'quantity_changed' => -$deductAmount,
-                            'remarks' => "Dispensed for Prescription #{$prescription->id} (Item #{$item->id}). Cumulative: " . ($item->dispensed_quantity + $deductAmount) . " / {$item->quantity}",
+                            'remarks' => "Dispensed for Rx #{$prescription->id} | Patient: {$patientName} ({$patientId}) | Batch: {$batch->batch_number} | Deducted: {$deductAmount} | Cumulative: " . ($item->dispensed_quantity + $deductAmount) . " / {$item->quantity}",
                             'performed_by' => Auth::id(),
                         ]);
 
@@ -353,6 +361,18 @@ class PharmacyController extends Controller
                     'dispensed_at' => now(),
                     'pharmacist_notes' => $validated['pharmacist_notes'] ?? null,
                 ]);
+
+                \App\Models\AuditLog::record(
+                    "Prescription Dispensed: #{$prescription->id} ({$newStatus})",
+                    $prescription,
+                    [
+                        'dispensed_by' => Auth::id(),
+                        'patient_id' => $prescription->patient?->patient_id,
+                        'patient_name' => $prescription->patient?->full_name,
+                        'status' => $newStatus,
+                        'pharmacist_notes' => $validated['pharmacist_notes'] ?? null,
+                    ]
+                );
             });
         } catch (\Throwable $e) {
             report($e);
@@ -572,6 +592,190 @@ class PharmacyController extends Controller
     }
 
     /**
+     * Export the current pharmacy inventory & formulary stock to CSV.
+     */
+    public function exportStockCsv(Request $request)
+    {
+        $search = $request->input('search');
+        $formFilter = $request->input('form_filter');
+        $statusFilter = $request->input('status_filter');
+
+        $query = Medicine::with(['batches' => function ($q) {
+            $q->orderBy('expiration_date', 'asc');
+        }]);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('generic_name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($formFilter && $formFilter !== 'all') {
+            $query->where('form', $formFilter);
+        }
+
+        if ($statusFilter) {
+            switch ($statusFilter) {
+                case 'expired':
+                    $query->whereHas('batches', function ($q) {
+                        $q->where('quantity', '>', 0)
+                          ->where('status', '!=', 'disposed')
+                          ->whereDate('expiration_date', '<=', today());
+                    });
+                    break;
+                case 'expiring_soon':
+                    $query->whereHas('batches', function ($q) {
+                        $q->where('quantity', '>', 0)
+                          ->where('status', '!=', 'disposed')
+                          ->whereDate('expiration_date', '>', today())
+                          ->whereDate('expiration_date', '<=', today()->addDays(30));
+                    });
+                    break;
+                case 'low_stock':
+                    $query->withSum(['batches as active_stock' => function ($q) {
+                        $q->where('quantity', '>', 0)
+                          ->where('status', '!=', 'disposed')
+                          ->whereDate('expiration_date', '>=', today());
+                    }], 'quantity')
+                    ->having('active_stock', '>', 0)
+                    ->having('active_stock', '<', 20);
+                    break;
+                case 'out_of_stock':
+                    $query->whereDoesntHave('batches', function ($q) {
+                        $q->where('quantity', '>', 0)
+                          ->where('status', '!=', 'disposed')
+                          ->whereDate('expiration_date', '>=', today());
+                    });
+                    break;
+                case 'archived':
+                    $query->where('is_active', false);
+                    break;
+            }
+        }
+
+        $count = $query->count();
+        if ($count === 0) {
+            return response()->json(['message' => 'No inventory stock records found matching the filter.'], 404);
+        }
+
+        $filterLabel = $statusFilter ? "-{$statusFilter}" : '';
+        $filename = "pharmacy-stock-report{$filterLabel}-" . now()->format('Y-m-d') . ".csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-store, no-cache',
+        ];
+
+        $csvHeaders = [
+            'Medicine ID',
+            'Brand Name',
+            'Generic Name',
+            'Dosage Form',
+            'Category',
+            'Unit',
+            'Medicine Status',
+            'Total Active Stock',
+            'Stock Alert Level',
+            'Batch Number',
+            'Batch Current Quantity',
+            'Batch Original Quantity',
+            'Expiration Date',
+            'Expiry Status',
+            'Batch Status',
+            'Disposal Reason',
+        ];
+
+        return response()->stream(function () use ($query, $csvHeaders) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+            fputcsv($handle, $csvHeaders);
+
+            $query->orderBy('name', 'asc')->chunk(100, function ($medicines) use ($handle) {
+                foreach ($medicines as $medicine) {
+                    $totalStock = $medicine->total_stock;
+                    $hasExpired = $medicine->batches->contains(function ($batch) {
+                        return $batch->quantity > 0 && $batch->status !== 'disposed' && $batch->expiration_date < now();
+                    });
+                    $hasExpiringSoon = $medicine->batches->contains(function ($batch) {
+                        return $batch->quantity > 0 && $batch->status !== 'disposed' && $batch->expiration_date >= now() && $batch->expiration_date <= now()->addDays(30);
+                    });
+
+                    if (! $medicine->is_active) {
+                        $stockAlert = 'Archived';
+                    } elseif ($hasExpired) {
+                        $stockAlert = 'Expired Batch';
+                    } elseif ($totalStock == 0) {
+                        $stockAlert = 'Out of Stock';
+                    } elseif ($hasExpiringSoon) {
+                        $stockAlert = 'Expiring Soon';
+                    } elseif ($totalStock < 20) {
+                        $stockAlert = 'Low Stock';
+                    } else {
+                        $stockAlert = 'Optimal';
+                    }
+
+                    $batches = $medicine->batches;
+                    if ($batches->isEmpty()) {
+                        fputcsv($handle, [
+                            $medicine->id,
+                            $medicine->name,
+                            $medicine->generic_name ?? '—',
+                            $medicine->form ?? '—',
+                            $medicine->category ?? '—',
+                            $medicine->unit ?? '—',
+                            $medicine->is_active ? 'Active' : 'Archived',
+                            $totalStock,
+                            $stockAlert,
+                            'No Batches',
+                            0,
+                            0,
+                            '—',
+                            'No Stock',
+                            'N/A',
+                            '—',
+                        ]);
+                    } else {
+                        foreach ($batches as $batch) {
+                            $expiryDate = $batch->expiration_date ? $batch->expiration_date->format('Y-m-d') : '—';
+                            $expiryStatus = 'Valid';
+                            if ($batch->status === 'disposed') {
+                                $expiryStatus = 'Disposed';
+                            } elseif ($batch->expiration_date && $batch->expiration_date < today()) {
+                                $expiryStatus = 'Expired';
+                            } elseif ($batch->expiration_date && $batch->expiration_date <= today()->addDays(30)) {
+                                $expiryStatus = 'Expiring Soon (<= 30d)';
+                            }
+
+                            fputcsv($handle, [
+                                $medicine->id,
+                                $medicine->name,
+                                $medicine->generic_name ?? '—',
+                                $medicine->form ?? '—',
+                                $medicine->category ?? '—',
+                                $medicine->unit ?? '—',
+                                $medicine->is_active ? 'Active' : 'Archived',
+                                $totalStock,
+                                $stockAlert,
+                                $batch->batch_number,
+                                $batch->quantity,
+                                $batch->original_quantity ?? $batch->quantity,
+                                $expiryDate,
+                                $expiryStatus,
+                                ucfirst($batch->status ?? 'active'),
+                                $batch->disposal_reason ?? '—',
+                            ]);
+                        }
+                    }
+                }
+            });
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    /**
      * Store a new medicine in the inventory.
      */
     public function storeMedicine(Request $request)
@@ -711,7 +915,9 @@ class PharmacyController extends Controller
     {
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'disposal_reason' => 'required|string|in:Expired,Damaged / Broken,Contaminated,Supplier Recall,Other',
-            'disposal_notes' => 'nullable|string|max:500',
+            'disposal_notes' => 'nullable|required_if:disposal_reason,Other|string|max:500',
+        ], [
+            'disposal_notes.required_if' => 'Detailed notes are required when choosing "Other" as disposal reason.',
         ]);
 
         if ($validator->fails()) {
@@ -758,6 +964,9 @@ class PharmacyController extends Controller
                 "Medicine Batch Disposed: {$batch->batch_number} ({$currentQty} units written off)",
                 $batch,
                 [
+                    'performed_by' => $user->id,
+                    'batch_id' => $batch->id,
+                    'batch_number' => $batch->batch_number,
                     'reason' => $validated['disposal_reason'],
                     'notes' => $validated['disposal_notes'] ?? null,
                     'quantity_written_off' => $currentQty,
@@ -776,7 +985,9 @@ class PharmacyController extends Controller
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'new_quantity' => 'required|integer|min:0',
             'adjustment_reason' => 'required|string|in:Physical Recount,Damage / Breakage,Audit Correction,Received Adjustment,Other',
-            'adjustment_notes' => 'nullable|string|max:500',
+            'adjustment_notes' => 'nullable|required_if:adjustment_reason,Other|string|max:500',
+        ], [
+            'adjustment_notes.required_if' => 'Detailed notes are required when choosing "Other" as adjustment reason.',
         ]);
 
         if ($validator->fails()) {
@@ -826,10 +1037,14 @@ class PharmacyController extends Controller
                 "Stock Adjusted for Batch {$batch->batch_number}: {$oldQty} -> {$newQty}",
                 $batch,
                 [
+                    'performed_by' => $user->id,
+                    'batch_id' => $batch->id,
+                    'batch_number' => $batch->batch_number,
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $newQty,
+                    'delta' => $diff,
                     'reason' => $validated['adjustment_reason'],
                     'notes' => $validated['adjustment_notes'] ?? null,
-                    'delta' => $diff,
-                    'new_quantity' => $newQty,
                 ]
             );
         });

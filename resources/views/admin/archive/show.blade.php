@@ -262,9 +262,36 @@
             @endif
         </div>
 
-        @if($records->hasPages())
-            <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
-                {{ $records->appends(request()->query())->links('vendor.pagination.shadcn') }}
+        <!-- Pagination Controls with Styled <option> Tags -->
+        @if($records->hasPages() || $records->total() > 10)
+            <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Items per page</label>
+                    <x-select 
+                        :options="[
+                            '10' => '10 per page',
+                            '20' => '20 per page',
+                            '30' => '30 per page',
+                            '50' => '50 per page'
+                        ]" 
+                        :value="request('per_page', 10)"
+                        size="sm"
+                        containerClass="w-36"
+                        :dropUp="true"
+                        @change="
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('per_page', $event.detail);
+                            url.searchParams.delete('page');
+                            window.location.href = url.toString();
+                        "
+                    />
+                </div>
+                
+                <div class="w-full sm:w-auto">
+                    @if($records->hasPages())
+                        {{ $records->appends(request()->query())->links('vendor.pagination.shadcn') }}
+                    @endif
+                </div>
             </div>
         @endif
     </div>

@@ -69,7 +69,7 @@ class PaginationAuditTest extends TestCase
 
         $staff = $response->viewData('staff');
         $this->assertInstanceOf(LengthAwarePaginator::class, $staff);
-        $this->assertEquals(15, $staff->perPage());
+        $this->assertEquals(10, $staff->perPage());
     }
 
     public function test_archive_show_is_paginated(): void
@@ -79,7 +79,7 @@ class PaginationAuditTest extends TestCase
 
         $records = $response->viewData('records');
         $this->assertInstanceOf(LengthAwarePaginator::class, $records);
-        $this->assertEquals(15, $records->perPage());
+        $this->assertEquals(10, $records->perPage());
     }
 
     public function test_pharmacy_dashboard_queue_is_paginated(): void

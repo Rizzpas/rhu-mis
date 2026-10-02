@@ -8,6 +8,8 @@ use App\Models\PreTriage;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RegistrationController extends Controller
 {
@@ -1044,5 +1046,46 @@ class RegistrationController extends Controller
         return redirect()->route('frontdesk.registration.index')
             ->with('print_queue_id', $consultation->id)
             ->with('success', "Patient {$patient->first_name} {$patient->last_name} registered and added to queue as {$queueNumber}!");
+    }
+
+    /**
+     * Cancel a queued consultation when a patient leaves the clinic before doctor exam.
+     */
+    public function cancelQueuedConsultation(Request $request, Consultation $consultation)
+    {
+        if (! in_array($consultation->status, ['queued', 'waiting'])) {
+            return back()->with('error', 'Only waiting/queued consultations can be cancelled from the front desk.');
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => 'nullable|string|max:255',
+        ]);
+
+        $reason = $validated['cancellation_reason'] ?? 'Patient left clinic before consultation (Walkout)';
+
+        DB::transaction(function () use ($consultation, $reason) {
+            $consultation->update([
+                'status' => 'cancelled',
+                'medical_notes' => ($consultation->medical_notes ? $consultation->medical_notes . "\n" : '') . "[Cancelled by Front Desk: {$reason}]",
+            ]);
+
+            \App\Models\Queue::where('patient_id', $consultation->patient_id)
+                ->where('queue_number', $consultation->queue_number)
+                ->whereDate('created_at', today())
+                ->update(['status' => 'Cancelled']);
+
+            if ($consultation->preTriage) {
+                $consultation->preTriage->update(['status' => 'cancelled']);
+            }
+
+            \App\Models\AuditLog::record("Front Desk Cancelled Queued Patient: {$consultation->queue_number}", $consultation, [
+                'reason' => $reason,
+                'cancelled_by' => Auth::id(),
+            ]);
+        });
+
+        broadcast(new \App\Events\QueueUpdated('Queued patient cancelled by front desk', 'general'));
+
+        return back()->with('success', "Queue ticket {$consultation->queue_number} has been cancelled.");
     }
 }

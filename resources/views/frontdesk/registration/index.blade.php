@@ -1287,7 +1287,7 @@
                     $preTriageRecord = (isset($preTriageId) && $preTriageId) ? \App\Models\PreTriage::find($preTriageId) : null;
                 @endphp
                 @if($preTriageRecord)
-                <form action="{{ route('frontdesk.visits.store', $selectedPatient) }}" method="POST" class="p-6 pt-2 space-y-6">
+                <form id="returningPatientQueueForm" action="{{ route('frontdesk.visits.store', $selectedPatient) }}" method="POST" class="p-6 pt-2 space-y-6">
                     @csrf
                     @if($prefillApt)
                         <input type="hidden" name="appointment_id" value="{{ $prefillApt->id }}">
@@ -1318,7 +1318,21 @@
                     
                     <div class="flex items-center justify-end gap-3 pt-5 border-t border-slate-100 dark:border-slate-800">
                         <a href="{{ route('frontdesk.registration.index') }}" class="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cancel</a>
-                        <button type="submit" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer text-xs">
+                        <button type="button" 
+                                @click="window.queueConfirmState && window.queueConfirmState.openConfirm({
+                                    formId: 'returningPatientQueueForm',
+                                    patientName: '{{ addslashes($selectedPatient->full_name) }}',
+                                    patientId: '{{ $selectedPatient->patient_id }}',
+                                    patientClassification: '{{ $selectedPatient->classification }}',
+                                    bp: '{{ $preTriageRecord->blood_pressure ?: '--' }}',
+                                    temp: '{{ $preTriageRecord->temperature ? $preTriageRecord->temperature . '°C' : '--' }}',
+                                    hr: '{{ $preTriageRecord->heart_rate ?: '--' }}',
+                                    spo2: '{{ ($preTriageRecord->spo2 ?? $preTriageRecord->oxygen_saturation) ? ($preTriageRecord->spo2 ?? $preTriageRecord->oxygen_saturation) . '%' : '--' }}',
+                                    symptoms: '{{ addslashes($preTriageRecord->symptoms ?: ($preTriageRecord->chief_complaint ?: 'None recorded')) }}',
+                                    isPediatric: {{ $isPediatric ? 'true' : 'false' }},
+                                    isFollowUp: {{ $isFollowUp ? 'true' : 'false' }}
+                                })"
+                                class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer text-xs">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Generate Queue &amp; Assign
                         </button>
@@ -1386,7 +1400,7 @@
                         <p class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5">BP: <span class="font-bold font-mono">{{ $newFromTriage->blood_pressure ?? '--' }}</span> &bull; Temp: <span class="font-bold font-mono">{{ $newFromTriage->temperature ?? '--' }}°C</span> &bull; SpO₂: <span class="font-bold font-mono">{{ $newFromTriage->spo2 ?? '--' }}%</span> &bull; <em>{{ $newFromTriage->patient_name }}</em></p>
                     </div>
                 </div>
-                <form action="{{ route('frontdesk.registerAndQueue', $newFromTriage) }}" method="POST" class="p-6 md:p-8 space-y-6">
+                <form id="newPatientQueueForm" action="{{ route('frontdesk.registerAndQueue', $newFromTriage) }}" method="POST" class="p-6 md:p-8 space-y-6">
                 @else
                 <form action="{{ route('frontdesk.patients.store') }}" method="POST" class="p-6 md:p-8 space-y-6">
                 @endif
@@ -1907,7 +1921,29 @@
                     <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
                         <a href="{{ route('frontdesk.registration.index') }}" class="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cancel</a>
                         @if(isset($newFromTriage) && $newFromTriage)
-                        <button type="submit" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer text-xs">
+                        <button type="button" 
+                                @click="
+                                    const form = document.getElementById('newPatientQueueForm');
+                                    const fName = form?.querySelector('input[name=\'first_name\']')?.value || '';
+                                    const lName = form?.querySelector('input[name=\'last_name\']')?.value || '';
+                                    const fullName = (fName + ' ' + lName).trim() || '{{ addslashes($newFromTriage->patient_name) }}';
+                                    const classificationEl = form?.querySelector('select[name=\'classification\'], input[name=\'classification\']');
+                                    const classVal = classificationEl ? classificationEl.value : '{{ $newFromTriage->classification ?? 'Regular Adult' }}';
+                                    window.queueConfirmState && window.queueConfirmState.openConfirm({
+                                        formId: 'newPatientQueueForm',
+                                        patientName: fullName,
+                                        patientId: 'New Patient Record',
+                                        patientClassification: classVal,
+                                        bp: '{{ $newFromTriage->blood_pressure ?: '--' }}',
+                                        temp: '{{ $newFromTriage->temperature ? $newFromTriage->temperature . '°C' : '--' }}',
+                                        hr: '{{ $newFromTriage->heart_rate ?: '--' }}',
+                                        spo2: '{{ ($newFromTriage->spo2 ?? $newFromTriage->oxygen_saturation) ? ($newFromTriage->spo2 ?? $newFromTriage->oxygen_saturation) . '%' : '--' }}',
+                                        symptoms: '{{ addslashes($newFromTriage->symptoms ?: ($newFromTriage->chief_complaint ?: 'None recorded')) }}',
+                                        isPediatric: classVal === 'Pediatric',
+                                        isFollowUp: false
+                                    });
+                                "
+                                class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer text-xs">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Register &amp; Generate Queue
                         </button>
@@ -1932,7 +1968,272 @@
             </div>
         @endif
 
+    </div> <!-- /#right-panel-container (opened at line 579) -->
+</div> <!-- /.grid.grid-cols-1.lg:grid-cols-3 (opened at line 51) -->
+
+<!-- =========================================================================
+     PRE-SUBMISSION QUEUE CONFIRMATION MODAL
+     Applies deliberately across ALL severities (Severe, Mild, Normal/Light)
+     Guarantees clear review of triage level and assigned medical provider
+     ========================================================================= -->
+<div x-data="window.queueConfirmState = {
+        isOpen: false,
+        isSubmitting: false,
+        formId: null,
+        patientName: '',
+        patientId: '',
+        patientClassification: '',
+        severity: 'mild',
+        severityLabel: 'Mild',
+        routingRole: '',
+        bp: '--',
+        temp: '--',
+        hr: '--',
+        spo2: '--',
+        symptoms: '--',
+        isEmergency: false,
+        isPediatric: false,
+        isFollowUp: false,
+
+        openConfirm(config) {
+            this.formId = config.formId;
+            const form = document.getElementById(config.formId);
+            if (!form) return;
+
+            // HTML5 field validation
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            let sev = 'mild';
+            if (config.isPediatric) {
+                sev = 'light';
+            } else if (config.isFollowUp) {
+                sev = 'mild';
+            } else {
+                const checkedSev = form.querySelector('input[name=\'symptom_severity\']:checked') 
+                    || form.querySelector('input[name=\'symptom_severity\'][type=\'hidden\']');
+                if (!checkedSev || !checkedSev.value) {
+                    alert('Please select a triage severity level (Light, Mild, or Severe) before generating queue.');
+                    const sc = form.querySelector('.symptom-severity-container');
+                    if (sc) sc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                sev = checkedSev.value;
+            }
+
+            this.severity = sev;
+            this.patientName = config.patientName || 'Unknown Patient';
+            this.patientId = config.patientId || '';
+            this.patientClassification = config.patientClassification || 'Regular Adult';
+            this.bp = config.bp || '--';
+            this.temp = config.temp || '--';
+            this.hr = config.hr || '--';
+            this.spo2 = config.spo2 || '--';
+            this.symptoms = config.symptoms || 'None recorded';
+            this.isPediatric = !!config.isPediatric;
+            this.isFollowUp = !!config.isFollowUp;
+            this.isEmergency = !!form.querySelector('input[name=\'emergency_override\']:checked');
+
+            if (this.severity === 'severe') {
+                this.severityLabel = 'Severe';
+                this.routingRole = 'Attending Doctor (Immediate Clinical Evaluation)';
+            } else if (this.severity === 'mild') {
+                this.severityLabel = 'Mild';
+                this.routingRole = 'Load-Balanced Practitioner (Doctor / Nurse with shortest queue)';
+            } else {
+                this.severityLabel = 'Light / Normal';
+                this.routingRole = 'Clinical Nurse (Routine Evaluation / Refill)';
+            }
+
+            if (this.isPediatric) {
+                this.routingRole = 'Pediatrician (Dedicated Pediatric Clinic)';
+            } else if (this.isFollowUp) {
+                this.routingRole = 'Attending Follow-Up Doctor (Continuity of Care)';
+            }
+
+            this.isSubmitting = false;
+            this.isOpen = true;
+        },
+
+        submitConfirmed() {
+            if (this.isSubmitting) return;
+            this.isSubmitting = true;
+            const form = document.getElementById(this.formId);
+            if (form) form.submit();
+        },
+
+        closeModal() {
+            if (this.isSubmitting) return;
+            this.isOpen = false;
+        }
+     }"
+     x-show="isOpen"
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs transition-opacity"
+     @keydown.escape.window="closeModal()">
+
+    <div @click.away="closeModal()" 
+         class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-100 transition-all border border-slate-200 dark:border-slate-800"
+         :class="{
+             'ring-2 ring-rose-500/30 border-rose-300 dark:border-rose-900/60': severity === 'severe',
+             'ring-2 ring-amber-500/30 border-amber-300 dark:border-amber-900/60': severity === 'mild',
+             'ring-2 ring-emerald-500/30 border-emerald-300 dark:border-emerald-900/60': severity === 'light'
+         }">
+
+        <!-- Dynamic Header based on severity -->
+        <div class="px-6 py-5 flex items-center justify-between text-white"
+             :class="{
+                 'bg-gradient-to-r from-rose-600 via-red-600 to-rose-700': severity === 'severe',
+                 'bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700': severity === 'mild',
+                 'bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700': severity === 'light'
+             }">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 backdrop-blur-md rounded-2xl p-2.5 border border-white/30 shrink-0">
+                    <template x-if="severity === 'severe'">
+                        <span class="relative flex h-5 w-5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </span>
+                    </template>
+                    <template x-if="severity === 'mild'">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                    </template>
+                    <template x-if="severity === 'light'">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </template>
+                </div>
+                <div>
+                    <h3 class="text-base font-black tracking-tight text-white flex items-center gap-2">
+                        <span>Confirm Queue Generation</span>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 border border-white/30" x-text="severityLabel"></span>
+                    </h3>
+                    <p class="text-[11px] text-white/90 font-medium">Verify triage severity and healthcare provider assignment</p>
+                </div>
+            </div>
+            <button @click="closeModal()" type="button" class="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 space-y-4">
+            <!-- Patient Summary Card -->
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Patient Constituent</span>
+                    <h4 class="text-base font-black text-slate-900 dark:text-white truncate" x-text="patientName"></h4>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300" x-text="patientClassification"></span>
+                        <template x-if="patientId">
+                            <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400" x-text="patientId"></span>
+                        </template>
+                        <template x-if="isEmergency">
+                            <span class="text-xs font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">EMERGENCY OVERRIDE</span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Triage Severity & Routing Assessment -->
+            <div class="p-4 rounded-2xl border"
+                 :class="{
+                     'bg-rose-50/70 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/60 text-rose-900 dark:text-rose-200': severity === 'severe',
+                     'bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200': severity === 'mild',
+                     'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200': severity === 'light'
+                 }">
+                <div class="flex items-start gap-3">
+                    <div class="text-2xl shrink-0 mt-0.5">
+                        <span x-show="severity === 'severe'">🔴</span>
+                        <span x-show="severity === 'mild'">🟡</span>
+                        <span x-show="severity === 'light'">🟢</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h5 class="text-xs font-black uppercase tracking-wider">Triage Acuity: <span x-text="severityLabel"></span></h5>
+                        </div>
+                        <p class="text-xs font-bold mt-1" :class="{
+                            'text-rose-800 dark:text-rose-300': severity === 'severe',
+                            'text-amber-800 dark:text-amber-300': severity === 'mild',
+                            'text-emerald-800 dark:text-emerald-300': severity === 'light'
+                        }">
+                            Assigned Route: <span x-text="routingRole"></span>
+                        </p>
+                        <p class="text-[11px] mt-1 text-slate-600 dark:text-slate-400 leading-relaxed">
+                            <span x-show="severity === 'severe'">High acuity patient. Will be placed directly into the attending Doctor's consultation queue for immediate medical examination.</span>
+                            <span x-show="severity === 'mild'">Moderate symptoms. The system will load-balance and automatically assign the patient to whichever provider (Doctor or Nurse) has a shorter queue.</span>
+                            <span x-show="severity === 'light'">Routine checkup, vital monitoring, or medication refill. Routed directly to Clinical Nurse.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vitals Snapshot -->
+            <div class="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80">
+                <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-2">Recorded Triage Biometrics</div>
+                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                    <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <span class="block text-[10px] text-slate-400 font-bold">BP</span>
+                        <span class="font-black text-slate-800 dark:text-white" x-text="bp"></span>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <span class="block text-[10px] text-slate-400 font-bold">TEMP</span>
+                        <span class="font-black text-slate-800 dark:text-white" x-text="temp"></span>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <span class="block text-[10px] text-slate-400 font-bold">HR</span>
+                        <span class="font-black text-slate-800 dark:text-white" x-text="hr"></span>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <span class="block text-[10px] text-slate-400 font-bold">SpO₂</span>
+                        <span class="font-black text-slate-800 dark:text-white" x-text="spo2"></span>
+                    </div>
+                </div>
+                <div class="mt-2 text-[11px] text-slate-600 dark:text-slate-400">
+                    <span class="font-bold">Symptoms / Chief Complaint:</span> <span class="italic" x-text="symptoms"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="bg-slate-50/80 dark:bg-slate-900/80 px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+            <button @click="closeModal()" 
+                    type="button" 
+                    :disabled="isSubmitting"
+                    class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer">
+                Review / Go Back
+            </button>
+            <button @click="submitConfirmed()" 
+                    type="button" 
+                    :disabled="isSubmitting"
+                    class="px-6 py-2.5 rounded-xl font-bold text-xs text-white shadow-md active:scale-[0.98] transition flex items-center gap-2 cursor-pointer"
+                    :class="{
+                        'bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-800 shadow-rose-600/20': severity === 'severe',
+                        'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-amber-600/20': severity === 'mild',
+                        'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-emerald-600/20': severity === 'light'
+                    }">
+                <template x-if="!isSubmitting">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Confirm &amp; Generate Queue</span>
+                    </span>
+                </template>
+                <template x-if="isSubmitting">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        <span>Generating Queue Ticket...</span>
+                    </span>
+                </template>
+            </button>
+        </div>
+    </div>
+</div>
+
 @if(session('print_queue_id'))
+    @php
+        $printConsultation = \App\Models\Consultation::with(['patient', 'doctor', 'nurse'])->find(session('print_queue_id'));
+    @endphp
     <!-- Queue Slip Print Modal (Protected Workflow) -->
     <div x-data="{ 
             showSlipModal: true, 
@@ -1940,6 +2241,7 @@
             confirmedHandover: false,
             doPrint() {
                 this.hasPrinted = true;
+                this.confirmedHandover = true;
                 printSlip();
             },
             canProceed() {
@@ -1954,12 +2256,14 @@
             }
          }" 
          x-show="showSlipModal"
+         x-cloak
          class="fixed inset-0 z-50 overflow-y-auto" 
          aria-labelledby="modal-title" role="dialog" aria-modal="true"
+         @keydown.window="if (showSlipModal && ($event.key === 'p' || $event.key === 'P')) { doPrint(); }"
          @keydown.escape.window.prevent="">
          
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay (non-clickable to prevent accidental dismiss) -->
+            <!-- Background overlay -->
             <div x-show="showSlipModal" 
                  x-transition:enter="ease-out duration-300" 
                  x-transition:enter-start="opacity-0" 
@@ -1981,29 +2285,40 @@
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
                  class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left shadow-2xl transform transition-all sm:my-8 sm:align-middle w-full max-w-sm overflow-hidden border border-slate-200/80 dark:border-slate-800/80">
                 
-                <div class="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-100 dark:border-slate-800 px-5 py-4 flex justify-between items-center">
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-5 py-4 flex justify-between items-center">
+                    <h3 class="text-sm font-black flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-white/20 text-white flex items-center justify-center border border-white/30">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                         </span>
-                        Queue Slip Ready
+                        <span>Queue Slip Generated</span>
                     </h3>
-                    <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border"
-                          :class="canProceed() ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'">
-                        <span x-text="canProceed() ? '✓ Ready' : '⚠️ Action Required'"></span>
+                    @if($printConsultation)
+                    <span class="text-xs font-black font-mono px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30">
+                        {{ $printConsultation->queue_number }}
                     </span>
+                    @endif
                 </div>
 
                 <div class="bg-slate-50/50 dark:bg-slate-950/50 p-4 flex flex-col items-center">
-                    <!-- The visually embedded slip. iframe allows isolating the styles easily -->
-                    @if(session('print_queue_id') && \App\Models\Consultation::find(session('print_queue_id')))
-                    <iframe id="queueSlipIframe" src="{{ route('frontdesk.queue-slip', session('print_queue_id')) }}" class="bg-white rounded-2xl shadow-md w-[260px] h-[380px] overflow-hidden border border-slate-200 dark:border-slate-800" style="pointer-events: none;"></iframe>
+                    <!-- Auto-print notice badge -->
+                    <div class="w-full max-w-[280px] mb-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-2.5 text-center text-[11px] text-emerald-800 dark:text-emerald-300 font-medium flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                        <span>Print prompt should open automatically. Click below or press <strong>P</strong> if needed.</span>
+                    </div>
+
+                    <!-- Embedded slip iframe -->
+                    @if($printConsultation)
+                    <iframe id="queueSlipIframe" 
+                            src="{{ route('frontdesk.queue-slip', $printConsultation->id) }}" 
+                            onload="onQueueSlipIframeLoad(this)"
+                            class="bg-white rounded-2xl shadow-md w-[280px] h-[390px] overflow-hidden border border-slate-200 dark:border-slate-800" 
+                            style="pointer-events: none;"></iframe>
                     @else
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-md w-[260px] h-[380px] flex items-center justify-center text-slate-400 text-xs font-semibold">Queue slip not available.</div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-md w-[280px] h-[390px] flex items-center justify-center text-slate-400 text-xs font-semibold">Queue slip record not found.</div>
                     @endif
 
                     <!-- Safety Confirmation Checkbox -->
-                    <div class="mt-3.5 w-full max-w-[260px] bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex items-start gap-2.5 text-left shadow-2xs">
+                    <div class="mt-3.5 w-full max-w-[280px] bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex items-start gap-2.5 text-left shadow-2xs">
                         <input type="checkbox" id="slipConfirmed" x-model="confirmedHandover" class="mt-0.5 rounded text-emerald-600 focus:ring-0 cursor-pointer">
                         <label for="slipConfirmed" class="text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer select-none leading-tight">
                             Queue slip has been printed and handed to patient.
@@ -2016,7 +2331,7 @@
                             @click="doPrint()" 
                             class="w-full inline-flex justify-center items-center rounded-xl px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-xs font-bold text-white shadow-md shadow-emerald-600/20 active:scale-[0.98] transition cursor-pointer">
                         <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        <span x-text="hasPrinted ? 'Reprint Slip' : 'Print Queue Slip'"></span>
+                        <span x-text="hasPrinted ? 'Reprint Slip (P)' : 'Print Queue Slip (P)'"></span>
                     </button>
                     
                     <button type="button" 
@@ -2035,18 +2350,33 @@
         function printSlip() {
             var iframe = document.getElementById('queueSlipIframe');
             if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } catch(e) {
+                    console.warn('Iframe print failed, opening print window:', e);
+                    if (iframe.src) window.open(iframe.src, '_blank');
+                }
             }
         }
         
-        // Auto-print popup on load optionally
-        document.addEventListener('DOMContentLoaded', function() {
-            var iframe = document.getElementById('queueSlipIframe');
-            if (iframe) {
-                iframe.onload = function() {
-                    setTimeout(printSlip, 500);
-                };
+        function onQueueSlipIframeLoad(iframe) {
+            setTimeout(function() {
+                try {
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    }
+                } catch(err) {
+                    console.warn('Auto print was blocked by browser security policy:', err);
+                }
+            }, 350);
+        }
+
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'QUEUE_SLIP_RENDERED') {
+                var iframe = document.getElementById('queueSlipIframe');
+                if (iframe) onQueueSlipIframeLoad(iframe);
             }
         });
     </script>

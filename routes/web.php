@@ -128,6 +128,7 @@ Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class.':admin,in
     Route::get('/patients/{patient}', [\App\Http\Controllers\PatientController::class, 'show'])->name('frontdesk.patients.show');
     // New patient from PreTriage: register + queue in one step
     Route::post('/register-and-queue/{preTriage}', [RegistrationController::class, 'registerAndQueue'])->name('frontdesk.registerAndQueue');
+    Route::post('/queue/{consultation}/cancel', [RegistrationController::class, 'cancelQueuedConsultation'])->name('frontdesk.queue.cancel');
 
     // Follow-Up Management Tracker
     Route::get('/followups', [\App\Http\Controllers\FrontDesk\FollowUpController::class, 'index'])->name('frontdesk.followups.index');
@@ -152,33 +153,35 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_
     Route::get('/analytics/chart/{chart}', [AdminController::class, 'apiChartData'])->name('admin.analytics.chart');
     Route::get('/dashboard/stats-data', [AdminController::class, 'apiDashboardStats'])->name('admin.dashboard.statsData');
     Route::get('/analytics/staff-productivity', [AdminController::class, 'apiStaffProductivityData'])->name('admin.analytics.staff-productivity');
+    Route::get('/analytics/export-csv', [AdminController::class, 'exportAnalyticsCsv'])->name('admin.analytics.export-csv');
+    Route::get('/analytics/export-summary-csv', [AdminController::class, 'exportAnalyticsSummaryCsv'])->name('admin.analytics.export-summary-csv');
     Route::get('/dashboard/stats', [AdminController::class, 'getStats'])->name('admin.dashboard.stats');
     Route::get('/announcements', [AdminController::class, 'announcements'])->name('admin.announcements.index');
     Route::get('/announcements/create', [AdminController::class, 'createAnnouncement'])->name('admin.announcements.create');
     Route::post('/announcements', [AdminController::class, 'storeAnnouncement'])->name('admin.announcements.store');
     Route::get('/announcements/{announcement}/edit', [AdminController::class, 'editAnnouncement'])->name('admin.announcements.edit');
     Route::put('/announcements/{announcement}', [AdminController::class, 'updateAnnouncement'])->name('admin.announcements.update');
-    Route::delete('/announcements/{announcement}', [AdminController::class, 'destroyAnnouncement'])->name('admin.announcements.destroy');
+    Route::delete('/announcements/{announcement}', [AdminController::class, 'destroyAnnouncement'])->name('admin.announcements.destroy')->middleware('can:delete-announcements');
     Route::post('/announcements/{announcement}/toggle', [AdminController::class, 'toggleAnnouncementStatus'])->name('admin.announcements.toggle');
     Route::delete('/announcements/images/bulk/delete', [AdminController::class, 'bulkDeleteImages'])->name('admin.announcements.bulk-delete-images');
-    Route::delete('/announcements/bulk/delete', [AdminController::class, 'bulkDeleteAnnouncements'])->name('admin.announcements.bulk-delete');
+    Route::delete('/announcements/bulk/delete', [AdminController::class, 'bulkDeleteAnnouncements'])->name('admin.announcements.bulk-delete')->middleware('can:delete-announcements');
     Route::delete('/announcements/images/{image}', [AdminController::class, 'deleteAnnouncementImage'])->name('admin.announcements.delete-image');
 
     // Staff Management
     Route::get('/staff', [AdminController::class, 'staffIndex'])->name('admin.staff.index');
     Route::post('/staff', [AdminController::class, 'storeStaff'])->name('admin.staff.store');
-    Route::delete('/staff/bulk/delete', [AdminController::class, 'bulkDeleteStaff'])->name('admin.staff.bulk-delete');
+    Route::delete('/staff/bulk/delete', [AdminController::class, 'bulkDeleteStaff'])->name('admin.staff.bulk-delete')->middleware('can:delete-staff');
     Route::put('/staff/{user}', [AdminController::class, 'updateStaff'])->name('admin.staff.update');
-    Route::delete('/staff/{user}', [AdminController::class, 'destroyStaff'])->name('admin.staff.destroy');
+    Route::delete('/staff/{user}', [AdminController::class, 'destroyStaff'])->name('admin.staff.destroy')->middleware('can:delete-staff');
     Route::post('/staff/{user}/status', [AdminController::class, 'updateStaffStatus'])->name('admin.staff.status');
-    Route::post('/staff/{user}/promote', [AdminController::class, 'promoteToAdmin'])->name('admin.staff.promote');
+    Route::post('/staff/{user}/promote', [AdminController::class, 'promoteToAdmin'])->name('admin.staff.promote')->middleware('can:promote-admin');
 
     // Retention Routes
     Route::get('/retention', [AdminController::class, 'retentionIndex'])->name('admin.retention.index');
     Route::post('/retention/bulk/extend', [AdminController::class, 'bulkExtendRetention'])->name('admin.retention.bulk-extend');
-    Route::delete('/retention/bulk/delete', [AdminController::class, 'bulkDeleteRetention'])->name('admin.retention.bulk-delete');
+    Route::delete('/retention/bulk/delete', [AdminController::class, 'bulkDeleteRetention'])->name('admin.retention.bulk-delete')->middleware('can:delete-retention');
     Route::post('/retention/{patient}/extend', [AdminController::class, 'extendRetention'])->name('admin.retention.extend');
-    Route::delete('/retention/{patient}/delete', [AdminController::class, 'deleteRetention'])->name('admin.retention.delete');
+    Route::delete('/retention/{patient}/delete', [AdminController::class, 'deleteRetention'])->name('admin.retention.delete')->middleware('can:delete-retention');
 
     // Patient Records (Admin View)
     Route::get('/patients', [AdminController::class, 'patientRecordsIndex'])->name('admin.patients.index');
@@ -187,27 +190,28 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_
     Route::get('/patients/{patient}/ancillary/print', [AdminController::class, 'printAncillary'])->name('admin.patients.ancillary.print');
     Route::get('/ancillary/{ancillary}/print', [AdminController::class, 'printAncillarySingle'])->name('admin.ancillary.print');
 
-    // Audit Trail
-    Route::get('/audit', [AdminController::class, 'auditLogs'])->name('admin.audit.index');
+    // Audit Trail (Super Admin only)
+    Route::get('/audit', [AdminController::class, 'auditLogs'])->name('admin.audit.index')->middleware('can:view-audit-logs');
+    Route::get('/audit/export-csv', [AdminController::class, 'exportAuditLogsCsv'])->name('admin.audit.export-csv')->middleware('can:view-audit-logs');
 
     // Archive Routes
     Route::get('/archive', [\App\Http\Controllers\ArchiveController::class, 'index'])->name('admin.archive.index');
-    Route::post('/archive/truncate-all-year', [\App\Http\Controllers\ArchiveController::class, 'truncateAllOneYear'])->name('admin.archive.truncate-all-year');
-    Route::post('/archive/{type}/truncate-year', [\App\Http\Controllers\ArchiveController::class, 'truncateCategoryOneYear'])->name('admin.archive.truncate-year');
+    Route::post('/archive/truncate-all-year', [\App\Http\Controllers\ArchiveController::class, 'truncateAllOneYear'])->name('admin.archive.truncate-all-year')->middleware('can:truncate-archive');
+    Route::post('/archive/{type}/truncate-year', [\App\Http\Controllers\ArchiveController::class, 'truncateCategoryOneYear'])->name('admin.archive.truncate-year')->middleware('can:truncate-archive');
     Route::post('/archive/{type}/bulk/restore', [\App\Http\Controllers\ArchiveController::class, 'bulkRestore'])->name('admin.archive.bulk-restore');
-    Route::delete('/archive/{type}/bulk/force-delete', [\App\Http\Controllers\ArchiveController::class, 'bulkForceDelete'])->name('admin.archive.bulk-force-delete');
+    Route::delete('/archive/{type}/bulk/force-delete', [\App\Http\Controllers\ArchiveController::class, 'bulkForceDelete'])->name('admin.archive.bulk-force-delete')->middleware('can:force-delete');
     Route::get('/archive/{type}', [\App\Http\Controllers\ArchiveController::class, 'show'])->name('admin.archive.show');
     Route::post('/archive/{type}/{id}/restore', [\App\Http\Controllers\ArchiveController::class, 'restore'])->name('admin.archive.restore');
-    Route::delete('/archive/{type}/{id}/force-delete', [\App\Http\Controllers\ArchiveController::class, 'forceDelete'])->name('admin.archive.force-delete');
+    Route::delete('/archive/{type}/{id}/force-delete', [\App\Http\Controllers\ArchiveController::class, 'forceDelete'])->name('admin.archive.force-delete')->middleware('can:force-delete');
 
     // Content Management
     Route::get('/content', [AdminController::class, 'contentIndex'])->name('admin.content.index');
     Route::put('/content', [AdminController::class, 'contentUpdate'])->name('admin.content.update');
 
-    // Dynamic Health Facilities / Units CMS
-    Route::post('/facilities', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'store'])->name('admin.facilities.store');
-    Route::put('/facilities/{facility}', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'update'])->name('admin.facilities.update');
-    Route::delete('/facilities/{facility}', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'destroy'])->name('admin.facilities.destroy');
+    // Dynamic Health Facilities / Units CMS (Super Admin only)
+    Route::post('/facilities', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'store'])->name('admin.facilities.store')->middleware('can:manage-facilities');
+    Route::put('/facilities/{facility}', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'update'])->name('admin.facilities.update')->middleware('can:manage-facilities');
+    Route::delete('/facilities/{facility}', [\App\Http\Controllers\Admin\FacilityUnitController::class, 'destroy'])->name('admin.facilities.destroy')->middleware('can:manage-facilities');
 });
 
 // Doctor Routes (regular_doctor + pedia_doctor)
@@ -218,6 +222,7 @@ Route::prefix('doctor')->middleware(['auth', RoleMiddleware::class.':regular_doc
     Route::get('/waiting-results', [DoctorController::class, 'waitingResults'])->name('doctor.waiting-results');
     Route::get('/consultation/{consultation}/start', [DoctorController::class, 'startConsultation'])->name('doctor.consultation.start');
     Route::post('/consultation/{consultation}/complete', [DoctorController::class, 'completeConsultation'])->name('doctor.consultation.complete');
+    Route::post('/consultation/{consultation}/addendum', [DoctorController::class, 'storeAddendum'])->name('doctor.consultation.addendum');
     Route::post('/consultation/{consultation}/cancel', [DoctorController::class, 'cancelConsultation'])->name('doctor.consultation.cancel');
     Route::post('/consultation/{consultation}/prescription/cancel', [DoctorController::class, 'cancelByPrescriber'])->name('doctor.prescription.cancel');
     Route::get('/patients/{patient}', [DoctorController::class, 'showPatient'])->name('doctor.patients.show');
@@ -236,7 +241,11 @@ Route::middleware(['auth'])->get('/api/medicines/search', function (\Illuminate\
         ->take(10)
         ->get()
         ->map(function ($med) {
-            $stock = $med->batches()->where('expiration_date', '>=', now())->sum('quantity');
+            $stock = $med->batches()
+                ->where('status', '!=', 'disposed')
+                ->where('quantity', '>', 0)
+                ->whereDate('expiration_date', '>=', today())
+                ->sum('quantity');
 
             return [
                 'id' => $med->id,
@@ -259,6 +268,7 @@ Route::prefix('nurse')->middleware(['auth', RoleMiddleware::class.':clinical_nur
     Route::post('/forward/{consultation}', [NurseController::class, 'forwardToDoctor'])->name('nurse.forward');
     Route::get('/consultation/{consultation}/start', [NurseController::class, 'startConsultation'])->name('nurse.consultation.start');
     Route::post('/consultation/{consultation}/complete', [NurseController::class, 'completeConsultation'])->name('nurse.consultation.complete');
+    Route::post('/consultation/{consultation}/addendum', [NurseController::class, 'storeAddendum'])->name('nurse.consultation.addendum');
     Route::post('/consultation/{consultation}/cancel', [NurseController::class, 'cancelConsultation'])->name('nurse.consultation.cancel');
     Route::post('/consultation/{consultation}/prescription/cancel', [NurseController::class, 'cancelByPrescriber'])->name('nurse.prescription.cancel');
     Route::post('/consultation/{consultation}/ancillary', [NurseController::class, 'storeAncillaryRequest'])->name('nurse.ancillary.store');
@@ -279,6 +289,7 @@ Route::prefix('lab')->middleware(['auth', RoleMiddleware::class.':laboratory,rad
     Route::post('/ancillary/{ancillary}/cancel', [LabController::class, 'cancelRequest'])->name('lab.ancillary.cancel');
     Route::post('/ancillary/{ancillary}/archive', [LabController::class, 'archiveRequest'])->name('lab.ancillary.archive');
     Route::post('/ancillary/{ancillary}/restore', [LabController::class, 'restoreRequest'])->name('lab.ancillary.restore');
+    Route::get('/ancillary/{ancillary}/print', [LabController::class, 'printReport'])->name('lab.ancillary.print');
 });
 
 // Pharmacy Routes
@@ -289,6 +300,7 @@ Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,
     Route::get('/dashboard', [PharmacyController::class, 'dashboard'])->name('pharmacy.dashboard');
     Route::get('/history', [PharmacyController::class, 'history'])->name('pharmacy.history');
     Route::get('/medicines', [PharmacyController::class, 'medicines'])->name('pharmacy.medicines');
+    Route::get('/medicines/export-csv', [PharmacyController::class, 'exportStockCsv'])->name('pharmacy.medicines.export-csv');
     Route::get('/written-off', [PharmacyController::class, 'writtenOff'])->name('pharmacy.written-off');
 });
 

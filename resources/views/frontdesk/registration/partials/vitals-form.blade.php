@@ -126,7 +126,7 @@
             {{-- Non-Pediatric: severity selection cards --}}
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Based on the symptoms, select the appropriate severity level. The system will automatically assign the patient.</p>
 
-            <div x-data="{ severity: '' }" class="space-y-4">
+            <div x-data="{ severity: '{{ old('symptom_severity', '') }}' }" class="space-y-4 symptom-severity-container">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {{-- Light --}}
                     <label @click="severity = 'light'"

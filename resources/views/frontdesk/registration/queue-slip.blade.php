@@ -236,13 +236,23 @@
         y += F.small + 4;
         ctext('*** THANK YOU ***', F.small, true, y + F.small);
 
-        // â”€â”€ Display size (screen only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Display size (screen only) ──────────────────────────────────
         canvas.style.width  = (W / DPI_SCALE) + 'px';
         canvas.style.height = (totalH / DPI_SCALE) + 'px';
 
-        // Auto-print when loaded inside the modal iframe
+        // Auto-print when loaded inside the modal iframe or standalone
         if (window.self !== window.top) {
-            // inside iframe â€” do nothing, parent triggers print()
+            // Inside iframe — notify parent window that canvas is rendered and ready
+            try {
+                window.parent.postMessage({ type: 'QUEUE_SLIP_RENDERED' }, '*');
+            } catch (e) {
+                console.warn('Queue slip postMessage error:', e);
+            }
+        } else {
+            // Direct standalone window load — prompt system print dialogue
+            window.addEventListener('load', function() {
+                setTimeout(function() { window.print(); }, 250);
+            });
         }
     })();
     </script>

@@ -7,6 +7,18 @@ use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'database.default' => 'mysql',
+            'database.connections.mysql.database' => 'rhu-mis',
+        ]);
+        \Illuminate\Support\Facades\DB::purge('mysql');
+        \Illuminate\Support\Facades\DB::reconnect('mysql');
+    }
+
     /**
      * A basic test example.
      */

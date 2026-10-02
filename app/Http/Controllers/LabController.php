@@ -179,14 +179,35 @@ class LabController extends Controller
         $request->validate([
             'results' => 'required|array',
             'result_file' => ['nullable', 'file', 'max:10240', new SecureImage],
+            'is_critical' => 'nullable|boolean',
+            'critical_remarks' => 'nullable|string|max:500',
         ]);
+
+        $isCritical = $request->boolean('is_critical')
+            || ! empty($request->results['is_critical'])
+            || (! empty($request->critical_alert) && $request->critical_alert);
+
+        $criticalRemarks = $request->input('critical_remarks') ?? ($request->results['critical_remarks'] ?? null);
+
+        $resultsData = $request->results;
+        if ($isCritical) {
+            $resultsData['_is_critical'] = true;
+            if ($criticalRemarks) {
+                $resultsData['_critical_remarks'] = $criticalRemarks;
+            }
+        }
 
         $data = [
             'status' => 'Done',
-            'result_data' => $request->results,
+            'result_data' => $resultsData,
             'completed_by' => Auth::id(),
             'completed_at' => now(),
         ];
+
+        if ($isCritical) {
+            $alertPrefix = '[CRITICAL VALUE ALERT]' . ($criticalRemarks ? " - {$criticalRemarks}" : '');
+            $data['remarks'] = empty($ancillary->remarks) ? $alertPrefix : $ancillary->remarks . ' | ' . $alertPrefix;
+        }
 
         if ($request->hasFile('result_file')) {
             $file = $request->file('result_file');
@@ -196,7 +217,20 @@ class LabController extends Controller
         }
 
         $ancillary->update($data);
-        AuditLog::record('Diagnostic Results Completed', $ancillary);
+
+        AuditLog::record(
+            $isCritical ? 'CRITICAL Diagnostic Results Completed - Alert Flagged' : 'Diagnostic Results Completed',
+            $ancillary,
+            ['is_critical' => $isCritical, 'critical_remarks' => $criticalRemarks]
+        );
+
+        if ($isCritical) {
+            $consultation = $ancillary->consultation;
+            $clinician = $consultation ? ($consultation->doctor ?? $consultation->nurse) : null;
+            if ($clinician) {
+                $clinician->notify(new \App\Notifications\CriticalLabResultNotification($ancillary, $criticalRemarks ?? 'Immediate clinical review recommended.'));
+            }
+        }
 
         $this->syncConsultationReadiness($ancillary);
 
@@ -205,12 +239,20 @@ class LabController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Diagnostic results submitted successfully. Attending physician has been notified.',
+                'message' => $isCritical
+                    ? 'CRITICAL ALERT: Diagnostic results submitted and attending physician notified of panic values.'
+                    : 'Diagnostic results submitted successfully. Attending physician has been notified.',
                 'status' => $ancillary->status,
+                'is_critical' => $isCritical,
             ]);
         }
 
-        return back()->with('success', 'Diagnostic results submitted successfully. Attending physician has been notified.');
+        return back()->with(
+            $isCritical ? 'warning' : 'success',
+            $isCritical
+                ? 'CRITICAL ALERT: Diagnostic results submitted and attending physician notified of panic values.'
+                : 'Diagnostic results submitted successfully. Attending physician has been notified.'
+        );
     }
 
     /**
@@ -398,7 +440,7 @@ class LabController extends Controller
     protected function syncConsultationReadiness(AncillaryRequest $ancillary): void
     {
         $consultation = $ancillary->consultation;
-        if (! $consultation || $consultation->status !== 'awaiting_results') {
+        if (! $consultation || in_array($consultation->status, ['completed', 'done', 'cancelled'])) {
             return;
         }
 
@@ -410,6 +452,32 @@ class LabController extends Controller
 
         if (! $hasActiveUnfinished) {
             $consultation->update(['status' => 'results_ready']);
+        } else {
+            $consultation->update(['status' => 'awaiting_results']);
         }
+    }
+
+    /**
+     * Display printable official diagnostic report for laboratory/radiology personnel.
+     */
+    public function printReport(Request $request, AncillaryRequest $ancillary)
+    {
+        $ancillary->load([
+            'consultation.doctor',
+            'consultation.nurse',
+            'consultation.patient',
+            'technician',
+            'amender',
+            'collector',
+        ]);
+
+        $patient = $ancillary->consultation ? $ancillary->consultation->patient : null;
+        if (! $patient) {
+            return back()->with('error', 'No patient record linked to this diagnostic request.');
+        }
+
+        $requests = collect([$ancillary]);
+
+        return view('admin.ancillary.print', compact('patient', 'requests'));
     }
 }

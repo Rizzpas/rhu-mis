@@ -96,6 +96,17 @@
             text-transform: none;
         }
 
+        header input[type="text"],
+        header input[type="search"],
+        .search-input {
+            text-transform: none !important;
+        }
+        header input[type="text"]::placeholder,
+        header input[type="search"]::placeholder,
+        .search-input::placeholder {
+            text-transform: none !important;
+        }
+
         /* Custom subtle scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -309,99 +320,162 @@
     </div>
 
     <!-- Main Content -->
-    <div class="print:overflow-visible flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <div class="print:overflow-visible flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
         <!-- Top bar -->
-        <header class="print:hidden bg-gradient-to-r from-emerald-600 to-emerald-800 dark:from-emerald-800 dark:to-emerald-950 shadow-md z-20 sticky top-0 transition-colors duration-200"
+        <header class="print:hidden bg-emerald-600 dark:bg-emerald-800/95 sticky top-0 z-20 shadow-xs border-b border-emerald-500/20 dark:border-emerald-700/40 backdrop-blur-md transition-colors duration-200"
             x-data="{
                 searchQuery: '',
                 showResults: false,
                 links: [
-                    { name: 'Dashboard', route: '{{ route('frontdesk.dashboard') }}', keywords: ['dashboard', 'home', 'overview', 'calendar', 'appointments'] },
-                    { name: 'Registration & Triage', route: '{{ route('frontdesk.registration.index') }}', keywords: ['registration', 'triage', 'patient check-in', 'new patient', 'vitals'] },
-                    { name: 'Queue Overview', route: '{{ route('frontdesk.queue-overview') }}', keywords: ['queue', 'waiting list', 'overview', 'status', 'doctors', 'nurses'] },
-                    { name: 'Patient Master List', route: '{{ route('frontdesk.patients.index') }}', keywords: ['patients', 'records', 'master list', 'search patient', 'clinical'] },
-                    { name: 'Follow-Up Tracker', route: '{{ route('frontdesk.followups.index') }}', keywords: ['followup', 'follow-up', 'overdue', 'returns', 'schedule', 'tracking'] }
+                    { name: 'Dashboard Overview', route: '{{ route('frontdesk.dashboard') }}', desc: 'Calendar, arrivals & queue stats', keywords: ['dashboard', 'home', 'overview', 'calendar', 'appointments'] },
+                    { name: 'Registration & Triage', route: '{{ route('frontdesk.registration.index') }}', desc: 'Frontline intake & patient check-in', keywords: ['registration', 'triage', 'patient check-in', 'new patient', 'vitals'] },
+                    { name: 'Queue Overview', route: '{{ route('frontdesk.queue-overview') }}', desc: 'Live physician rooms & holding queue', keywords: ['queue', 'waiting list', 'overview', 'status', 'doctors', 'nurses'] },
+                    { name: 'Patient Master List', route: '{{ route('frontdesk.patients.index') }}', desc: 'Directory, clinical records & intake routing', keywords: ['patients', 'records', 'master list', 'search patient', 'clinical'] },
+                    { name: 'Follow-Up Tracker', route: '{{ route('frontdesk.followups.index') }}', desc: 'Scheduled return visits & overdue checkups', keywords: ['followup', 'follow-up', 'overdue', 'returns', 'schedule', 'tracking'] },
+                    { name: 'Profile Settings', route: '{{ route('profile.edit') }}', desc: 'Account credentials & duty profile', keywords: ['profile', 'account', 'settings', 'password'] }
                 ],
                 get filteredLinks() {
                     if (this.searchQuery.trim() === '') return [];
-                    const query = this.searchQuery.toLowerCase();
+                    const query = this.searchQuery.toLowerCase().trim();
                     return this.links.filter(link => {
-                        return link.name.toLowerCase().includes(query) || link.keywords.some(k => k.includes(query));
+                        return link.name.toLowerCase().includes(query) || (link.desc && link.desc.toLowerCase().includes(query)) || link.keywords.some(k => k.includes(query));
                     });
                 }
             }" @click.away="showResults = false">
             
-            <div class="flex justify-between items-center px-4 sm:px-6 py-3.5 gap-4">
-                <div class="flex items-center gap-4 flex-1">
-                    <button @click="sidebarOpen = true" class="md:hidden text-white hover:bg-emerald-700 dark:hover:bg-emerald-900 p-1.5 rounded-lg transition-colors">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            <div class="flex justify-between items-center px-4 sm:px-6 py-2.5 sm:py-3 min-h-[64px] gap-3 sm:gap-4">
+                <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                    <button @click="sidebarOpen = true"
+                        class="md:hidden text-white/90 hover:text-white hover:bg-white/10 dark:hover:bg-black/20 focus:outline-none p-2 rounded-xl transition-all active:scale-95 shrink-0"
+                        aria-label="Open sidebar menu">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                     
-                    <h1 class="text-xl font-bold text-white tracking-tight hidden sm:block whitespace-nowrap">
-                        @yield('header', 'Dashboard')
-                    </h1>
+                    <div class="flex items-center gap-2.5 min-w-0 shrink-0">
+                        <h1 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight truncate max-w-[150px] sm:max-w-xs md:max-w-sm lg:max-w-md flex items-center gap-2">
+                            @yield('header', 'Front Desk Dashboard')
+                        </h1>
+                    </div>
 
                     <!-- Intelligent Search Bar -->
-                    <div class="relative w-full max-w-xl sm:ml-6 group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-4 w-4 text-emerald-800 dark:text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <div class="relative flex-1 max-w-md lg:max-w-xl mx-1 sm:mx-4 group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-800/60 dark:text-emerald-300/70">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
-                        <input type="text" x-model="searchQuery" @focus="showResults = true" @keydown.escape="showResults = false" placeholder="Quick search..." 
-                            class="w-full pl-10 pr-4 py-2 bg-white rounded-full border-none shadow-inner text-sm text-emerald-900 placeholder-emerald-800/60 dark:bg-emerald-950 dark:text-emerald-100 dark:placeholder-emerald-400/50 transition-shadow">
+                        <input type="text" 
+                            x-model="searchQuery" 
+                            @focus="showResults = true" 
+                            @click="showResults = true"
+                            @input="showResults = true"
+                            @keydown.escape.stop="showResults = false; $el.blur()" 
+                            placeholder="Search patient records, queues, or links..." 
+                            class="no-uppercase w-full pl-9 pr-9 py-2 bg-white/95 hover:bg-white focus:bg-white dark:bg-slate-900/90 dark:hover:bg-slate-900 dark:focus:bg-slate-900 rounded-full border border-emerald-400/30 dark:border-emerald-700/50 shadow-inner focus:ring-2 focus:ring-white/40 dark:focus:ring-emerald-500/40 focus:outline-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 dark:text-slate-100 dark:placeholder-slate-400 transition-all"
+                            style="text-transform: none !important;"
+                            autocomplete="off"
+                            spellcheck="false">
+                        
+                        <!-- Clear Search Button -->
+                        <button type="button" 
+                            x-show="searchQuery.length > 0" 
+                            @click="searchQuery = ''; showResults = false;" 
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors"
+                            aria-label="Clear search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                         
                         <!-- Search Dropdown -->
-                        <div x-show="showResults && searchQuery.length > 0" 
-                            x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
+                        <div x-show="showResults && searchQuery.trim().length > 0" 
+                            x-transition:enter="transition ease-out duration-75"
+                            x-transition:enter-start="opacity-0 scale-98"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-50"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-98"
                             style="display: none;" 
-                            class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden top-full left-0 py-2">
+                            class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 overflow-hidden top-full left-0 py-2">
+                            
+                            <div class="px-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                                <span>Quick Navigation</span>
+                                <button type="button" @click="showResults = false" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold lowercase text-[10px] cursor-pointer">Press Esc to close</button>
+                            </div>
+
                             <template x-if="filteredLinks.length > 0">
-                                <ul class="max-h-64 overflow-y-auto custom-scrollbar">
+                                <ul class="max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-50 dark:divide-slate-800/40">
                                     <template x-for="link in filteredLinks" :key="link.name">
                                         <li>
-                                            <a :href="link.route" class="block px-4 py-3 hover:bg-emerald-50 dark:hover:bg-slate-700/50 text-sm transition-colors group/item">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="p-1.5 rounded-lg bg-emerald-100 dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 group-hover/item:scale-110 transition-transform">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                                                    </div>
-                                                    <div>
-                                                        <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="link.name"></span>
-                                                        <span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">Quick Navigation</span>
-                                                    </div>
+                                            <a :href="link.route" class="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800/80 text-sm transition-colors group/item">
+                                                <div class="p-1.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover/item:scale-105 transition-transform shrink-0">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <span class="font-bold text-slate-800 dark:text-white text-xs sm:text-sm block truncate" x-text="link.name"></span>
+                                                    <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="link.desc || 'Quick navigation shortcut'"></span>
                                                 </div>
                                             </a>
                                         </li>
                                     </template>
                                 </ul>
                             </template>
+
+                            <template x-if="filteredLinks.length === 0">
+                                <div class="px-5 py-6 text-center">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center mb-2.5">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">No results found</p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">We couldn't find any matches for "<span class="font-medium text-slate-700 dark:text-slate-300" x-text="searchQuery"></span>"</p>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                     <!-- Theme Toggle -->
                     @include('partials.theme-toggle')
-                    <span class="text-xs font-medium text-emerald-100 hidden lg:block">{{ now()->format('l, F j, Y') }}</span>
+
+                    <!-- Live Date Badge -->
+                    <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 dark:bg-emerald-950/40 border border-white/15 dark:border-emerald-700/30 text-xs font-semibold text-emerald-50">
+                        <svg class="w-3.5 h-3.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>{{ now()->format('l, F j, Y') }}</span>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-gray-100 dark:bg-gray-900">
-            @include('partials.toast')
-            @if ($errors->any())
-                <div class="mb-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-2xl shadow-xs">
-                    <p class="font-bold mb-1">Please correct the following errors:</p>
-                    <ul class="list-disc list-inside text-sm">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+        <main class="print:overflow-visible print:p-0 flex-1 overflow-y-auto flex flex-col p-4 sm:p-6 lg:p-8 custom-scrollbar bg-slate-100/90 dark:bg-slate-900/95 transition-colors duration-200">
+            <div class="flex-1 w-full max-w-7xl mx-auto flex flex-col">
+                @include('partials.toast')
+                @if ($errors->any())
+                    <div class="mb-5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-2xl shadow-xs">
+                        <p class="font-bold mb-1 text-sm">Please correct the following errors:</p>
+                        <ul class="list-disc list-inside text-xs space-y-0.5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                @yield('content')
+            </div>
+
+            <!-- Modern Unified Frontdesk Footer -->
+            <footer class="mt-auto pt-8 pb-4 border-t border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                <div class="w-full max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+                    <p>&copy; {{ date('Y') }} Rural Health Unit &ndash; Silang. Information Desk Portal. All rights reserved.</p>
+                    <div class="flex items-center gap-4 text-xs">
+                        <a href="{{ route('frontdesk.dashboard') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Dashboard</a>
+                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                        <a href="{{ route('frontdesk.registration.index') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Registration</a>
+                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                        <span class="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Desk Active
+                        </span>
+                    </div>
                 </div>
-            @endif
-            @yield('content')
-            <footer class="mt-12 border-t border-gray-200 dark:border-gray-800 pt-6 text-center text-xs text-gray-500 dark:text-gray-400 pb-6">
-                <p>&copy; {{ date('Y') }} Rural Health Unit - Silang. Information Desk Portal.</p>
             </footer>
         </main>
     </div>

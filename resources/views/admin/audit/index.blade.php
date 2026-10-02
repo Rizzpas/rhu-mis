@@ -172,12 +172,16 @@
 
             <!-- CSV Export Button -->
             <div class="md:col-span-3">
-                <button type="button"
-                    class="w-full h-11 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 active:scale-95 text-xs cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button type="button" onclick="exportAuditCsv(this)" id="exportAuditCsvBtn"
+                    class="w-full h-11 flex rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 items-center justify-center gap-2 font-bold px-4 rounded-xl transition-all text-xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 group">
+                    <svg id="exportAuditIcon" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Export Audit Trail (CSV)</span>
+                    <svg id="exportAuditSpinner" class="w-4 h-4 shrink-0 animate-spin hidden text-emerald-400" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="exportAuditText">Export Audit Trail (CSV)</span>
                 </button>
             </div>
             <input type="hidden" name="per_page" x-ref="perPageInput" value="{{ request('per_page', 10) }}">
@@ -461,4 +465,63 @@
         </div>
     </div>
 </div>
+
+<script>
+    async function exportAuditCsv(btn) {
+        if (!btn) btn = document.getElementById('exportAuditCsvBtn');
+        const icon = document.getElementById('exportAuditIcon');
+        const spinner = document.getElementById('exportAuditSpinner');
+        const text = document.getElementById('exportAuditText');
+
+        if (btn) btn.disabled = true;
+        if (icon) icon.classList.add('hidden');
+        if (spinner) spinner.classList.remove('hidden');
+        if (text) text.textContent = 'Exporting...';
+
+        try {
+            const form = document.getElementById('filterForm');
+            const params = new URLSearchParams(new FormData(form));
+            const response = await fetch('{{ route('admin.audit.export-csv') }}?' + params.toString());
+
+            if (response.status === 404) {
+                const err = await response.json();
+                window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: err.message || 'No audit records found to export.', type: 'warning' } }));
+                return;
+            }
+
+            if (!response.ok) {
+                window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Export failed. Please try again.', type: 'error' } }));
+                return;
+            }
+
+            const blob = await response.blob();
+            const disposition = response.headers.get('Content-Disposition');
+            let filename = 'system-audit-trail.csv';
+            if (disposition) {
+                const match = disposition.match(/filename="?([^"]+)"?/);
+                if (match) filename = match[1];
+            }
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Audit trail CSV exported successfully!', type: 'success' } }));
+        } catch (error) {
+            console.error('Audit CSV Export Error:', error);
+            window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Export failed. Please try again.', type: 'error' } }));
+        } finally {
+            if (btn) btn.disabled = false;
+            if (icon) icon.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
+            if (text) text.textContent = 'Export Audit Trail (CSV)';
+        }
+    }
+    window.exportAuditCsv = exportAuditCsv;
+</script>
 @endsection

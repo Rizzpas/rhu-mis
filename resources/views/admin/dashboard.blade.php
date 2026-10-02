@@ -3,11 +3,18 @@
 @section('header', 'Analytics Dashboard')
 
 @section('content')
-    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <!-- Header Section (Content Management Style) -->
+    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Management Information System</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Real-time operational and epidemiological analytics.
-            </p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </span>
+                <span>Management Information System</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Real-time operational overview, key health indicators, and epidemiological analytics.</p>
         </div>
 
         <div class="flex items-center gap-3">

@@ -8,6 +8,7 @@ use App\Models\FacilityUnit;
 use App\Rules\SecureImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -22,6 +23,8 @@ class FacilityUnitController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('manage-facilities');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => ['required', 'string', Rule::in(FacilityUnit::CATEGORIES)],
@@ -89,6 +92,8 @@ class FacilityUnitController extends Controller
 
     public function update(Request $request, FacilityUnit $facility)
     {
+        Gate::authorize('manage-facilities');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => ['required', 'string', Rule::in(FacilityUnit::CATEGORIES)],
@@ -170,6 +175,8 @@ class FacilityUnitController extends Controller
 
     public function destroy(FacilityUnit $facility)
     {
+        Gate::authorize('manage-facilities');
+
         if ($facility->slug === 'main-health-center') {
             return back()->with('error', 'The Main Health Center is the core healthcare facility and cannot be deleted.');
         }

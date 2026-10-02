@@ -3,17 +3,80 @@
 @section('header', 'Detailed Analytics')
 
 @section('content')
-<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
+<!-- Header Section (Content Management Style) -->
+<div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800 print:hidden">
     <div>
-        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Epidemiological & Operational Analytics</h2>
-        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Deep-dive into facility metrics, population demographics, and patient flow trends.</p>
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </span>
+            <span>Epidemiological & Operational Analytics</span>
+        </h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Deep-dive into facility metrics, population demographics, and patient flow trends.</p>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
-        <button onclick="printAnalyticsReport()" class="hidden md:flex items-center gap-2 h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span>Export Report</span>
-        </button>
+        <!-- Export Dropdown -->
+        <div class="relative" x-data="{ exportOpen: false }" @click.outside="exportOpen = false">
+            <button @click="exportOpen = !exportOpen" type="button" class="flex items-center gap-2 h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer select-none">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Export</span>
+                <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="exportOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+
+            <div x-show="exportOpen" x-cloak
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                 class="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-1.5 z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                
+                <div class="px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Export Options
+                </div>
+
+                <div class="p-1 space-y-0.5">
+                    <!-- 1. Graph / Analytics Summary (CSV/Excel) -->
+                    <button type="button" @click="exportOpen = false; exportAnalyticsSummaryCsv()" class="w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400">Analytics Graph Summary (CSV)</span>
+                            <span class="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Aggregated metrics, charts & epidemiological totals</span>
+                        </div>
+                    </button>
+
+                    <!-- 2. Raw Detailed Consultations (CSV) -->
+                    <button type="button" @click="exportOpen = false; exportAnalyticsCsv()" class="w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-slate-700 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400">Raw Consultation Records (CSV)</span>
+                            <span class="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Itemized 32-column patient encounter logs</span>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="p-1">
+                    <!-- 3. Print / PDF Export Report -->
+                    <button type="button" @click="exportOpen = false; printAnalyticsReport()" class="w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400">Print / Save as PDF</span>
+                            <span class="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Official printable dossier with chart graphs</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
         <form action="{{ route('admin.analytics') }}" method="GET" class="h-10 flex items-center gap-2 bg-white dark:bg-slate-900/90 px-3 rounded-xl shadow-2xs border border-slate-200/90 dark:border-slate-700/80 focus-within:border-emerald-500 transition-all">
             <label for="time_filter" class="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-wider pl-1 shrink-0">Timeframe:</label>
             <div class="w-32">
@@ -1449,6 +1512,98 @@
         });
     });
 
+    // Export CSV handler
+    async function exportAnalyticsCsv(btn) {
+        if (!btn) btn = document.getElementById('exportAnalyticsCsvBtn');
+        const icon = document.getElementById('exportCsvIcon');
+        const spinner = document.getElementById('exportCsvSpinner');
+        const text = document.getElementById('exportCsvText');
+
+        if (btn) btn.disabled = true;
+        if (icon) icon.classList.add('hidden');
+        if (spinner) spinner.classList.remove('hidden');
+        if (text) text.textContent = 'Exporting...';
+
+        try {
+            const timeFilter = '{{ $timeFilter }}';
+            const response = await fetch('/admin/analytics/export-csv?time_filter=' + encodeURIComponent(timeFilter));
+            if (response.status === 404) {
+                const err = await response.json();
+                window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: err.message || 'No data to export.', type: 'warning' } }));
+                return;
+            }
+            if (!response.ok) {
+                window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Export failed. Please try again.', type: 'error' } }));
+                return;
+            }
+            const blob = await response.blob();
+            const disposition = response.headers.get('Content-Disposition');
+            let filename = 'detailed-analytics.csv';
+            if (disposition) {
+                const match = disposition.match(/filename="?([^"]+)"?/);
+                if (match) filename = match[1];
+            }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'CSV exported successfully!', type: 'success' } }));
+        } catch (e) {
+            console.error('CSV Export Error:', e);
+            window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Export failed. Please try again.', type: 'error' } }));
+        } finally {
+            if (btn) btn.disabled = false;
+            if (icon) icon.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
+            if (text) text.textContent = 'Export CSV';
+        }
+    }
+    window.exportAnalyticsCsv = exportAnalyticsCsv;
+    window.__exportAnalyticsCsv = exportAnalyticsCsv;
+
+    // Export Analytics Graph Summary CSV handler
+    async function exportAnalyticsSummaryCsv() {
+        window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Generating Analytics Summary Report...', type: 'info' } }));
+
+        try {
+            const timeFilter = '{{ $timeFilter }}';
+            const response = await fetch('/admin/analytics/export-summary-csv?time_filter=' + encodeURIComponent(timeFilter));
+            if (response.status === 404) {
+                const err = await response.json();
+                window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: err.message || 'No data to export.', type: 'warning' } }));
+                return;
+            }
+            if (!response.ok) {
+                window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Export failed. Please try again.', type: 'error' } }));
+                return;
+            }
+            const blob = await response.blob();
+            const disposition = response.headers.get('Content-Disposition');
+            let filename = 'analytics-summary-graphs.csv';
+            if (disposition) {
+                const match = disposition.match(/filename="?([^"]+)"?/);
+                if (match) filename = match[1];
+            }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Analytics Summary CSV exported successfully!', type: 'success' } }));
+        } catch (e) {
+            console.error('Summary CSV Export Error:', e);
+            window.dispatchEvent(new CustomEvent('add-toast', { detail: { message: 'Export failed. Please try again.', type: 'error' } }));
+        }
+    }
+    window.exportAnalyticsSummaryCsv = exportAnalyticsSummaryCsv;
+
     function analyticsDashboard() {
         return {
             productivityTab: 'clinical',
@@ -1612,93 +1767,222 @@
             encodingSpeed: rasterize('encodingSpeedChart'),
         };
 
-        // 2. Build data tables from server-side data
+        // 2. Build accessible data tables from server-side data
         @php
-            // Top Diagnoses Table
-            $diagRows = '';
-            if(isset($topDiagnoses) && count($topDiagnoses) > 0) {
-                foreach($topDiagnoses as $i => $diag) {
-                    $dName = addslashes($diag->diagnosis ?? 'Unknown');
-                    $diagRows .= '<tr' . ($i % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
-                    $diagRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . ($i+1) . '</td>';
-                    $diagRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . $dName . '</td>';
-                    $diagRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($diag->count) . '</td></tr>';
+            $thStyle = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:4px 6px;text-align:left;"';
+            $thStyleR = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:4px 6px;text-align:right;"';
+            $thStyleC = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:4px 6px;text-align:center;"';
+
+            // 1. Visit Volume Table
+            $vvRows = '';
+            $vvTotal = array_sum($visitVolumeData['data'] ?? []);
+            if(isset($visitVolumeData['labels']) && count($visitVolumeData['labels']) > 0) {
+                foreach($visitVolumeData['labels'] as $vi => $vLbl) {
+                    $vCnt = $visitVolumeData['data'][$vi] ?? 0;
+                    $vPct = $vvTotal > 0 ? round(($vCnt / $vvTotal) * 100, 1) : 0;
+                    $vvRows .= '<tr' . ($vi % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $vvRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . addslashes($vLbl) . '</td>';
+                    $vvRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($vCnt) . '</td>';
+                    $vvRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $vPct . '%</td></tr>';
                 }
             }
+            if(empty($vvRows)) {
+                $vvRows = '<tr><td colspan="3" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No consultation traffic recorded in this period.</td></tr>';
+            }
+            $vvTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Time Interval</th><th ' . $thStyleR . '>Consultations</th><th ' . $thStyleR . '>% Share</th></tr></thead><tbody>' . $vvRows . '</tbody></table>';
 
-            // Severity Table
-            $sevRows = '';
-            if(isset($severityData) && count($severityData) > 0) {
-                $sevArr = is_array($severityData) ? $severityData : $severityData->toArray();
-                $si = 0;
-                foreach($sevArr as $sev => $cnt) {
-                    $sevRows .= '<tr' . ($si % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
-                    $sevRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . ucfirst(addslashes($sev)) . '</td>';
-                    $sevRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td></tr>';
-                    $si++;
+            // 2. Peak Hours Table
+            $phRows = '';
+            $phTotal = array_sum($peakHoursData['data'] ?? []);
+            if(isset($peakHoursData['labels']) && count($peakHoursData['labels']) > 0) {
+                foreach($peakHoursData['labels'] as $pi => $pLbl) {
+                    $pCnt = $peakHoursData['data'][$pi] ?? 0;
+                    $pPct = $phTotal > 0 ? round(($pCnt / $phTotal) * 100, 1) : 0;
+                    $level = $pCnt >= 10 ? '<span style="color:#b91c1c;font-weight:800;">Surge</span>' : ($pCnt >= 4 ? '<span style="color:#d97706;font-weight:700;">Moderate</span>' : '<span style="color:#059669;font-weight:600;">Normal</span>');
+                    $phRows .= '<tr' . ($pi % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $phRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . addslashes($pLbl) . '</td>';
+                    $phRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($pCnt) . '</td>';
+                    $phRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $pPct . '%</td>';
+                    $phRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;font-size:7.5pt;">' . $level . '</td></tr>';
                 }
             }
-
-            // Classification Table
-            $classRows = '';
-            if(isset($classificationData) && count($classificationData) > 0) {
-                $classArr = is_array($classificationData) ? $classificationData : $classificationData->toArray();
-                $ci = 0;
-                foreach($classArr as $cls => $cnt) {
-                    $classRows .= '<tr' . ($ci % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
-                    $classRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . ucfirst(addslashes($cls)) . '</td>';
-                    $classRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td></tr>';
-                    $ci++;
-                }
+            if(empty($phRows)) {
+                $phRows = '<tr><td colspan="4" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No arrival records found for operating hours.</td></tr>';
             }
+            $phTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Operating Hour</th><th ' . $thStyleR . '>Patients</th><th ' . $thStyleR . '>% Share</th><th ' . $thStyleC . '>Traffic Status</th></tr></thead><tbody>' . $phRows . '</tbody></table>';
 
-            // Demographics Table
+            // 3. Demographics Table
             $demoRows = '';
+            $totalMale = array_sum($demoData['Male'] ?? []);
+            $totalFemale = array_sum($demoData['Female'] ?? []);
+            $overallDemo = $totalMale + $totalFemale;
             if(isset($demoData['labels']) && count($demoData['labels']) > 0) {
                 foreach($demoData['labels'] as $di => $lbl) {
                     $m = $demoData['Male'][$di] ?? 0;
                     $f = $demoData['Female'][$di] ?? 0;
+                    $tot = $m + $f;
+                    $pct = $overallDemo > 0 ? round(($tot / $overallDemo) * 100, 1) : 0;
                     $demoRows .= '<tr' . ($di % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
-                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . addslashes($lbl) . '</td>';
-                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($m) . '</td>';
-                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($f) . '</td>';
-                    $demoRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($m + $f) . '</td></tr>';
+                    $demoRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . addslashes($lbl) . '</td>';
+                    $demoRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#1e40af;font-weight:700;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($m) . '</td>';
+                    $demoRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#be185d;font-weight:700;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($f) . '</td>';
+                    $demoRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($tot) . '</td>';
+                    $demoRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $pct . '%</td></tr>';
                 }
             }
+            $demoTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Age Cohort</th><th ' . $thStyleR . '>Male</th><th ' . $thStyleR . '>Female</th><th ' . $thStyleR . '>Total</th><th ' . $thStyleR . '>% Share</th></tr></thead><tbody>' . $demoRows . '</tbody></table>';
 
-            // Barangay Table
-            $bgyRows = '';
-            if(isset($barangayData) && count($barangayData) > 0) {
-                $bgyArr = is_array($barangayData) ? $barangayData : $barangayData->toArray();
-                arsort($bgyArr);
-                $bi = 0;
-                foreach(array_slice($bgyArr, 0, 15, true) as $bgy => $cnt) {
-                    $bgyRows .= '<tr' . ($bi % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
-                    $bgyRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#334155;font-size:8.5pt;">' . addslashes($bgy) . '</td>';
-                    $bgyRows .= '<td style="padding:5px 8px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:8.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td></tr>';
-                    $bi++;
+            // 4. Top Diagnoses Table
+            $diagRows = '';
+            if(isset($topDiagnoses) && count($topDiagnoses) > 0) {
+                $diagTotal = $topDiagnoses->sum('count');
+                foreach($topDiagnoses as $i => $diag) {
+                    $dName = addslashes($diag->diagnosis ?? 'Unknown');
+                    $dPct = $diagTotal > 0 ? round(($diag->count / $diagTotal) * 100, 1) : 0;
+                    $diagRows .= '<tr' . ($i % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                    $diagRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . ($i+1) . '</td>';
+                    $diagRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;font-size:7.5pt;">' . $dName . '</td>';
+                    $diagRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($diag->count) . '</td>';
+                    $diagRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $dPct . '%</td></tr>';
                 }
             }
+            if(empty($diagRows)) {
+                $diagRows = '<tr><td colspan="4" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No diagnosis records encoded for this period.</td></tr>';
+            }
+            $diagTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>#</th><th ' . $thStyle . '>Clinical Diagnosis / Morbidity</th><th ' . $thStyleR . '>Cases</th><th ' . $thStyleR . '>% Share</th></tr></thead><tbody>' . $diagRows . '</tbody></table>';
+
+            // 5. Classification Table
+            $classRows = '';
+            $classArr = is_array($classificationData) ? $classificationData : (is_object($classificationData) ? $classificationData->toArray() : []);
+            $classTotal = array_sum($classArr);
+            $ci = 0;
+            foreach($classArr as $cls => $cnt) {
+                $pct = $classTotal > 0 ? round(($cnt / $classTotal) * 100, 1) : 0;
+                $classRows .= '<tr' . ($ci % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . ucfirst(addslashes($cls)) . '</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $pct . '%</td></tr>';
+                $ci++;
+            }
+            if(empty($classRows)) {
+                $classRows = '<tr><td colspan="3" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No patient classification data available.</td></tr>';
+            }
+            $classTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Classification Category</th><th ' . $thStyleR . '>Count</th><th ' . $thStyleR . '>% Share</th></tr></thead><tbody>' . $classRows . '</tbody></table>';
+
+            // 6. Severity Table
+            $sevRows = '';
+            $sevArr = is_array($severityData) ? $severityData : (is_object($severityData) ? $severityData->toArray() : []);
+            $sevTotal = array_sum($sevArr);
+            $si = 0;
+            foreach($sevArr as $sev => $cnt) {
+                $pct = $sevTotal > 0 ? round(($cnt / $sevTotal) * 100, 1) : 0;
+                $badge = match(strtolower($sev)) {
+                    'emergency', 'severe' => '<span style="color:#b91c1c;font-weight:800;">Emergency (Immediate)</span>',
+                    'urgent' => '<span style="color:#ea580c;font-weight:800;">Urgent (Prompt)</span>',
+                    'semi-urgent', 'mild' => '<span style="color:#d97706;font-weight:700;">Semi-Urgent (Standard)</span>',
+                    default => '<span style="color:#15803d;font-weight:600;">Non-Urgent (Routine)</span>',
+                };
+                $sevRows .= '<tr' . ($si % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                $sevRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . ucfirst(addslashes($sev)) . '</td>';
+                $sevRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td>';
+                $sevRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $pct . '%</td>';
+                $sevRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;font-size:7.5pt;">' . $badge . '</td></tr>';
+                $si++;
+            }
+            if(empty($sevRows)) {
+                $sevRows = '<tr><td colspan="4" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No triage severity cases logged.</td></tr>';
+            }
+            $sevTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Acuity Level</th><th ' . $thStyleR . '>Cases</th><th ' . $thStyleR . '>% Share</th><th ' . $thStyleC . '>Triage Protocol</th></tr></thead><tbody>' . $sevRows . '</tbody></table>';
+
+            // 7. Barangay Table
+            $bgyRows = '';
+            $bgyArr = is_array($barangayData) ? $barangayData : (is_object($barangayData) ? $barangayData->toArray() : []);
+            arsort($bgyArr);
+            $bgyTotal = array_sum($bgyArr);
+            $bi = 0;
+            foreach(array_slice($bgyArr, 0, 15, true) as $bgy => $cnt) {
+                $pct = $bgyTotal > 0 ? round(($cnt / $bgyTotal) * 100, 1) : 0;
+                $bgyRows .= '<tr' . ($bi % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                $bgyRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . addslashes($bgy) . '</td>';
+                $bgyRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td>';
+                $bgyRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $pct . '%</td></tr>';
+                $bi++;
+            }
+            if(empty($bgyRows)) {
+                $bgyRows = '<tr><td colspan="3" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No barangay distribution data recorded.</td></tr>';
+            }
+            $bgyTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Barangay Catchment</th><th ' . $thStyleR . '>Patients</th><th ' . $thStyleR . '>% Share</th></tr></thead><tbody>' . $bgyRows . '</tbody></table>';
+
+            // 8. Staff Workload Table
+            $wlRows = '';
+            $wlArr = is_array($workloadFormatted) ? $workloadFormatted : [];
+            $wlTotal = array_sum($wlArr);
+            $wi = 0;
+            foreach($wlArr as $wName => $wCnt) {
+                $pct = $wlTotal > 0 ? round(($wCnt / $wlTotal) * 100, 1) : 0;
+                $wlRows .= '<tr' . ($wi % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                $wlRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . addslashes($wName) . '</td>';
+                $wlRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($wCnt) . '</td>';
+                $wlRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $pct . '%</td></tr>';
+                $wi++;
+            }
+            if(empty($wlRows)) {
+                $wlRows = '<tr><td colspan="3" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No practitioner encounters recorded for this timeframe.</td></tr>';
+            }
+            $wlTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Attending Practitioner</th><th ' . $thStyleR . '>Encounters</th><th ' . $thStyleR . '>% Workload</th></tr></thead><tbody>' . $wlRows . '</tbody></table>';
+
+            // 9. Duration Table
+            $durRows = '';
+            $durLabels = $staffProductivity['durationChartLabels'] ?? [];
+            $durValues = $staffProductivity['durationChartData'] ?? [];
+            foreach($durLabels as $di => $dName) {
+                $mins = $durValues[$di] ?? 0;
+                $status = $mins >= 20 ? '<span style="color:#d97706;font-weight:700;">Extended (Thorough)</span>' : ($mins >= 8 ? '<span style="color:#15803d;font-weight:600;">Optimal (Standard)</span>' : '<span style="color:#0284c7;font-weight:600;">Expedited / Brief</span>');
+                $durRows .= '<tr' . ($di % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                $durRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . addslashes($dName) . '</td>';
+                $durRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($mins, 1) . ' mins</td>';
+                $durRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;font-size:7.5pt;">' . $status . '</td></tr>';
+            }
+            if(empty($durRows)) {
+                $durRows = '<tr><td colspan="3" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No completed consultations to benchmark.</td></tr>';
+            }
+            $durTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Practitioner</th><th ' . $thStyleR . '>Avg Duration</th><th ' . $thStyleC . '>Benchmarking</th></tr></thead><tbody>' . $durRows . '</tbody></table>';
+
+            // 10. Encoding Speed Table
+            $encRows = '';
+            $encLabels = $staffProductivity['encodingChartLabels'] ?? [];
+            $encValues = $staffProductivity['encodingChartData'] ?? [];
+            foreach($encLabels as $ei => $eName) {
+                $secs = $encValues[$ei] ?? 0;
+                $status = $secs <= 60 ? '<span style="color:#15803d;font-weight:700;">Rapid (&lt;60s)</span>' : ($secs <= 120 ? '<span style="color:#0284c7;font-weight:600;">Standard (1-2m)</span>' : '<span style="color:#d97706;font-weight:600;">Paced (&gt;2m)</span>');
+                $encRows .= '<tr' . ($ei % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
+                $encRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . addslashes($eName) . '</td>';
+                $encRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($secs) . ' secs</td>';
+                $encRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;font-size:7.5pt;">' . $status . '</td></tr>';
+            }
+            if(empty($encRows)) {
+                $encRows = '<tr><td colspan="3" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No chart entries recorded for this timeframe.</td></tr>';
+            }
+            $encTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Staff Member</th><th ' . $thStyleR . '>Avg EMR Speed</th><th ' . $thStyleC . '>Informatics Rating</th></tr></thead><tbody>' . $encRows . '</tbody></table>';
         @endphp
 
-        // 3. Helper to make chart section
-        function chartBlock(img, title) {
-            if (!img) return '';
-            return '<div style="border:1px solid #e2e8f0;border-radius:4px;padding:10px;page-break-inside:avoid;">' +
-                '<div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">' + title + '</div>' +
-                '<img src="' + img + '" style="width:100%;height:auto;max-height:240px;object-fit:contain;display:block;">' +
+        // 3. Helper to make chart section with exact data summary and descriptive note
+        function chartBlock(img, title, description, tableHtml) {
+            if (!img && !tableHtml) return '';
+            return '<div style="border:1px solid #cbd5e1;border-radius:6px;padding:12px;background:#ffffff;page-break-inside:avoid;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">' +
+                '<div>' +
+                    '<div style="font-size:8.5pt;font-weight:800;text-transform:uppercase;color:#1e293b;letter-spacing:0.04em;margin-bottom:6px;border-bottom:1px solid #f1f5f9;padding-bottom:4px;">' + title + '</div>' +
+                    (img ? '<img src="' + img + '" style="width:100%;height:auto;max-height:200px;object-fit:contain;display:block;margin:0 auto 10px auto;">' : '') +
+                    (tableHtml ? '<div style="margin:6px 0 8px 0;">' +
+                        '<div style="font-size:6.8pt;font-weight:800;text-transform:uppercase;color:#64748b;margin-bottom:4px;letter-spacing:0.04em;">Accessible Data Summary (Exact Values):</div>' +
+                        tableHtml +
+                    '</div>' : '') +
+                '</div>' +
+                (description ? '<div style="font-size:7.3pt;color:#475569;line-height:1.45;background:#f8fafc;border-top:1px solid #e2e8f0;padding:6px 8px;border-radius:4px;margin-top:6px;">' +
+                    '<strong style="color:#0f172a;font-weight:700;">Chart Description & Analytical Insight:</strong> ' + description +
+                '</div>' : '') +
             '</div>';
         }
-
-        function tableBlock(title, headers, rows) {
-            if (!rows) return '';
-            return '<div style="margin-bottom:14px;">' +
-                '<div style="font-size:8pt;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">' + title + '</div>' +
-                '<table style="width:100%;border-collapse:collapse;font-size:8.5pt;"><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
-        }
-
-        const thStyle = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 8px;text-align:left;"';
-        const thStyleR = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:5px 8px;text-align:right;"';
 
         // 4. Build report HTML
         const reportHTML = `
@@ -1744,8 +2028,8 @@
                         <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:16px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Summary Indicators</h3>
                         <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:8.5pt;">
                             <thead><tr>
-                                <th ${thStyle}>Indicator</th>
-                                <th ${thStyleR}>Value</th>
+                                <th {!! $thStyle !!}>Indicator</th>
+                                <th {!! $thStyleR !!}>Value</th>
                             </tr></thead>
                             <tbody>
                                 <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Total Consultations</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ number_format($totalPeriodVisits) }}</td></tr>
@@ -1755,49 +2039,40 @@
                             </tbody>
                         </table>
 
-                        <!-- Visit Volume & Peak Hours Charts -->
+                        <!-- ═════════ SECTION 1: PATIENT FLOW ANALYSIS ═════════ -->
                         <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Patient Flow Analysis</h3>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                            ${chartBlock(charts.visitVolume, 'Visit Volume Over Time')}
-                            ${chartBlock(charts.peakHours, 'Peak Hours Distribution')}
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                            ${chartBlock(charts.visitVolume, 'Visit Volume Over Time', 'Tracks total patient consultation traffic across the reporting period to identify daily trends, surges, and seasonal patterns for clinical staffing and medicine inventory planning.', {!! json_encode($vvTable) !!})}
+                            ${chartBlock(charts.peakHours, 'Peak Hours Distribution', 'Displays patient arrival density by hour of the day. Identifies high-traffic triage windows (typically 8:00 AM - 11:00 AM) to optimize staff scheduling and reduce waiting hall congestion.', {!! json_encode($phTable) !!})}
                         </div>
 
-                        <!-- Demographics Chart + Table -->
-                        <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Demographics & Population</h3>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                            ${chartBlock(charts.ageSex, 'Age-Sex Distribution')}
-                            <div>
-                                ${tableBlock('Age-Sex Breakdown', '<th ' + thStyle + '>#</th><th ' + thStyle + '>Age Group</th><th ' + thStyleR + '>Male</th><th ' + thStyleR + '>Female</th><th ' + thStyleR + '>Total</th>', '{!! addslashes($demoRows) !!}')}
-                            </div>
-                        </div>
-
-                        <!-- Classification & Severity -->
+                        <!-- ═════════ SECTION 2: DEMOGRAPHICS & CLINICAL ANALYSIS ═════════ -->
                         <div style="page-break-before:auto;">
-                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Clinical Analysis</h3>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                                ${chartBlock(charts.classification, 'Patient Classification')}
-                                ${chartBlock(charts.severity, 'Triage Severity Distribution')}
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Demographics & Clinical Morbidity</h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                                ${chartBlock(charts.ageSex, 'Age-Sex Demographic Pyramid', 'Epidemiological demographic pyramid classifying patient visits by age bracket and sex, highlighting pediatric, reproductive-age, and geriatric healthcare utilization across Silang.', {!! json_encode($demoTable) !!})}
+                                ${chartBlock(null, 'Top Diagnoses & Morbidity Surveillance', 'Prevalent diseases recorded among attending patients during the reporting period, informing public health prevention and pharmaceutical stockpiling.', {!! json_encode($diagTable) !!})}
                             </div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
-                                ${tableBlock('Top Diagnoses', '<th ' + thStyle + '>#</th><th ' + thStyle + '>Diagnosis</th><th ' + thStyleR + '>Count</th>', '{!! addslashes($diagRows) !!}')}
-                                ${tableBlock('Classification', '<th ' + thStyle + '>Type</th><th ' + thStyleR + '>Count</th>', '{!! addslashes($classRows) !!}')}
-                                ${tableBlock('Severity', '<th ' + thStyle + '>Level</th><th ' + thStyleR + '>Count</th>', '{!! addslashes($sevRows) !!}')}
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                                ${chartBlock(charts.classification, 'Patient Classification Breakdown', 'Categorizes patients by priority classification (Senior Citizen, 4Ps/Indigent, PWD, Pediatric, General), supporting municipal healthcare subsidy audits and PhilHealth primary care coverage.', {!! json_encode($classTable) !!})}
+                                ${chartBlock(charts.severity, 'Triage Severity Distribution', 'Clinical triage acuity breakdown (Non-Urgent, Semi-Urgent, Urgent, Emergency), monitoring acute clinical severity to evaluate emergency readiness and doctor allocation.', {!! json_encode($sevTable) !!})}
                             </div>
                         </div>
 
-                        <!-- Barangay & Workload -->
+                        <!-- ═════════ SECTION 3: GEOGRAPHIC & STAFF PRODUCTIVITY ═════════ -->
                         <div style="page-break-before:auto;">
-                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Geographic & Staff Analysis</h3>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                                ${chartBlock(charts.barangay, 'Barangay Patient Distribution')}
-                                ${chartBlock(charts.workload, 'Staff Workload')}
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Geographic Catchment & Staff Operations</h3>
+                            
+                            {{-- Row 1: Barangay Distribution & Staff Workload (Full 1/2 Column Each) --}}
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                                ${chartBlock(charts.barangay, 'Barangay Patient Distribution', 'Geographic catchment mapping of patients across Silang barangays, identifying high-demand communities to guide mobile clinic deployments and health outreach programs.', {!! json_encode($bgyTable) !!})}
+                                ${chartBlock(charts.workload, 'Staff Workload Distribution', 'Quantifies patient consultations and clinical cases handled by doctors and healthcare staff, ensuring balanced clinical duty allocation and provider productivity monitoring.', {!! json_encode($wlTable) !!})}
                             </div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                                ${tableBlock('Top Barangays', '<th ' + thStyle + '>Barangay</th><th ' + thStyleR + '>Patients</th>', '{!! addslashes($bgyRows) !!}')}
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                                    ${chartBlock(charts.durationStaff, 'Consultation Duration')}
-                                    ${chartBlock(charts.encodingSpeed, 'Encoding Speed')}
-                                </div>
+
+                            {{-- Row 2: Consultation Duration & EHR Encoding Speed (Full 1/2 Column Each - PROPERLY SIZED) --}}
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                                ${chartBlock(charts.durationStaff, 'Consultation Duration by Practitioner', 'Average examination and consultation minutes per provider, benchmarking clinical thoroughness against patient throughput and queue efficiency.', {!! json_encode($durTable) !!})}
+                                ${chartBlock(charts.encodingSpeed, 'EHR Charting & Encoding Speed', 'Average electronic medical records (EMR) charting turnaround time per consultation, assessing medical informatics efficiency and digital health compliance.', {!! json_encode($encTable) !!})}
                             </div>
                         </div>
 

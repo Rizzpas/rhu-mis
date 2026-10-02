@@ -4,17 +4,24 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto space-y-6">
-    <!-- Back button & Header -->
-    <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <a href="{{ route('doctor.dashboard') }}" class="p-2 bg-white dark:bg-gray-800 rounded-full text-slate-500 hover:text-teal-600 hover:bg-teal-50 shadow-sm border border-slate-200 transition">
+    <!-- Header Section (Content Management Style) -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('doctor.dashboard') }}" class="p-2.5 bg-white dark:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-700/60 shadow-2xs border border-slate-200 dark:border-slate-700 transition-all active:scale-95" title="Back to Clinical Queue">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
-            <h2 class="text-2xl font-bold text-slate-800">Active Consultation</h2>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                    <span>Active Clinical Consultation</span>
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Recording patient diagnosis, clinical notes, laboratory requests, and medicine prescription.</p>
+            </div>
         </div>
-        <div class="bg-teal-100 text-teal-800 px-4 py-1.5 rounded-full font-bold shadow-sm border border-teal-200 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 bg-teal-500 rounded-full animate-pulse"></span>
-            Queue #{{ $consultation->queue_number }}
+        <div class="flex items-center gap-2.5">
+            <div class="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-2xs border border-emerald-500/20 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span>Queue #{{ $consultation->queue_number }}</span>
+            </div>
         </div>
     </div>
 
@@ -40,21 +47,21 @@
         <!-- Left Column: Patient Info & Vitals -->
         <div class="lg:col-span-1 space-y-6">
             <!-- Patient Demographics -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 border-b border-slate-200 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700 p-4">
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center space-x-4 flex-1 min-w-0">
-                        <div class="h-16 w-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-2xl font-bold border-2 border-white shadow-sm">
+                        <div class="h-16 w-16 bg-teal-100 dark:bg-teal-900/60 text-teal-600 dark:text-teal-400 rounded-full flex items-center justify-center text-2xl font-bold border-2 border-white dark:border-slate-700 shadow-sm">
                             {{ substr($patient->first_name, 0, 1) }}{{ substr($patient->last_name, 0, 1) }}
                         </div>
                         <div class="flex-1 min-w-0">
                                 <div class="flex items-start justify-between gap-2">
-                                    <h3 class="text-lg font-extrabold text-slate-800 leading-tight" title="{{ $patient->full_name }}">{{ $patient->full_name }}</h3>
-                                    <span class="bg-indigo-100 text-indigo-700 text-[10px] uppercase tracking-wider font-black px-2 py-1 rounded shrink-0">{{ $patient->classification }}</span>
+                                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight" title="{{ $patient->full_name }}">{{ $patient->full_name }}</h3>
+                                    <span class="bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 text-[10px] uppercase tracking-wider font-black px-2 py-1 rounded shrink-0">{{ $patient->classification }}</span>
                                 </div>
-                                <p class="text-sm text-slate-500 font-medium mt-1">{{ \Carbon\Carbon::parse($patient->dob)->age }} yrs &bull; {{ $patient->sex }}</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">{{ \Carbon\Carbon::parse($patient->dob)->age }} yrs &bull; {{ $patient->sex }}</p>
                                 @if($patient->blood_type)
-                                    <p class="text-xs text-red-500 font-bold mt-1 inline-flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded border border-red-100">
+                                    <p class="text-xs text-red-500 dark:text-red-400 font-bold mt-1 inline-flex items-center gap-1 bg-red-50 dark:bg-red-950/50 px-2 py-0.5 rounded border border-red-100 dark:border-red-900/50">
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                                         {{ $patient->blood_type }}
                                     </p>
@@ -63,97 +70,97 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-4 space-y-3 text-sm">
+                <div class="p-4 space-y-3 text-sm bg-white dark:bg-gray-800">
                     <div class="grid grid-cols-3 gap-1">
-                        <span class="text-slate-500 font-medium col-span-1">DOB:</span>
-                        <span class="text-slate-800 font-semibold col-span-2">{{ \Carbon\Carbon::parse($patient->dob)->format('M d, Y') }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium col-span-1">DOB:</span>
+                        <span class="text-slate-800 dark:text-slate-100 font-semibold col-span-2">{{ \Carbon\Carbon::parse($patient->dob)->format('M d, Y') }}</span>
                     </div>
                     <div class="grid grid-cols-3 gap-1">
-                        <span class="text-slate-500 font-medium col-span-1">Contact:</span>
-                        <span class="text-slate-800 font-semibold col-span-2">{{ $patient->contact_number ?: 'N/A' }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium col-span-1">Contact:</span>
+                        <span class="text-slate-800 dark:text-slate-100 font-semibold col-span-2">{{ $patient->contact_number ?: 'N/A' }}</span>
                     </div>
                     <div class="grid grid-cols-3 gap-1">
-                        <span class="text-slate-500 font-medium col-span-1">Address:</span>
-                        <span class="text-slate-800 font-semibold col-span-2 line-clamp-2">{{ $patient->address }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium col-span-1">Address:</span>
+                        <span class="text-slate-800 dark:text-slate-100 font-semibold col-span-2 line-clamp-2">{{ $patient->address }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Triage Vitals -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 p-0 overflow-hidden">
-                <div class="bg-slate-800 text-white p-3 border-b border-slate-700 flex justify-between items-center">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-0 overflow-hidden">
+                <div class="bg-slate-800 dark:bg-slate-900 text-white p-3 border-b border-slate-700 flex justify-between items-center">
                     <h3 class="font-bold flex items-center gap-2">
                         <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                         Triage Vitals
                     </h3>
-                    <span class="text-xs text-slate-300">{{ $consultation->created_at->diffForHumans() }}</span>
+                    <span class="text-xs text-slate-300 dark:text-slate-400">{{ $consultation->created_at->diffForHumans() }}</span>
                 </div>
                 
-                <div class="p-4 bg-slate-50 space-y-4">
+                <div class="p-4 bg-slate-50 dark:bg-slate-900/50 space-y-4">
                     <!-- Chief Complaint / Symptoms -->
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 border-b border-slate-200 pb-1">Chief Complaint / Symptoms</h4>
-                        <p class="text-slate-800 text-sm font-medium bg-white dark:bg-gray-800 p-2.5 rounded border border-slate-200 shadow-sm leading-relaxed whitespace-pre-line">{{ $consultation->preTriage?->symptoms ?: 'None recorded.' }}</p>
+                        <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 border-b border-slate-200 dark:border-slate-700 pb-1">Chief Complaint / Symptoms</h4>
+                        <p class="text-slate-800 dark:text-slate-100 text-sm font-medium bg-white dark:bg-slate-800 p-2.5 rounded border border-slate-200 dark:border-slate-700 shadow-sm leading-relaxed whitespace-pre-line">{{ $consultation->preTriage?->symptoms ?: 'None recorded.' }}</p>
                     </div>
 
                     @if($consultation->preTriage?->past_medical_history && $consultation->preTriage?->past_medical_history !== 'N/A')
                         <div>
-                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Past Medical History</h4>
-                            <p class="text-slate-700 text-sm bg-rose-50 p-2 rounded border border-rose-100">{{ $consultation->preTriage->past_medical_history }}</p>
+                            <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Past Medical History</h4>
+                            <p class="text-slate-700 dark:text-rose-200 text-sm bg-rose-50 dark:bg-rose-950/40 p-2 rounded border border-rose-100 dark:border-rose-900/50">{{ $consultation->preTriage->past_medical_history }}</p>
                         </div>
                     @endif
 
                     @if($consultation->preTriage?->medicine_taken && $consultation->preTriage?->medicine_taken !== 'N/A')
                         <div>
-                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Medicine Taken</h4>
-                            <p class="text-slate-700 text-sm bg-blue-50 p-2 rounded border border-blue-100">{{ $consultation->preTriage->medicine_taken }}</p>
+                            <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Medicine Taken</h4>
+                            <p class="text-slate-700 dark:text-blue-200 text-sm bg-blue-50 dark:bg-blue-950/40 p-2 rounded border border-blue-100 dark:border-blue-900/50">{{ $consultation->preTriage->medicine_taken }}</p>
                         </div>
                     @endif
 
                     @if($consultation->preTriage?->known_allergies && $consultation->preTriage?->known_allergies !== 'N/A' && $consultation->preTriage?->known_allergies !== 'None')
                         <div>
-                            <h4 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                            <h4 class="text-xs font-bold text-red-500 dark:text-red-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                 Known Allergies
                             </h4>
-                            <p class="text-red-700 text-sm bg-red-50 p-2 rounded border border-red-200 font-semibold">{{ $consultation->preTriage->known_allergies }}</p>
+                            <p class="text-red-700 dark:text-red-300 text-sm bg-red-50 dark:bg-red-950/50 p-2 rounded border border-red-200 dark:border-red-900/60 font-semibold">{{ $consultation->preTriage->known_allergies }}</p>
                         </div>
                     @endif
                 </div>
 
                 <!-- Vital Stats Grid — All 8 vitals -->
-                <div class="grid grid-cols-2 gap-px bg-slate-200">
+                <div class="grid grid-cols-2 gap-px bg-slate-200 dark:bg-slate-700">
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">Blood Pressure</span>
-                        <span class="block text-lg font-bold text-slate-800">{{ $consultation->preTriage?->blood_pressure ?: '--/--' }} <span class="text-xs font-normal text-slate-400">mmHg</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">Blood Pressure</span>
+                        <span class="block text-lg font-bold text-slate-800 dark:text-white">{{ $consultation->preTriage?->blood_pressure ?: '--/--' }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">mmHg</span></span>
                     </div>
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">Temperature</span>
-                        <span class="block text-lg font-bold {{ floatval($consultation->preTriage?->temperature ?? 0) > 37.5 ? 'text-red-500' : 'text-slate-800' }}">{{ $consultation->preTriage?->temperature ?: '--' }} <span class="text-xs font-normal text-slate-400">°C</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">Temperature</span>
+                        <span class="block text-lg font-bold {{ floatval($consultation->preTriage?->temperature ?? 0) > 37.5 ? 'text-red-500 dark:text-red-400' : 'text-slate-800 dark:text-white' }}">{{ $consultation->preTriage?->temperature ?: '--' }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">°C</span></span>
                     </div>
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">Heart Rate</span>
-                        <span class="block text-lg font-bold text-slate-800">{{ $consultation->preTriage?->heart_rate ?: '--' }} <span class="text-xs font-normal text-slate-400">bpm</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">Heart Rate</span>
+                        <span class="block text-lg font-bold text-slate-800 dark:text-white">{{ $consultation->preTriage?->heart_rate ?: '--' }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">bpm</span></span>
                     </div>
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">Respiratory Rate</span>
-                        <span class="block text-lg font-bold text-slate-800">{{ $consultation->preTriage?->respiratory_rate ?: '--' }} <span class="text-xs font-normal text-slate-400">cpm</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">Respiratory Rate</span>
+                        <span class="block text-lg font-bold text-slate-800 dark:text-white">{{ $consultation->preTriage?->respiratory_rate ?: '--' }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">cpm</span></span>
                     </div>
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">Pulse Rate</span>
-                        <span class="block text-lg font-bold text-slate-800">{{ $consultation->preTriage?->pulse_rate ?: '--' }} <span class="text-xs font-normal text-slate-400">bpm</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">Pulse Rate</span>
+                        <span class="block text-lg font-bold text-slate-800 dark:text-white">{{ $consultation->preTriage?->pulse_rate ?: '--' }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">bpm</span></span>
                     </div>
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">SpO2 / O₂ Sat</span>
-                        <span class="block text-lg font-bold text-slate-800">{{ $consultation->preTriage?->spo2 ?: ($consultation->preTriage?->oxygen_saturation ?: '--') }} <span class="text-xs font-normal text-slate-400">%</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">SpO2 / O₂ Sat</span>
+                        <span class="block text-lg font-bold text-slate-800 dark:text-white">{{ $consultation->preTriage?->spo2 ?: ($consultation->preTriage?->oxygen_saturation ?: '--') }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">%</span></span>
                     </div>
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">Weight</span>
-                        <span class="block text-lg font-bold text-slate-800">{{ $consultation->preTriage?->weight ?: '--' }} <span class="text-xs font-normal text-slate-400">kg</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">Weight</span>
+                        <span class="block text-lg font-bold text-slate-800 dark:text-white">{{ $consultation->preTriage?->weight ?: '--' }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">kg</span></span>
                     </div>
                     <div class="bg-white dark:bg-gray-800 p-3">
-                        <span class="block text-xs text-slate-500 font-semibold mb-0.5">Height</span>
-                        <span class="block text-lg font-bold text-slate-800">{{ $consultation->preTriage?->height ?: '--' }} <span class="text-xs font-normal text-slate-400">cm</span></span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">Height</span>
+                        <span class="block text-lg font-bold text-slate-800 dark:text-white">{{ $consultation->preTriage?->height ?: '--' }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">cm</span></span>
                     </div>
                 </div>
             </div>
@@ -166,7 +173,7 @@
             <div class="flex overflow-x-auto gap-1 px-4 items-end border-b-2 border-teal-600 relative z-10 bottom-[-2px] scrollbar-hide">
                 <!-- Current Case Tab -->
                 <button type="button" @click="activeTab = 'current'" 
-                        :class="activeTab === 'current' ? 'bg-white dark:bg-gray-800 text-teal-800 border-teal-600 border-2 border-b-white font-extrabold pb-3 pt-2 shadow-[0_-4px_6px_-2px_rgba(20,184,166,0.1)] z-20 relative' : 'bg-slate-50 text-slate-500 border-slate-300 border border-b-0 hover:bg-slate-100 pb-2 pt-1.5 mt-1 font-semibold hover:text-slate-700'"
+                        :class="activeTab === 'current' ? 'bg-white dark:bg-gray-800 text-teal-800 dark:text-teal-400 border-teal-600 border-2 border-b-white dark:border-b-gray-800 font-extrabold pb-3 pt-2 shadow-[0_-4px_6px_-2px_rgba(20,184,166,0.1)] z-20 relative' : 'bg-slate-50 dark:bg-gray-800/70 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 border border-b-0 hover:bg-slate-100 dark:hover:bg-gray-700 pb-2 pt-1.5 mt-1 font-semibold hover:text-slate-700 dark:hover:text-slate-200'"
                         class="px-5 rounded-t-xl transition-all whitespace-nowrap shrink-0 text-sm">
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4" x-show="activeTab === 'current'" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -177,12 +184,12 @@
                 <!-- Past Case Tabs -->
                 @forelse($pastConsultations as $past)
                     <button type="button" @click="activeTab = 'past_{{ $past->id }}'" 
-                            :class="activeTab === 'past_{{ $past->id }}' ? 'bg-white dark:bg-gray-800 text-teal-800 border-teal-600 border-2 border-b-white font-bold pb-3 pt-2 shadow-[0_-4px_6px_-2px_rgba(20,184,166,0.1)] z-20 relative' : 'bg-slate-100 text-slate-400 border-slate-200 border border-b-0 hover:bg-slate-50 pb-2 pt-1.5 mt-1 hover:text-slate-600 font-medium'"
+                            :class="activeTab === 'past_{{ $past->id }}' ? 'bg-white dark:bg-gray-800 text-teal-800 dark:text-teal-400 border-teal-600 border-2 border-b-white dark:border-b-gray-800 font-bold pb-3 pt-2 shadow-[0_-4px_6px_-2px_rgba(20,184,166,0.1)] z-20 relative' : 'bg-slate-100 dark:bg-gray-800/70 text-slate-400 dark:text-slate-400 border-slate-200 dark:border-slate-700 border border-b-0 hover:bg-slate-50 dark:hover:bg-gray-700 pb-2 pt-1.5 mt-1 hover:text-slate-600 dark:hover:text-slate-200 font-medium'"
                             class="px-4 rounded-t-xl transition-all whitespace-nowrap shrink-0 text-sm">
                         Past: {{ \Carbon\Carbon::parse($past->consultation_date)->format('M d, Y') }}
                     </button>
                 @empty
-                    <span class="pb-2 pt-2 px-3 text-xs text-slate-400 italic">No past history.</span>
+                    <span class="pb-2 pt-2 px-3 text-xs text-slate-400 dark:text-slate-500 italic">No past history.</span>
                 @endforelse
             </div>
 
@@ -197,15 +204,15 @@
                      class="grow flex flex-col h-full"
                      x-data="{ showCancelWalkout: false }">
                     
-                    <div class="p-5 border-b border-slate-100 bg-white dark:bg-gray-800 rounded-tr-lg">
-                        <h3 class="text-lg font-extrabold text-slate-800">Physician's Assessment</h3>
-                        <p class="text-sm text-slate-500">Document your diagnosis, prescribe treatments, and add clinical notes.</p>
+                    <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-gray-800 rounded-tr-lg">
+                        <h3 class="text-lg font-extrabold text-slate-800 dark:text-white">Physician's Assessment</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Document your diagnosis, prescribe treatments, and add clinical notes.</p>
                     </div>
 
                     <div x-data="{ showAncillary: false }" class="p-6 pb-0">
-                        <button type="button" @click="showAncillary = !showAncillary" class="w-full bg-slate-50 border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 font-bold py-3 px-4 rounded-lg flex justify-between items-center transition-colors">
+                        <button type="button" @click="showAncillary = !showAncillary" class="w-full bg-slate-50 dark:bg-slate-850 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-200 dark:hover:border-slate-600 font-bold py-3 px-4 rounded-lg flex justify-between items-center transition-colors">
                             <span class="flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                <svg class="w-5 h-5 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                                 Issue Laboratory / Radiology Request
                             </span>
                             <svg class="w-5 h-5 transform transition-transform" :class="showAncillary ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -287,33 +294,36 @@
                                         </button>
                                     </div>
 
-                                    @if($isCbcActive || $isUrinalysisActive || $isChestXrayActive)
-                                        <div class="flex flex-wrap gap-1.5 mt-1">
-                                            @if($isCbcActive)
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
-                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                    CBC — In Progress
-                                                </span>
-                                            @endif
-                                            @if($isUrinalysisActive)
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
-                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                    Urinalysis — In Progress
-                                                </span>
-                                            @endif
-                                            @if($isChestXrayActive)
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
-                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                    Chest X-Ray — In Progress
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @endif
+                                    <div id="consultation-ancillary-badges" data-dynamic-block="true">
+                                        @if($isCbcActive || $isUrinalysisActive || $isChestXrayActive)
+                                            <div class="flex flex-wrap gap-1.5 mt-1">
+                                                @if($isCbcActive)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        CBC — In Progress
+                                                    </span>
+                                                @endif
+                                                @if($isUrinalysisActive)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        Urinalysis — In Progress
+                                                    </span>
+                                                @endif
+                                                @if($isChestXrayActive)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
+                                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        Chest X-Ray — In Progress
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
                                 </form>
                             </div>
                         </div>
 
-                        <!-- Display Ancillary Results -->
+                        <!-- Display Ancillary Results (Auto-Updating) -->
+                        <div id="consultation-ancillary-section" data-dynamic-block="true">
                         @if($consultation->ancillaryRequests && $consultation->ancillaryRequests->count() > 0)
                             @php
                                 $cancelledRejectedCount = $consultation->ancillaryRequests->whereIn('status', ['Cancelled', 'Rejected'])->count();
@@ -511,22 +521,23 @@
                             </div>
                         @endif
                     </div>
+                    </div>
 
                     <form action="{{ route('doctor.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6" x-data="{ showConfirm: false }" @submit.prevent="showConfirm = true">
                         @csrf
                         
                         <div>
-                            <label for="diagnosis" class="block text-sm font-bold text-slate-700 mb-2">Primary Diagnosis <span class="text-rose-500">*</span></label>
+                            <label for="diagnosis" class="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Primary Diagnosis <span class="text-rose-500">*</span></label>
                             <textarea id="diagnosis" name="diagnosis" rows="3" required
-                                class="w-full rounded-lg border-2 border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm p-3 transition" 
+                                class="w-full rounded-lg border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm p-3 transition" 
                                 placeholder="Enter conclusive medical diagnosis...">{{ old('diagnosis') }}</textarea>
                         </div>
 
                         <!-- Dynamic Prescription Builder -->
                         <div x-data="prescriptionBuilder('teal')" class="mb-4 relative">
                             <div class="flex justify-between items-center mb-3">
-                                <label class="block text-sm font-bold text-slate-700">Prescription / Treatment Plan <span class="text-slate-400 font-normal ml-1">(Optional)</span></label>
-                                <span x-show="prescriptions.length > 0" x-cloak class="text-xs font-bold bg-teal-100 text-teal-700 px-2.5 py-1 rounded-full" x-text="prescriptions.length + ' item(s)'"></span>
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Prescription / Treatment Plan <span class="text-slate-400 font-normal ml-1">(Optional)</span></label>
+                                <span x-show="prescriptions.length > 0" x-cloak class="text-xs font-bold bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 px-2.5 py-1 rounded-full" x-text="prescriptions.length + ' item(s)'"></span>
                             </div>
                             
                             @if(!$isPharmacyOnline)
@@ -551,19 +562,19 @@
                             <div class="space-y-2 mb-4" x-show="prescriptions.length > 0" x-cloak>
                                 <template x-for="(item, index) in prescriptions" :key="index">
                                     <div class="flex items-start gap-3 p-3 rounded-xl border shadow-sm transition-all"
-                                         :class="item.isOtc ? 'bg-slate-50 border-slate-200' : 'bg-teal-50 border-teal-200'">
+                                         :class="item.isOtc ? 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700' : 'bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800'">
                                         <div class="pt-0.5 shrink-0">
                                             <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black"
-                                                  :class="item.isOtc ? 'bg-slate-200 text-slate-600' : 'bg-teal-200 text-teal-800'"
+                                                  :class="item.isOtc ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : 'bg-teal-200 dark:bg-teal-900 text-teal-800 dark:text-teal-200'"
                                                   x-text="index + 1"></span>
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center gap-2 flex-wrap">
-                                                <p class="font-bold text-sm text-slate-900" x-text="item.medicine"></p>
-                                                <span x-show="item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">OTC / External</span>
-                                                <span x-show="!item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-teal-200 text-teal-700 px-1.5 py-0.5 rounded">RHU Inventory</span>
+                                                <p class="font-bold text-sm text-slate-900 dark:text-white" x-text="item.medicine"></p>
+                                                <span x-show="item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">OTC / External</span>
+                                                <span x-show="!item.isOtc" class="text-[9px] font-bold uppercase tracking-wider bg-teal-200 dark:bg-teal-900/80 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded">RHU Inventory</span>
                                             </div>
-                                            <div class="flex items-center gap-3 mt-1 text-xs text-slate-600">
+                                            <div class="flex items-center gap-3 mt-1 text-xs text-slate-600 dark:text-slate-400">
                                                 <span class="flex items-center gap-1">
                                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                                                     <span x-text="item.amount"></span>
@@ -578,7 +589,7 @@
                                                 </span>
                                             </div>
                                         </div>
-                                        <button type="button" @click="removePrescription(index)" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition shrink-0" title="Remove">
+                                        <button type="button" @click="removePrescription(index)" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition shrink-0" title="Remove">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </div>
@@ -586,13 +597,13 @@
                             </div>
 
                             <!-- Builder Form -->
-                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 relative">
+                            <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl p-5 relative">
                                 <!-- OTC Toggle -->
-                                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
                                     <div class="flex items-center gap-3">
                                         <button type="button" @click="isOtcMode = false" 
                                                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                                                :class="!isOtcMode ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-slate-500 border border-slate-200 hover:border-teal-300'">
+                                                :class="!isOtcMode ? 'bg-teal-600 text-white shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-teal-300'">
                                             <span class="flex items-center gap-1.5">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                                 From RHU Inventory
@@ -600,7 +611,7 @@
                                         </button>
                                         <button type="button" @click="isOtcMode = true" 
                                                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                                                :class="isOtcMode ? 'bg-slate-700 text-white shadow-sm' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'">
+                                                :class="isOtcMode ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-slate-400'">
                                             <span class="flex items-center gap-1.5">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                 Custom / OTC Medicine
@@ -612,7 +623,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <!-- Medicine Name Field -->
                                     <div class="relative">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                                             <span x-text="isOtcMode ? 'Medicine Name (type manually)' : 'Search RHU Inventory'"></span>
                                             <span class="text-rose-400">*</span>
                                         </label>
@@ -628,7 +639,7 @@
                                                    @keydown.escape="showSuggestions = false" 
                                                    @click.away="showSuggestions = false"
                                                    x-ref="medicineInput"
-                                                   class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 pl-9 py-2.5"
+                                                   class="w-full text-sm rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-teal-500 focus:ring-teal-500 pl-9 py-2.5"
                                                    :placeholder="isOtcMode ? 'e.g. Biogesic, Neozep, Dolfenal...' : 'Type to search (e.g. Paracetamol)...'">
                                         </div>
                                         
@@ -637,70 +648,70 @@
                                              x-transition:enter="transition ease-out duration-150"
                                              x-transition:enter-start="opacity-0 -translate-y-1"
                                              x-transition:enter-end="opacity-100 translate-y-0"
-                                             class="absolute z-50 w-full bg-white mt-1 border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto" x-cloak>
+                                             class="absolute z-50 w-full bg-white dark:bg-slate-800 mt-1 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-56 overflow-y-auto" x-cloak>
                                             <template x-for="med in suggestions" :key="med.id">
-                                                <div @click="selectMedicine(med)" class="px-4 py-3 hover:bg-teal-50 cursor-pointer border-b border-slate-100 last:border-0 transition group">
+                                                <div @click="selectMedicine(med)" class="px-4 py-3 hover:bg-teal-50 dark:hover:bg-teal-950/40 cursor-pointer border-b border-slate-100 dark:border-slate-700 last:border-0 transition group">
                                                     <div class="flex justify-between items-start">
                                                         <div>
-                                                            <p class="font-bold text-sm text-slate-800 group-hover:text-teal-800" x-text="med.name"></p>
-                                                            <p class="text-[11px] text-slate-500 mt-0.5" x-text="(med.generic_name || 'No generic name') + (med.form ? ' · ' + med.form : '')"></p>
+                                                            <p class="font-bold text-sm text-slate-800 dark:text-white group-hover:text-teal-800 dark:group-hover:text-teal-300" x-text="med.name"></p>
+                                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" x-text="(med.generic_name || 'No generic name') + (med.form ? ' · ' + med.form : '')"></p>
                                                         </div>
                                                         <div class="shrink-0 ml-3">
                                                             <span class="text-[10px] font-bold px-2 py-1 rounded-full"
-                                                                  :class="med.stock > 10 ? 'bg-emerald-100 text-emerald-700' : (med.stock > 0 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')"
+                                                                  :class="med.stock > 10 ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : (med.stock > 0 ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300')"
                                                                   x-text="med.stock > 0 ? med.stock + ' in stock' : 'Out of stock'"></span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </template>
                                             <!-- No results hint -->
-                                            <div x-show="suggestions.length === 0 && searchQuery.length > 1" class="px-4 py-3 text-center text-slate-400 text-sm">
-                                                No medicine found. Try <button type="button" @click="isOtcMode = true" class="text-teal-600 font-bold underline">Custom / OTC</button> mode.
+                                            <div x-show="suggestions.length === 0 && searchQuery.length > 1" class="px-4 py-3 text-center text-slate-400 dark:text-slate-500 text-sm">
+                                                No medicine found. Try <button type="button" @click="isOtcMode = true" class="text-teal-600 dark:text-teal-400 font-bold underline">Custom / OTC</button> mode.
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Dosage / Amount Field -->
                                     <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Dosage / Amount</label>
+                                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Dosage / Amount</label>
                                         <input type="text" x-model="currentAmount" x-ref="amountInput"
                                                @keydown.enter.prevent="$refs.instInput.focus()" 
                                                placeholder="e.g. 500mg, 10 tablets, 1 bottle"
-                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                               class="w-full text-sm rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-teal-500 focus:ring-teal-500 py-2.5">
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                                     <!-- Instructions Field -->
                                     <div class="md:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Instructions / Frequency</label>
+                                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Instructions / Frequency</label>
                                         <input type="text" x-ref="instInput" x-model="currentInstruction" 
                                                @keydown.enter.prevent="addPrescription()"
                                                placeholder="e.g. 3x a day after meals for 5 days"
-                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                               class="w-full text-sm rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-teal-500 focus:ring-teal-500 py-2.5">
                                     </div>
 
                                     <!-- Quantity Field -->
                                     <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quantity to Dispense</label>
+                                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Quantity to Dispense</label>
                                         <input type="number" x-model="currentQuantity" min="1"
                                                @keydown.enter.prevent="addPrescription()"
                                                placeholder="e.g. 30"
-                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                               class="w-full text-sm rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-teal-500 focus:ring-teal-500 py-2.5">
                                     </div>
 
                                     <!-- Duration Field -->
                                     <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Duration (days)</label>
+                                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Duration (days)</label>
                                         <input type="number" x-model="currentDuration" min="1"
                                                @keydown.enter.prevent="addPrescription()"
                                                placeholder="e.g. 7"
-                                               class="w-full text-sm rounded-lg border-slate-300 focus:border-teal-500 focus:ring-teal-500 py-2.5">
+                                               class="w-full text-sm rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-teal-500 focus:ring-teal-500 py-2.5">
                                     </div>
                                 </div>
 
                                 <!-- Quick Clinical Presets -->
-                                <div class="mb-4 pb-3 border-b border-slate-200 space-y-3">
+                                <div class="mb-4 pb-3 border-b border-slate-200 dark:border-slate-700 space-y-3">
                                     @php
                                         $isPediaRole = (auth()->user()->role === 'pedia_doctor') || ($consultation->doctor_type === 'pediatrician') || ($patient->classification === 'Pediatric');
                                     @endphp
@@ -854,24 +865,24 @@
                             }
                         }">
                             <div class="flex items-center justify-between mb-2">
-                                <label for="medical_notes" class="block text-sm font-bold text-slate-700">Detailed Clinical Notes <span class="text-slate-400 font-normal ml-1">(Optional)</span></label>
+                                <label for="medical_notes" class="block text-sm font-bold text-slate-700 dark:text-slate-200">Detailed Clinical Notes <span class="text-slate-400 font-normal ml-1">(Optional)</span></label>
                                 <div class="flex flex-wrap gap-2">
-                                    <button type="button" @click="appendNote('[FOLLOW-UP: Fasting required before next visit]')" class="text-[10px] uppercase font-bold bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 rounded px-2 py-1 transition">
+                                    <button type="button" @click="appendNote('[FOLLOW-UP: Fasting required before next visit]')" class="text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 transition">
                                         + Fasting Required
                                     </button>
-                                    <button type="button" @click="appendNote('[FOLLOW-UP: Bring previous medical records]')" class="text-[10px] uppercase font-bold bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 rounded px-2 py-1 transition">
+                                    <button type="button" @click="appendNote('[FOLLOW-UP: Bring previous medical records]')" class="text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 transition">
                                         + Bring Records
                                     </button>
-                                    <button type="button" @click="appendNote('[INSTRUCTION: Continue current medication]')" class="text-[10px] uppercase font-bold bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 rounded px-2 py-1 transition">
+                                    <button type="button" @click="appendNote('[INSTRUCTION: Continue current medication]')" class="text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 transition">
                                         + Continue Medication
                                     </button>
-                                    <button type="button" @click="appendNote('[INSTRUCTION: Return immediately if symptoms persist or worsen]')" class="text-[10px] uppercase font-bold bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 rounded px-2 py-1 transition">
+                                    <button type="button" @click="appendNote('[INSTRUCTION: Return immediately if symptoms persist or worsen]')" class="text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 transition">
                                         + Return if Persists
                                     </button>
                                 </div>
                             </div>
                             <textarea id="medical_notes" name="medical_notes" rows="4" x-model="notes"
-                                class="w-full rounded-lg border-2 border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm p-3 transition" 
+                                class="w-full rounded-lg border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm p-3 transition" 
                                 placeholder="Add observations, patient counseling notes..."></textarea>
                         </div>
 
@@ -891,11 +902,11 @@
                             </div>
                         @endif
 
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-2" x-data="{ isFollowUp: {{ $hasPendingDiagnostics ? 'true' : 'false' }} }">
+                        <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-2" x-data="{ isFollowUp: {{ $hasPendingDiagnostics ? 'true' : 'false' }} }">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h4 class="font-black text-amber-900 text-sm">Require Follow-up Visit?</h4>
-                                    <p class="text-[11px] text-amber-700 mt-1">Toggle this if the patient needs to return. Allows them to book a Follow-up appointment online.</p>
+                                    <h4 class="font-black text-amber-900 dark:text-amber-200 text-sm">Require Follow-up Visit?</h4>
+                                    <p class="text-[11px] text-amber-700 dark:text-amber-300 mt-1">Toggle this if the patient needs to return. Allows them to book a Follow-up appointment online.</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
                                     <input type="checkbox" name="is_followup_needed" value="1" x-model="isFollowUp" class="sr-only peer">
@@ -903,7 +914,7 @@
                                 </label>
                             </div>
                             
-                            <div x-show="isFollowUp" x-collapse class="mt-4 pt-4 border-t border-amber-200">
+                            <div x-show="isFollowUp" x-collapse class="mt-4 pt-4 border-t border-amber-200 dark:border-amber-800">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div x-data="{
                                         showDatepicker: false,
@@ -992,23 +1003,23 @@
                                         }
                                     }">
                                         <div class="flex items-center justify-between mb-1.5">
-                                         <label for="followup_reason" class="block text-xs font-bold text-amber-900">Reason for Return <span class="text-rose-500">*</span></label>
+                                         <label for="followup_reason" class="block text-xs font-bold text-amber-900 dark:text-amber-200">Reason for Return <span class="text-rose-500">*</span></label>
                                             <div class="flex flex-wrap gap-1.5">
-                                                <button type="button" @click="appendReason('Check Laboratory results')" class="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5 hover:bg-amber-200">+ Check Labs</button>
-                                                <button type="button" @click="appendReason('Monitor Vital Signs')" class="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5 hover:bg-amber-200">+ Monitor Vitals</button>
-                                                <button type="button" @click="appendReason('Follow-up Checkup')" class="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5 hover:bg-amber-200">+ Routine Checkup</button>
-                                                <button type="button" @click="appendReason('Medication Adjustment')" class="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5 hover:bg-amber-200">+ Med Adjustment</button>
+                                                <button type="button" @click="appendReason('Check Laboratory results')" class="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700 rounded px-1.5 py-0.5 hover:bg-amber-200 dark:hover:bg-amber-800">+ Check Labs</button>
+                                                <button type="button" @click="appendReason('Monitor Vital Signs')" class="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700 rounded px-1.5 py-0.5 hover:bg-amber-200 dark:hover:bg-amber-800">+ Monitor Vitals</button>
+                                                <button type="button" @click="appendReason('Follow-up Checkup')" class="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700 rounded px-1.5 py-0.5 hover:bg-amber-200 dark:hover:bg-amber-800">+ Routine Checkup</button>
+                                                <button type="button" @click="appendReason('Medication Adjustment')" class="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700 rounded px-1.5 py-0.5 hover:bg-amber-200 dark:hover:bg-amber-800">+ Med Adjustment</button>
                                             </div>
                                         </div>
-                                        <textarea name="followup_reason" id="followup_reason" :required="isFollowUp" x-model="reason" rows="4" placeholder="e.g. Check lab results, monitor BP" class="w-full text-sm rounded-md border-amber-300 bg-white focus:border-amber-500 focus:ring-amber-500 text-amber-900 shadow-inner"></textarea>
+                                        <textarea name="followup_reason" id="followup_reason" :required="isFollowUp" x-model="reason" rows="4" placeholder="e.g. Check lab results, monitor BP" class="w-full text-sm rounded-md border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-900 focus:border-amber-500 focus:ring-amber-500 text-amber-900 dark:text-amber-100 shadow-inner"></textarea>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="pt-4 border-t border-slate-100 mt-auto flex items-center justify-between gap-3">
-                            <button type="button" @click="showCancelWalkout = true" class="px-4 py-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="pt-4 border-t border-slate-100 dark:border-slate-700 mt-auto flex items-center justify-between gap-3">
+                            <button type="button" @click="showCancelWalkout = true" class="px-4 py-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                 </svg>
                                 <span>Patient Walked Out / Cancel</span>
@@ -1094,99 +1105,121 @@
 
                 <!-- Past Cases -->
                 @foreach($pastConsultations as $past)
-                    <div x-show="activeTab === 'past_{{ $past->id }}'" style="display: none;"
+                    <div x-show="activeTab === 'past_{{ $past->id }}'" x-cloak
                          x-transition:enter="transition ease-out duration-200" 
                          x-transition:enter-start="opacity-0 translate-y-2" 
                          x-transition:enter-end="opacity-100 translate-y-0"
-                         class="grow flex flex-col p-6 bg-slate-50 rounded-b-xl rounded-tr-xl overflow-y-auto">
+                         class="grow flex flex-col p-6 bg-slate-50 dark:bg-slate-900/90 rounded-b-xl rounded-tr-xl overflow-y-auto">
                         
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 p-6 space-y-6 relative overflow-hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-6 relative overflow-hidden">
                             <!-- Header ribbon for past cases -->
-                            <div class="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-teal-500"></div>
 
-                            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4">
                                 <div>
-                                    <h2 class="text-xl font-black text-slate-800">Historical Record</h2>
-                                    <p class="text-sm font-bold text-teal-600">{{ \Carbon\Carbon::parse($past->consultation_date)->format('l, F d, Y') }}</p>
+                                    <h2 class="text-xl font-black text-slate-800 dark:text-white">Historical Record</h2>
+                                    <p class="text-sm font-bold text-teal-600 dark:text-teal-400">{{ \Carbon\Carbon::parse($past->consultation_date)->format('l, F d, Y') }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Attending Provider</span>
-                                    <span class="inline-block font-semibold text-slate-700 bg-slate-100 px-3 py-1 rounded border border-slate-200">{{ $past->doctor->name ?? ($past->nurse->name ?? 'Unknown') }}</span>
+                                    <span class="block text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-400 font-bold mb-1">Attending Provider</span>
+                                    <span class="inline-block font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded border border-slate-200 dark:border-slate-600">{{ $past->doctor->name ?? ($past->nurse->name ?? 'Unknown') }}</span>
                                 </div>
                             </div>
 
                             <!-- Triaged Vitals Grid -->
                             <div>
-                                <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">Triaged Vitals</h3>
+                                <h3 class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 dark:border-slate-700 pb-1">Triaged Vitals</h3>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">BP</span>
-                                        <span class="font-bold text-slate-700 text-sm">{{ $past->blood_pressure ?: ($past->preTriage?->blood_pressure ?: '--') }}</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">BP</span>
+                                        <span class="font-bold text-slate-700 dark:text-white text-sm">{{ $past->blood_pressure ?: ($past->preTriage?->blood_pressure ?: '--') }}</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">Temp</span>
-                                        <span class="font-bold text-sm {{ floatval($past->temperature ?: ($past->preTriage?->temperature ?? 0)) > 37.5 ? 'text-red-600' : 'text-slate-700' }}">{{ $past->temperature ?: ($past->preTriage?->temperature ?: '--') }}°C</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">Temp</span>
+                                        <span class="font-bold text-sm {{ floatval($past->temperature ?: ($past->preTriage?->temperature ?? 0)) > 37.5 ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-white' }}">{{ $past->temperature ?: ($past->preTriage?->temperature ?: '--') }}°C</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">Heart Rate</span>
-                                        <span class="font-bold text-slate-700 text-sm">{{ $past->heart_rate ?: ($past->preTriage?->heart_rate ?: '--') }}</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">Heart Rate</span>
+                                        <span class="font-bold text-slate-700 dark:text-white text-sm">{{ $past->heart_rate ?: ($past->preTriage?->heart_rate ?: '--') }}</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">Resp Rate</span>
-                                        <span class="font-bold text-slate-700 text-sm">{{ $past->respiratory_rate ?: ($past->preTriage?->respiratory_rate ?: '--') }}</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">Resp Rate</span>
+                                        <span class="font-bold text-slate-700 dark:text-white text-sm">{{ $past->respiratory_rate ?: ($past->preTriage?->respiratory_rate ?: '--') }}</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">Pulse Rate</span>
-                                        <span class="font-bold text-slate-700 text-sm">{{ $past->pulse_rate ?: ($past->preTriage?->pulse_rate ?: '--') }}</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">Pulse Rate</span>
+                                        <span class="font-bold text-slate-700 dark:text-white text-sm">{{ $past->pulse_rate ?: ($past->preTriage?->pulse_rate ?: '--') }}</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">SpO2</span>
-                                        <span class="font-bold text-slate-700 text-sm">{{ $past->spo2 ?: ($past->preTriage?->spo2 ?: ($past->preTriage?->oxygen_saturation ?: '--')) }}%</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">SpO2</span>
+                                        <span class="font-bold text-slate-700 dark:text-white text-sm">{{ $past->spo2 ?: ($past->preTriage?->spo2 ?: ($past->preTriage?->oxygen_saturation ?: '--')) }}%</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">Weight</span>
-                                        <span class="font-bold text-slate-700 text-sm">{{ $past->weight ?: ($past->preTriage?->weight ?: '--') }}kg</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">Weight</span>
+                                        <span class="font-bold text-slate-700 dark:text-white text-sm">{{ $past->weight ?: ($past->preTriage?->weight ?: '--') }}kg</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col shadow-sm">
-                                        <span class="text-xs text-slate-400 mb-1">Height</span>
-                                        <span class="font-bold text-slate-700 text-sm">{{ $past->height ?: ($past->preTriage?->height ?: '--') }}cm</span>
+                                    <div class="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded border border-slate-100 dark:border-slate-700 flex flex-col shadow-sm">
+                                        <span class="text-xs text-slate-400 dark:text-slate-400 mb-1">Height</span>
+                                        <span class="font-bold text-slate-700 dark:text-white text-sm">{{ $past->height ?: ($past->preTriage?->height ?: '--') }}cm</span>
                                     </div>
                                 </div>
                             </div>
 
                             @if($past->preTriage?->symptoms)
                                 <div>
-                                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 border-b border-slate-100 pb-1">Chief Complaint</h3>
-                                    <p class="text-slate-700 bg-slate-50 p-3 rounded-lg text-sm italic border border-slate-100 shadow-inner">{{ $past->preTriage->symptoms }}</p>
+                                    <h3 class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1.5 border-b border-slate-100 dark:border-slate-700 pb-1">Chief Complaint</h3>
+                                    <p class="text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg text-sm italic border border-slate-100 dark:border-slate-700 shadow-inner">{{ $past->preTriage->symptoms }}</p>
                                 </div>
                             @endif
 
                             <div>
-                                <h3 class="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-1.5 border-b border-slate-100 pb-1">Primary Diagnosis</h3>
-                                <p class="text-slate-800 font-semibold p-3 text-base border-l-4 border-teal-500 bg-teal-50/30 rounded-r-lg">{{ $past->diagnosis ?: 'No diagnosis recorded.' }}</p>
+                                <h3 class="text-[11px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-1.5 border-b border-slate-100 dark:border-slate-700 pb-1">Primary Diagnosis</h3>
+                                <p class="text-slate-800 dark:text-white font-semibold p-3 text-base border-l-4 border-teal-500 bg-teal-50/30 dark:bg-teal-950/30 rounded-r-lg">{{ $past->diagnosis ?: 'No diagnosis recorded.' }}</p>
                             </div>
                             
                             @if($past->prescription)
                                 <div>
-                                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 border-b border-slate-100 pb-1">Prescription</h3>
-                                    <p class="text-slate-700 font-mono text-sm bg-slate-50 p-4 rounded-lg border border-slate-200">{{ $past->prescription }}</p>
+                                    <h3 class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1.5 border-b border-slate-100 dark:border-slate-700 pb-1">Prescription</h3>
+                                    <p class="text-slate-700 dark:text-slate-200 font-mono text-sm bg-slate-50 dark:bg-slate-900/60 p-4 rounded-lg border border-slate-200 dark:border-slate-700 whitespace-pre-wrap">{{ $past->prescription }}</p>
                                 </div>
                             @endif
 
                             @if($past->medical_notes)
                                 <div>
-                                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 border-b border-slate-100 pb-1">Clinical Notes</h3>
-                                    <p class="text-slate-600 text-sm p-3">{{ $past->medical_notes }}</p>
+                                    <h3 class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1.5 border-b border-slate-100 dark:border-slate-700 pb-1">Clinical Notes</h3>
+                                    <p class="text-slate-600 dark:text-slate-300 text-sm p-3 bg-slate-50/50 dark:bg-slate-900/40 rounded-lg border border-slate-100 dark:border-slate-700 whitespace-pre-wrap">{{ $past->medical_notes }}</p>
                                 </div>
                             @endif
                             
                             @if($past->is_followup_needed)
-                                <div class="bg-amber-50 border border-amber-200 rounded p-3 mt-2">
-                                    <h3 class="text-[11px] font-bold text-amber-700 uppercase tracking-widest mb-1">Follow-up Instructed</h3>
-                                    <p class="text-amber-800 text-sm font-semibold">Scheduled: {{ \Carbon\Carbon::parse($past->followup_date)->format('M d, Y') }}</p>
+                                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded p-3 mt-2">
+                                    <h3 class="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-widest mb-1">Follow-up Instructed</h3>
+                                    <p class="text-amber-800 dark:text-amber-200 text-sm font-semibold">Scheduled: {{ \Carbon\Carbon::parse($past->followup_date)->format('M d, Y') }}</p>
                                     @if($past->followup_reason)
-                                        <p class="text-amber-700 text-xs italic mt-1">Reason: {{ $past->followup_reason }}</p>
+                                        <p class="text-amber-700 dark:text-amber-300 text-xs italic mt-1">Reason: {{ $past->followup_reason }}</p>
                                     @endif
+                                </div>
+                            @endif
+
+                            @if(in_array($past->status, ['completed', 'done']) && ($past->doctor_id === auth()->id() || in_array(auth()->user()->role, ['admin', 'super_admin'])))
+                                <div x-data="{ showPastAddendum: false }" class="pt-4 border-t border-slate-100 dark:border-slate-700">
+                                    <button type="button" @click="showPastAddendum = !showPastAddendum" class="text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 flex items-center gap-1.5 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        <span x-text="showPastAddendum ? 'Close Addendum Box' : '+ Append Official Clinical Addendum'"></span>
+                                    </button>
+
+                                    <div x-show="showPastAddendum" x-collapse class="mt-2.5">
+                                        <form action="{{ route('doctor.consultation.addendum', $past->id) }}" method="POST" class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-3.5">
+                                            @csrf
+                                            <label class="block text-xs font-bold text-amber-900 dark:text-amber-200 mb-1">Signed Clinical Addendum</label>
+                                            <p class="text-[11px] text-amber-700 dark:text-amber-300 mb-2">Appends an official, timestamped clinical note under {{ auth()->user()->formatted_name ?? auth()->user()->name }} to this historical encounter.</p>
+                                            <textarea name="addendum_text" required rows="2" placeholder="Record clinical clarification, telephone follow-up notes, or late findings..." class="w-full text-xs rounded-lg border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-white p-2.5 focus:ring-amber-500 focus:border-amber-500"></textarea>
+                                            <div class="flex justify-end gap-2 mt-2">
+                                                <button type="button" @click="showPastAddendum = false" class="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white font-semibold">Cancel</button>
+                                                <button type="submit" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg shadow-sm transition">Sign & Append</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             @endif
 
@@ -1195,6 +1228,8 @@
                 @endforeach
             </div>
         </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')

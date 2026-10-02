@@ -22,6 +22,13 @@ class ChatTest extends TestCase
     {
         parent::setUp();
 
+        config([
+            'database.default' => 'mysql',
+            'database.connections.mysql.database' => 'rhu-mis',
+        ]);
+        \Illuminate\Support\Facades\DB::purge('mysql');
+        \Illuminate\Support\Facades\DB::reconnect('mysql');
+
         // Use existing seeded staff users or create temporary ones in transaction
         $this->userA = User::where('role', 'super_admin')->first()
             ?? User::create(['name' => 'Admin User', 'email' => 'admin_test@rhu.gov.ph', 'password' => bcrypt('password'), 'role' => 'admin']);
@@ -29,12 +36,21 @@ class ChatTest extends TestCase
         $this->userB = User::where('role', 'admin')->where('id', '!=', $this->userA->id)->first()
             ?? User::create(['name' => 'Doctor User', 'email' => 'doctor_test@rhu.gov.ph', 'password' => bcrypt('password'), 'role' => 'doctor']);
 
-        $this->userC = User::create([
-            'name' => 'Nurse User Test',
-            'email' => 'nurse_temp_' . uniqid() . '@rhu.gov.ph',
-            'password' => bcrypt('password'),
-            'role' => 'nurse',
-        ]);
+        $this->userC = User::whereIn('role', ['nurse', 'clinical_nurse', 'vitals_nurse'])->first()
+            ?? User::create([
+                'name' => 'Nurse User Test',
+                'email' => 'nurse_temp_' . uniqid() . '@rhu.gov.ph',
+                'password' => bcrypt('password'),
+                'role' => 'nurse',
+            ]);
+    }
+
+    protected function tearDown(): void
+    {
+        if (isset($this->userC) && str_starts_with($this->userC->email, 'nurse_temp_')) {
+            $this->userC->delete();
+        }
+        parent::tearDown();
     }
 
     public function test_guest_cannot_access_chat_endpoints(): void

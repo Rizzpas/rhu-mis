@@ -115,6 +115,16 @@ class NurseController extends Controller
                 $consultation->consultation_start_time = now();
             }
             $consultation->save();
+
+            // Sync Queue status & record called_at timestamp for wait-time analytics & queue board
+            \App\Models\Queue::where('patient_id', $consultation->patient_id)
+                ->where('queue_number', $consultation->queue_number)
+                ->whereDate('created_at', today())
+                ->where('status', 'Waiting')
+                ->update([
+                    'status' => 'Calling',
+                    'called_at' => now(),
+                ]);
         }
 
         $patient = $consultation->patient;
@@ -123,7 +133,7 @@ class NurseController extends Controller
         $pastConsultations = \App\Models\Consultation::where('patient_id', $patient->patient_id)
             ->where('id', '!=', $consultation->id)
             ->whereIn('status', ['completed', 'done'])
-            ->with('preTriage')
+            ->with(['doctor', 'nurse', 'preTriage', 'ancillaryRequests.technician'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -145,6 +155,17 @@ class NurseController extends Controller
             abort(403);
         }
 
+        if (in_array($consultation->status, ['completed', 'done', 'cancelled'])) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This consultation has already been completed.',
+                ], 422);
+            }
+
+            return redirect()->route('nurse.dashboard')->with('warning', 'This consultation has already been completed.');
+        }
+
         $validated = $request->validate([
             'diagnosis' => 'required|string',
             'prescriptions_list' => 'nullable|array',
@@ -161,10 +182,12 @@ class NurseController extends Controller
             'followup_reason' => 'nullable|required_if:is_followup_needed,1|string|max:255',
         ]);
 
-        $hasPendingAncillary = $consultation->ancillaryRequests()->where('status', 'Pending')->exists();
-        $isFollowupNeeded = $request->has('is_followup_needed') || $hasPendingAncillary;
-        $followupDate = $isFollowupNeeded ? ($validated['followup_date'] ?? now()->addDays(7)->toDateString()) : null;
-        $followupReason = $isFollowupNeeded ? ($validated['followup_reason'] ?? 'Pending Diagnostic Results Review') : null;
+        $hasActiveAncillary = $consultation->ancillaryRequests()
+            ->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress'])
+            ->exists();
+        $isFollowupNeeded = $request->has('is_followup_needed') || $hasActiveAncillary;
+        $followupDate = $isFollowupNeeded ? ($validated['followup_date'] ?? now()->addDays(3)->toDateString()) : null;
+        $followupReason = $isFollowupNeeded ? ($validated['followup_reason'] ?? ($hasActiveAncillary ? 'Pending Diagnostic Results (Lab in progress / deferred)' : 'Scheduled Follow-Up')) : null;
 
         // Resolve and split prescriptions into RHU vs OTC
         $resolved = $this->resolvePrescriptionItems($validated['prescriptions_list'] ?? []);
@@ -177,7 +200,7 @@ class NurseController extends Controller
         $consultation->update([
             'diagnosis' => $validated['diagnosis'],
             'prescription' => $prescriptionText,
-            'medical_notes' => $validated['medical_notes'],
+            'medical_notes' => $validated['medical_notes'] ?? null,
             'is_followup_needed' => $isFollowupNeeded,
             'followup_date' => $followupDate,
             'followup_reason' => $followupReason,
@@ -283,6 +306,40 @@ class NurseController extends Controller
         return redirect()->route('nurse.dashboard')->with('success', 'Consultation completed for '.$consultation->patient->first_name);
     }
 
+    /**
+     * Record an official post-consultation clinical addendum.
+     */
+    public function storeAddendum(Request $request, Consultation $consultation)
+    {
+        $user = Auth::user();
+        if ($consultation->nurse_id && $consultation->nurse_id !== $user->id) {
+            abort(403, 'Only the attending clinician may record an addendum.');
+        }
+
+        if (! in_array($consultation->status, ['completed', 'done'])) {
+            return back()->with('error', 'Addenda can only be recorded on completed consultations.');
+        }
+
+        $validated = $request->validate([
+            'addendum_text' => 'required|string|max:2000',
+        ]);
+
+        $timestamp = now()->format('Y-m-d h:i A');
+        $clinicianName = $user->formatted_name ?? $user->name;
+        $entry = "\n[CLINICAL ADDENDUM - {$timestamp} by {$clinicianName}]: {$validated['addendum_text']}";
+
+        $consultation->update([
+            'medical_notes' => ($consultation->medical_notes ? $consultation->medical_notes . "\n" : '') . $entry,
+        ]);
+
+        \App\Models\AuditLog::record("Clinical Addendum Recorded for Consultation #{$consultation->id}", $consultation, [
+            'author_id' => $user->id,
+            'addendum' => $validated['addendum_text'],
+        ]);
+
+        return back()->with('success', 'Clinical addendum recorded successfully.');
+    }
+
     public function storeAncillaryRequest(Request $request, Consultation $consultation)
     {
         $user = Auth::user();
@@ -300,16 +357,10 @@ class NurseController extends Controller
             'remarks' => 'nullable|string',
         ]);
 
-        // Restrict allowed tests strictly to RHU scope
-        $allowedLabTests = ['Complete Blood Count (CBC)', 'Urinalysis'];
-        $allowedRadTests = ['Chest X-Ray'];
-
-        if ($validated['type'] === 'Laboratory' && ! in_array($validated['test_name'], $allowedLabTests)) {
-            return back()->with('error', 'Invalid laboratory test selected. Available tests: Complete Blood Count (CBC), Urinalysis.');
-        }
-
-        if ($validated['type'] === 'Radiology' && ! in_array($validated['test_name'], $allowedRadTests)) {
-            return back()->with('error', 'Invalid radiology test selected. Available test: Chest X-Ray.');
+        // Restrict allowed tests strictly to authoritative RHU diagnostic catalog
+        if (! \App\Services\DiagnosticCatalogService::isValidTest($validated['type'], $validated['test_name'])) {
+            $allowed = implode(', ', \App\Services\DiagnosticCatalogService::getAllowedTests($validated['type']));
+            return back()->with('error', "Invalid {$validated['type']} test selected. Available tests: {$allowed}.");
         }
 
         // Enforce: only one active request per test type at a time for this consultation

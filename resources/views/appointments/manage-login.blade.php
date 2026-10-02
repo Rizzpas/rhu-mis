@@ -96,7 +96,42 @@
             {{-- Right Column: Portal Access Form Card --}}
             <div class="lg:col-span-6">
                 <div class="rounded-3xl p-6 sm:p-9 bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-md relative overflow-hidden"
-                     x-data="{ isSubmitting: false }">
+                     x-data="{
+                         isSubmitting: false,
+                         formatReferenceNumber(e) {
+                             const input = e.target;
+                             const isDelete = e.inputType && e.inputType.startsWith('delete');
+                             if (isDelete) return;
+
+                             let upper = (input.value || '').toUpperCase();
+                             let raw = upper.replace(/[^A-Z0-9]/g, '');
+                             if (!raw) {
+                                 input.value = '';
+                                 return;
+                             }
+
+                             // If user pasted/entered 7-8 alphanumeric chars without APT prefix (e.g. GVWAGSHH), auto-prepend APT
+                             if (!raw.startsWith('APT') && raw.length >= 7 && raw.length <= 8) {
+                                 raw = 'APT' + raw;
+                             }
+
+                             let formatted = '';
+                             if (raw.startsWith('APT')) {
+                                 let token = raw.substring(3, 11); // max 8 chars after APT-
+                                 formatted = 'APT-' + token;
+                             } else if ('APT'.startsWith(raw)) {
+                                 formatted = raw;
+                             } else {
+                                 let token = raw.substring(0, 8);
+                                 formatted = 'APT-' + token;
+                             }
+
+                             if (input.value !== formatted) {
+                                 input.value = formatted;
+                             }
+                         }
+                     }"
+                     x-init="if ($refs.refInput && $refs.refInput.value) formatReferenceNumber({ target: $refs.refInput })">
                     
                     {{-- Subtle top decorative gradient line --}}
                     <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600"></div>
@@ -147,7 +182,7 @@
                                 <label for="reference_number" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                                     {{ __('Reference Number') }} <span class="text-emerald-700 dark:text-emerald-400">*</span>
                                 </label>
-                                <span class="text-[11px] text-slate-400 dark:text-slate-500 font-mono">Format: APT-XXXXXXX</span>
+                                <span class="text-[11px] text-slate-400 dark:text-slate-500 font-mono">Format: APT-XXXXXXXX</span>
                             </div>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
@@ -159,6 +194,10 @@
                                        name="reference_number"
                                        type="text"
                                        required
+                                       maxlength="12"
+                                       x-ref="refInput"
+                                       @input="formatReferenceNumber($event)"
+                                       @paste="$nextTick(() => formatReferenceNumber({ target: $el, inputType: 'insertFromPaste' }))"
                                        value="{{ old('reference_number') }}"
                                        class="block w-full pl-10 pr-4 py-3 rounded-xl border @error('reference_number') border-red-400 dark:border-red-600 ring-1 ring-red-400 @else border-slate-300 dark:border-slate-600 @enderror bg-slate-50/80 dark:bg-slate-900/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-600 text-sm uppercase tracking-wider font-mono transition"
                                        placeholder="APT-XXXXXXXX"

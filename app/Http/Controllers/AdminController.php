@@ -67,18 +67,7 @@ class AdminController extends Controller
         $visitVolumeData = $this->getVisitVolumeData($timeFilter);
 
         // 2. Peak Hours (Filtered by Time)
-        $peakHours = \App\Models\Consultation::where('created_at', '>=', $startDate)
-            ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
-            ->groupBy('hour')
-            ->pluck('count', 'hour');
-
-        $hourLabels = [];
-        $hourCounts = [];
-        for ($i = 8; $i <= 17; $i++) { // Operating hours 8 AM - 5 PM
-            $hourLabels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
-            $hourCounts[] = $peakHours->get($i, 0);
-        }
-        $peakHoursData = ['labels' => $hourLabels, 'data' => $hourCounts];
+        $peakHoursData = $this->getPeakHoursData($startDate);
 
         // 3. Top 5 Diagnoses (Filtered)
         $topDiagnoses = \App\Models\Consultation::whereNotNull('diagnosis')
@@ -266,18 +255,7 @@ class AdminController extends Controller
         $visitVolumeData = $this->getVisitVolumeData($timeFilter);
 
         // 2. Peak Hours
-        $peakHours = \App\Models\Consultation::where('created_at', '>=', $startDate)
-            ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
-            ->groupBy('hour')
-            ->pluck('count', 'hour');
-
-        $hourLabels = [];
-        $hourCounts = [];
-        for ($i = 8; $i <= 17; $i++) {
-            $hourLabels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
-            $hourCounts[] = $peakHours->get($i, 0);
-        }
-        $peakHoursData = ['labels' => $hourLabels, 'data' => $hourCounts];
+        $peakHoursData = $this->getPeakHoursData($startDate);
 
         // 3. Top Diagnoses
         $topDiagnoses = \App\Models\Consultation::whereNotNull('diagnosis')
@@ -386,6 +364,545 @@ class AdminController extends Controller
         ));
     }
 
+    public function exportAnalyticsCsv(Request $request)
+    {
+        $timeFilter = $request->get('time_filter', 'monthly');
+
+        $startDate = match ($timeFilter) {
+            'today' => now()->startOfDay(),
+            'weekly' => now()->startOfWeek(),
+            'monthly' => now()->startOfMonth(),
+            'yearly' => now()->startOfYear(),
+            default => \Carbon\Carbon::create(2000, 1, 1),
+        };
+
+        // Build the same query scope used by analytics dashboard
+        $query = \App\Models\Consultation::query()
+            ->where('consultations.created_at', '>=', $startDate)
+            ->join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
+            ->leftJoin('users as doctors', 'consultations.doctor_id', '=', 'doctors.id')
+            ->leftJoin('users as nurses', 'consultations.nurse_id', '=', 'nurses.id')
+            ->leftJoin('pre_triages', 'consultations.pre_triage_id', '=', 'pre_triages.id')
+            ->select([
+                'consultations.id as consultation_id',
+                'consultations.patient_id',
+                'consultations.consultation_date',
+                'consultations.created_at as consultation_created_at',
+                'consultations.queue_number',
+                'consultations.status',
+                'consultations.severity',
+                'consultations.diagnosis',
+                'consultations.blood_pressure',
+                'consultations.temperature',
+                'consultations.weight',
+                'consultations.height',
+                'consultations.heart_rate',
+                'consultations.respiratory_rate',
+                'consultations.pulse_rate',
+                'consultations.spo2',
+                'consultations.consultation_start_time',
+                'consultations.consultation_end_time',
+                'consultations.is_followup_needed',
+                'consultations.followup_date',
+                'consultations.prescription',
+                'consultations.medical_notes',
+                'patients.first_name as patient_first_name',
+                'patients.last_name as patient_last_name',
+                'patients.sex as patient_sex',
+                'patients.dob as patient_dob',
+                'patients.classification as patient_classification',
+                'patients.barangay as patient_barangay',
+                'patients.address as patient_address',
+                'doctors.name as doctor_name',
+                'nurses.name as nurse_name',
+                'pre_triages.chief_complaint',
+                'pre_triages.encoding_duration_seconds as triage_encoding_seconds',
+            ])
+            ->orderBy('consultations.created_at', 'desc');
+
+        $count = $query->count();
+
+        if ($count === 0) {
+            return response()->json(['message' => 'No analytics data found for the selected timeframe.'], 404);
+        }
+
+        $timeFilterLabel = match ($timeFilter) {
+            'today' => now()->format('Y-m-d'),
+            'weekly' => now()->startOfWeek()->format('Y-m-d') . '_to_' . now()->endOfWeek()->format('Y-m-d'),
+            'monthly' => now()->format('Y-m'),
+            'yearly' => now()->format('Y'),
+            default => 'all-time',
+        };
+
+        $filename = "detailed-analytics-{$timeFilterLabel}.csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-store, no-cache',
+        ];
+
+        $csvHeaders = [
+            'Consultation ID',
+            'Patient ID',
+            'Patient Name',
+            'Sex',
+            'Date of Birth',
+            'Age',
+            'Classification',
+            'Barangay',
+            'Consultation Date',
+            'Created At',
+            'Queue Number',
+            'Status',
+            'Severity',
+            'Chief Complaint',
+            'Diagnosis',
+            'Prescription',
+            'Clinical Notes / Addenda',
+            'Doctor',
+            'Nurse',
+            'Consultation Start',
+            'Consultation End',
+            'Duration (min)',
+            'Wait Time (min)',
+            'Blood Pressure',
+            'Temperature',
+            'Weight (kg)',
+            'Height (cm)',
+            'Heart Rate',
+            'Respiratory Rate',
+            'Pulse Rate',
+            'SpO2',
+            'Follow-up Needed',
+            'Follow-up Date',
+            'Triage Encoding (sec)',
+        ];
+
+        $callback = function () use ($query, $csvHeaders) {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM for Excel compatibility
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, $csvHeaders);
+
+            $query->chunk(500, function ($rows) use ($handle) {
+                foreach ($rows as $row) {
+                    // Calculate age from DOB
+                    $age = '';
+                    if ($row->patient_dob) {
+                        try {
+                            $age = \Carbon\Carbon::parse($row->patient_dob)->age;
+                        } catch (\Exception $e) {
+                            $age = '';
+                        }
+                    }
+
+                    // Calculate consultation duration in minutes
+                    $durationMin = '';
+                    if ($row->consultation_start_time && $row->consultation_end_time) {
+                        try {
+                            $durationMin = round(
+                                \Carbon\Carbon::parse($row->consultation_start_time)
+                                    ->diffInMinutes(\Carbon\Carbon::parse($row->consultation_end_time)),
+                                1
+                            );
+                        } catch (\Exception $e) {
+                            $durationMin = '';
+                        }
+                    }
+
+                    // Calculate wait time (created_at -> consultation_start_time)
+                    $waitTimeMin = '';
+                    if ($row->consultation_created_at && $row->consultation_start_time) {
+                        try {
+                            $waitTimeMin = round(
+                                \Carbon\Carbon::parse($row->consultation_created_at)
+                                    ->diffInMinutes(\Carbon\Carbon::parse($row->consultation_start_time)),
+                                1
+                            );
+                        } catch (\Exception $e) {
+                            $waitTimeMin = '';
+                        }
+                    }
+
+                    // Normalize barangay using existing logic
+                    $barangay = \App\Models\Patient::normalizeBarangay($row->patient_barangay, $row->patient_address);
+
+                    $patientName = trim(($row->patient_first_name ?? '') . ' ' . ($row->patient_last_name ?? ''));
+
+                    fputcsv($handle, [
+                        $row->consultation_id,
+                        $row->patient_id,
+                        $patientName,
+                        $row->patient_sex ?? '',
+                        $row->patient_dob ? \Carbon\Carbon::parse($row->patient_dob)->format('Y-m-d') : '',
+                        $age,
+                        $row->patient_classification ?? '',
+                        $barangay ?? '',
+                        $row->consultation_date ? \Carbon\Carbon::parse($row->consultation_date)->format('Y-m-d') : '',
+                        $row->consultation_created_at ? \Carbon\Carbon::parse($row->consultation_created_at)->format('Y-m-d H:i:s') : '',
+                        $row->queue_number ?? '',
+                        ucfirst($row->status ?? ''),
+                        ucfirst($row->severity ?? ''),
+                        $row->chief_complaint ?? '',
+                        $row->diagnosis ?? '',
+                        $row->prescription ?? '',
+                        $row->medical_notes ?? '',
+                        $row->doctor_name ?? '',
+                        $row->nurse_name ?? '',
+                        $row->consultation_start_time ? \Carbon\Carbon::parse($row->consultation_start_time)->format('Y-m-d H:i:s') : '',
+                        $row->consultation_end_time ? \Carbon\Carbon::parse($row->consultation_end_time)->format('Y-m-d H:i:s') : '',
+                        $durationMin,
+                        $waitTimeMin,
+                        $row->blood_pressure ?? '',
+                        $row->temperature ?? '',
+                        $row->weight ?? '',
+                        $row->height ?? '',
+                        $row->heart_rate ?? '',
+                        $row->respiratory_rate ?? '',
+                        $row->pulse_rate ?? '',
+                        $row->spo2 ?? '',
+                        $row->is_followup_needed ? 'Yes' : 'No',
+                        $row->followup_date ? \Carbon\Carbon::parse($row->followup_date)->format('Y-m-d') : '',
+                        $row->triage_encoding_seconds ?? '',
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportAnalyticsSummaryCsv(Request $request)
+    {
+        $timeFilter = $request->get('time_filter', 'monthly');
+
+        $startDate = match ($timeFilter) {
+            'today' => now()->startOfDay(),
+            'weekly' => now()->startOfWeek(),
+            'monthly' => now()->startOfMonth(),
+            'yearly' => now()->startOfYear(),
+            default => \Carbon\Carbon::create(2000, 1, 1),
+        };
+
+        $timeFilterLabel = match ($timeFilter) {
+            'today' => now()->format('Y-m-d'),
+            'weekly' => now()->startOfWeek()->format('Y-m-d') . '_to_' . now()->endOfWeek()->format('Y-m-d'),
+            'monthly' => now()->format('Y-m'),
+            'yearly' => now()->format('Y'),
+            default => 'all-time',
+        };
+
+        $humanTimeframe = match ($timeFilter) {
+            'today' => 'Today (' . now()->format('F d, Y') . ')',
+            'weekly' => 'This Week (' . now()->startOfWeek()->format('M d') . ' - ' . now()->endOfWeek()->format('M d, Y') . ')',
+            'monthly' => 'This Month (' . now()->format('F Y') . ')',
+            'yearly' => 'This Year (' . now()->format('Y') . ')',
+            default => 'All Historical Records',
+        };
+
+        // 1. Visit Volume
+        $visitVolumeData = $this->getVisitVolumeData($timeFilter, $startDate);
+
+        // 2. Peak Hours
+        $peakHoursData = $this->getPeakHoursData($startDate);
+
+        // 3. Top Diagnoses
+        $topDiagnoses = \App\Models\Consultation::whereNotNull('diagnosis')
+            ->where('diagnosis', '!=', '')
+            ->where('created_at', '>=', $startDate)
+            ->select(\Illuminate\Support\Facades\DB::raw('diagnosis, COUNT(id) as count'))
+            ->groupBy('diagnosis')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        // 4. Patient Classification
+        $classificationData = \App\Models\Patient::join('consultations', 'patients.patient_id', '=', 'consultations.patient_id')
+            ->where('consultations.created_at', '>=', $startDate)
+            ->whereNotNull('patients.classification')
+            ->select('patients.classification', \Illuminate\Support\Facades\DB::raw('COUNT(consultations.id) as count'))
+            ->groupBy('patients.classification')
+            ->pluck('count', 'classification');
+
+        // 5. Triage Severity
+        $severityData = \App\Models\Consultation::select(\Illuminate\Support\Facades\DB::raw('severity, COUNT(id) as count'))
+            ->whereNotNull('severity')
+            ->where('created_at', '>=', $startDate)
+            ->groupBy('severity')
+            ->pluck('count', 'severity');
+
+        // 6. Barangay Heatmap
+        $barangayData = $this->getBarangayData($startDate);
+
+        // 7. Demographics
+        $demographics = \Illuminate\Support\Facades\DB::select("
+            SELECT 
+                p.sex,
+                CASE
+                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 0 AND 12 THEN '0-12 (Pediatric)'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 13 AND 17 THEN '13-17 (Teen)'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 18 AND 39 THEN '18-39 (Adult)'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 40 AND 59 THEN '40-59 (Middle Age)'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) >= 60 THEN '60+ (Senior)'
+                    ELSE 'Unknown'
+                END as age_group,
+                COUNT(DISTINCT c.patient_id) as count
+            FROM consultations c
+            JOIN patients p ON c.patient_id = p.patient_id
+            WHERE c.created_at >= ?
+            AND p.sex IS NOT NULL
+            AND p.dob IS NOT NULL
+            GROUP BY p.sex, age_group
+        ", [$startDate]);
+
+        $demoLabels = ['0-12 (Pediatric)', '13-17 (Teen)', '18-39 (Adult)', '40-59 (Middle Age)', '60+ (Senior)'];
+        $demoData = [
+            'Male' => [0, 0, 0, 0, 0],
+            'Female' => [0, 0, 0, 0, 0],
+        ];
+        foreach ($demographics as $d) {
+            $idx = array_search($d->age_group, $demoLabels);
+            if ($idx !== false && isset($demoData[$d->sex])) {
+                $demoData[$d->sex][$idx] = $d->count;
+            }
+        }
+
+        // 8. Workload
+        $workloadData = \App\Models\Consultation::select(\Illuminate\Support\Facades\DB::raw('
+                COALESCE(doctor_id, nurse_id) as staff_id, 
+                COUNT(id) as count
+            '))
+            ->where('created_at', '>=', $startDate)
+            ->where(function ($q) {
+                $q->whereNotNull('doctor_id')->orWhereNotNull('nurse_id');
+            })
+            ->groupBy('staff_id')
+            ->get();
+
+        $staffIds = $workloadData->pluck('staff_id')->filter();
+        $staffNames = \App\Models\User::whereIn('id', $staffIds)->get()->pluck('formatted_name', 'id');
+
+        $workloadFormatted = [];
+        foreach ($workloadData as $row) {
+            if ($row->staff_id && isset($staffNames[$row->staff_id])) {
+                $workloadFormatted[$staffNames[$row->staff_id]] = $row->count;
+            }
+        }
+        arsort($workloadFormatted);
+
+        // 9. Staff Productivity & Triage Encoding
+        $staffProductivity = $this->getStaffProductivityData('all', $startDate);
+
+        $totalConsultations = \App\Models\Consultation::where('created_at', '>=', $startDate)->count();
+
+        $filename = "analytics-summary-graphs-{$timeFilterLabel}.csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-store, no-cache',
+        ];
+
+        return response()->stream(function () use (
+            $humanTimeframe,
+            $totalConsultations,
+            $visitVolumeData,
+            $peakHoursData,
+            $topDiagnoses,
+            $classificationData,
+            $severityData,
+            $barangayData,
+            $demoLabels,
+            $demoData,
+            $workloadFormatted,
+            $staffProductivity
+        ) {
+            $handle = fopen('php://output', 'w');
+            // Write UTF-8 BOM for Microsoft Excel compatibility
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Metadata banner
+            fputcsv($handle, ['RHU MANAGEMENT INFORMATION SYSTEM - ANALYTICS SUMMARY REPORT']);
+            fputcsv($handle, ['Report Type', 'Aggregated Dashboard Graphs & Epidemiological Indicators']);
+            fputcsv($handle, ['Reporting Timeframe', $humanTimeframe]);
+            fputcsv($handle, ['Generated At', now()->format('Y-m-d H:i:s')]);
+            fputcsv($handle, ['Generated By', auth()->user() ? auth()->user()->name : 'System Administrator']);
+            fputcsv($handle, ['Total Consultations Recorded', $totalConsultations]);
+            fputcsv($handle, ['Average Consultation Duration', ($staffProductivity['avgDuration'] ?? 0) . ' minutes']);
+            fputcsv($handle, ['Average Queue Wait Time', ($staffProductivity['avgWaitTime'] ?? 0) . ' minutes']);
+            fputcsv($handle, ['Throughput (Patients / Hour)', ($staffProductivity['patientsPerHour'] ?? 0) . ' pts/hr']);
+            fputcsv($handle, []);
+
+            // SECTION 1: VISIT VOLUME
+            fputcsv($handle, ['=== 1. VISIT VOLUME OVER TIME ===']);
+            fputcsv($handle, ['Period / Date', 'Consultation Count', 'Share of Total']);
+            $volLabels = $visitVolumeData['labels'] ?? [];
+            $volCounts = $visitVolumeData['data'] ?? [];
+            $volSum = array_sum($volCounts);
+            foreach ($volLabels as $i => $lbl) {
+                $c = $volCounts[$i] ?? 0;
+                $pct = $volSum > 0 ? round(($c / $volSum) * 100, 1) . '%' : '0%';
+                fputcsv($handle, [$lbl, $c, $pct]);
+            }
+            fputcsv($handle, ['Total Period Volume', $volSum, '100%']);
+            fputcsv($handle, []);
+
+            // SECTION 2: PEAK OPERATING HOURS
+            fputcsv($handle, ['=== 2. HOURLY PATIENT INFLUX & PEAK TRAFFIC ===']);
+            fputcsv($handle, ['Operating Time Slot', 'Patient Check-ins', 'Share of Daily Flow', 'Traffic Density']);
+            $peakLabels = $peakHoursData['labels'] ?? [];
+            $peakCounts = $peakHoursData['data'] ?? [];
+            $peakTotal = array_sum($peakCounts);
+            $maxPeak = count($peakCounts) > 0 ? max($peakCounts) : 0;
+            foreach ($peakLabels as $i => $lbl) {
+                $c = $peakCounts[$i] ?? 0;
+                $pct = $peakTotal > 0 ? round(($c / $peakTotal) * 100, 1) . '%' : '0%';
+                $density = 'Normal';
+                if ($c > 0 && $c == $maxPeak) $density = 'Peak Traffic Window';
+                elseif ($c > ($maxPeak * 0.7)) $density = 'Heavy Traffic';
+                elseif ($c < ($maxPeak * 0.3)) $density = 'Light Traffic';
+                fputcsv($handle, [$lbl, $c, $pct, $density]);
+            }
+            fputcsv($handle, ['Total Clinic Check-ins', $peakTotal, '100%', '']);
+            fputcsv($handle, []);
+
+            // SECTION 3: TOP DIAGNOSES
+            fputcsv($handle, ['=== 3. TOP CLINICAL DIAGNOSES (MORBIDITY RANKING) ===']);
+            fputcsv($handle, ['Rank', 'Diagnosis / Morbidity', 'Diagnosed Cases', 'Prevalence Share']);
+            $diagSum = $topDiagnoses->sum('count');
+            if ($topDiagnoses->isEmpty()) {
+                fputcsv($handle, ['—', 'No clinical diagnoses recorded for this period', 0, '0%']);
+            } else {
+                foreach ($topDiagnoses as $i => $row) {
+                    $c = $row->count ?? 0;
+                    $pct = $diagSum > 0 ? round(($c / $diagSum) * 100, 1) . '%' : '0%';
+                    fputcsv($handle, [$i + 1, $row->diagnosis, $c, $pct]);
+                }
+            }
+            fputcsv($handle, ['Total Ranked Cases', $diagSum, '100%']);
+            fputcsv($handle, []);
+
+            // SECTION 4: PATIENT CLASSIFICATION
+            fputcsv($handle, ['=== 4. PATIENT SOCIOECONOMIC CLASSIFICATION ===']);
+            fputcsv($handle, ['Classification Group', 'Patient Count', 'Distribution Share']);
+            $classSum = $classificationData->sum();
+            if ($classificationData->isEmpty()) {
+                fputcsv($handle, ['No classification data recorded', 0, '0%']);
+            } else {
+                foreach ($classificationData as $grp => $c) {
+                    $pct = $classSum > 0 ? round(($c / $classSum) * 100, 1) . '%' : '0%';
+                    fputcsv($handle, [ucwords($grp), $c, $pct]);
+                }
+            }
+            fputcsv($handle, ['Total Patients Classified', $classSum, '100%']);
+            fputcsv($handle, []);
+
+            // SECTION 5: TRIAGE SEVERITY
+            fputcsv($handle, ['=== 5. TRIAGE SEVERITY & URGENCY DISTRIBUTION ===']);
+            fputcsv($handle, ['Urgency Level', 'Triage Encounters', 'Urgency Share']);
+            $sevSum = $severityData->sum();
+            if ($severityData->isEmpty()) {
+                fputcsv($handle, ['No triage records recorded', 0, '0%']);
+            } else {
+                foreach ($severityData as $sev => $c) {
+                    $pct = $sevSum > 0 ? round(($c / $sevSum) * 100, 1) . '%' : '0%';
+                    fputcsv($handle, [ucfirst($sev), $c, $pct]);
+                }
+            }
+            fputcsv($handle, ['Total Triaged Encounters', $sevSum, '100%']);
+            fputcsv($handle, []);
+
+            // SECTION 6: BARANGAY GEOGRAPHIC DISTRIBUTION
+            fputcsv($handle, ['=== 6. BARANGAY CATCHMENT & GEOGRAPHIC INFLUX ===']);
+            fputcsv($handle, ['Rank', 'Barangay Name', 'Consultation Volume', 'Catchment Share']);
+            $brgySum = array_sum($barangayData);
+            if (empty($barangayData)) {
+                fputcsv($handle, ['—', 'No geographic data available', 0, '0%']);
+            } else {
+                $rank = 1;
+                foreach ($barangayData as $brgy => $c) {
+                    $pct = $brgySum > 0 ? round(($c / $brgySum) * 100, 1) . '%' : '0%';
+                    fputcsv($handle, [$rank++, $brgy, $c, $pct]);
+                }
+            }
+            fputcsv($handle, ['Total Geocoded Volume', $brgySum, '100%']);
+            fputcsv($handle, []);
+
+            // SECTION 7: DEMOGRAPHICS (AGE & SEX)
+            fputcsv($handle, ['=== 7. AGE & BIOLOGICAL SEX DEMOGRAPHIC DISTRIBUTION ===']);
+            fputcsv($handle, ['Age Bracket', 'Male Patients', 'Female Patients', 'Total Patients', 'Demographic Share']);
+            $totalDemoAll = 0;
+            foreach ($demoLabels as $idx => $lbl) {
+                $m = $demoData['Male'][$idx] ?? 0;
+                $f = $demoData['Female'][$idx] ?? 0;
+                $totalDemoAll += ($m + $f);
+            }
+            foreach ($demoLabels as $idx => $lbl) {
+                $m = $demoData['Male'][$idx] ?? 0;
+                $f = $demoData['Female'][$idx] ?? 0;
+                $tot = $m + $f;
+                $pct = $totalDemoAll > 0 ? round(($tot / $totalDemoAll) * 100, 1) . '%' : '0%';
+                fputcsv($handle, [$lbl, $m, $f, $tot, $pct]);
+            }
+            fputcsv($handle, ['Total Demographic Count', array_sum($demoData['Male']), array_sum($demoData['Female']), $totalDemoAll, '100%']);
+            fputcsv($handle, []);
+
+            // SECTION 8: CLINICAL WORKLOAD
+            fputcsv($handle, ['=== 8. CLINICAL STAFF WORKLOAD (PATIENTS HANDLED) ===']);
+            fputcsv($handle, ['Practitioner Name', 'Consultations Completed', 'Workload Share']);
+            $workloadSum = array_sum($workloadFormatted);
+            if (empty($workloadFormatted)) {
+                fputcsv($handle, ['No practitioner consultations logged', 0, '0%']);
+            } else {
+                foreach ($workloadFormatted as $staff => $c) {
+                    $pct = $workloadSum > 0 ? round(($c / $workloadSum) * 100, 1) . '%' : '0%';
+                    fputcsv($handle, [$staff, $c, $pct]);
+                }
+            }
+            fputcsv($handle, ['Total Staff Encounters', $workloadSum, '100%']);
+            fputcsv($handle, []);
+
+            // SECTION 9: DOCTOR CONSULTATION DURATION
+            fputcsv($handle, ['=== 9. AVERAGE CONSULTATION DURATION PER DOCTOR ===']);
+            fputcsv($handle, ['Physician Name', 'Average Duration (Minutes)', 'Efficiency Standard']);
+            $durLabels = $staffProductivity['durationChartLabels'] ?? [];
+            $durData = $staffProductivity['durationChartData'] ?? [];
+            if (empty($durLabels)) {
+                fputcsv($handle, ['No physician consultation timings logged', 0, 'N/A']);
+            } else {
+                foreach ($durLabels as $i => $doc) {
+                    $mins = $durData[$i] ?? 0;
+                    $status = $mins <= 15 ? 'Optimal (<= 15 min)' : ($mins <= 30 ? 'Standard' : 'Extended (> 30 min)');
+                    fputcsv($handle, [$doc, $mins . ' min', $status]);
+                }
+            }
+            fputcsv($handle, []);
+
+            // SECTION 10: TRIAGE ENCODING SPEED
+            fputcsv($handle, ['=== 10. TRIAGE NURSE VITALS ENCODING SPEED ===']);
+            fputcsv($handle, ['Triage Nurse', 'Avg Encoding Time (Seconds)', 'Avg Encoding Time (Minutes)', 'Target Benchmark']);
+            $encLabels = $staffProductivity['encodingChartLabels'] ?? [];
+            $encData = $staffProductivity['encodingChartData'] ?? [];
+            if (empty($encLabels)) {
+                fputcsv($handle, ['No triage encoding timing records logged', 0, 0, 'N/A']);
+            } else {
+                foreach ($encLabels as $i => $nurse) {
+                    $secs = $encData[$i] ?? 0;
+                    $mins = round($secs / 60, 1);
+                    $target = $secs <= 180 ? 'Within Target (<= 3 min)' : 'Needs Improvement (> 3 min)';
+                    fputcsv($handle, [$nurse, $secs . 's', $mins . ' min', $target]);
+                }
+            }
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
     public function apiChartData(Request $request, $chart)
     {
         $timeFilter = $request->get('time_filter', 'monthly');
@@ -403,19 +920,7 @@ class AdminController extends Controller
         }
 
         if ($chart === 'peak') {
-            $peakHours = \App\Models\Consultation::where('created_at', '>=', $startDate)
-                ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
-                ->groupBy('hour')
-                ->pluck('count', 'hour');
-
-            $labels = [];
-            $counts = [];
-            for ($i = 8; $i <= 17; $i++) {
-                $labels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
-                $counts[] = $peakHours->get($i, 0);
-            }
-
-            return response()->json(['labels' => $labels, 'data' => $counts]);
+            return response()->json($this->getPeakHoursData($startDate));
         }
 
         if ($chart === 'classification') {
@@ -740,7 +1245,8 @@ class AdminController extends Controller
             }
         }
 
-        $staff = $query->with('practitionerSchedules')->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $perPage = $request->input('per_page', 10);
+        $staff = $query->with('practitionerSchedules')->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
         return view('admin.staff.index', compact('staff'));
     }
@@ -771,6 +1277,182 @@ class AdminController extends Controller
         $logs = $query->latest()->paginate($perPage)->withQueryString();
 
         return view('admin.audit.index', compact('logs'));
+    }
+
+    public function exportAuditLogsCsv(Request $request)
+    {
+        \Illuminate\Support\Facades\Gate::authorize('view-audit-logs');
+
+        $query = AuditLog::with('user');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('action', 'like', "%$search%")
+                    ->orWhere('model_type', 'like', "%$search%")
+                    ->orWhere('model_id', 'like', "%$search%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%$search%");
+                    });
+            });
+        }
+
+        if ($request->filled('type') && $request->type !== 'all') {
+            $query->where('action', 'like', "%{$request->type}%");
+        }
+
+        $count = $query->count();
+
+        if ($count === 0) {
+            return response()->json(['message' => 'No audit logs found matching the filter criteria.'], 404);
+        }
+
+        $filename = 'system-audit-trail-' . now()->format('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-store, no-cache',
+        ];
+
+        $csvHeaders = [
+            'Log ID',
+            'Timestamp',
+            'Action / Event',
+            'Personnel Name',
+            'Personnel Role',
+            'Personnel Email',
+            'Target Model',
+            'Target ID',
+            'IP Address',
+            'User Agent',
+            'Changes / Details',
+        ];
+
+        return response()->stream(function () use ($query, $csvHeaders) {
+            $handle = fopen('php://output', 'w');
+            // Write UTF-8 BOM for Microsoft Excel compatibility
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($handle, $csvHeaders);
+
+            $query->latest()->chunk(250, function ($logs) use ($handle) {
+                foreach ($logs as $log) {
+                    $user = $log->user;
+                    $changesSummary = $this->formatAuditChangesForCsv($log->changes);
+
+                    fputcsv($handle, [
+                        $log->id,
+                        $log->created_at ? $log->created_at->format('Y-m-d H:i:s') : 'N/A',
+                        $log->action ?? 'N/A',
+                        $user ? $user->name : 'System / Deleted User',
+                        $user ? ucwords(str_replace('_', ' ', $user->role ?? '')) : 'N/A',
+                        $user ? $user->email : 'N/A',
+                        $log->model_type ? class_basename($log->model_type) : 'N/A',
+                        $log->model_id ?? 'N/A',
+                        $log->ip_address ?? 'N/A',
+                        $log->user_agent ?? 'N/A',
+                        $changesSummary,
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    /**
+     * Format audit log changes array/JSON into human-friendly staff-readable text.
+     */
+    private function formatAuditChangesForCsv($changes): string
+    {
+        if (empty($changes)) {
+            return 'No specific property changes recorded';
+        }
+
+        // If it's a JSON string, decode it first
+        if (is_string($changes)) {
+            $decoded = json_decode($changes, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $changes = $decoded;
+            } else {
+                return trim($changes);
+            }
+        }
+
+        if (!is_array($changes)) {
+            return (string) $changes;
+        }
+
+        $ignoredKeys = ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token', 'password', 'email_verified_at', 'expires_at', 'philhealth_number'];
+
+        // Special handling for Eloquent Model Audits with ['old' => ..., 'new' => ...]
+        if (array_key_exists('old', $changes) && array_key_exists('new', $changes)) {
+            $old = $changes['old'];
+            $new = $changes['new'];
+
+            if (is_null($old) && is_array($new)) {
+                // Creation
+                $createdParts = [];
+                foreach ($new as $k => $v) {
+                    if (in_array($k, $ignoredKeys) || is_null($v) || $v === '') continue;
+                    $label = ucwords(str_replace(['_', '-'], ' ', $k));
+                    $valStr = is_bool($v) ? ($v ? 'Yes' : 'No') : (is_array($v) ? implode(', ', $v) : (string)$v);
+                    $createdParts[] = "{$label}: {$valStr}";
+                }
+                return 'Initial Creation (' . implode('; ', $createdParts) . ')';
+            }
+
+            if (is_array($old) && is_array($new)) {
+                // Modification: compare old vs new
+                $diffParts = [];
+                $allKeys = array_unique(array_merge(array_keys($old), array_keys($new)));
+                foreach ($allKeys as $k) {
+                    if (in_array($k, $ignoredKeys)) continue;
+                    $oldV = $old[$k] ?? null;
+                    $newV = $new[$k] ?? null;
+                    if ($oldV !== $newV) {
+                        $label = ucwords(str_replace(['_', '-'], ' ', $k));
+                        $oldStr = is_null($oldV) || $oldV === '' ? 'Empty' : (is_bool($oldV) ? ($oldV ? 'Yes' : 'No') : (string)$oldV);
+                        $newStr = is_null($newV) || $newV === '' ? 'Empty' : (is_bool($newV) ? ($newV ? 'Yes' : 'No') : (string)$newV);
+                        $diffParts[] = "{$label}: \"{$oldStr}\" -> \"{$newStr}\"";
+                    }
+                }
+                return !empty($diffParts) ? implode(' | ', $diffParts) : 'Record updated with no visible field changes';
+            }
+        }
+
+        $formatted = [];
+        foreach ($changes as $key => $val) {
+            if (in_array($key, $ignoredKeys)) continue;
+            $label = ucwords(str_replace(['_', '-'], ' ', $key));
+
+            if (is_array($val)) {
+                if (array_key_exists('old', $val) || array_key_exists('new', $val)) {
+                    $oldVal = $val['old'] ?? null;
+                    $newVal = $val['new'] ?? null;
+                    $oldStr = is_null($oldVal) || $oldVal === '' ? 'Empty' : (is_bool($oldVal) ? ($oldVal ? 'Yes' : 'No') : (string)$oldVal);
+                    $newStr = is_null($newVal) || $newVal === '' ? 'Empty' : (is_bool($newVal) ? ($newVal ? 'Yes' : 'No') : (string)$newVal);
+                    $formatted[] = "{$label}: \"{$oldStr}\" -> \"{$newStr}\"";
+                } else {
+                    $subParts = [];
+                    foreach ($val as $subK => $subV) {
+                        if (in_array($subK, $ignoredKeys) || is_null($subV) || $subV === '') continue;
+                        $subLabel = ucwords(str_replace(['_', '-'], ' ', $subK));
+                        $subValStr = is_array($subV) ? implode(', ', $subV) : (is_bool($subV) ? ($subV ? 'Yes' : 'No') : (string)$subV);
+                        $subParts[] = "{$subLabel}: {$subValStr}";
+                    }
+                    if (!empty($subParts)) {
+                        $formatted[] = "{$label} (" . implode('; ', $subParts) . ")";
+                    }
+                }
+            } else {
+                if (is_bool($val)) $val = $val ? 'Yes' : 'No';
+                if (is_null($val) || $val === '') continue;
+                $formatted[] = "{$label}: {$val}";
+            }
+        }
+
+        return !empty($formatted) ? implode(' | ', $formatted) : 'Updated';
     }
 
     public function getStats()
@@ -830,7 +1512,8 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        $announcements = $query->latest()->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $announcements = $query->latest()->paginate($perPage)->withQueryString();
 
         return view('admin.announcements.index', compact('announcements'));
     }
@@ -1104,6 +1787,8 @@ class AdminController extends Controller
 
     public function destroyAnnouncement(Announcement $announcement)
     {
+        \Illuminate\Support\Facades\Gate::authorize('delete-announcements');
+
         $announcement->delete();
 
         return back()->with('success', 'Announcement archived successfully!');
@@ -1315,6 +2000,8 @@ class AdminController extends Controller
 
     public function destroyStaff(\App\Models\User $user)
     {
+        \Illuminate\Support\Facades\Gate::authorize('delete-staff');
+
         // Prevent regular admin from deleting admin or super_admin accounts
         if (in_array($user->role, ['admin', 'super_admin'])) {
             \Illuminate\Support\Facades\Gate::authorize('manage-admins');
@@ -1404,12 +2091,14 @@ class AdminController extends Controller
 
     public function deleteRetention(\App\Models\Patient $patient)
     {
-        \Illuminate\Support\Facades\Gate::authorize('force-delete');
+        \Illuminate\Support\Facades\Gate::authorize('delete-retention');
 
-        // Permanently delete the patient (and their related records depending on cascading rules)
-        $patient->forceDelete();
+        // Soft delete (archive) the patient to prevent cascading data loss of clinical records
+        $patient->delete();
 
-        return back()->with('success', 'Inactive patient record permanently deleted.');
+        \App\Models\AuditLog::record("Archived Inactive Patient (Data Retention): {$patient->patient_id}", $patient);
+
+        return back()->with('success', 'Inactive patient record archived safely.');
     }
 
     public function patientRecordsIndex(Request $request)
@@ -1499,6 +2188,8 @@ class AdminController extends Controller
 
     public function bulkDeleteAnnouncements(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('delete-announcements');
+
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:announcements,id',
@@ -1511,6 +2202,8 @@ class AdminController extends Controller
 
     public function bulkDeleteStaff(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('delete-staff');
+
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:users,id',
@@ -1546,7 +2239,7 @@ class AdminController extends Controller
 
     public function bulkDeleteRetention(Request $request)
     {
-        \Illuminate\Support\Facades\Gate::authorize('force-delete');
+        \Illuminate\Support\Facades\Gate::authorize('delete-retention');
 
         $request->validate([
             'ids' => 'required|array',
@@ -1861,25 +2554,49 @@ class AdminController extends Controller
     }
 
     /**
+     * Compute dynamic Peak Hours chart data covering active clinic intake.
+     * Starts at 6:00 AM (early morning queue & triage window) through 6:00 PM,
+     * dynamically expanding if consultations exist outside standard margins.
+     */
+    private function getPeakHoursData($startDate): array
+    {
+        $peakHours = \App\Models\Consultation::where('created_at', '>=', $startDate)
+            ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
+            ->groupBy('hour')
+            ->pluck('count', 'hour');
+
+        $minHour = 6;  // 6:00 AM
+        $maxHour = 18; // 6:00 PM
+
+        if ($peakHours->isNotEmpty()) {
+            $recordedHours = $peakHours->keys()->map(fn($h) => (int)$h)->all();
+            $earliest = min($recordedHours);
+            $latest = max($recordedHours);
+            if ($earliest < $minHour && $earliest >= 5) {
+                $minHour = $earliest;
+            }
+            if ($latest > $maxHour && $latest <= 21) {
+                $maxHour = $latest;
+            }
+        }
+
+        $labels = [];
+        $counts = [];
+        for ($i = $minHour; $i <= $maxHour; $i++) {
+            $labels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
+            $counts[] = (int) $peakHours->get($i, 0);
+        }
+
+        return ['labels' => $labels, 'data' => $counts];
+    }
+
+    /**
      * Compute dynamic Visit Volume chart data based on timeframe filter.
      */
     private function getVisitVolumeData(string $timeFilter): array
     {
         if ($timeFilter === 'today') {
-            $startDate = now()->startOfDay();
-            $visits = \App\Models\Consultation::where('created_at', '>=', $startDate)
-                ->select(\Illuminate\Support\Facades\DB::raw('HOUR(created_at) as hour, COUNT(id) as count'))
-                ->groupBy('hour')
-                ->pluck('count', 'hour');
-
-            $labels = [];
-            $counts = [];
-            for ($i = 8; $i <= 17; $i++) {
-                $labels[] = $i > 12 ? ($i - 12).' PM' : ($i == 12 ? '12 PM' : $i.' AM');
-                $counts[] = $visits->get($i, 0);
-            }
-
-            return ['labels' => $labels, 'data' => $counts];
+            return $this->getPeakHoursData(now()->startOfDay());
         }
 
         if ($timeFilter === 'yearly' || $timeFilter === 'all') {

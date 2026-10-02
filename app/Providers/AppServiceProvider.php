@@ -40,8 +40,9 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('super_admin');
         });
 
+        // Only super_admin can permanently destroy archived records
         \Illuminate\Support\Facades\Gate::define('force-delete', function (\App\Models\User $user) {
-            return $user->hasRole('admin', 'super_admin');
+            return $user->hasRole('super_admin');
         });
 
         \Illuminate\Support\Facades\Gate::define('truncate-archive', function (\App\Models\User $user) {
@@ -54,6 +55,26 @@ class AppServiceProvider extends ServiceProvider
 
         // Only super_admin can modify or delete admin/super_admin accounts
         \Illuminate\Support\Facades\Gate::define('manage-admins', function (\App\Models\User $user) {
+            return $user->hasRole('super_admin');
+        });
+
+        // Only super_admin can delete staff accounts
+        \Illuminate\Support\Facades\Gate::define('delete-staff', function (\App\Models\User $user) {
+            return $user->hasRole('super_admin');
+        });
+
+        // Only super_admin can delete announcements
+        \Illuminate\Support\Facades\Gate::define('delete-announcements', function (\App\Models\User $user) {
+            return $user->hasRole('super_admin');
+        });
+
+        // Only super_admin can permanently delete patient retention records
+        \Illuminate\Support\Facades\Gate::define('delete-retention', function (\App\Models\User $user) {
+            return $user->hasRole('super_admin');
+        });
+
+        // Only super_admin can add/edit/delete facility units
+        \Illuminate\Support\Facades\Gate::define('manage-facilities', function (\App\Models\User $user) {
             return $user->hasRole('super_admin');
         });
 

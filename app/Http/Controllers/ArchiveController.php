@@ -106,7 +106,7 @@ class ArchiveController extends Controller
     /**
      * Display soft-deleted / archived records for a specific category.
      */
-    public function show($type)
+    public function show(Request $request, $type)
     {
         $categories = $this->getCategories();
         if (! isset($categories[$type])) {
@@ -117,13 +117,15 @@ class ArchiveController extends Controller
         $title = $categoryMeta['name'];
         $oneYearCount = $categoryMeta['one_year_count'] ?? 0;
 
+        $perPage = $request->input('per_page', 10);
+
         switch ($type) {
             case 'announcements':
-                $records = Announcement::onlyTrashed()->latest('deleted_at')->paginate(15)->withQueryString();
+                $records = Announcement::onlyTrashed()->latest('deleted_at')->paginate($perPage)->withQueryString();
                 $nameField = 'title';
                 break;
             case 'staff':
-                $records = User::onlyTrashed()->latest('deleted_at')->paginate(15)->withQueryString();
+                $records = User::onlyTrashed()->latest('deleted_at')->paginate($perPage)->withQueryString();
                 $nameField = 'name';
                 break;
             case 'ancillary':
@@ -133,14 +135,14 @@ class ArchiveController extends Controller
                           ->orWhereIn('status', ['Rejected', 'Cancelled', 'Archived']);
                     })
                     ->latest('updated_at')
-                    ->paginate(15)
+                    ->paginate($perPage)
                     ->withQueryString();
                 $nameField = 'test_name';
                 break;
             case 'appointments':
                 $records = Appointment::whereIn('status', ['cancelled', 'no_show'])
                     ->latest('updated_at')
-                    ->paginate(15)
+                    ->paginate($perPage)
                     ->withQueryString();
                 $nameField = 'reference_number';
                 break;
@@ -148,7 +150,7 @@ class ArchiveController extends Controller
                 $records = Prescription::with(['patient', 'doctor', 'items'])
                     ->whereIn('status', ['cancelled', 'expired'])
                     ->latest('updated_at')
-                    ->paginate(15)
+                    ->paginate($perPage)
                     ->withQueryString();
                 $nameField = 'id';
                 break;

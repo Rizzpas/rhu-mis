@@ -32,9 +32,17 @@ class DoctorController extends Controller
         $resultsReady = $rawQueue->where('status', 'results_ready')->values();
         $waiting = $rawQueue->where('status', 'queued')->values();
         $awaitingLabs = Consultation::where('doctor_id', $user->id)
-            ->where('status', 'awaiting_results')
+            ->where(function ($q) {
+                $q->whereIn('status', ['awaiting_results', 'results_ready'])
+                  ->orWhere(function ($sub) {
+                      $sub->whereNotIn('status', ['completed', 'done', 'cancelled'])
+                          ->whereHas('ancillaryRequests', function ($ar) {
+                              $ar->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress']);
+                          });
+                  });
+            })
             ->whereDate('consultation_date', Carbon::today())
-            ->with('patient')
+            ->with(['patient', 'ancillaryRequests'])
             ->get();
 
         $regular = $waiting->filter(function ($c) {
@@ -127,8 +135,17 @@ class DoctorController extends Controller
     {
         $user = Auth::user();
 
+        // Include consultations in awaiting_results, results_ready, or active consultations with pending/completed diagnostics
         $awaitingPatients = Consultation::where('doctor_id', $user->id)
-            ->whereIn('status', ['awaiting_results', 'results_ready'])
+            ->where(function ($q) {
+                $q->whereIn('status', ['awaiting_results', 'results_ready'])
+                  ->orWhere(function ($sub) {
+                      $sub->whereNotIn('status', ['completed', 'done'])
+                          ->whereHas('ancillaryRequests', function ($ar) {
+                              $ar->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress', 'Done']);
+                          });
+                  });
+            })
             ->with(['patient', 'preTriage', 'ancillaryRequests'])
             ->orderBy('updated_at', 'desc')
             ->paginate(15);
@@ -148,11 +165,32 @@ class DoctorController extends Controller
             $consultation->doctor_id = $user->id;
         }
 
-        if (in_array($consultation->status, ['queued', 'awaiting_results', 'results_ready'])) {
+        // Check if patient has any unfinished diagnostic tests
+        $hasActiveUnfinished = $consultation->ancillaryRequests()
+            ->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress'])
+            ->exists();
+
+        // Only switch to 'active' if queued, or results are ready to resume,
+        // or there are no pending diagnostic tests currently in progress at the lab/radiology
+        if ($consultation->status === 'queued' || $consultation->status === 'results_ready' || ($consultation->status === 'awaiting_results' && ! $hasActiveUnfinished)) {
             $consultation->status = 'active';
             if (! $consultation->consultation_start_time) {
                 $consultation->consultation_start_time = now();
             }
+            $consultation->save();
+
+            // Sync Queue status & record called_at timestamp for wait-time analytics & queue board
+            \App\Models\Queue::where('patient_id', $consultation->patient_id)
+                ->where('queue_number', $consultation->queue_number)
+                ->whereDate('created_at', today())
+                ->where('status', 'Waiting')
+                ->update([
+                    'status' => 'Calling',
+                    'called_at' => now(),
+                ]);
+        } elseif ($hasActiveUnfinished && $consultation->status !== 'awaiting_results') {
+            // Keep patient in awaiting_results state while tests are unfinished
+            $consultation->status = 'awaiting_results';
             $consultation->save();
         }
 
@@ -162,7 +200,7 @@ class DoctorController extends Controller
         $pastConsultations = \App\Models\Consultation::where('patient_id', $patient->patient_id)
             ->where('id', '!=', $consultation->id)
             ->whereIn('status', ['completed', 'done'])
-            ->with('preTriage')
+            ->with(['doctor', 'nurse', 'preTriage', 'ancillaryRequests.technician'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -184,6 +222,17 @@ public function completeConsultation(Request $request, Consultation $consultatio
             abort(403);
         }
 
+        if (in_array($consultation->status, ['completed', 'done', 'cancelled'])) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This consultation has already been completed.',
+                ], 422);
+            }
+
+            return redirect()->route('doctor.dashboard')->with('warning', 'This consultation has already been completed.');
+        }
+
         $validated = $request->validate([
             'diagnosis' => 'required|string',
             'prescriptions_list' => 'nullable|array',
@@ -200,10 +249,12 @@ public function completeConsultation(Request $request, Consultation $consultatio
             'followup_reason' => 'nullable|required_if:is_followup_needed,1|string|max:255',
         ]);
 
-        $hasPendingAncillary = $consultation->ancillaryRequests()->where('status', 'Pending')->exists();
-        $isFollowupNeeded = $request->has('is_followup_needed') || $hasPendingAncillary;
-        $followupDate = $isFollowupNeeded ? ($validated['followup_date'] ?? now()->addDays(7)->toDateString()) : null;
-        $followupReason = $isFollowupNeeded ? ($validated['followup_reason'] ?? 'Pending Diagnostic Results Review') : null;
+        $hasActiveAncillary = $consultation->ancillaryRequests()
+            ->whereIn('status', ['Pending', 'Specimen Collected', 'In Progress'])
+            ->exists();
+        $isFollowupNeeded = $request->has('is_followup_needed') || $hasActiveAncillary;
+        $followupDate = $isFollowupNeeded ? ($validated['followup_date'] ?? now()->addDays(3)->toDateString()) : null;
+        $followupReason = $isFollowupNeeded ? ($validated['followup_reason'] ?? ($hasActiveAncillary ? 'Pending Diagnostic Results (Lab in progress / deferred)' : 'Scheduled Follow-Up')) : null;
 
         // Resolve and split prescriptions into RHU vs OTC
         $resolved = $this->resolvePrescriptionItems($validated['prescriptions_list'] ?? []);
@@ -216,7 +267,7 @@ public function completeConsultation(Request $request, Consultation $consultatio
         $consultation->update([
             'diagnosis' => $validated['diagnosis'],
             'prescription' => $prescriptionText,
-            'medical_notes' => $validated['medical_notes'],
+            'medical_notes' => $validated['medical_notes'] ?? null,
             'is_followup_needed' => $isFollowupNeeded,
             'followup_date' => $followupDate,
             'followup_reason' => $followupReason,
@@ -333,23 +384,59 @@ public function completeConsultation(Request $request, Consultation $consultatio
         return redirect()->route('doctor.dashboard')->with('success', 'Consultation completed for '.$consultation->patient->first_name);
     }
 
+    /**
+     * Record an official post-consultation clinical addendum.
+     */
+    public function storeAddendum(Request $request, Consultation $consultation)
+    {
+        $user = Auth::user();
+        if ($consultation->doctor_id && $consultation->doctor_id !== $user->id) {
+            abort(403, 'Only the attending clinician may record an addendum.');
+        }
+
+        if (! in_array($consultation->status, ['completed', 'done'])) {
+            return back()->with('error', 'Addenda can only be recorded on completed consultations.');
+        }
+
+        $validated = $request->validate([
+            'addendum_text' => 'required|string|max:2000',
+        ]);
+
+        $timestamp = now()->format('Y-m-d h:i A');
+        $clinicianName = $user->formatted_name ?? $user->name;
+        $entry = "\n[CLINICAL ADDENDUM - {$timestamp} by {$clinicianName}]: {$validated['addendum_text']}";
+
+        $consultation->update([
+            'medical_notes' => ($consultation->medical_notes ? $consultation->medical_notes . "\n" : '') . $entry,
+        ]);
+
+        \App\Models\AuditLog::record("Clinical Addendum Recorded for Consultation #{$consultation->id}", $consultation, [
+            'author_id' => $user->id,
+            'addendum' => $validated['addendum_text'],
+        ]);
+
+        return back()->with('success', 'Clinical addendum recorded successfully.');
+    }
+
     public function showPatient(\App\Models\Patient $patient)
     {
         $user = Auth::user();
 
-        $hasActiveConsultation = Consultation::where('patient_id', $patient->patient_id)
-            ->where('doctor_id', $user->id)
-            ->whereIn('status', ['active', 'queued', 'awaiting_results', 'results_ready'])
-            ->whereDate('consultation_date', \Carbon\Carbon::today())
-            ->exists();
-
-        if (! $hasActiveConsultation) {
-            return redirect()->route('doctor.dashboard')->with('error', 'Unauthorized access. You may only view historical records of patients currently active in your queue.');
+        // Clinicians (doctors and clinical nurses) can view patient historical records for care continuity
+        if (! in_array($user->role, ['regular_doctor', 'pedia_doctor', 'clinical_nurse', 'admin', 'super_admin'])) {
+            return redirect()->route('doctor.dashboard')->with('error', 'Unauthorized access.');
         }
+
+        // LOG ACCESS: Accountability audit trail for medical records
+        \App\Models\AuditLog::record("Accessed Historical Patient Medical Folder: {$patient->patient_id}", $patient, [
+            'viewed_by' => $user->id,
+            'role' => $user->role,
+            'purpose' => 'Clinical Chart Review',
+        ]);
 
         $patient->load(['consultations' => function ($query) {
             $query->orderBy('created_at', 'asc'); // Ascending for chronological chart
-        }, 'consultations.doctor', 'consultations.nurse']);
+        }, 'consultations.doctor', 'consultations.nurse', 'consultations.ancillaryRequests.technician']);
 
         $vitalsData = $patient->consultations->filter(function ($c) {
             return $c->blood_pressure || $c->weight;
@@ -371,7 +458,7 @@ public function completeConsultation(Request $request, Consultation $consultatio
         // Reload consultations descending for the timeline display
         $patient->load(['consultations' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }, 'consultations.doctor', 'consultations.nurse']);
+        }, 'consultations.doctor', 'consultations.nurse', 'consultations.preTriage', 'consultations.ancillaryRequests.technician']);
 
         return view('doctor.patients.show', [
             'patient' => $patient,
@@ -396,16 +483,10 @@ public function completeConsultation(Request $request, Consultation $consultatio
             'remarks' => 'nullable|string',
         ]);
 
-        // Restrict allowed tests strictly to RHU scope
-        $allowedLabTests = ['Complete Blood Count (CBC)', 'Urinalysis'];
-        $allowedRadTests = ['Chest X-Ray'];
-
-        if ($validated['type'] === 'Laboratory' && ! in_array($validated['test_name'], $allowedLabTests)) {
-            return back()->with('error', 'Invalid laboratory test selected. Available tests: Complete Blood Count (CBC), Urinalysis.');
-        }
-
-        if ($validated['type'] === 'Radiology' && ! in_array($validated['test_name'], $allowedRadTests)) {
-            return back()->with('error', 'Invalid radiology test selected. Available test: Chest X-Ray.');
+        // Restrict allowed tests strictly to authoritative RHU diagnostic catalog
+        if (! \App\Services\DiagnosticCatalogService::isValidTest($validated['type'], $validated['test_name'])) {
+            $allowed = implode(', ', \App\Services\DiagnosticCatalogService::getAllowedTests($validated['type']));
+            return back()->with('error', "Invalid {$validated['type']} test selected. Available tests: {$allowed}.");
         }
 
         // Enforce: only one active request per test type at a time for this consultation

@@ -33,16 +33,40 @@
     {{-- Breadcrumb --}}
     <x-breadcrumb :items="['Active Queue' => route('doctor.dashboard'), 'Diagnostic Results Tracker' => '']" />
 
+    <!-- Header Section (Content Management Style) -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                </span>
+                <span>Diagnostic Results Tracker</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Live tracking of pending laboratory and radiology diagnostic tests for active consultation patients.</p>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-500/20 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 text-xs font-semibold shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>{{ $awaitingPatients->total() }} Awaiting Diagnostic Results</span>
+            </span>
+        </div>
+    </div>
+
     {{-- Diagnostic Summary Bento Cards --}}
     @php
         $totalAwaiting = $awaitingPatients->total();
         $allRequests = $awaitingPatients->getCollection()->flatMap->ancillaryRequests;
         $totalLab = $allRequests->where('type', 'Laboratory')->count();
         $totalRad = $allRequests->where('type', 'Radiology')->count();
-        $resultsReadyCount = $awaitingPatients->getCollection()->where('status', 'results_ready')->count();
+        $resultsReadyCount = $awaitingPatients->getCollection()->filter(function($c) {
+            return $c->status === 'results_ready' || ($c->ancillaryRequests->isNotEmpty() && $c->ancillaryRequests->every(fn($r) => in_array($r->status, ['Done', 'Rejected', 'Cancelled'])) && $c->ancillaryRequests->contains('status', 'Done'));
+        })->count();
     @endphp
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+    <div id="waiting-results-metrics" data-dynamic-block="true" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {{-- Card 1: Total Waiting --}}
         <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-200 flex flex-col justify-between">
             <div>
@@ -174,12 +198,12 @@
     </div>
 
     {{-- Main Diagnostic Patient Cards --}}
-    <div class="space-y-4">
+    <div id="waiting-results-grid" data-dynamic-block="true" class="space-y-4">
         @if($awaitingPatients->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 @foreach($awaitingPatients as $consultation)
                     @php
-                        $isReady = $consultation->status === 'results_ready';
+                        $isReady = $consultation->status === 'results_ready' || ($consultation->ancillaryRequests->isNotEmpty() && $consultation->ancillaryRequests->every(fn($r) => in_array($r->status, ['Done', 'Rejected', 'Cancelled'])) && $consultation->ancillaryRequests->contains('status', 'Done'));
                         $hasLab = $consultation->ancillaryRequests->where('type', 'Laboratory')->isNotEmpty();
                         $hasRad = $consultation->ancillaryRequests->where('type', 'Radiology')->isNotEmpty();
                         $testsList = $consultation->ancillaryRequests->pluck('test_name')->implode(', ');

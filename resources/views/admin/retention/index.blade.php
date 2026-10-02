@@ -1,18 +1,44 @@
 @extends('layouts.admin')
 
-@section('header')
-<div class="flex justify-between items-center">
-    <div>
-        <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-800">
-            {{ __('Data Retention Management') }}
-        </h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage inactive patient records that are scheduled for permanent deletion based on the 1-year retention policy.</p>
-    </div>
-</div>
-@endsection
+@section('header', __('Data Retention Management'))
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-red-100 overflow-hidden mb-6" x-data="{
+<div class="max-w-7xl mx-auto space-y-6 pb-12">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 py-2 border-b border-slate-200/60 dark:border-slate-800" aria-label="Breadcrumb">
+        <a href="{{ route('admin.dashboard') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5 shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Home</span>
+        </a>
+        <span class="text-slate-300 dark:text-slate-700">/</span>
+        <span class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Compliance & System</span>
+        <span class="text-slate-300 dark:text-slate-700">/</span>
+        <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ __('Data Retention Management') }}</span>
+    </nav>
+
+    <!-- Header Section (Content Management Style) -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-rose-100/80 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/20 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </span>
+                <span>{{ __('Data Retention Management') }}</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage inactive patient records scheduled for permanent deletion based on the 1-year retention policy.</p>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 text-xs font-semibold shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                <span>{{ $inactivePatients->total() }} Records Pending</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-6" x-data="{
         selectedIds: [],
         selectAll: false,
         showBulkExtendModal: false,

@@ -3,7 +3,42 @@
 @section('header', 'Manage Announcements')
 
 @section('content')
-<div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden" x-data="{ selectedAnnouncements: [], showBulkModal: false }">
+<div class="space-y-6 pb-12">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 py-2 border-b border-slate-200/60 dark:border-slate-800" aria-label="Breadcrumb">
+        <a href="{{ route('admin.dashboard') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5 shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Home</span>
+        </a>
+        <span class="text-slate-300 dark:text-slate-700">/</span>
+        <span class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Communications</span>
+        <span class="text-slate-300 dark:text-slate-700">/</span>
+        <span class="text-slate-700 dark:text-slate-300 font-semibold">Announcements</span>
+    </nav>
+
+    <!-- Header Section (Content Management Style) -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    </svg>
+                </span>
+                <span>System Announcements</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Broadcast operational bulletins, schedule updates, and emergency notices across all portals.</p>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-semibold shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>{{ $announcements->total() }} Bulletins</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden" x-data="{ selectedAnnouncements: [], showBulkModal: false }">
     <!-- Premium Header -->
     <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white dark:bg-slate-900 relative overflow-hidden">
         <!-- Subtle background pattern -->
@@ -20,13 +55,15 @@
         </div>
 
         <div class="flex items-center gap-3 relative z-10">
+            @can('delete-announcements')
             <div x-show="selectedAnnouncements.length > 0" x-cloak x-transition>
                 <button @click="showBulkModal = true" class="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     <span>Archive Selected (<span x-text="selectedAnnouncements.length"></span>)</span>
                 </button>
             </div>
-            <a href="{{ route('admin.announcements.create') }}" class="h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
+            @endcan
+            <a href="{{ route('admin.announcements.create') }}" class="h-10 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
                 <span>Post New</span>
             </a>
@@ -303,6 +340,7 @@
                     <span>Filter</span>
                 </button>
             </div>
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
         </form>
     </div>
 
@@ -311,12 +349,14 @@
         <table class="w-full border-collapse">
             <thead>
                 <tr class="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
+                    @can('delete-announcements')
                     <th class="px-6 py-4 text-left w-12">
                         <input type="checkbox" 
                             :checked="selectedAnnouncements.length > 0 && selectedAnnouncements.length === {{ $announcements->count() }}"
                             @change="if($event.target.checked) { selectedAnnouncements = Array.from(document.querySelectorAll('.announcement-checkbox')).map(cb => cb.value) } else { selectedAnnouncements = [] }" 
                             class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-800 cursor-pointer">
                     </th>
+                    @endcan
                     <th class="px-6 py-4 text-left text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title & Content</th>
                     <th class="px-6 py-4 text-center text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Engagement</th>
                     <th class="px-6 py-4 text-center text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
@@ -326,9 +366,11 @@
             <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                 @forelse($announcements as $announcement)
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                        @can('delete-announcements')
                         <td class="px-6 py-4">
                             <input type="checkbox" value="{{ $announcement->id }}" x-model="selectedAnnouncements" class="announcement-checkbox rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-800">
                         </td>
+                        @endcan
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-4">
                                 @if($announcement->image_path)
@@ -401,6 +443,7 @@
                                 </a>
 
                                 {{-- Archive Announcement --}}
+                                @can('delete-announcements')
                                 <button type="button" @click="$dispatch('open-confirmation', {
                                     action: '{{ route('admin.announcements.destroy', $announcement) }}',
                                     method: 'DELETE',
@@ -415,6 +458,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                     </svg>
                                 </button>
+                                @endcan
                             </div>
                         </td>
                     </tr>
@@ -438,13 +482,41 @@
         </table>
     </div>
 
-    @if($announcements->hasPages())
-        <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-            {{ $announcements->links() }}
+    <!-- Pagination Controls with Styled <option> Tags -->
+    @if($announcements->hasPages() || $announcements->total() > 10)
+        <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Items per page</label>
+                <x-select 
+                    :options="[
+                        '10' => '10 per page',
+                        '20' => '20 per page',
+                        '30' => '30 per page',
+                        '50' => '50 per page'
+                    ]" 
+                    :value="request('per_page', 10)"
+                    size="sm"
+                    containerClass="w-36"
+                    :dropUp="true"
+                    @change="
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('per_page', $event.detail);
+                        url.searchParams.delete('page');
+                        window.location.href = url.toString();
+                    "
+                />
+            </div>
+            
+            <div class="w-full sm:w-auto">
+                @if($announcements->hasPages())
+                    {{ $announcements->appends(request()->query())->links('vendor.pagination.shadcn') }}
+                @endif
+            </div>
         </div>
     @endif
 
     <!-- Bulk Archive Modal -->
+    @can('delete-announcements')
     <template x-teleport="body">
         <div x-show="showBulkModal" x-cloak class="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -494,5 +566,7 @@
             </div>
         </div>
     </template>
+    @endcan
+</div>
 </div>
 @endsection

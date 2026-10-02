@@ -27,33 +27,33 @@ class CleanupVitals extends Command
     {
         $today = \Carbon\Carbon::today();
 
-        // 1. Clean stale pre-triage records from PAST days that were left abandoned in 'waiting'
+        // 1. Archive stale pre-triage records from PAST days that were left abandoned in 'waiting'
         $pastCount = \App\Models\PreTriage::whereDate('created_at', '<', $today)
             ->where('status', 'waiting')
-            ->delete();
+            ->update(['status' => 'cancelled']);
 
         if ($pastCount > 0) {
-            $this->info("Cleaned up $pastCount abandoned waiting vitals entries from previous days.");
+            $this->info("Archived $pastCount abandoned waiting vitals entries as cancelled from previous days.");
             \App\Models\AuditLog::create([
-                'action' => 'EOD: Abandoned Vitals Cleanup (Past Days)',
+                'action' => 'EOD: Abandoned Vitals Archival (Past Days)',
                 'model_type' => \App\Models\PreTriage::class,
-                'changes' => ['deleted_count' => $pastCount],
+                'changes' => ['cancelled_count' => $pastCount],
                 'ip_address' => '127.0.0.1',
                 'user_agent' => 'System Scheduler',
             ]);
         }
 
-        // 2. Clean today's unfulfilled 'waiting' entries at end of day
+        // 2. Archive today's unfulfilled 'waiting' entries at end of day
         $todayCount = \App\Models\PreTriage::whereDate('created_at', $today)
             ->where('status', 'waiting')
-            ->delete();
+            ->update(['status' => 'cancelled']);
 
         if ($todayCount > 0) {
-            $this->info("Removed $todayCount unfulfilled waiting vitals entries from today.");
+            $this->info("Archived $todayCount unfulfilled waiting vitals entries as cancelled from today.");
             \App\Models\AuditLog::create([
-                'action' => 'End-of-Day Vitals Cleanup',
+                'action' => 'End-of-Day Vitals Archival',
                 'model_type' => \App\Models\PreTriage::class,
-                'changes' => ['deleted_count' => $todayCount],
+                'changes' => ['cancelled_count' => $todayCount],
                 'ip_address' => '127.0.0.1',
                 'user_agent' => 'System Scheduler',
             ]);

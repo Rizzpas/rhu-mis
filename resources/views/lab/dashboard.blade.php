@@ -705,7 +705,7 @@
 
                                                 <!-- Modal Body -->
                                                 <div class="p-6 space-y-5 flex-1 overflow-y-auto">
-                                                    <div id="lab-result-print-{{ $req->id }}">
+                                                    <div id="lab-result-print-{{ $req->id }}" class="bg-white text-slate-900 rounded-xl p-4 sm:p-6 shadow-xs border border-slate-200">
                                                         <x-print-layout 
                                                             :isFullPage="false"
                                                             title="Official Diagnostic Examination Report"
@@ -713,95 +713,11 @@
                                                             :period="$req->completed_at ? $req->completed_at->format('M d, Y') : now()->format('M d, Y')"
                                                             :generatedBy="($req->technician->name ?? auth()->user()->name) . ' — Medical Technologist'"
                                                         >
-                                                        <!-- Clinical Metadata Strip -->
-                                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-xs mb-4">
-                                                            <div>
-                                                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Completed Date</span>
-                                                                <span class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">{{ $req->completed_at ? $req->completed_at->format('M d, Y h:i A') : 'N/A' }}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Processed By</span>
-                                                                <span class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">{{ $req->technician->name ?? 'Technician' }}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Age / Sex</span>
-                                                                <span class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">{{ $req->consultation->patient->dob ? \Carbon\Carbon::parse($req->consultation->patient->dob)->age . 'y' : '—' }} / {{ $req->consultation->patient->sex ?? '—' }}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Order Ref</span>
-                                                                <span class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">ANC-{{ str_pad($req->id, 5, '0', STR_PAD_LEFT) }}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        @if($req->amended_at)
-                                                            <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl p-4 text-xs mb-4">
-                                                                <div class="flex items-center justify-between">
-                                                                    <p class="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
-                                                                        <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                                        Officially Amended Result
-                                                                    </p>
-                                                                    <span class="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">{{ $req->amended_at->format('M d, Y h:i A') }}</span>
-                                                                </div>
-                                                                <p class="text-amber-800 dark:text-amber-300 mt-1 font-medium"><strong>Reason:</strong> {{ $req->amendment_reason }}</p>
-                                                                <p class="text-amber-700 dark:text-amber-400 text-[11px] mt-0.5">Amended by {{ $req->amender->name ?? 'Staff' }}</p>
-                                                                
-                                                                @if($req->previous_result_data)
-                                                                    <button type="button" @click="showHistory = !showHistory" class="mt-2 text-[11px] font-bold text-amber-800 dark:text-amber-300 underline cursor-pointer print:hidden">
-                                                                        <span x-text="showHistory ? 'Hide Previous Values' : 'View Prior Unamended Values (Audit)'"></span>
-                                                                    </button>
-                                                                    <div x-show="showHistory" class="mt-2 p-3 bg-white/80 dark:bg-slate-900/80 rounded-xl border border-amber-200 dark:border-amber-900 space-y-1.5">
-                                                                        @foreach($req->previous_result_data as $pk => $pv)
-                                                                            <div class="flex justify-between text-[11px]">
-                                                                                <span class="text-slate-500 font-bold uppercase">{{ str_replace('_', ' ', $pk) }}:</span>
-                                                                                <span class="text-slate-700 dark:text-slate-300 font-mono">{{ $pv }}</span>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        @endif
-
-                                                        <!-- ═══════ READONLY RESULT TEMPLATE (Exact Same UI as Amend) ═══════ -->
-                                                        <div class="mb-4">
-                                                            @if($req->type === 'Laboratory')
-                                                                 @include('lab.partials.lab-form', ['req' => $req, 'readonly' => true])
-                                                            @else
-                                                                 @include('lab.partials.rad-form', ['req' => $req, 'readonly' => true])
-                                                            @endif
-                                                        </div>
-
-                                                        @if($req->result_file_path)
-                                                            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 mb-4 avoid-break">
-                                                                 <h5 class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Attached Diagnostic Scan / Image</h5>
-                                                                 @php
-                                                                     $ext = strtolower(pathinfo($req->result_file_path, PATHINFO_EXTENSION));
-                                                                     $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp']);
-                                                                 @endphp
-                                                                 @if($isImg)
-                                                                     <div class="mb-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 max-h-72 bg-slate-900 flex items-center justify-center">
-                                                                         <img src="{{ Storage::url($req->result_file_path) }}" alt="{{ $req->test_name }}" class="max-h-72 object-contain w-full">
-                                                                     </div>
-                                                                 @endif
-                                                                 <a href="{{ Storage::url($req->result_file_path) }}" target="_blank" class="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-3.5 py-2 rounded-xl border border-emerald-200 dark:border-emerald-800/50 transition print:hidden">
-                                                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                                                     Open Original Image / File in New Tab
-                                                                 </a>
-                                                            </div>
-                                                        @endif
-
-                                                        {{-- Official Diagnostic Signatures Block --}}
-                                                        <div class="rhu-signature-strip pt-4 border-t border-slate-200">
-                                                            <div class="rhu-signature-box">
-                                                                <div class="rhu-signature-line"></div>
-                                                                <div class="rhu-signature-name">{{ $req->technician->name ?? 'Medical Technologist' }}</div>
-                                                                <div class="rhu-signature-role">Lic. Medical Technologist / RadTech</div>
-                                                            </div>
-                                                            <div class="rhu-signature-box">
-                                                                <div class="rhu-signature-line"></div>
-                                                                <div class="rhu-signature-name">{{ $req->consultation->doctor->name ?? 'Medical Officer / Pathologist' }}</div>
-                                                                <div class="rhu-signature-role">Attending Physician / Pathologist</div>
-                                                            </div>
-                                                        </div>
+                                                            @include('partials.diagnostic-report-body', [
+                                                                'req' => $req,
+                                                                'patient' => $req->consultation->patient ?? null,
+                                                                'isLoopLast' => true
+                                                            ])
                                                         </x-print-layout>
                                                     </div>
                                                 </div>
@@ -813,10 +729,14 @@
                                                         <span>Amend Results</span>
                                                     </button>
                                                     <div class="flex items-center gap-2">
-                                                        <button type="button" onclick="window.printIsolated(document.getElementById('lab-result-print-{{ $req->id }}').innerHTML, { title: 'Diagnostic Report - {{ $req->test_name }}' })" class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+                                                        <button type="button" onclick="window.printIsolated(document.getElementById('lab-result-print-{{ $req->id }}').innerHTML, { title: 'Diagnostic Report - {{ $req->test_name }}' })" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer">
                                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                                                            <span>Print Report</span>
+                                                            <span>Fast Print Slip</span>
                                                         </button>
+                                                        <a href="{{ route('lab.ancillary.print', $req->id) }}" target="_blank" class="px-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-1.5 cursor-pointer" title="Open Full Screen Print Preview in New Tab">
+                                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                            <span class="hidden sm:inline">New Tab</span>
+                                                        </a>
                                                         <button type="button" @click="showResult = false" class="px-5 py-2 bg-slate-900 hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold text-xs rounded-xl transition cursor-pointer">
                                                             Close
                                                         </button>

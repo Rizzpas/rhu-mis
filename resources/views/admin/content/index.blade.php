@@ -971,11 +971,13 @@
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage public clinical departments, operating schedules, contact lines, and published services.</p>
                         </div>
                     </div>
+                    @can('manage-facilities')
                     <button type="button" @click="openAdd()"
                             class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                         <span>Add Facility Unit</span>
                     </button>
+                    @endcan
                 </div>
 
                 {{-- Modernized Facilities Table --}}
@@ -1047,11 +1049,13 @@
                                     </td>
                                     <td class="p-4 text-right">
                                         <div class="flex items-center justify-end gap-1.5">
+                                            @can('manage-facilities')
                                             <button type="button" @click="openEdit({{ json_encode($fUnit) }})" 
                                                     class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 border border-slate-200/70 dark:border-slate-700/70 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs" 
                                                     title="Edit Facility">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             </button>
+                                            @endcan
                                             <a href="{{ route('units.show', $fUnit->slug) }}" target="_blank" 
                                                class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-slate-200/70 dark:border-slate-700/70 hover:border-blue-300 transition-all cursor-pointer shadow-2xs" 
                                                title="View Public Unit Page">

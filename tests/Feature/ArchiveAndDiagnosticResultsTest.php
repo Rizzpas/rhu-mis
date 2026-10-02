@@ -171,7 +171,7 @@ class ArchiveAndDiagnosticResultsTest extends TestCase
         $response->assertSee('Staff Accounts');
     }
 
-    public function test_both_admin_and_super_admin_can_hard_delete_archived_records_and_files()
+    public function test_super_admin_can_hard_delete_archived_records_and_files()
     {
         Storage::fake('public');
         Storage::fake('uploads');
@@ -190,8 +190,8 @@ class ArchiveAndDiagnosticResultsTest extends TestCase
 
         $this->assertTrue(Storage::disk('public')->exists($dummyFilePath));
 
-        // Regular admin can hard delete
-        $response = $this->actingAs($this->admin)->delete(route('admin.archive.force-delete', [
+        // Super admin can hard delete
+        $response = $this->actingAs($this->superAdmin)->delete(route('admin.archive.force-delete', [
             'type' => 'ancillary',
             'id' => $ancillary->id,
         ]));
@@ -199,6 +199,26 @@ class ArchiveAndDiagnosticResultsTest extends TestCase
         $response->assertSessionHas('success');
         $this->assertDatabaseMissing('ancillary_requests', ['id' => $ancillary->id]);
         $this->assertFalse(Storage::disk('public')->exists($dummyFilePath));
+    }
+
+    public function test_regular_admin_cannot_hard_delete_archived_records()
+    {
+        $ancillary = AncillaryRequest::create([
+            'consultation_id' => $this->consultation->id,
+            'type' => 'Laboratory',
+            'test_name' => 'Archived Test Admin Cannot Purge',
+            'status' => 'Pending',
+            'archived_at' => now(),
+        ]);
+
+        // Regular admin is forbidden (403)
+        $response = $this->actingAs($this->admin)->delete(route('admin.archive.force-delete', [
+            'type' => 'ancillary',
+            'id' => $ancillary->id,
+        ]));
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('ancillary_requests', ['id' => $ancillary->id]);
     }
 
     public function test_super_admin_can_truncate_records_older_than_one_year()

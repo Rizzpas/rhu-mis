@@ -37,6 +37,17 @@
             text-transform: uppercase;
         }
 
+        header input[type="text"],
+        header input[type="search"],
+        .search-input {
+            text-transform: none !important;
+        }
+        header input[type="text"]::placeholder,
+        header input[type="search"]::placeholder,
+        .search-input::placeholder {
+            text-transform: none !important;
+        }
+
         /* Custom subtle scrollbar (matches Frontdesk portal) */
         ::-webkit-scrollbar {
             width: 6px;
@@ -218,34 +229,38 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <div class="print:overflow-visible flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
         <!-- Top bar -->
-        <header class="bg-emerald-600 dark:bg-emerald-800 shadow-md z-20 sticky top-0">
-            <div class="flex justify-between items-center px-4 sm:px-6 py-3.5 gap-4">
-                <div class="flex items-center gap-4 flex-1">
-                    <button @click="sidebarOpen = true" class="md:hidden text-white hover:bg-emerald-700 p-1.5 rounded-md transition-colors">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        <header class="print:hidden bg-emerald-600 dark:bg-emerald-800/95 sticky top-0 z-20 shadow-xs border-b border-emerald-500/20 dark:border-emerald-700/40 backdrop-blur-md transition-colors duration-200">
+            <div class="flex justify-between items-center px-4 sm:px-6 py-2.5 sm:py-3 min-h-[64px] gap-3 sm:gap-4">
+                <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                    <button @click="sidebarOpen = true"
+                        class="md:hidden text-white/90 hover:text-white hover:bg-white/10 dark:hover:bg-black/20 focus:outline-none p-2 rounded-xl transition-all active:scale-95 shrink-0"
+                        aria-label="Open sidebar menu">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                     
-                    <h1 class="text-xl font-bold text-white tracking-tight hidden sm:block whitespace-nowrap">
-                        @yield('header', 'Doctor Portal')
-                    </h1>
+                    <div class="flex items-center gap-2.5 min-w-0 shrink-0">
+                        <h1 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight truncate max-w-[150px] sm:max-w-xs md:max-w-sm lg:max-w-md flex items-center gap-2">
+                            @yield('header', 'Doctor Portal')
+                        </h1>
+                    </div>
 
-                    <!-- Search Bar -->
-                    <div class="relative w-full max-w-xl sm:ml-6 group"
+                    <!-- Intelligent Search Bar -->
+                    <div class="relative flex-1 max-w-md lg:max-w-xl mx-1 sm:mx-4 group"
                         x-data="{
                             searchQuery: '',
                             showResults: false,
                             links: [
                                 { name: 'Active Queue (Dashboard)', route: '{{ route('doctor.dashboard') }}', desc: 'Current assigned patients in queue', keywords: ['dashboard', 'home', 'overview', 'queue', 'patients', 'consultations', 'triage'] },
                                 { name: 'Waiting for Results', route: '{{ route('doctor.waiting-results') }}', desc: 'Pending lab & radiology diagnostics', keywords: ['waiting', 'results', 'lab', 'radiology', 'xray', 'ancillary', 'tests', 'laboratory'] },
-                                { name: 'Staff Profile & Duty Status', route: '{{ route('profile.edit') }}', desc: 'Account settings, duty toggle, password', keywords: ['settings', 'profile', 'status', 'duty', 'online', 'offline', 'occupied', 'account'] },
+                                { name: 'Staff Profile & Duty Status', route: '{{ route('profile.edit') }}', desc: 'Account settings, duty toggle, password', keywords: ['settings', 'profile', 'status', 'duty', 'online', 'offline', 'occupied', 'account'] }
                             ],
                             get filteredLinks() {
                                 if (this.searchQuery.trim() === '') return [];
                                 const query = this.searchQuery.toLowerCase().trim();
                                 return this.links.filter(link => {
-                                    return link.name.toLowerCase().includes(query) || link.keywords.some(k => k.includes(query));
+                                    return link.name.toLowerCase().includes(query) || (link.desc && link.desc.toLowerCase().includes(query)) || link.keywords.some(k => k.includes(query));
                                 });
                             },
                             triggerSearch() {
@@ -258,55 +273,60 @@
                             }
                         }"
                         @click.away="showResults = false">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="h-4 w-4 text-emerald-800/70 dark:text-emerald-300/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-800/60 dark:text-emerald-300/70">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                         <input type="text" 
                                x-model="searchQuery" 
-                               @input="triggerSearch()"
+                               @input="triggerSearch(); showResults = true"
                                @focus="showResults = true" 
-                               @keydown.escape="showResults = false" 
+                               @click="showResults = true"
+                               @keydown.escape.stop="showResults = false; $el.blur()" 
                                placeholder="Search queue, patients, or shortcuts..." 
-                               class="no-uppercase w-full pl-10 pr-9 py-2 bg-white/95 dark:bg-slate-900/90 rounded-full border-0 shadow-inner focus:ring-2 focus:ring-white/40 dark:focus:ring-emerald-500/40 focus:outline-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 dark:text-slate-100 dark:placeholder-slate-400 transition-all"
-                               style="text-transform: none !important;">
+                               class="no-uppercase w-full pl-9 pr-9 py-2 bg-white/95 hover:bg-white focus:bg-white dark:bg-slate-900/90 dark:hover:bg-slate-900 dark:focus:bg-slate-900 rounded-full border border-emerald-400/30 dark:border-emerald-700/50 shadow-inner focus:ring-2 focus:ring-white/40 dark:focus:ring-emerald-500/40 focus:outline-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 dark:text-slate-100 dark:placeholder-slate-400 transition-all"
+                               style="text-transform: none !important;"
+                               autocomplete="off"
+                               spellcheck="false">
                         
                         <!-- Clear Search Button -->
                         <button type="button" 
                                 x-show="searchQuery.length > 0" 
                                 @click="clearSearch()"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors"
+                                aria-label="Clear search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                         
                         <!-- Search Dropdown -->
-                        <div x-show="showResults && searchQuery.length > 0" 
-                             x-transition:enter="transition ease-out duration-100"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
+                        <div x-show="showResults && searchQuery.trim().length > 0" 
+                             x-transition:enter="transition ease-out duration-75"
+                             x-transition:enter-start="opacity-0 scale-98"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-50"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-98"
                              style="display: none;" 
-                             class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden top-full left-0 py-2">
-                            <div class="px-3 pb-2 pt-1 border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                             class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 overflow-hidden top-full left-0 py-2">
+                            <div class="px-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
                                 <span>Quick Navigation</span>
-                                <span class="text-emerald-700 dark:text-emerald-400 font-semibold lowercase">filtering on-screen list</span>
+                                <button type="button" @click="showResults = false" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold lowercase text-[10px] cursor-pointer">Press Esc to close</button>
                             </div>
 
                             <template x-if="filteredLinks.length > 0">
-                                <ul class="max-h-64 overflow-y-auto custom-scrollbar">
+                                <ul class="max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-50 dark:divide-slate-800/40">
                                     <template x-for="link in filteredLinks" :key="link.name">
                                         <li>
-                                            <a :href="link.route" class="block px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800/80 text-sm transition-colors group/item">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover/item:scale-105 transition-transform shrink-0">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                                                    </div>
-                                                    <div class="min-w-0">
-                                                        <span class="font-bold text-slate-800 dark:text-white text-xs sm:text-sm" x-text="link.name"></span>
-                                                        <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="link.desc"></span>
-                                                    </div>
+                                            <a :href="link.route" class="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800/80 text-sm transition-colors group/item">
+                                                <div class="p-1.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover/item:scale-105 transition-transform shrink-0">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <span class="font-bold text-slate-800 dark:text-white text-xs sm:text-sm block truncate" x-text="link.name"></span>
+                                                    <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="link.desc || 'Quick navigation shortcut'"></span>
                                                 </div>
                                             </a>
                                         </li>
@@ -315,28 +335,54 @@
                             </template>
 
                             <template x-if="filteredLinks.length === 0">
-                                <div class="px-4 py-4 text-center">
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Filtering current page queue for "<span class="font-bold text-slate-900 dark:text-white" x-text="searchQuery"></span>"</p>
-                                    <p class="text-[10px] text-slate-400 mt-1">Check matching patient cards below</p>
+                                <div class="px-5 py-6 text-center">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center mb-2.5">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">No navigation shortcuts</p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Filtering on-screen clinical queue for "<span class="font-medium text-slate-700 dark:text-slate-300" x-text="searchQuery"></span>"</p>
                                 </div>
                             </template>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                     <!-- Theme Toggle -->
                     @include('partials.theme-toggle')
-                    <span class="text-xs text-emerald-100 hidden lg:block">{{ now()->format('l, F j, Y') }}</span>
+
+                    <!-- Live Date Badge -->
+                    <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 dark:bg-emerald-950/40 border border-white/15 dark:border-emerald-700/30 text-xs font-semibold text-emerald-50">
+                        <svg class="w-3.5 h-3.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>{{ now()->format('l, F j, Y') }}</span>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            @include('partials.toast')
-            @yield('content')
-            <footer class="mt-12 border-t border-gray-200 dark:border-gray-700 pt-6 text-center text-sm text-gray-500 dark:text-gray-400 pb-6">
-                <p>&copy; {{ date('Y') }} Rural Health Unit Doctor Portal. All rights reserved.</p>
+        <main class="print:overflow-visible print:p-0 flex-1 overflow-y-auto flex flex-col p-4 sm:p-6 lg:p-8 custom-scrollbar bg-slate-100/90 dark:bg-slate-900/95 transition-colors duration-200">
+            <div class="flex-1 w-full max-w-7xl mx-auto flex flex-col">
+                @include('partials.toast')
+                @yield('content')
+            </div>
+
+            <!-- Modern Unified Doctor Footer -->
+            <footer class="mt-auto pt-8 pb-4 border-t border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                <div class="w-full max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+                    <p>&copy; {{ date('Y') }} Rural Health Unit &ndash; Silang. Doctor Clinical Portal. All rights reserved.</p>
+                    <div class="flex items-center gap-4 text-xs">
+                        <a href="{{ route('doctor.dashboard') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Queue Board</a>
+                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                        <a href="{{ route('doctor.waiting-results') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Diagnostics Tracker</a>
+                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                        <span class="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Clinical Session Active
+                        </span>
+                    </div>
+                </div>
             </footer>
         </main>
     </div>
@@ -407,44 +453,100 @@
     @include('partials.idle-timeout')
     @include('partials.heartbeat')
 
-    <!-- Dynamic SPA & Polling Script -->
+    <!-- Dynamic SPA & Polling Engine -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const dynamicBlocks = document.querySelectorAll('[data-dynamic-block="true"]');
-            
-            if (dynamicBlocks.length > 0) {
-                setInterval(async () => {
-                    // Prevent DOM replacement if the user is interacting with an input or has a modal open
-                    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
-                    if (['input', 'textarea', 'select'].includes(activeTag)) return;
-                    
-                    // Check for open modals (Alpine sets display: none when closed)
-                    const openModals = Array.from(document.querySelectorAll('div[role="dialog"]')).filter(el => window.getComputedStyle(el).display !== 'none');
-                    if (openModals.length > 0) return;
+            let isPollingActive = false;
 
-                    try {
-                        const url = new URL(window.location.href);
-                        url.searchParams.append('polling', '1');
-                        
-                        const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                        if (!response.ok) return;
-                        const html = await response.text();
-                        const doc = new DOMParser().parseFromString(html, 'text/html');
-                        
-                        dynamicBlocks.forEach(block => {
-                            if (block.id) {
-                                const newBlock = doc.getElementById(block.id);
-                                if (newBlock) {
-                                    block.innerHTML = newBlock.innerHTML;
-                                    if (window.Alpine) {
-                                        Alpine.initTree(block);
-                                    }
+            async function refreshDynamicBlocks() {
+                if (isPollingActive) return;
+
+                const dynamicBlocks = document.querySelectorAll('[data-dynamic-block="true"]');
+                if (dynamicBlocks.length === 0) return;
+
+                // Don't refresh if a modal dialog is currently visible
+                const openModals = Array.from(document.querySelectorAll('div[role="dialog"]')).filter(el => window.getComputedStyle(el).display !== 'none');
+                if (openModals.length > 0) return;
+
+                isPollingActive = true;
+
+                try {
+                    const url = new URL(window.location.pathname, window.location.origin);
+                    url.search = window.location.search;
+                    url.searchParams.set('polling', '1');
+                    url.searchParams.set('_t', Date.now().toString());
+
+                    const response = await fetch(url.toString(), {
+                        cache: 'no-store',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        isPollingActive = false;
+                        return;
+                    }
+
+                    const html = await response.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    dynamicBlocks.forEach(block => {
+                        if (!block.id) return;
+
+                        // CRITICAL: NEVER overwrite a block if the user has a focused input INSIDE that specific block
+                        if (block.contains(document.activeElement)) return;
+
+                        const newBlock = doc.getElementById(block.id);
+                        if (!newBlock) return;
+
+                        const oldText = block.innerHTML.trim();
+                        const newText = newBlock.innerHTML.trim();
+
+                        if (oldText !== newText) {
+                            // If this is the ancillary section in a consultation, check if newly completed tests arrived!
+                            if (block.id === 'consultation-ancillary-section') {
+                                const oldCompleted = (oldText.match(/Completed/g) || []).length;
+                                const newCompleted = (newText.match(/Completed/g) || []).length;
+                                const isNewlyCompleted = newCompleted > oldCompleted;
+
+                                block.innerHTML = newBlock.innerHTML;
+                                if (window.Alpine) {
+                                    Alpine.initTree(block);
+                                }
+
+                                if (isNewlyCompleted) {
+                                    window.dispatchEvent(new CustomEvent('add-toast', {
+                                        detail: {
+                                            message: 'Diagnostic findings updated! New laboratory / radiology results are now ready.',
+                                            type: 'success'
+                                        }
+                                    }));
+                                }
+                            } else {
+                                block.innerHTML = newBlock.innerHTML;
+                                if (window.Alpine) {
+                                    Alpine.initTree(block);
                                 }
                             }
-                        });
-                    } catch (error) {}
-                }, 15000);
+                        }
+                    });
+                } catch (error) {
+                    console.debug('Dynamic block background poll error:', error);
+                } finally {
+                    isPollingActive = false;
+                }
             }
+
+            // Consultation pages poll every 3.5s for real-time responsiveness; dashboard pages poll every 5s
+            const isConsultation = window.location.pathname.includes('/consultation/');
+            const pollInterval = isConsultation ? 3500 : 5000;
+            setInterval(refreshDynamicBlocks, pollInterval);
+
+            // Instant trigger on custom event / WebSocket update
+            window.addEventListener('refresh-dynamic-blocks', refreshDynamicBlocks);
         });
     </script>
     

@@ -143,9 +143,8 @@ class LabRadiologyDashboardTest extends TestCase
         $response = $this->actingAs($this->labUser)->get(route('lab.dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Verified Result');
-        $response->assertSee('Complete Blood Count (CBC) with Differential');
-        $response->assertSee('Verified Hematology Report');
+        $response->assertSee('Complete Blood Count (CBC)');
+        $response->assertSee('Department of Pathology');
         // Check for readonly rendered values
         $response->assertSee('7.20');
         $response->assertSee('138.0');
@@ -174,8 +173,8 @@ class LabRadiologyDashboardTest extends TestCase
         $response = $this->actingAs($this->radUser)->get(route('lab.dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Radiology / Imaging Report');
-        $response->assertSee('Verified Imaging Record');
+        $response->assertSee('Official Radiographic Examination Report');
+        $response->assertSee('Verified Radiograph');
         $response->assertSee('Chest PA (Standard)');
         $response->assertSee('Both lung fields are clear');
         $response->assertSee('NORMAL CHEST RADIOGRAPH');
@@ -222,9 +221,8 @@ class LabRadiologyDashboardTest extends TestCase
         // Check dashboard view of amended result
         $viewResponse = $this->actingAs($this->labUser)->get(route('lab.dashboard'));
         $viewResponse->assertStatus(200);
-        $viewResponse->assertSee('Officially Amended Result');
+        $viewResponse->assertSee('Officially Amended Diagnostic Result');
         $viewResponse->assertSee('Platelet rerun confirmed count is 220 instead of 140.');
-        $viewResponse->assertSee('View Prior Unamended Values (Audit)');
         $viewResponse->assertSee('220');
     }
 }

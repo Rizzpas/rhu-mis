@@ -367,6 +367,19 @@ class PublicController extends Controller
                 $dateString = $date->toDateString();
                 $dayShort = $date->format('D'); // "Mon", "Tue"
 
+                // Check holiday / clinic closure
+                $closureReason = null;
+                if (\App\Services\ClinicScheduleService::isClinicClosed($date, $closureReason)) {
+                    $result[$dateString] = [
+                        'booked' => 0,
+                        'capacity' => 0,
+                        'available' => 0,
+                        'is_closed' => true,
+                        'closed_reason' => $closureReason,
+                    ];
+                    continue;
+                }
+
                 $capacity = 0;
                 // Check if any pedia doctor is scheduled for this day
                 foreach ($pediaDoctors as $doctor) {
@@ -382,6 +395,7 @@ class PublicController extends Controller
                     'booked' => $booked,
                     'capacity' => $capacity,
                     'available' => max(0, $capacity - $booked),
+                    'is_closed' => false,
                 ];
             }
         }
@@ -400,6 +414,11 @@ class PublicController extends Controller
         $dayShort = $date->format('D'); // "Mon", "Tue", etc.
         $type = $request->input('type', 'pedia');
         $doctorId = $request->input('doctor_id'); // For follow-ups
+
+        $closureReason = null;
+        if (\App\Services\ClinicScheduleService::isClinicClosed($date, $closureReason)) {
+            return response()->json(['slots' => [], 'message' => "The clinic is closed on {$date->format('F d, Y')} ({$closureReason})."]);
+        }
 
         $schedules = collect();
 
@@ -577,7 +596,18 @@ class PublicController extends Controller
             'mothers_maiden_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\.\-ñÑ]+$/'],
             'classification' => 'nullable|string|in:Pediatric,Regular Adult,Senior Citizen,PWD',
             'type' => 'required|in:pedia,adult',
-            'preferred_date' => 'required|date',
+            'preferred_date' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                function ($attribute, $value, $fail) {
+                    $date = \Carbon\Carbon::parse($value);
+                    $closureReason = null;
+                    if (\App\Services\ClinicScheduleService::isClinicClosed($date, $closureReason)) {
+                        $fail("The clinic is closed on {$date->format('F d, Y')} ({$closureReason}). Please select an operating clinic day.");
+                    }
+                },
+            ],
             'preferred_time' => 'required|string|max:30',
             'complaint' => 'required|string|max:1000',
             'data_privacy_agreed' => 'accepted',
@@ -865,6 +895,11 @@ class PublicController extends Controller
 
     public function loginAppointment(Request $request)
     {
+        $request->merge([
+            'reference_number' => strtoupper(trim((string) $request->reference_number)),
+            'email' => strtolower(trim((string) $request->email)),
+        ]);
+
         $request->validate([
             'reference_number' => 'required|string|exists:appointments,reference_number',
             'email' => 'required|email',
@@ -929,20 +964,43 @@ class PublicController extends Controller
         }
 
         $request->validate([
-            'new_date' => 'required|date',
+            'new_date' => 'required|date|after_or_equal:today',
             'new_time' => 'required|string',
         ]);
+
+        $rescheduleDate = \Carbon\Carbon::parse($request->new_date);
+        $rescheduleClosureReason = null;
+        if (\App\Services\ClinicScheduleService::isClinicClosed($rescheduleDate, $rescheduleClosureReason)) {
+            return back()->withErrors([
+                'new_date' => "The clinic is closed on {$rescheduleDate->format('F d, Y')} ({$rescheduleClosureReason}). Please choose an operating clinic day.",
+            ]);
+        }
 
         $appointment = Appointment::findOrFail(session('manage_appointment_id'));
         $isFollowUp = $appointment->type === 'adult' || $appointment->is_follow_up;
 
         // Enforce Pedia Capacity
         if (! $isFollowUp && $appointment->type === 'pedia') {
-            $capacity = \App\Models\Capacity::where('date', $request->new_date)->value('capacity') ?? 20;
+            $date = \Carbon\Carbon::parse($request->new_date);
+            $dayShort = $date->format('D'); // "Mon", "Tue", etc.
+
+            // Check if any pedia doctor has a working schedule on this day of week
+            $hasPediaDoctor = \App\Models\User::where('role', 'pedia_doctor')
+                ->whereHas('practitionerSchedules', function ($q) use ($dayShort) {
+                    $q->where('day_of_week', $dayShort);
+                })
+                ->exists();
+
+            $capacity = $hasPediaDoctor ? 20 : 0;
+
+            if ($capacity === 0) {
+                return back()->withErrors(['new_date' => 'No pediatric doctor is scheduled on this day. Please choose another date.']);
+            }
 
             $booked = Appointment::where('preferred_date', $request->new_date)
                 ->where('type', 'pedia')
                 ->where('is_follow_up', false)
+                ->where('id', '!=', $appointment->id)
                 ->whereIn('status', ['pending', 'approved', 'rescheduled'])
                 ->count();
 
