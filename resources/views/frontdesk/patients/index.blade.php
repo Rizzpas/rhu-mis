@@ -6,17 +6,8 @@
 @section('content')
 <div class="max-w-7xl mx-auto space-y-6 pb-12" x-data="{
     loading: false,
-    async submitForm() {
+    async fetchUrl(url) {
         this.loading = true;
-        const form = this.$refs.filterForm;
-        const url = new URL(form.action);
-        const formData = new FormData(form);
-        formData.forEach((value, key) => {
-            if (value !== '') {
-                url.searchParams.append(key, value);
-            }
-        });
-        
         try {
             const response = await fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -34,6 +25,24 @@
             window.location.href = url.toString();
         } finally {
             this.loading = false;
+        }
+    },
+    async submitForm() {
+        const form = this.$refs.filterForm;
+        const url = new URL(form.action);
+        const formData = new FormData(form);
+        formData.forEach((value, key) => {
+            if (value !== '') {
+                url.searchParams.append(key, value);
+            }
+        });
+        await this.fetchUrl(url.toString());
+    },
+    handlePaginationClick(e) {
+        const link = e.target.closest('a[data-page-link]');
+        if (link && link.href) {
+            e.preventDefault();
+            this.fetchUrl(link.href);
         }
     },
     clearFilters() {
@@ -317,7 +326,7 @@
             <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400">Updating records...</span>
         </div>
 
-        <div id="patient-table-contents">
+        <div id="patient-table-contents" @click="handlePaginationClick($event)">
             <div class="overflow-x-auto max-w-full">
                 <table class="w-full text-left border-collapse table-auto md:table-fixed">
                     <thead>
@@ -397,12 +406,22 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
-            @if($patients->hasPages())
-            <div class="p-4 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/60 flex justify-center">
-                {{ $patients->links('vendor.pagination.shadcn') }}
+            <!-- Pagination Controls -->
+            <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    Showing 
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $patients->firstItem() ?? ($patients->count() > 0 ? 1 : 0) }}</span>
+                    to 
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $patients->lastItem() ?? $patients->count() }}</span>
+                    of 
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $patients->total() }}</span>
+                    records
+                </div>
+
+                <div>
+                    {{ $patients->appends(request()->query())->links('vendor.pagination.custom') }}
+                </div>
             </div>
-            @endif
         </div>
     </div>
 </div>

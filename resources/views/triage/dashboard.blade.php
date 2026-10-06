@@ -187,7 +187,7 @@
 
         {{-- LEFT COLUMN: Vitals Assessment & Input Form (Cols 1-7) --}}
         <div class="lg:col-span-7">
-            <div class="rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden"
+            <div class="rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-slate-800 shadow-sm relative"
                  @triage-cancel.window="cancelQueue($event.detail)" 
                  @triage-restore.window="restoreQueue($event.detail)"
                  @triage-arrived.window="
@@ -685,6 +685,12 @@
                                         </label>
                                         <div class="grid grid-cols-4 gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
                                             <button type="button" 
+                                                    @click="classification = 'Pediatric'"
+                                                    :class="classification === 'Pediatric' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
+                                                    class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
+                                                Pedia
+                                            </button>
+                                            <button type="button" 
                                                     @click="classification = 'Adult'"
                                                     :class="classification === 'Adult' ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
                                                     class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
@@ -695,12 +701,6 @@
                                                     :class="classification === 'Senior' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
                                                     class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
                                                 Senior
-                                            </button>
-                                            <button type="button" 
-                                                    @click="classification = 'Pediatric'"
-                                                    :class="classification === 'Pediatric' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
-                                                    class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
-                                                Pedia
                                             </button>
                                             <button type="button" 
                                                     @click="classification = 'PWD'"
@@ -716,78 +716,294 @@
                                     <div x-show="isNew" 
                                          x-data="{
                                             showDatepicker: false,
+                                            showMonthPicker: false,
+                                            showYearPicker: false,
+                                            yearSearch: '',
+                                            allYears: Array.from({length: 120}, (_, i) => new Date().getFullYear() - i),
+                                            get filteredYears() {
+                                                if (!this.yearSearch || !this.yearSearch.trim()) return this.allYears;
+                                                return this.allYears.filter(y => String(y).includes(this.yearSearch.trim()));
+                                            },
                                             currentDate: new Date(),
                                             dobValue: '',
                                             monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-                                            get daysInMonth() { return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate(); },
-                                            get startDay() { return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay(); },
-                                            setMonth(monthIndex) { this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, 1); },
-                                            setYear(year) { this.currentDate = new Date(year, this.currentDate.getMonth(), 1); },
+                                            get daysInMonth() { 
+                                                return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate(); 
+                                            },
+                                            get startDay() { 
+                                                return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay(); 
+                                            },
+                                            setMonth(monthIndex) { 
+                                                this.currentDate = new Date(this.currentDate.getFullYear(), parseInt(monthIndex, 10), 1); 
+                                                this.showMonthPicker = false;
+                                            },
+                                            setYear(year) { 
+                                                this.currentDate = new Date(parseInt(year, 10), this.currentDate.getMonth(), 1); 
+                                                this.showYearPicker = false;
+                                                this.yearSearch = '';
+                                            },
+                                            prevMonth() {
+                                                this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+                                                this.showMonthPicker = false;
+                                                this.showYearPicker = false;
+                                            },
+                                            nextMonth() {
+                                                this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+                                                this.showMonthPicker = false;
+                                                this.showYearPicker = false;
+                                            },
                                             isFutureDate(day) {
                                                 let dateToCheck = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                                let today = new Date(); today.setHours(0,0,0,0);
+                                                let today = new Date(); 
+                                                today.setHours(0,0,0,0);
                                                 return dateToCheck > today;
                                             },
                                             selectDate(day) {
                                                 if (this.isFutureDate(day)) return;
-                                                let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                                let offset = date.getTimezoneOffset();
-                                                date = new Date(date.getTime() - (offset*60*1000));
-                                                this.dobValue = date.toISOString().split('T')[0];
+                                                const y = this.currentDate.getFullYear();
+                                                const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                                const d = String(day).padStart(2, '0');
+                                                this.dobValue = `${y}-${m}-${d}`;
                                                 this.showDatepicker = false;
+                                                this.showMonthPicker = false;
+                                                this.showYearPicker = false;
+                                                this.autoUpdateClassification(this.dobValue);
                                             },
                                             isSelected(day) {
-                                                if(!this.dobValue) return false;
-                                                let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                                let offset = date.getTimezoneOffset();
-                                                date = new Date(date.getTime() - (offset*60*1000));
-                                                return this.dobValue === date.toISOString().split('T')[0];
+                                                if (!this.dobValue) return false;
+                                                const y = this.currentDate.getFullYear();
+                                                const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                                const d = String(day).padStart(2, '0');
+                                                return this.dobValue === `${y}-${m}-${d}`;
+                                            },
+                                            autoUpdateClassification(dateStr) {
+                                                if (!dateStr || classification === 'PWD') return;
+                                                const birthDate = new Date(dateStr);
+                                                if (isNaN(birthDate.getTime())) return;
+                                                const today = new Date();
+                                                let age = today.getFullYear() - birthDate.getFullYear();
+                                                const m = today.getMonth() - birthDate.getMonth();
+                                                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                                                    age--;
+                                                }
+                                                if (age < 18) {
+                                                    classification = 'Pediatric';
+                                                } else if (age >= 60) {
+                                                    classification = 'Senior';
+                                                } else {
+                                                    classification = 'Adult';
+                                                }
+                                            },
+                                            init() {
+                                                if (this.dobValue) {
+                                                    const d = new Date(this.dobValue);
+                                                    if (!isNaN(d.getTime())) {
+                                                        this.currentDate = d;
+                                                    }
+                                                }
+                                                this.$watch('dobValue', (val) => {
+                                                    if (val) {
+                                                        const d = new Date(val);
+                                                        if (!isNaN(d.getTime())) {
+                                                            this.currentDate = d;
+                                                        }
+                                                        this.autoUpdateClassification(val);
+                                                    }
+                                                });
                                             }
-                                         }" class="relative">
+                                         }" 
+                                         class="relative" 
+                                         :class="showDatepicker ? 'z-40' : 'z-10'">
                                         <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5">
                                             Date of Birth <span class="text-rose-500">*</span>
                                         </label>
                                         <input type="hidden" name="dob" x-model="dobValue" :required="isNew">
                                         
-                                        <div @click="showDatepicker = !showDatepicker"
-                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs sm:text-sm cursor-pointer flex justify-between items-center transition"
-                                             :class="showDatepicker ? 'ring-2 ring-emerald-500/20 border-emerald-500' : ''">
-                                            <span x-text="dobValue ? dobValue : 'YYYY-MM-DD'" :class="dobValue ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400'"></span>
-                                            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <div @click="showDatepicker = !showDatepicker; showMonthPicker = false; showYearPicker = false;"
+                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs sm:text-sm cursor-pointer flex justify-between items-center transition-all shadow-2xs"
+                                             :class="showDatepicker ? 'ring-2 ring-emerald-500/20 border-emerald-500' : 'hover:border-slate-300 dark:hover:border-slate-600'">
+                                            <span x-text="dobValue ? dobValue : 'YYYY-MM-DD'" 
+                                                  :class="dobValue ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500'"></span>
+                                            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
                                         </div>
 
-                                        {{-- Popup --}}
+                                        {{-- Custom Styled Datepicker Popover --}}
                                         <div x-show="showDatepicker" 
-                                             @click.away="showDatepicker = false" 
+                                             @click.away="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" 
                                              style="display: none;"
-                                             class="absolute z-50 mt-1 w-[290px] p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl right-0">
-                                            <div class="flex justify-between items-center mb-3 gap-2">
-                                                <select @change="setMonth($event.target.value)" class="flex-1 rounded-lg border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 dark:bg-slate-800 p-1">
-                                                    <template x-for="(month, index) in monthNames" :key="index">
-                                                        <option :value="index" x-text="month" :selected="index === currentDate.getMonth()"></option>
-                                                    </template>
-                                                </select>
-                                                <select @change="setYear($event.target.value)" class="flex-1 rounded-lg border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 dark:bg-slate-800 p-1">
-                                                    <template x-for="year in Array.from({length: 120}, (_, i) => new Date().getFullYear() - i)" :key="year">
-                                                        <option :value="year" x-text="year" :selected="year === currentDate.getFullYear()"></option>
-                                                    </template>
-                                                </select>
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                             x-transition:leave="transition ease-in duration-100"
+                                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                             class="absolute z-50 mt-1.5 w-[310px] sm:w-[320px] p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md right-0">
+                                            
+                                            <!-- Header: Month and Year Selectors -->
+                                            <div class="flex items-center justify-between mb-3.5 gap-1.5 relative">
+                                                <!-- Prev Month Arrow -->
+                                                <button type="button" 
+                                                        @click="prevMonth()" 
+                                                        class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition cursor-pointer"
+                                                        title="Previous Month">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Month & Year Custom Dropdowns -->
+                                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                                    <!-- Custom Month Dropdown -->
+                                                    <div class="relative w-3/5" @click.away="showMonthPicker = false">
+                                                        <button type="button" 
+                                                                @click="showMonthPicker = !showMonthPicker; showYearPicker = false"
+                                                                class="w-full flex items-center justify-between px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                                                :class="showMonthPicker 
+                                                                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                                    : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-750'">
+                                                            <span x-text="monthNames[currentDate.getMonth()]" class="truncate font-bold"></span>
+                                                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                                 :class="showMonthPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                            </svg>
+                                                        </button>
+
+                                                        <!-- Month Options Popover -->
+                                                        <div x-show="showMonthPicker" 
+                                                             x-transition:enter="transition ease-out duration-150"
+                                                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                             x-transition:leave="transition ease-in duration-100"
+                                                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                             class="absolute left-0 top-full mt-1.5 w-44 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-1.5 z-60 custom-scrollbar backdrop-blur-md"
+                                                             style="display: none;">
+                                                            <div class="space-y-0.5">
+                                                                <template x-for="(month, index) in monthNames" :key="index">
+                                                                    <button type="button" 
+                                                                            @click="setMonth(index)"
+                                                                            class="w-full px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-all text-left"
+                                                                            :class="currentDate.getMonth() === index 
+                                                                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
+                                                                                : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent'">
+                                                                        <span x-text="month"></span>
+                                                                        <svg x-show="currentDate.getMonth() === index" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Custom Year Dropdown -->
+                                                    <div class="relative w-2/5" @click.away="showYearPicker = false">
+                                                        <button type="button" 
+                                                                @click="showYearPicker = !showYearPicker; showMonthPicker = false; if (showYearPicker) { $nextTick(() => { $refs.triageYearSearchInput?.focus(); const active = $refs.triageYearList?.querySelector('[data-selected=true]'); if (active) active.scrollIntoView({ block: 'center' }); }); }"
+                                                                class="w-full flex items-center justify-between px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                                                :class="showYearPicker 
+                                                                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                                    : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-750'">
+                                                            <span x-text="currentDate.getFullYear()" class="truncate font-bold"></span>
+                                                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                                 :class="showYearPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                            </svg>
+                                                        </button>
+
+                                                        <!-- Year Options Popover -->
+                                                        <div x-show="showYearPicker" 
+                                                             x-transition:enter="transition ease-out duration-150"
+                                                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                             x-transition:leave="transition ease-in duration-100"
+                                                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                             class="absolute right-0 top-full mt-1.5 w-40 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-2 z-60 backdrop-blur-md"
+                                                             style="display: none;">
+                                                            
+                                                            <!-- Quick Year Search -->
+                                                            <div class="relative mb-1.5">
+                                                                <input type="text"
+                                                                       x-ref="triageYearSearchInput"
+                                                                       x-model="yearSearch"
+                                                                       placeholder="Type year..."
+                                                                       class="w-full pl-6 pr-2 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                                                                <svg class="w-3 h-3 text-slate-400 absolute left-1.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                                </svg>
+                                                            </div>
+
+                                                            <!-- Scrollable Years List -->
+                                                            <div x-ref="triageYearList" class="max-h-52 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
+                                                                <template x-for="year in filteredYears" :key="year">
+                                                                    <button type="button" 
+                                                                            @click="setYear(year)"
+                                                                            :data-selected="currentDate.getFullYear() === year ? 'true' : 'false'"
+                                                                            class="w-full px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-all text-left"
+                                                                            :class="currentDate.getFullYear() === year 
+                                                                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
+                                                                                : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent'">
+                                                                        <span x-text="year"></span>
+                                                                        <svg x-show="currentDate.getFullYear() === year" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </template>
+                                                                <div x-show="filteredYears.length === 0" class="py-2 text-center text-[11px] text-slate-400 font-medium">
+                                                                    No matching year
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Next Month Arrow -->
+                                                <button type="button" 
+                                                        @click="nextMonth()" 
+                                                        class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition cursor-pointer"
+                                                        title="Next Month">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </button>
                                             </div>
-                                            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-1">
+
+                                            <!-- Calendar Weekdays -->
+                                            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-1.5">
                                                 <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
                                             </div>
+
+                                            <!-- Calendar Grid -->
                                             <div class="grid grid-cols-7 gap-1">
-                                                <template x-for="blank in startDay"><div class="p-1"></div></template>
+                                                <template x-for="blank in startDay">
+                                                    <div class="p-1"></div>
+                                                </template>
                                                 <template x-for="day in daysInMonth" :key="day">
                                                     <div @click="selectDate(day)"
-                                                         class="w-7 h-7 flex items-center justify-center rounded-lg text-xs cursor-pointer transition-colors"
+                                                         class="h-7 w-7 sm:h-8 sm:w-8 mx-auto flex items-center justify-center rounded-xl text-xs font-semibold cursor-pointer transition-all"
                                                          :class="{
                                                             'bg-emerald-600 text-white font-bold shadow-xs': isSelected(day),
-                                                            'hover:bg-emerald-100 dark:hover:bg-emerald-950/60 text-slate-700 dark:text-slate-300': !isSelected(day) && !isFutureDate(day),
-                                                            'text-slate-300 dark:text-slate-700 cursor-not-allowed': isFutureDate(day)
-                                                         }" x-text="day">
+                                                            'hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-700 dark:hover:text-emerald-300 text-slate-700 dark:text-slate-300': !isSelected(day) && !isFutureDate(day),
+                                                            'text-slate-300 dark:text-slate-600 cursor-not-allowed': isFutureDate(day)
+                                                         }">
+                                                        <span x-text="day"></span>
                                                     </div>
                                                 </template>
+                                            </div>
+
+                                            <!-- Quick Footer Status -->
+                                            <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                                                <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500" x-text="dobValue ? 'Selected: ' + dobValue : 'No date selected'"></span>
+                                                <button type="button" 
+                                                        @click="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" 
+                                                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer">
+                                                    Done
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

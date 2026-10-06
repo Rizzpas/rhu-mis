@@ -743,7 +743,7 @@
                                             class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm border-gray-300 uppercase">
                                     </div>
                                     <div class="md:col-span-4">
-                                        <input type="text" x-model="street" placeholder="Street Name (Opt)"
+                                        <input type="text" x-model="street" placeholder="Street Name (Optional)"
                                             class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm border-gray-300 uppercase">
                                     </div>
                                     <div class="md:col-span-5">

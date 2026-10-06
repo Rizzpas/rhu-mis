@@ -1222,7 +1222,10 @@ class AdminController extends Controller
 
         if ($request->filled('q')) {
             $search = $request->q;
-            $query->where('name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
         if ($request->filled('role') && $request->role !== 'all') {
@@ -1245,8 +1248,27 @@ class AdminController extends Controller
             }
         }
 
-        $perPage = $request->input('per_page', 10);
-        $staff = $query->with('practitionerSchedules')->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [10, 20, 50])) {
+            $perPage = 10;
+        }
+
+        // Calculate total records and total pages
+        $total = (clone $query)->count();
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        // Validate the page number before using it in the query
+        $rawPage = $request->input('page', 1);
+        $page = filter_var($rawPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'default' => 1]]);
+        if ($page > $totalPages && $total > 0) {
+            $page = $totalPages;
+        }
+
+        // Server-side pagination using prepared statements, LIMIT and OFFSET
+        $staff = $query->with('practitionerSchedules')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
 
         return view('admin.staff.index', compact('staff'));
     }
@@ -1512,8 +1534,23 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        $perPage = $request->input('per_page', 10);
-        $announcements = $query->latest()->paginate($perPage)->withQueryString();
+        $perPage = 10;
+
+        // Calculate total records and total pages
+        $total = (clone $query)->count();
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        // Validate the page number before using it in the query
+        $rawPage = $request->input('page', 1);
+        $page = filter_var($rawPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'default' => 1]]);
+        if ($page > $totalPages && $total > 0) {
+            $page = $totalPages;
+        }
+
+        // Server-side pagination using prepared statements, LIMIT and OFFSET
+        $announcements = $query->latest()
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
 
         return view('admin.announcements.index', compact('announcements'));
     }
@@ -1914,8 +1951,8 @@ class AdminController extends Controller
 
     public function updateStaff(Request $request, \App\Models\User $user)
     {
-        // Prevent regular admin from editing admin or super_admin accounts
-        if (in_array($user->role, ['admin', 'super_admin'])) {
+        // Prevent regular admin from editing other admin or super_admin accounts
+        if (in_array($user->role, ['admin', 'super_admin']) && $user->id !== auth()->id()) {
             \Illuminate\Support\Facades\Gate::authorize('manage-admins');
         }
 
@@ -2118,7 +2155,26 @@ class AdminController extends Controller
             $query->where('classification', $request->classification);
         }
 
-        $patients = $query->withCount('consultations')->orderBy('last_name', 'asc')->orderBy('first_name', 'asc')->orderBy('created_at', 'desc')->paginate(15);
+        $perPage = 10;
+
+        // Calculate total records and total pages
+        $total = (clone $query)->count();
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        // Validate the page number before using it in the query
+        $rawPage = $request->input('page', 1);
+        $page = filter_var($rawPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'default' => 1]]);
+        if ($page > $totalPages && $total > 0) {
+            $page = $totalPages;
+        }
+
+        // Server-side pagination using prepared statements, LIMIT and OFFSET
+        $patients = $query->withCount('consultations')
+            ->orderBy('last_name', 'asc')
+            ->orderBy('first_name', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
 
         AuditLog::record('Viewed Patient Master List');
 
@@ -2235,6 +2291,63 @@ class AdminController extends Controller
         \App\Models\User::whereIn('id', $ids)->delete();
 
         return back()->with('success', count($ids).' staff members archived successfully!');
+    }
+
+    public function bulkUpdateStaffStatus(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id',
+            'status' => 'required|string|in:Online,Offline,Occupied',
+        ]);
+
+        $normalizedStatus = match(strtolower($request->status)) {
+            'online', 'present', 'active' => 'Online',
+            'offline', 'unavailable', 'out of office' => 'Offline',
+            'occupied', 'seminar', 'in meeting' => 'Occupied',
+            default => $request->status
+        };
+
+        $updateData = ['status' => $normalizedStatus];
+
+        // Set schedule_override to track manual status changes
+        if ($normalizedStatus === 'Offline') {
+            $updateData['schedule_override'] = 'manual_offline';
+            $updateData['last_activity_at'] = null;
+        } elseif ($normalizedStatus === 'Online') {
+            $updateData['schedule_override'] = 'manual_online';
+            $updateData['last_activity_at'] = now();
+        } else {
+            // Occupied
+            $updateData['schedule_override'] = 'manual_online';
+            $updateData['last_activity_at'] = now();
+        }
+
+        \App\Models\User::whereIn('id', $request->ids)->update($updateData);
+
+        return back()->with('success', count($request->ids)." staff members set to {$normalizedStatus} successfully!");
+    }
+
+    public function bulkPromoteStaff(Request $request)
+    {
+        \Illuminate\Support\Facades\Gate::authorize('promote-admin');
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id',
+        ]);
+
+        $promotableRoles = ['regular_doctor', 'pedia_doctor', 'laboratory', 'radiology', 'clinical_nurse', 'vitals_nurse', 'information_desk', 'pharmacy'];
+
+        $promoted = \App\Models\User::whereIn('id', $request->ids)
+            ->whereIn('role', $promotableRoles)
+            ->update(['role' => 'admin']);
+
+        if ($promoted === 0) {
+            return back()->with('error', 'No eligible staff members found for promotion. Users who are already Admins or Super Admins cannot be promoted again.');
+        }
+
+        return back()->with('success', "{$promoted} staff member(s) promoted to Administrator successfully!");
     }
 
     public function bulkDeleteRetention(Request $request)

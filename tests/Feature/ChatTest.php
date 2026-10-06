@@ -5,13 +5,10 @@ namespace Tests\Feature;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class ChatTest extends TestCase
 {
-    use DatabaseTransactions;
-
     protected $connection = 'mysql';
 
     protected User $userA;
@@ -28,28 +25,33 @@ class ChatTest extends TestCase
         ]);
         \Illuminate\Support\Facades\DB::purge('mysql');
         \Illuminate\Support\Facades\DB::reconnect('mysql');
+        \Illuminate\Support\Facades\DB::beginTransaction();
 
-        // Use existing seeded staff users or create temporary ones in transaction
-        $this->userA = User::where('role', 'super_admin')->first()
-            ?? User::create(['name' => 'Admin User', 'email' => 'admin_test@rhu.gov.ph', 'password' => bcrypt('password'), 'role' => 'admin']);
+        $this->userA = User::create([
+            'name' => 'Chat Test User A',
+            'email' => 'chat_a_' . uniqid() . '@rhu.gov.ph',
+            'password' => bcrypt('password'),
+            'role' => 'super_admin',
+        ]);
 
-        $this->userB = User::where('role', 'admin')->where('id', '!=', $this->userA->id)->first()
-            ?? User::create(['name' => 'Doctor User', 'email' => 'doctor_test@rhu.gov.ph', 'password' => bcrypt('password'), 'role' => 'doctor']);
+        $this->userB = User::create([
+            'name' => 'Chat Test User B',
+            'email' => 'chat_b_' . uniqid() . '@rhu.gov.ph',
+            'password' => bcrypt('password'),
+            'role' => 'regular_doctor',
+        ]);
 
-        $this->userC = User::whereIn('role', ['nurse', 'clinical_nurse', 'vitals_nurse'])->first()
-            ?? User::create([
-                'name' => 'Nurse User Test',
-                'email' => 'nurse_temp_' . uniqid() . '@rhu.gov.ph',
-                'password' => bcrypt('password'),
-                'role' => 'nurse',
-            ]);
+        $this->userC = User::create([
+            'name' => 'Chat Test User C',
+            'email' => 'chat_c_' . uniqid() . '@rhu.gov.ph',
+            'password' => bcrypt('password'),
+            'role' => 'clinical_nurse',
+        ]);
     }
 
     protected function tearDown(): void
     {
-        if (isset($this->userC) && str_starts_with($this->userC->email, 'nurse_temp_')) {
-            $this->userC->delete();
-        }
+        \Illuminate\Support\Facades\DB::rollBack();
         parent::tearDown();
     }
 

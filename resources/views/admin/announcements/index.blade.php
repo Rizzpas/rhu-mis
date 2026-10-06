@@ -482,38 +482,22 @@
         </table>
     </div>
 
-    <!-- Pagination Controls with Styled <option> Tags -->
-    @if($announcements->hasPages() || $announcements->total() > 10)
-        <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Items per page</label>
-                <x-select 
-                    :options="[
-                        '10' => '10 per page',
-                        '20' => '20 per page',
-                        '30' => '30 per page',
-                        '50' => '50 per page'
-                    ]" 
-                    :value="request('per_page', 10)"
-                    size="sm"
-                    containerClass="w-36"
-                    :dropUp="true"
-                    @change="
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('per_page', $event.detail);
-                        url.searchParams.delete('page');
-                        window.location.href = url.toString();
-                    "
-                />
-            </div>
-            
-            <div class="w-full sm:w-auto">
-                @if($announcements->hasPages())
-                    {{ $announcements->appends(request()->query())->links('vendor.pagination.shadcn') }}
-                @endif
-            </div>
+    <!-- Pagination Controls -->
+    <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+            Showing 
+            <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->firstItem() ?? ($announcements->count() > 0 ? 1 : 0) }}</span>
+            to 
+            <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->lastItem() ?? $announcements->count() }}</span>
+            of 
+            <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->total() }}</span>
+            announcements
         </div>
-    @endif
+        
+        <div>
+            {{ $announcements->appends(request()->query())->links('vendor.pagination.custom') }}
+        </div>
+    </div>
 
     <!-- Bulk Archive Modal -->
     @can('delete-announcements')

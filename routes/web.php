@@ -171,6 +171,8 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_
     Route::get('/staff', [AdminController::class, 'staffIndex'])->name('admin.staff.index');
     Route::post('/staff', [AdminController::class, 'storeStaff'])->name('admin.staff.store');
     Route::delete('/staff/bulk/delete', [AdminController::class, 'bulkDeleteStaff'])->name('admin.staff.bulk-delete')->middleware('can:delete-staff');
+    Route::post('/staff/bulk/status', [AdminController::class, 'bulkUpdateStaffStatus'])->name('admin.staff.bulk-status');
+    Route::post('/staff/bulk/promote', [AdminController::class, 'bulkPromoteStaff'])->name('admin.staff.bulk-promote')->middleware('can:promote-admin');
     Route::put('/staff/{user}', [AdminController::class, 'updateStaff'])->name('admin.staff.update');
     Route::delete('/staff/{user}', [AdminController::class, 'destroyStaff'])->name('admin.staff.destroy')->middleware('can:delete-staff');
     Route::post('/staff/{user}/status', [AdminController::class, 'updateStaffStatus'])->name('admin.staff.status');

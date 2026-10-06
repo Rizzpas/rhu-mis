@@ -590,11 +590,7 @@
         @yield('content')
     </main>
 
-    <footer class="bg-gradient-to-b from-[#143818] via-[#0f2d13] to-[#0a1e0d] dark:from-[#061814] dark:via-[#04120f] dark:to-[#020a08] border-t border-emerald-800/40 dark:border-emerald-950/80 text-emerald-100 text-sm w-full relative overflow-hidden" role="contentinfo" aria-label="Site Footer">
-        <!-- Ambient Top Accent Glow -->
-        <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" aria-hidden="true"></div>
-        <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-
+    <footer class="bg-emerald-900 dark:bg-emerald-950 border-t border-emerald-800/60 dark:border-emerald-900/60 text-emerald-100 text-sm w-full relative" role="contentinfo" aria-label="Site Footer">
         <!-- Main Navigation & Content Container -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 relative z-10" x-data="{ mobileCol: null }">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10">
@@ -603,7 +599,7 @@
                 <div class="lg:col-span-4 md:col-span-2 space-y-4">
                     <div class="flex items-center gap-4">
                         <a href="{{ route('welcome') }}"
-                        class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#051512]"
+                        class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-900"
                         aria-label="Rural Health Unit Silang - Back to Homepage">
                             <img src="{{ asset('assets/images/logo.png') }}"
                                 class="h-16 w-16 object-contain sm:h-[58px] sm:w-[58px]"

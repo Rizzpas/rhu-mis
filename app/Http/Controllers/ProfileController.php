@@ -27,14 +27,61 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
+        $isAdminOrSuperAdmin = in_array($user->role, ['admin', 'super_admin']);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+        $rules = [
+            'name' => [$isAdminOrSuperAdmin ? 'required' : 'nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'in:Online,Offline,Occupied,online,offline,occupied,in meeting,Present,Unavailable,Seminar'],
             'avatar' => ['nullable', 'file', 'max:2048', new SecureImage],
-        ]);
+        ];
 
-        $user->name = $validated['name'];
+        if ($isAdminOrSuperAdmin) {
+            $rules['email'] = ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)];
+            $rules['schedule'] = ['nullable', 'string', 'max:255'];
+            $rules['schedule_payload'] = ['nullable', 'string'];
+            if ($user->hasRole('super_admin')) {
+                $rules['role'] = ['nullable', 'string', 'in:super_admin,admin'];
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($isAdminOrSuperAdmin && !empty($validated['name'])) {
+            $user->name = $validated['name'];
+        }
+
+        if ($isAdminOrSuperAdmin && !empty($validated['email'])) {
+            $user->email = $validated['email'];
+        }
+
+        if ($isAdminOrSuperAdmin && $request->has('schedule')) {
+            $user->schedule = $validated['schedule'] ?? null;
+
+            if ($request->filled('schedule_payload')) {
+                $payload = json_decode($request->input('schedule_payload'), true);
+                if (is_array($payload) && count($payload) > 0) {
+                    $user->practitionerSchedules()->delete();
+                    foreach ($payload as $item) {
+                        if (!empty($item['day']) && !empty($item['time_in']) && !empty($item['time_out'])) {
+                            \App\Models\PractitionerSchedule::create([
+                                'user_id' => $user->id,
+                                'day_of_week' => $item['day'],
+                                'time_in' => $item['time_in'],
+                                'time_out' => $item['time_out'],
+                            ]);
+                        }
+                    }
+                } else {
+                    $user->practitionerSchedules()->delete();
+                }
+            } else {
+                $user->practitionerSchedules()->delete();
+            }
+        }
+
+        if ($user->hasRole('super_admin') && !empty($validated['role'])) {
+            $user->role = $validated['role'];
+        }
 
         if ($request->filled('status')) {
             $user->status = match(strtolower($validated['status'])) {

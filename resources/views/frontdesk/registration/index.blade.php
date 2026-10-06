@@ -48,6 +48,381 @@
         </div>
     @endif
 
+@php
+    $demographicSexOptions = [
+        [
+            'value' => 'Male',
+            'label' => 'Male',
+            'sublabel' => 'Biological male',
+            'badge' => '♂ Male',
+            'badgeClass' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'icon' => 'mars',
+            'iconColor' => 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
+        ],
+        [
+            'value' => 'Female',
+            'label' => 'Female',
+            'sublabel' => 'Biological female',
+            'badge' => '♀ Female',
+            'badgeClass' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'venus',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+    ];
+
+    $demographicCivilStatusOptions = [
+        [
+            'value' => 'Single',
+            'label' => 'Single',
+            'sublabel' => 'Never legally married',
+            'badge' => 'Unmarried',
+            'badgeClass' => 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400',
+        ],
+        [
+            'value' => 'Married',
+            'label' => 'Married',
+            'sublabel' => 'Legally married with spouse',
+            'badge' => 'Coupled',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+        ],
+        [
+            'value' => 'Separated',
+            'label' => 'Separated',
+            'sublabel' => 'Legally or de facto separated',
+            'badge' => 'Separated',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+        ],
+        [
+            'value' => 'Widowed',
+            'label' => 'Widowed',
+            'sublabel' => 'Surviving spouse',
+            'badge' => 'Widowed',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400',
+        ],
+    ];
+
+    $demographicBloodTypeOptions = [
+        [
+            'value' => 'Unknown',
+            'label' => 'Unknown / Not Tested',
+            'sublabel' => 'To be determined via laboratory test',
+            'badge' => 'Unverified',
+            'badgeClass' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+            'icon' => 'drop',
+            'iconColor' => 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+        ],
+        [
+            'value' => 'A+',
+            'label' => 'A Positive (A+)',
+            'sublabel' => 'A RhD positive',
+            'badge' => 'A+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'A-',
+            'label' => 'A Negative (A-)',
+            'sublabel' => 'A RhD negative',
+            'badge' => 'A-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+        [
+            'value' => 'B+',
+            'label' => 'B Positive (B+)',
+            'sublabel' => 'B RhD positive',
+            'badge' => 'B+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'B-',
+            'label' => 'B Negative (B-)',
+            'sublabel' => 'B RhD negative',
+            'badge' => 'B-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+        [
+            'value' => 'O+',
+            'label' => 'O Positive (O+)',
+            'sublabel' => 'Most common blood group',
+            'badge' => 'O+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'O-',
+            'label' => 'O Negative (O-)',
+            'sublabel' => 'Universal donor red blood cells',
+            'badge' => 'O-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+        [
+            'value' => 'AB+',
+            'label' => 'AB Positive (AB+)',
+            'sublabel' => 'Universal plasma donor',
+            'badge' => 'AB+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'AB-',
+            'label' => 'AB Negative (AB-)',
+            'sublabel' => 'Rare blood phenotype',
+            'badge' => 'AB-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+    ];
+
+    $demographicClassificationOptions = [
+        [
+            'value' => 'Pediatric',
+            'label' => 'Pediatric (Child / Minor)',
+            'sublabel' => 'Ages 0 to 17 years old with Guardian',
+            'badge' => 'Minor',
+            'badgeClass' => 'bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 border-pink-200 dark:border-pink-700',
+            'icon' => 'child',
+            'iconColor' => 'bg-pink-50 text-pink-600 dark:bg-pink-950/60 dark:text-pink-400',
+        ],
+        [
+            'value' => 'Regular Adult',
+            'label' => 'Regular Adult',
+            'sublabel' => 'Ages 18 to 59 years old',
+            'badge' => 'Adult',
+            'badgeClass' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
+        ],
+        [
+            'value' => 'Senior Citizen',
+            'label' => 'Senior Citizen (60+)',
+            'sublabel' => 'Express lane & priority care',
+            'badge' => 'Priority',
+            'badgeClass' => 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-700',
+            'icon' => 'star',
+            'iconColor' => 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+        ],
+        [
+            'value' => 'PWD',
+            'label' => 'PWD (Person w/ Disability)',
+            'sublabel' => 'Priority queue & special assistance',
+            'badge' => 'Priority',
+            'badgeClass' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700',
+            'icon' => 'accessibility',
+            'iconColor' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+        ],
+    ];
+
+    $demographicEducationOptions = [
+        [
+            'value' => 'N/A',
+            'label' => 'Not Applicable (N/A)',
+            'sublabel' => 'Minors or unassigned',
+            'badge' => 'N/A',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'No Formal Education',
+            'label' => 'No Formal Education',
+            'sublabel' => 'Basic literacy attainment',
+            'badge' => 'Basic',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'Primary Education (Elementary)',
+            'label' => 'Primary Education (Elementary)',
+            'sublabel' => 'Grade school completed or attended',
+            'badge' => 'Primary',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        ],
+        [
+            'value' => 'Secondary Education (High School)',
+            'label' => 'Secondary Education (High School)',
+            'sublabel' => 'Junior or Senior High School',
+            'badge' => 'Secondary',
+            'badgeClass' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        ],
+        [
+            'value' => 'Vocational',
+            'label' => 'Vocational / Trade Course',
+            'sublabel' => 'Technical-vocational / TESDA certificate',
+            'badge' => 'Tech-Voc',
+            'badgeClass' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+        ],
+        [
+            'value' => 'College Undergraduate',
+            'label' => 'College Undergraduate',
+            'sublabel' => 'Tertiary units earned',
+            'badge' => 'Undergrad',
+            'badgeClass' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        ],
+        [
+            'value' => 'College Graduate',
+            'label' => 'College Graduate',
+            'sublabel' => 'Completed Bachelor’s degree',
+            'badge' => 'Graduate',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        ],
+        [
+            'value' => 'Post-Graduate',
+            'label' => 'Post-Graduate (Master’s/Doctorate)',
+            'sublabel' => 'Masteral, Doctorate, or Post-Doc degree',
+            'badge' => 'Post-Grad',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        ],
+    ];
+
+    $demographicOccupationOptions = [
+        [
+            'value' => 'N/A',
+            'label' => 'Not Applicable (N/A)',
+            'sublabel' => 'Dependents, minors, or unassigned',
+            'badge' => 'N/A',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'Student',
+            'label' => 'Student',
+            'sublabel' => 'Currently enrolled student',
+            'badge' => 'Student',
+            'badgeClass' => 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+        ],
+        [
+            'value' => 'Employed',
+            'label' => 'Employed',
+            'sublabel' => 'Government or private sector employee',
+            'badge' => 'Employed',
+            'badgeClass' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        ],
+        [
+            'value' => 'Self-Employed',
+            'label' => 'Self-Employed',
+            'sublabel' => 'Business owner, freelancer, contractor',
+            'badge' => 'Business',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        ],
+        [
+            'value' => 'Unemployed',
+            'label' => 'Unemployed',
+            'sublabel' => 'Homemaker or currently seeking work',
+            'badge' => 'Unemployed',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        ],
+        [
+            'value' => 'Retired',
+            'label' => 'Retired',
+            'sublabel' => 'Pensioner or retired senior',
+            'badge' => 'Retired',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        ],
+        [
+            'value' => 'Others',
+            'label' => 'Others (Please specify)',
+            'sublabel' => 'Enter custom occupation below',
+            'badge' => 'Custom',
+            'badgeClass' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        ],
+    ];
+
+    $demographicReligionOptions = [
+        [
+            'value' => 'N/A',
+            'label' => 'Not Applicable (N/A)',
+            'sublabel' => 'No religious affiliation / secular',
+            'badge' => 'N/A',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'Roman Catholic',
+            'label' => 'Roman Catholic',
+            'sublabel' => 'Catholic Church affiliation',
+            'badge' => 'Catholic',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        ],
+        [
+            'value' => 'Islam',
+            'label' => 'Islam',
+            'sublabel' => 'Islamic faith',
+            'badge' => 'Muslim',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        ],
+        [
+            'value' => 'Iglesia ni Cristo',
+            'label' => 'Iglesia ni Cristo',
+            'sublabel' => 'INC community',
+            'badge' => 'INC',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+        ],
+        [
+            'value' => 'Born Again',
+            'label' => 'Born Again Christian',
+            'sublabel' => 'Evangelical / Protestant Christian',
+            'badge' => 'Evangelical',
+            'badgeClass' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        ],
+        [
+            'value' => 'Adventist',
+            'label' => 'Seventh-day Adventist',
+            'sublabel' => 'Adventist Christian community',
+            'badge' => 'SDA',
+            'badgeClass' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+        ],
+        [
+            'value' => 'Aglipayan',
+            'label' => 'Aglipayan (IFI)',
+            'sublabel' => 'Iglesia Filipina Independiente',
+            'badge' => 'IFI',
+            'badgeClass' => 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800',
+        ],
+        [
+            'value' => 'Jehovah\'s Witnesses',
+            'label' => 'Jehovah\'s Witnesses',
+            'sublabel' => 'Watch Tower community',
+            'badge' => 'JW',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        ],
+        [
+            'value' => 'Others',
+            'label' => 'Others (Please specify)',
+            'sublabel' => 'Enter custom religion below',
+            'badge' => 'Custom',
+            'badgeClass' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        ],
+    ];
+
+    $silangBrgys = array_values(array_filter(
+        array_unique(\App\Models\Patient::SILANG_BARANGAYS),
+        fn($b) => !in_array($b, ['Biga 1', 'Biga 2', 'Biga Ii', 'Balite 1', 'Balite 2'])
+    ));
+    natcasesort($silangBrgys);
+    $demographicBarangayOptions = collect($silangBrgys)->map(function ($brgy) {
+        return [
+            'value' => $brgy,
+            'label' => $brgy,
+            'sublabel' => 'Silang, Cavite',
+        ];
+    })->values()->all();
+@endphp
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-data="{ mode: 'search', showDetailedForm: false }">
     <!-- Left Column: Search & Patient Selection -->
     <div class="lg:col-span-1 space-y-6">
@@ -715,8 +1090,8 @@
 
         @if($selectedPatient)
             <!-- Returning Patient Visit Form -->
-            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
-                <div class="p-5 bg-slate-50/60 dark:bg-slate-900/60 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200/80 dark:border-slate-800/80">
+                <div class="p-5 bg-slate-50/60 dark:bg-slate-900/60 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-t-3xl">
                     <div class="flex items-center gap-3.5">
                         <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-sm shrink-0 border border-emerald-500/20 shadow-2xs">
                             {{ $selectedPatient->initials }}
@@ -854,48 +1229,30 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Sex <span class="text-rose-500">*</span></label>
-                                <select name="sex" required :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Sex...</option>
-                                    <option value="Male" {{ old('sex', $selectedPatient->sex ?? '') == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ old('sex', $selectedPatient->sex ?? '') == 'Female' ? 'selected' : '' }}>Female</option>
-                                </select>
+                                <x-select name="sex" :options="$demographicSexOptions" :value="old('sex', $selectedPatient->sex ?? '')" placeholder="Select Sex..." x-bind:disabled="!editingInfo" />
                             </div>
                             <div x-show="classification !== 'Pediatric'" x-cloak>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Civil Status <span class="text-rose-500">*</span></label>
-                                <select name="civil_status" :required="classification !== 'Pediatric'" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Status...</option>
-                                    <option value="Single" {{ old('civil_status', $selectedPatient->civil_status ?? '') == 'Single' ? 'selected' : '' }}>Single</option>
-                                    <option value="Married" {{ old('civil_status', $selectedPatient->civil_status ?? '') == 'Married' ? 'selected' : '' }}>Married</option>
-                                    <option value="Separated" {{ old('civil_status', $selectedPatient->civil_status ?? '') == 'Separated' ? 'selected' : '' }}>Separated</option>
-                                    <option value="Widowed" {{ old('civil_status', $selectedPatient->civil_status ?? '') == 'Widowed' ? 'selected' : '' }}>Widowed</option>
-                                </select>
+                                <x-select name="civil_status" :options="$demographicCivilStatusOptions" :value="old('civil_status', $selectedPatient->civil_status ?? '')" placeholder="Select Status..." x-bind:disabled="!editingInfo" />
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Blood Type <span class="text-rose-500">*</span></label>
-                                <select name="blood_type" required :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Unknown</option>
-                                    <option value="A+" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'A+' ? 'selected' : '' }}>A+</option>
-                                    <option value="A-" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'A-' ? 'selected' : '' }}>A-</option>
-                                    <option value="B+" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'B+' ? 'selected' : '' }}>B+</option>
-                                    <option value="B-" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'B-' ? 'selected' : '' }}>B-</option>
-                                    <option value="O+" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'O+' ? 'selected' : '' }}>O+</option>
-                                    <option value="O-" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'O-' ? 'selected' : '' }}>O-</option>
-                                    <option value="AB+" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'AB+' ? 'selected' : '' }}>AB+</option>
-                                    <option value="AB-" {{ old('blood_type', $selectedPatient->blood_type ?? '') == 'AB-' ? 'selected' : '' }}>AB-</option>
-                                </select>
+                                <x-select name="blood_type" :options="$demographicBloodTypeOptions" :value="old('blood_type', $selectedPatient->blood_type ?? '')" placeholder="Select Blood Type..." x-bind:disabled="!editingInfo" />
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Classification <span class="text-rose-500">*</span></label>
-                                <select name="classification" x-model="classification" required :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Classification...</option>
-                                    <option value="Regular Adult">Regular Adult</option>
-                                    <option value="Senior Citizen">Senior Citizen</option>
-                                    <option value="PWD">PWD</option>
-                                    <option value="Pediatric">Pediatric</option>
-                                </select>
+                                <x-select name="classification" x-model="classification" :options="$demographicClassificationOptions" :value="old('classification', $selectedPatient->classification ?? '')" placeholder="Select Classification..." x-bind:disabled="!editingInfo" />
                             </div>
                             <div x-data="{
                                 showDatepicker: false,
+                                showMonthPicker: false,
+                                showYearPicker: false,
+                                yearSearch: '',
+                                allYears: Array.from({length: 120}, (_, i) => new Date().getFullYear() - i),
+                                get filteredYears() {
+                                    if (!this.yearSearch || !this.yearSearch.trim()) return this.allYears;
+                                    return this.allYears.filter(y => String(y).includes(this.yearSearch.trim()));
+                                },
                                 currentDate: new Date(),
                                 selectedDate: '{{ old('dob', $selectedPatient->dob ? \Carbon\Carbon::parse($selectedPatient->dob)->format('Y-m-d') : '') }}',
                                 monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -906,10 +1263,23 @@
                                     return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay();
                                 },
                                 setMonth(monthIndex) {
-                                    this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, 1);
+                                    this.currentDate = new Date(this.currentDate.getFullYear(), parseInt(monthIndex, 10), 1);
+                                    this.showMonthPicker = false;
                                 },
                                 setYear(year) {
-                                    this.currentDate = new Date(year, this.currentDate.getMonth(), 1);
+                                    this.currentDate = new Date(parseInt(year, 10), this.currentDate.getMonth(), 1);
+                                    this.showYearPicker = false;
+                                    this.yearSearch = '';
+                                },
+                                prevMonth() {
+                                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+                                    this.showMonthPicker = false;
+                                    this.showYearPicker = false;
+                                },
+                                nextMonth() {
+                                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+                                    this.showMonthPicker = false;
+                                    this.showYearPicker = false;
                                 },
                                 isFutureDate(day) {
                                     let dateToCheck = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
@@ -919,50 +1289,169 @@
                                 },
                                 selectDate(day) {
                                     if (this.isFutureDate(day)) return;
-                                    let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                    let offset = date.getTimezoneOffset();
-                                    date = new Date(date.getTime() - (offset*60*1000));
-                                    this.selectedDate = date.toISOString().split('T')[0];
+                                    const y = this.currentDate.getFullYear();
+                                    const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                    const d = String(day).padStart(2, '0');
+                                    this.selectedDate = `${y}-${m}-${d}`;
                                     this.showDatepicker = false;
+                                    this.showMonthPicker = false;
+                                    this.showYearPicker = false;
                                 },
                                 isSelected(day) {
                                     if(!this.selectedDate) return false;
-                                    let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                    let offset = date.getTimezoneOffset();
-                                    date = new Date(date.getTime() - (offset*60*1000));
-                                    return this.selectedDate === date.toISOString().split('T')[0];
+                                    const y = this.currentDate.getFullYear();
+                                    const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                    const d = String(day).padStart(2, '0');
+                                    return this.selectedDate === `${y}-${m}-${d}`;
                                 },
                                 init() {
                                     if (this.selectedDate) {
                                         this.currentDate = new Date(this.selectedDate);
                                     }
                                 }
-                            }" class="relative">
+                            }" class="relative" :class="showDatepicker ? 'z-40' : 'z-10'">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Date of Birth <span class="text-rose-500">*</span></label>
                                 
                                 <input type="hidden" name="dob" x-model="selectedDate">
                                 
-                                <div @click="if(editingInfo) showDatepicker = !showDatepicker" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus-within:border-emerald-500 cursor-pointer text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 cursor-not-allowed text-slate-400'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold flex justify-between items-center transition-all">
+                                <div @click="if(editingInfo) { showDatepicker = !showDatepicker; showMonthPicker = false; showYearPicker = false; }" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus-within:border-emerald-500 cursor-pointer text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 cursor-not-allowed text-slate-400'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold flex justify-between items-center transition-all">
                                     <span x-text="selectedDate ? selectedDate : 'Select Date of Birth'" :class="selectedDate ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"></span>
                                     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
 
-                                <div x-show="showDatepicker" @click.away="showDatepicker = false" style="display: none;" class="absolute z-50 mt-1 w-full min-w-[300px] p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl">
-                                    <!-- Header: Month and Year Selects -->
-                                    <div class="flex justify-between items-center mb-4 gap-2">
-                                        <select @change="setMonth($event.target.value)" class="w-1/2 flex-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 focus:border-emerald-500 py-2 pl-3 pr-8">
-                                            <template x-for="(month, index) in monthNames" :key="index">
-                                                <option :value="index" x-text="month" :selected="index === currentDate.getMonth()"></option>
-                                            </template>
-                                        </select>
-                                        
-                                        <select @change="setYear($event.target.value)" class="w-1/2 flex-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 focus:border-emerald-500 py-2 pl-3 pr-8">
-                                            <template x-for="year in Array.from({length: 120}, (_, i) => new Date().getFullYear() - i)">
-                                                <option :value="year" x-text="year" :selected="year === currentDate.getFullYear()"></option>
-                                            </template>
-                                        </select>
+                                <div x-show="showDatepicker" @click.away="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" style="display: none;" class="absolute z-50 mt-1 w-full min-w-[310px] max-w-sm p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md">
+                                    <!-- Header: Month and Year Selectors -->
+                                    <div class="flex items-center justify-between mb-4 gap-1.5 relative">
+                                        <!-- Prev Month Arrow -->
+                                        <button type="button" 
+                                                @click="prevMonth()" 
+                                                class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition cursor-pointer"
+                                                title="Previous Month">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+
+                                        <!-- Month & Year Custom Dropdowns -->
+                                        <div class="flex items-center gap-2 flex-1 min-w-0">
+                                            <!-- Custom Month Dropdown -->
+                                            <div class="relative w-3/5" @click.away="showMonthPicker = false">
+                                                <button type="button" 
+                                                        @click="showMonthPicker = !showMonthPicker; showYearPicker = false"
+                                                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                                        :class="showMonthPicker 
+                                                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-750'">
+                                                    <span x-text="monthNames[currentDate.getMonth()]" class="truncate font-bold"></span>
+                                                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                         :class="showMonthPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Month Options Popover -->
+                                                <div x-show="showMonthPicker" 
+                                                     x-transition:enter="transition ease-out duration-150"
+                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave="transition ease-in duration-100"
+                                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     class="absolute left-0 top-full mt-1.5 w-48 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-1.5 z-60 custom-scrollbar backdrop-blur-md"
+                                                     style="display: none;">
+                                                    <div class="space-y-0.5">
+                                                        <template x-for="(month, index) in monthNames" :key="index">
+                                                            <button type="button" 
+                                                                    @click="setMonth(index)"
+                                                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-all text-left"
+                                                                    :class="currentDate.getMonth() === index 
+                                                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
+                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent'">
+                                                                <span x-text="month"></span>
+                                                                <svg x-show="currentDate.getMonth() === index" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Custom Year Dropdown -->
+                                            <div class="relative w-2/5" @click.away="showYearPicker = false">
+                                                <button type="button" 
+                                                        @click="showYearPicker = !showYearPicker; showMonthPicker = false; if (showYearPicker) { $nextTick(() => { $refs.editYearSearchInput?.focus(); const active = $refs.editYearList?.querySelector('[data-selected=true]'); if (active) active.scrollIntoView({ block: 'center' }); }); }"
+                                                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                                        :class="showYearPicker 
+                                                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-750'">
+                                                    <span x-text="currentDate.getFullYear()" class="truncate font-bold"></span>
+                                                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                         :class="showYearPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Year Options Popover -->
+                                                <div x-show="showYearPicker" 
+                                                     x-transition:enter="transition ease-out duration-150"
+                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave="transition ease-in duration-100"
+                                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     class="absolute right-0 top-full mt-1.5 w-40 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-2 z-60 backdrop-blur-md"
+                                                     style="display: none;">
+                                                    
+                                                    <!-- Quick Year Search -->
+                                                    <div class="relative mb-1.5">
+                                                        <input type="text"
+                                                               x-ref="editYearSearchInput"
+                                                               x-model="yearSearch"
+                                                               placeholder="Type year..."
+                                                               class="w-full pl-6 pr-2 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                                                        <svg class="w-3 h-3 text-slate-400 absolute left-1.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                        </svg>
+                                                    </div>
+
+                                                    <!-- Scrollable Years List -->
+                                                    <div x-ref="editYearList" class="max-h-52 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
+                                                        <template x-for="year in filteredYears" :key="year">
+                                                            <button type="button" 
+                                                                    @click="setYear(year)"
+                                                                    :data-selected="currentDate.getFullYear() === year ? 'true' : 'false'"
+                                                                    class="w-full px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-all text-left"
+                                                                    :class="currentDate.getFullYear() === year 
+                                                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
+                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent'">
+                                                                <span x-text="year"></span>
+                                                                <svg x-show="currentDate.getFullYear() === year" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </button>
+                                                        </template>
+                                                        <div x-show="filteredYears.length === 0" class="py-2 text-center text-[11px] text-slate-400 font-medium">
+                                                            No matching year
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Next Month Arrow -->
+                                        <button type="button" 
+                                                @click="nextMonth()" 
+                                                class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition cursor-pointer"
+                                                title="Next Month">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
                                     </div>
 
                                     <!-- Calendar Grid -->
@@ -979,13 +1468,23 @@
                                                 class="h-8 md:h-9 rounded-xl flex items-center justify-center text-xs transition-all border border-transparent"
                                                 :class="{
                                                     'bg-emerald-600 text-white font-bold shadow-xs cursor-pointer': isSelected(day),
-                                                    'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-400 cursor-pointer': !isSelected(day) && !isFutureDate(day),
+                                                    'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-400 cursor-pointer': !isSelected(day) && !isFutureDate(day),
                                                     'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed': isFutureDate(day)
                                                 }"
                                             >
                                                 <span x-text="day"></span>
                                             </div>
                                         </template>
+                                    </div>
+
+                                    <!-- Quick Footer Status -->
+                                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500" x-text="selectedDate ? 'Selected: ' + selectedDate : 'No date selected'"></span>
+                                        <button type="button" 
+                                                @click="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" 
+                                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer">
+                                            Done
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1005,16 +1504,7 @@
                             <!-- Background fields -->
                             <div x-show="classification !== 'Pediatric'" x-cloak>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Education <span class="text-rose-500">*</span></label>
-                                <select name="education" :required="classification !== 'Pediatric'" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Attainment...</option>
-                                    <option value="No Formal Education" {{ strtolower(old('education', $selectedPatient->education ?? '')) == 'no formal education' ? 'selected' : '' }}>No Formal Education</option>
-                                    <option value="Primary Education (Elementary)" {{ strtolower(old('education', $selectedPatient->education ?? '')) == 'primary education (elementary)' ? 'selected' : '' }}>Primary Education (Elementary)</option>
-                                    <option value="Secondary Education (High School)" {{ strtolower(old('education', $selectedPatient->education ?? '')) == 'secondary education (high school)' ? 'selected' : '' }}>Secondary Education (High School)</option>
-                                    <option value="Vocational" {{ strtolower(old('education', $selectedPatient->education ?? '')) == 'vocational' ? 'selected' : '' }}>Vocational / Trade Course</option>
-                                    <option value="College Undergraduate" {{ strtolower(old('education', $selectedPatient->education ?? '')) == 'college undergraduate' ? 'selected' : '' }}>College Undergraduate</option>
-                                    <option value="College Graduate" {{ strtolower(old('education', $selectedPatient->education ?? '')) == 'college graduate' ? 'selected' : '' }}>College Graduate</option>
-                                    <option value="Post-Graduate" {{ strtolower(old('education', $selectedPatient->education ?? '')) == 'post-graduate' ? 'selected' : '' }}>Post-Graduate (Master's/Doctorate)</option>
-                                </select>
+                                <x-select name="education" :options="$demographicEducationOptions" :value="old('education', $selectedPatient->education ?? '')" placeholder="Select Attainment..." x-bind:disabled="!editingInfo" />
                             </div>
                             <div x-show="classification !== 'Pediatric'" x-cloak
                                 x-data="{
@@ -1033,16 +1523,7 @@
                                     }
                                 }">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Occupation <span class="text-rose-500">*</span></label>
-                                <select :required="classification !== 'Pediatric'" x-model="selectedOccupation" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase mb-2 transition-colors">
-                                    <option value="">Select Occupation...</option>
-                                    <option value="N/A">Not Applicable (N/A)</option>
-                                    <option value="Student">Student</option>
-                                    <option value="Employed">Employed</option>
-                                    <option value="Self-Employed">Self-Employed</option>
-                                    <option value="Unemployed">Unemployed</option>
-                                    <option value="Retired">Retired</option>
-                                    <option value="Others">Others (Please specify)</option>
-                                </select>
+                                <x-select x-model="selectedOccupation" :options="$demographicOccupationOptions" placeholder="Select Occupation..." x-bind:disabled="!editingInfo" class="mb-2" />
                                 <input type="text" x-show="selectedOccupation === 'Others'" x-model="customOccupation" placeholder="Specify your occupation" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                 <input type="hidden" name="occupation" :value="finalOccupation">
                             </div>
@@ -1061,17 +1542,7 @@
                                 }
                             }">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Religion <span class="text-rose-500">*</span></label>
-                                <select required x-model="selectedReligion" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase mb-2 transition-colors">
-                                    <option value="">Select Religion...</option>
-                                    <option value="Roman Catholic">Roman Catholic</option>
-                                    <option value="Islam">Islam</option>
-                                    <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
-                                    <option value="Born Again">Born Again Christian</option>
-                                    <option value="Adventist">Seventh-day Adventist</option>
-                                    <option value="Aglipayan">Aglipayan</option>
-                                    <option value="Jehovah's Witnesses">Jehovah's Witnesses</option>
-                                    <option value="Others">Others (Please specify)</option>
-                                </select>
+                                <x-select x-model="selectedReligion" :options="$demographicReligionOptions" placeholder="Select Religion..." x-bind:disabled="!editingInfo" class="mb-2" />
                                 <input type="text" x-show="selectedReligion === 'Others'" x-model="customReligion" placeholder="Specify your religion" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                 <input type="hidden" name="religion" :value="finalReligion">
                             </div>
@@ -1082,8 +1553,6 @@
                                 building: '{{ addslashes(old('building', $selectedPatient->building ?? '')) }}',
                                 barangay: '{{ addslashes(old('barangay', $selectedPatient->barangay ?? '')) }}',
                                 city_province: 'Silang, Cavite',
-                                barangays: [],
-                                loading: true,
                                 get fullAddress() {
                                     let parts = [];
                                     if(this.house_no) parts.push(this.house_no);
@@ -1093,22 +1562,10 @@
                                     parts.push(this.city_province);
                                     return parts.join(', ').replace(/^, | ,/g, '').trim();
                                 },
-                                async fetchBarangays() {
-                                    this.loading = true;
-                                    try {
-                                        const response = await fetch('https://psgc.gitlab.io/api/cities-municipalities/042118000/barangays/');
-                                        const data = await response.json();
-                                        this.barangays = data.sort((a,b) => a.name.localeCompare(b.name));
-                                    } catch (e) {
-                                        console.error('Failed to fetch barangays:', e);
-                                    } finally {
-                                        this.loading = false;
-                                    }
-                                },
                                 enableAddressEdit() {
                                     this.addressEditing = true;
                                 }
-                            }" x-init="fetchBarangays()">
+                            }">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Address <span class="text-rose-500">*</span></label>
                                     <button type="button" x-show="editingInfo && !addressEditing" @click="enableAddressEdit()" class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer">
@@ -1126,18 +1583,21 @@
                                         <input type="text" :required="addressEditing" x-model="house_no" placeholder="House No." :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-4">
-                                        <input type="text" x-model="street" placeholder="Street Name (Opt)" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" x-model="street" placeholder="Street Name (Optional)" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-5">
-                                        <input type="text" x-model="building" placeholder="Building/Subd. (Opt)" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" x-model="building" placeholder="Building/Subd. (Optional)" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-6">
-                                        <select :required="addressEditing" x-model="barangay" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" :disabled="loading">
-                                            <option value="">Select Barangay...</option>
-                                            <template x-for="bg in barangays" :key="bg.code">
-                                                <option :value="bg.name" x-text="bg.name" :selected="barangay === bg.name"></option>
-                                            </template>
-                                        </select>
+                                        <x-select 
+                                            x-model="barangay" 
+                                            :options="$demographicBarangayOptions" 
+                                            :value="old('barangay', $selectedPatient->barangay ?? '')" 
+                                            placeholder="Select Barangay..." 
+                                            :searchable="true" 
+                                            search-placeholder="Search barangay..." 
+                                            x-bind:disabled="!editingInfo || !addressEditing" 
+                                        />
                                     </div>
                                     <div class="md:col-span-6">
                                         <input type="text" x-model="city_province" readonly class="w-full rounded-xl border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 px-3.5 py-2.5 sm:text-xs font-semibold uppercase cursor-not-allowed">
@@ -1285,6 +1745,10 @@
                 <!-- Form for creating the Visit/Vitals (Returning Patient) -->
                 @php
                     $preTriageRecord = (isset($preTriageId) && $preTriageId) ? \App\Models\PreTriage::find($preTriageId) : null;
+                    // NOTE: vitals-form partial defines its own copies of these, but @include scope
+                    // does not leak back to this view, so compute them here for the confirm modal.
+                    $isPediatric = ($selectedPatient->classification ?? '') === 'Pediatric';
+                    $isFollowUp = (bool) (($selectedPatient->is_follow_up ?? false) || (isset($prefillApt) && $prefillApt && $prefillApt->is_follow_up));
                 @endphp
                 @if($preTriageRecord)
                 <form id="returningPatientQueueForm" action="{{ route('frontdesk.visits.store', $selectedPatient) }}" method="POST" class="p-6 pt-2 space-y-6">
@@ -1353,8 +1817,8 @@
 
         @elseif($isNewPatient)
             <!-- New Patient Registration Form -->
-            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
-                <div class="p-5 bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200/80 dark:border-slate-800/80">
+                <div class="p-5 bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center rounded-t-3xl">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-sm border border-emerald-500/20 shadow-2xs">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -1446,48 +1910,30 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Sex <span class="text-rose-500">*</span></label>
-                                <select name="sex" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Sex...</option>
-                                    <option value="Male" {{ old('sex', $prefillApt ? $prefillApt->sex : '') == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ old('sex', $prefillApt ? $prefillApt->sex : '') == 'Female' ? 'selected' : '' }}>Female</option>
-                                </select>
+                                <x-select name="sex" :options="$demographicSexOptions" :value="old('sex', $prefillApt ? $prefillApt->sex : '')" placeholder="Select Sex..." />
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Civil Status <span class="text-rose-500">*</span></label>
-                                <select name="civil_status" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Status...</option>
-                                    <option value="Single" {{ old('civil_status', $prefillApt ? $prefillApt->civil_status : '') == 'Single' ? 'selected' : '' }}>Single</option>
-                                    <option value="Married" {{ old('civil_status', $prefillApt ? $prefillApt->civil_status : '') == 'Married' ? 'selected' : '' }}>Married</option>
-                                    <option value="Separated" {{ old('civil_status', $prefillApt ? $prefillApt->civil_status : '') == 'Separated' ? 'selected' : '' }}>Separated</option>
-                                    <option value="Widowed" {{ old('civil_status', $prefillApt ? $prefillApt->civil_status : '') == 'Widowed' ? 'selected' : '' }}>Widowed</option>
-                                </select>
+                                <x-select name="civil_status" :options="$demographicCivilStatusOptions" :value="old('civil_status', $prefillApt ? $prefillApt->civil_status : '')" placeholder="Select Status..." />
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Blood Type <span class="text-rose-500">*</span></label>
-                                <select name="blood_type" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Unknown</option>
-                                    <option value="A+" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'A+' ? 'selected' : '' }}>A+</option>
-                                    <option value="A-" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'A-' ? 'selected' : '' }}>A-</option>
-                                    <option value="B+" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'B+' ? 'selected' : '' }}>B+</option>
-                                    <option value="B-" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'B-' ? 'selected' : '' }}>B-</option>
-                                    <option value="O+" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'O+' ? 'selected' : '' }}>O+</option>
-                                    <option value="O-" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'O-' ? 'selected' : '' }}>O-</option>
-                                    <option value="AB+" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'AB+' ? 'selected' : '' }}>AB+</option>
-                                    <option value="AB-" {{ old('blood_type', $prefillApt ? $prefillApt->blood_type : '') == 'AB-' ? 'selected' : '' }}>AB-</option>
-                                </select>
+                                <x-select name="blood_type" :options="$demographicBloodTypeOptions" :value="old('blood_type', $prefillApt ? $prefillApt->blood_type : '')" placeholder="Select Blood Type..." />
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Classification <span class="text-rose-500">*</span></label>
-                                <select name="classification" x-model="classification" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Classification...</option>
-                                    <option value="Regular Adult">Regular Adult</option>
-                                    <option value="Senior Citizen">Senior Citizen</option>
-                                    <option value="PWD">PWD</option>
-                                    <option value="Pediatric">Pediatric</option>
-                                </select>
+                                <x-select name="classification" x-model="classification" :options="$demographicClassificationOptions" :value="old('classification', $defaultClassification)" placeholder="Select Classification..." />
                             </div>
                             <div x-data="{
                                 showDatepicker: false,
+                                showMonthPicker: false,
+                                showYearPicker: false,
+                                yearSearch: '',
+                                allYears: Array.from({length: 120}, (_, i) => new Date().getFullYear() - i),
+                                get filteredYears() {
+                                    if (!this.yearSearch || !this.yearSearch.trim()) return this.allYears;
+                                    return this.allYears.filter(y => String(y).includes(this.yearSearch.trim()));
+                                },
                                 currentDate: new Date(),
                                 selectedDate: '{{ old('dob', $prefillApt && $prefillApt->dob ? \Carbon\Carbon::parse($prefillApt->dob)->format('Y-m-d') : (isset($newFromTriage) && $newFromTriage->dob ? $newFromTriage->dob : '')) }}',
                                 monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -1498,10 +1944,23 @@
                                     return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay();
                                 },
                                 setMonth(monthIndex) {
-                                    this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, 1);
+                                    this.currentDate = new Date(this.currentDate.getFullYear(), parseInt(monthIndex, 10), 1);
+                                    this.showMonthPicker = false;
                                 },
                                 setYear(year) {
-                                    this.currentDate = new Date(year, this.currentDate.getMonth(), 1);
+                                    this.currentDate = new Date(parseInt(year, 10), this.currentDate.getMonth(), 1);
+                                    this.showYearPicker = false;
+                                    this.yearSearch = '';
+                                },
+                                prevMonth() {
+                                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+                                    this.showMonthPicker = false;
+                                    this.showYearPicker = false;
+                                },
+                                nextMonth() {
+                                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+                                    this.showMonthPicker = false;
+                                    this.showYearPicker = false;
                                 },
                                 isFutureDate(day) {
                                     let dateToCheck = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
@@ -1511,50 +1970,170 @@
                                 },
                                 selectDate(day) {
                                     if (this.isFutureDate(day)) return;
-                                    let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                    let offset = date.getTimezoneOffset();
-                                    date = new Date(date.getTime() - (offset*60*1000));
-                                    this.selectedDate = date.toISOString().split('T')[0];
+                                    const y = this.currentDate.getFullYear();
+                                    const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                    const d = String(day).padStart(2, '0');
+                                    this.selectedDate = `${y}-${m}-${d}`;
                                     this.showDatepicker = false;
+                                    this.showMonthPicker = false;
+                                    this.showYearPicker = false;
                                 },
                                 isSelected(day) {
                                     if(!this.selectedDate) return false;
-                                    let date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-                                    let offset = date.getTimezoneOffset();
-                                    date = new Date(date.getTime() - (offset*60*1000));
-                                    return this.selectedDate === date.toISOString().split('T')[0];
+                                    const y = this.currentDate.getFullYear();
+                                    const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                                    const d = String(day).padStart(2, '0');
+                                    return this.selectedDate === `${y}-${m}-${d}`;
                                 },
                                 init() {
                                     if (this.selectedDate) {
                                         this.currentDate = new Date(this.selectedDate);
                                     }
                                 }
-                            }" class="relative">
+                            }" class="relative" :class="showDatepicker ? 'z-40' : 'z-10'">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Date of Birth <span class="text-rose-500">*</span></label>
                                 
                                 <input type="hidden" name="dob" x-model="selectedDate">
                                 
-                                <div @click="showDatepicker = !showDatepicker" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus-within:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold cursor-pointer flex justify-between items-center transition-all">
+                                <div @click="showDatepicker = !showDatepicker; showMonthPicker = false; showYearPicker = false;" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus-within:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold cursor-pointer flex justify-between items-center transition-all"
+                                     :class="showDatepicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : ''">
                                     <span x-text="selectedDate ? selectedDate : 'Select Date of Birth'" :class="selectedDate ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"></span>
                                     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
 
-                                <div x-show="showDatepicker" @click.away="showDatepicker = false" style="display: none;" class="absolute z-50 mt-1 w-full min-w-[300px] p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl">
-                                    <!-- Header: Month and Year Selects -->
-                                    <div class="flex justify-between items-center mb-4 gap-2">
-                                        <select @change="setMonth($event.target.value)" class="w-1/2 flex-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 focus:border-emerald-500 py-2 pl-3 pr-8">
-                                            <template x-for="(month, index) in monthNames" :key="index">
-                                                <option :value="index" x-text="month" :selected="index === currentDate.getMonth()"></option>
-                                            </template>
-                                        </select>
-                                        
-                                        <select @change="setYear($event.target.value)" class="w-1/2 flex-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 focus:border-emerald-500 py-2 pl-3 pr-8">
-                                            <template x-for="year in Array.from({length: 120}, (_, i) => new Date().getFullYear() - i)">
-                                                <option :value="year" x-text="year" :selected="year === currentDate.getFullYear()"></option>
-                                            </template>
-                                        </select>
+                                <div x-show="showDatepicker" @click.away="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" style="display: none;" class="absolute z-50 mt-1 w-full min-w-[310px] max-w-sm p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md">
+                                    <!-- Header: Month and Year Selectors -->
+                                    <div class="flex items-center justify-between mb-4 gap-1.5 relative">
+                                        <!-- Prev Month Arrow -->
+                                        <button type="button" 
+                                                @click="prevMonth()" 
+                                                class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition cursor-pointer"
+                                                title="Previous Month">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+
+                                        <!-- Month & Year Custom Dropdowns -->
+                                        <div class="flex items-center gap-2 flex-1 min-w-0">
+                                            <!-- Custom Month Dropdown -->
+                                            <div class="relative w-3/5" @click.away="showMonthPicker = false">
+                                                <button type="button" 
+                                                        @click="showMonthPicker = !showMonthPicker; showYearPicker = false"
+                                                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                                        :class="showMonthPicker 
+                                                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-750'">
+                                                    <span x-text="monthNames[currentDate.getMonth()]" class="truncate font-bold"></span>
+                                                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                         :class="showMonthPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Month Options Popover -->
+                                                <div x-show="showMonthPicker" 
+                                                     x-transition:enter="transition ease-out duration-150"
+                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave="transition ease-in duration-100"
+                                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     class="absolute left-0 top-full mt-1.5 w-48 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-1.5 z-60 custom-scrollbar backdrop-blur-md"
+                                                     style="display: none;">
+                                                    <div class="space-y-0.5">
+                                                        <template x-for="(month, index) in monthNames" :key="index">
+                                                            <button type="button" 
+                                                                    @click="setMonth(index)"
+                                                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-all text-left"
+                                                                    :class="currentDate.getMonth() === index 
+                                                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
+                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent'">
+                                                                <span x-text="month"></span>
+                                                                <svg x-show="currentDate.getMonth() === index" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Custom Year Dropdown -->
+                                            <div class="relative w-2/5" @click.away="showYearPicker = false">
+                                                <button type="button" 
+                                                        @click="showYearPicker = !showYearPicker; showMonthPicker = false; if (showYearPicker) { $nextTick(() => { $refs.newYearSearchInput?.focus(); const active = $refs.newYearList?.querySelector('[data-selected=true]'); if (active) active.scrollIntoView({ block: 'center' }); }); }"
+                                                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                                        :class="showYearPicker 
+                                                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-750'">
+                                                    <span x-text="currentDate.getFullYear()" class="truncate font-bold"></span>
+                                                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                         :class="showYearPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Year Options Popover -->
+                                                <div x-show="showYearPicker" 
+                                                     x-transition:enter="transition ease-out duration-150"
+                                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave="transition ease-in duration-100"
+                                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                     class="absolute right-0 top-full mt-1.5 w-40 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-2 z-60 backdrop-blur-md"
+                                                     style="display: none;">
+                                                    
+                                                    <!-- Quick Year Search -->
+                                                    <div class="relative mb-1.5">
+                                                        <input type="text"
+                                                               x-ref="newYearSearchInput"
+                                                               x-model="yearSearch"
+                                                               placeholder="Type year..."
+                                                               class="w-full pl-6 pr-2 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                                                        <svg class="w-3 h-3 text-slate-400 absolute left-1.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                        </svg>
+                                                    </div>
+
+                                                    <!-- Scrollable Years List -->
+                                                    <div x-ref="newYearList" class="max-h-52 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
+                                                        <template x-for="year in filteredYears" :key="year">
+                                                            <button type="button" 
+                                                                    @click="setYear(year)"
+                                                                    :data-selected="currentDate.getFullYear() === year ? 'true' : 'false'"
+                                                                    class="w-full px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-all text-left"
+                                                                    :class="currentDate.getFullYear() === year 
+                                                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
+                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent'">
+                                                                <span x-text="year"></span>
+                                                                <svg x-show="currentDate.getFullYear() === year" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </button>
+                                                        </template>
+                                                        <div x-show="filteredYears.length === 0" class="py-2 text-center text-[11px] text-slate-400 font-medium">
+                                                            No matching year
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Next Month Arrow -->
+                                        <button type="button" 
+                                                @click="nextMonth()" 
+                                                class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition cursor-pointer"
+                                                title="Next Month">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
                                     </div>
 
                                     <!-- Calendar Grid -->
@@ -1571,13 +2150,23 @@
                                                 class="h-8 md:h-9 rounded-xl flex items-center justify-center text-xs transition-all border border-transparent"
                                                 :class="{
                                                     'bg-emerald-600 text-white font-bold shadow-xs cursor-pointer': isSelected(day),
-                                                    'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-400 cursor-pointer': !isSelected(day) && !isFutureDate(day),
+                                                    'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-400 cursor-pointer': !isSelected(day) && !isFutureDate(day),
                                                     'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed': isFutureDate(day)
                                                 }"
                                             >
                                                 <span x-text="day"></span>
                                             </div>
                                         </template>
+                                    </div>
+
+                                    <!-- Quick Footer Status -->
+                                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500" x-text="selectedDate ? 'Selected: ' + selectedDate : 'No date selected'"></span>
+                                        <button type="button" 
+                                                @click="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" 
+                                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer">
+                                            Done
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1597,17 +2186,7 @@
                             <!-- Background fields -->
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Education <span class="text-rose-500">*</span></label>
-                                <select name="education" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                    <option value="">Select Attainment...</option>
-                                    <option value="N/A" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'n/a' ? 'selected' : '' }}>Not Applicable (N/A)</option>
-                                    <option value="No Formal Education" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'no formal education' ? 'selected' : '' }}>No Formal Education</option>
-                                    <option value="Primary Education (Elementary)" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'primary education (elementary)' ? 'selected' : '' }}>Primary Education (Elementary)</option>
-                                    <option value="Secondary Education (High School)" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'secondary education (high school)' ? 'selected' : '' }}>Secondary Education (High School)</option>
-                                    <option value="Vocational" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'vocational' ? 'selected' : '' }}>Vocational / Trade Course</option>
-                                    <option value="College Undergraduate" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'college undergraduate' ? 'selected' : '' }}>College Undergraduate</option>
-                                    <option value="College Graduate" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'college graduate' ? 'selected' : '' }}>College Graduate</option>
-                                    <option value="Post-Graduate" {{ strtolower(old('education', $prefillApt->education ?? '')) == 'post-graduate' ? 'selected' : '' }}>Post-Graduate (Master's/Doctorate)</option>
-                                </select>
+                                <x-select name="education" :options="$demographicEducationOptions" :value="old('education', $prefillApt ? $prefillApt->education : '')" placeholder="Select Attainment..." />
                             </div>
                             <div x-show="classification !== 'Pediatric'" x-cloak
                                 x-data="{
@@ -1626,16 +2205,7 @@
                                     }
                                 }">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Occupation <span class="text-rose-500">*</span></label>
-                                <select x-model="selectedOccupation" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border-0 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase mb-2 transition-colors">
-                                    <option value="">Select Occupation...</option>
-                                    <option value="N/A">Not Applicable (N/A)</option>
-                                    <option value="Student">Student</option>
-                                    <option value="Employed">Employed</option>
-                                    <option value="Self-Employed">Self-Employed</option>
-                                    <option value="Unemployed">Unemployed</option>
-                                    <option value="Retired">Retired</option>
-                                    <option value="Others">Others (Please specify)</option>
-                                </select>
+                                <x-select x-model="selectedOccupation" :options="$demographicOccupationOptions" placeholder="Select Occupation..." class="mb-2" />
                                 <input type="text" x-show="selectedOccupation === 'Others'" x-model="customOccupation" placeholder="Specify your occupation" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                 <input type="hidden" name="occupation" :value="finalOccupation">
                             </div>
@@ -1654,18 +2224,7 @@
                                 }
                             }">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Religion <span class="text-rose-500">*</span></label>
-                                <select required x-model="selectedReligion" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border-0 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase mb-2 transition-colors">
-                                    <option value="">Select Religion...</option>
-                                    <option value="Roman Catholic">Roman Catholic</option>
-                                    <option value="Islam">Islam</option>
-                                    <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
-                                    <option value="Born Again">Born Again Christian</option>
-                                    <option value="Adventist">Seventh-day Adventist</option>
-                                    <option value="Aglipayan">Aglipayan</option>
-                                    <option value="Jehovah's Witnesses">Jehovah's Witnesses</option>
-                                    <option value="N/A">N/A (Not Applicable)</option>
-                                    <option value="Others">Others (Please specify)</option>
-                                </select>
+                                <x-select x-model="selectedReligion" :options="$demographicReligionOptions" placeholder="Select Religion..." class="mb-2" />
                                 <input type="text" x-show="selectedReligion === 'Others'" x-model="customReligion" placeholder="Specify your religion" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                 <input type="hidden" name="religion" :value="finalReligion">
                             </div>
@@ -1687,8 +2246,6 @@
                                 building: '{{ addslashes(old('building', $presetBuilding)) }}',
                                 barangay: '{{ addslashes(old('barangay', $presetBarangay)) }}',
                                 city_province: 'Silang, Cavite',
-                                barangays: [],
-                                loading: true,
                                 get fullAddress() {
                                     if (this.mode === 'readonly') return this.combinedAddress;
                                     let parts = [];
@@ -1698,29 +2255,8 @@
                                     if(this.barangay) parts.push(this.barangay);
                                     parts.push(this.city_province);
                                     return parts.join(', ').replace(/^, | ,/g, '').trim();
-                                },
-                                async fetchBarangays() {
-                                    this.loading = true;
-                                    try {
-                                        const response = await fetch('https://psgc.gitlab.io/api/cities-municipalities/042118000/barangays/');
-                                        const data = await response.json();
-                                        
-                                        let current = this.barangay;
-                                        this.barangays = data.sort((a,b) => a.name.localeCompare(b.name));
-                                        
-                                        this.$nextTick(() => {
-                                            if (current) {
-                                                let matched = this.barangays.find(b => b.name.toUpperCase() === current.toUpperCase());
-                                                if (matched) this.barangay = matched.name;
-                                            }
-                                        });
-                                    } catch (e) {
-                                        console.error('Failed to fetch barangays:', e);
-                                    } finally {
-                                        this.loading = false;
-                                    }
                                 }
-                            }" x-init="fetchBarangays()">
+                            }">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Address <span class="text-rose-500">*</span></label>
                                 
                                 <input type="hidden" name="address" :value="fullAddress">
@@ -1730,42 +2266,37 @@
                                 <input type="hidden" name="barangay" :value="barangay">
                                 <input type="hidden" name="city_province" :value="city_province">
 
-                                <template x-if="mode === 'readonly'">
-                                    <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl">
-                                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="combinedAddress"></p>
-                                        <button type="button" @click="mode = 'edit'" class="text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-xl transition shadow-2xs whitespace-nowrap cursor-pointer">
-                                            Re-enter Address
-                                        </button>
-                                    </div>
-                                </template>
+                                <div x-show="mode === 'readonly'" class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl">
+                                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="combinedAddress"></p>
+                                    <button type="button" @click="mode = 'edit'" class="text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-xl transition shadow-2xs whitespace-nowrap cursor-pointer">
+                                        Re-enter Address
+                                    </button>
+                                </div>
 
-                                <template x-if="mode === 'edit'">
-                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                                        <div class="md:col-span-3">
-                                            <input type="text" :required="mode === 'edit'" x-model="house_no" placeholder="House No." class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                        </div>
-                                        <div class="md:col-span-4">
-                                            <input type="text" x-model="street" placeholder="Street Name (Opt)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                        </div>
-                                        <div class="md:col-span-5">
-                                            <input type="text" x-model="building" placeholder="Building/Subd. (Opt)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
-                                        </div>
-                                        <div class="md:col-span-6 relative">
-                                            <div x-show="loading" class="absolute right-3 top-3" style="display: none;">
-                                                <svg class="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                            </div>
-                                            <select :required="mode === 'edit'" x-model="barangay" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" :disabled="loading">
-                                                <option value="">Select Barangay...</option>
-                                                <template x-for="bg in barangays" :key="bg.code">
-                                                    <option :value="bg.name" x-text="bg.name" :selected="barangay === bg.name"></option>
-                                                </template>
-                                            </select>
-                                        </div>
-                                        <div class="md:col-span-6">
-                                            <input type="text" x-model="city_province" readonly class="w-full rounded-xl border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 px-3.5 py-2.5 sm:text-xs font-semibold uppercase cursor-not-allowed">
-                                        </div>
+                                <div x-show="mode === 'edit'" class="grid grid-cols-1 md:grid-cols-12 gap-3" x-cloak>
+                                    <div class="md:col-span-3">
+                                        <input type="text" :required="mode === 'edit'" x-model="house_no" placeholder="House No." class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
-                                </template>
+                                    <div class="md:col-span-4">
+                                        <input type="text" x-model="street" placeholder="Street Name (Optional)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                    </div>
+                                    <div class="md:col-span-5">
+                                        <input type="text" x-model="building" placeholder="Building/Subd. (Optional)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                    </div>
+                                    <div class="md:col-span-6">
+                                        <x-select 
+                                            x-model="barangay" 
+                                            :options="$demographicBarangayOptions" 
+                                            :value="old('barangay', $presetBarangay)" 
+                                            placeholder="Select Barangay..." 
+                                            :searchable="true" 
+                                            search-placeholder="Search barangay..." 
+                                        />
+                                    </div>
+                                    <div class="md:col-span-6">
+                                        <input type="text" x-model="city_province" readonly class="w-full rounded-xl border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 px-3.5 py-2.5 sm:text-xs font-semibold uppercase cursor-not-allowed">
+                                    </div>
+                                </div>
                             </div>
                             <div x-data="{
                                 showPhilhealth: false,
@@ -1976,7 +2507,11 @@
      Applies deliberately across ALL severities (Severe, Mild, Normal/Light)
      Guarantees clear review of triage level and assigned medical provider
      ========================================================================= -->
-<div x-data="window.queueConfirmState = {
+<div x-data="{
+        // Expose the REACTIVE proxy globally. Assigning the object literal directly
+        // (window.queueConfirmState = {...}) stores Alpine's raw object, so mutations
+        // made from outside (e.g. isOpen = true) never trigger re-renders.
+        init() { window.queueConfirmState = this; },
         isOpen: false,
         isSubmitting: false,
         formId: null,
@@ -2000,12 +2535,8 @@
             const form = document.getElementById(config.formId);
             if (!form) return;
 
-            // HTML5 field validation
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
+            // Severity check runs BEFORE native validation: the severity radios are
+            // sr-only, so the browser's validation bubble for them is effectively invisible.
             let sev = 'mild';
             if (config.isPediatric) {
                 sev = 'light';
@@ -2021,6 +2552,12 @@
                     return;
                 }
                 sev = checkedSev.value;
+            }
+
+            // HTML5 field validation
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
             }
 
             this.severity = sev;

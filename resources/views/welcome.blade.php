@@ -155,14 +155,26 @@
 
                     {{-- Right Column (lg:col-span-6) — Text & Municipal Healthcare CTAs --}}
                     <div class="lg:col-span-6 order-2 lg:order-2">
-                        {{-- Institutional Kicker --}}
-                        <div class="hero-animate hero-animate-delay-1 flex items-center gap-2 mb-4">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-widest rounded-md border border-emerald-300/60 dark:border-emerald-700/60 shadow-2xs">
-                                <svg class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
-                                </svg>
-                                {{ \App\Models\SiteSetting::get('hero_badge_text', 'Municipality of Silang') }}
-                            </span>
+                        {{-- Municipal Standards & Coverage Badge --}}
+                        <div class="hero-animate hero-animate-delay-1 flex items-center mb-5">
+                            <div class="inline-flex items-center gap-2 sm:gap-2.5 p-1 pr-3.5 sm:pr-4 rounded-full bg-white/90 dark:bg-slate-900/85 border border-slate-200/90 dark:border-slate-800 shadow-2xs backdrop-blur-md hover:border-emerald-500/40 hover:shadow-xs transition-all duration-300">
+                                {{-- Accreditation Shield Chip --}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wider border border-emerald-300/50 dark:border-emerald-700/50 shadow-2xs shrink-0">
+                                    <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M12 1.5l8.5 3.5v7c0 6-4.5 10.5-8.5 12-4-1.5-8.5-6-8.5-12V5L12 1.5zm3.7 7.3a1 1 0 00-1.4-1.4L10.5 11.2 8.7 9.4a1 1 0 10-1.4 1.4l2.5 2.5a1 1 0 001.4 0l4.5-4.5z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>DOH-Accredited</span>
+                                </span>
+
+                                {{-- Barangay Coverage --}}
+                                <div class="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200 font-medium">
+                                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span>Serving <strong class="font-bold text-slate-900 dark:text-white">64 Barangays</strong> of Silang, Cavite</span>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Primary Display H1 --}}

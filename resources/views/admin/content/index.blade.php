@@ -478,7 +478,6 @@
         ───────────────────────────────────────────────────────────── --}}
         <div x-show="activeTab === 'hero'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6"
              x-data="{
-                 initBadge: '{{ old('settings.hero_badge_text', $settings['hero']['hero_badge_text']->value ?? 'Municipality of Silang') }}',
                  initLine1: '{{ old('settings.hero_title_line1', $settings['hero']['hero_title_line1']->value ?? 'Accessible') }}',
                  initHighlight: '{{ old('settings.hero_title_highlight', $settings['hero']['hero_title_highlight']->value ?? 'Public Healthcare') }}',
                  initLine2: '{{ old('settings.hero_title_line2', $settings['hero']['hero_title_line2']->value ?? 'for Every Silang Constituent.') }}',
@@ -486,7 +485,6 @@
                  initPreview: '{{ isset($settings['hero']['hero_image']->value) ? asset($settings['hero']['hero_image']->value) : '' }}',
                  imagePreview: '{{ isset($settings['hero']['hero_image']->value) ? asset($settings['hero']['hero_image']->value) : '' }}',
                  isDragging: false,
-                 badge: '',
                  line1: '',
                  highlight: '',
                  line2: '',
@@ -495,7 +493,6 @@
                      this.resetHero();
                  },
                  resetHero() {
-                     this.badge = this.initBadge;
                      this.line1 = this.initLine1;
                      this.highlight = this.initHighlight;
                      this.line2 = this.initLine2;
@@ -645,15 +642,28 @@
 
                     {{-- Right Column — Badge, Title, Description, CTAs (matches the landing page) --}}
                     <div class="lg:col-span-6 order-2 space-y-3 sm:space-y-4">
-                        {{-- Institutional Badge Kicker --}}
+                        {{-- Municipal Standards & Coverage Badge Preview --}}
                         <div>
-                            <span :class="previewDark
-                                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                                    : 'bg-emerald-100/90 text-emerald-900 border-emerald-300/60'"
-                                  class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md border shadow-xs transition-colors duration-300">
-                                <svg :class="previewDark ? 'text-emerald-400' : 'text-emerald-700'" class="w-3 h-3 shrink-0 transition-colors duration-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
-                                <span x-text="badge || 'Welcome to RHU Hub'"></span>
-                            </span>
+                            <div :class="previewDark
+                                    ? 'bg-slate-900/80 border-slate-800 text-slate-200'
+                                    : 'bg-white/90 border-slate-200/90 text-slate-700 shadow-2xs'"
+                                 class="inline-flex items-center gap-2 p-1 pr-3 rounded-full border text-[11px] font-medium transition-colors duration-300">
+                                <span :class="previewDark
+                                        ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/50'
+                                        : 'bg-emerald-100/90 text-emerald-800 border-emerald-300/50'"
+                                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border shrink-0">
+                                    <svg class="w-2.5 h-2.5 text-emerald-500" viewBox="0 0 24 24" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12 1.5l8.5 3.5v7c0 6-4.5 10.5-8.5 12-4-1.5-8.5-6-8.5-12V5L12 1.5zm3.7 7.3a1 1 0 00-1.4-1.4L10.5 11.2 8.7 9.4a1 1 0 10-1.4 1.4l2.5 2.5a1 1 0 001.4 0l4.5-4.5z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>DOH-Accredited</span>
+                                </span>
+                                <span class="flex items-center gap-1 text-[10px]">
+                                    <svg class="w-3 h-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    </svg>
+                                    <span>Serving <strong :class="previewDark ? 'text-white' : 'text-slate-900'" class="font-bold">64 Barangays</strong> of Silang, Cavite</span>
+                                </span>
+                            </div>
                         </div>
 
                         {{-- Primary Headline --}}
@@ -701,22 +711,13 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Headline & Institutional Typography</h3>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Primary Headline & Typography</h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Configure the primary public headline, accent keywords, and introduction text.</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="space-y-5">
-                    {{-- Badge Text --}}
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                            Institutional Badge Kicker
-                        </label>
-                        <input type="text" name="settings[hero_badge_text]" x-model="badge"
-                               class="w-full sm:w-1/2 h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
-                        <p class="text-[11px] text-slate-400 mt-1">Shown inside the top institutional badge (e.g. "Municipality of Silang").</p>
-                    </div>
 
                     {{-- Title 3-part grid --}}
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">

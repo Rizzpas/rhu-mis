@@ -43,8 +43,26 @@ class PatientController extends Controller
             $query->where('created_at', '<=', $dateTo);
         }
 
-        // Paginate results (10 per page to prevent excessive vertical stretching)
-        $patients = $query->withCount('consultations')->orderBy('last_name', 'asc')->orderBy('first_name', 'asc')->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        $perPage = 10;
+
+        // Calculate total records and total pages
+        $total = (clone $query)->count();
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        // Validate the page number before using it in the query
+        $rawPage = $request->input('page', 1);
+        $page = filter_var($rawPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'default' => 1]]);
+        if ($page > $totalPages && $total > 0) {
+            $page = $totalPages;
+        }
+
+        // Server-side pagination using prepared statements, LIMIT and OFFSET
+        $patients = $query->withCount('consultations')
+            ->orderBy('last_name', 'asc')
+            ->orderBy('first_name', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
 
         \App\Models\AuditLog::record('Viewed Patient List (Information Desk)');
 

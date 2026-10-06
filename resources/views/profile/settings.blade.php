@@ -22,6 +22,8 @@
         'pharmacy' => 'Pharmacist',
         default => 'Staff Member'
     };
+
+    $isAdminOrSuperAdmin = in_array(auth()->user()->role, ['admin', 'super_admin']);
 @endphp
 
 @extends($layout)
@@ -307,6 +309,8 @@
                       showConfirmModal: false, 
                       submitting: false, 
                       formName: '{{ addslashes($user->name) }}',
+                      formEmail: '{{ addslashes($user->email) }}',
+                      formSchedule: '{{ addslashes(old('schedule', $user->schedule ?? ($user->formatted_schedule ?: 'No Schedule Set'))) }}',
                       avatarPreview: null,
                       avatarName: null,
                       hasAvatar() {
@@ -315,67 +319,79 @@
                       }
                   }"
                   @profile-avatar-changed.window="avatarPreview = $event.detail.previewUrl; avatarName = $event.detail.fileName"
+                  @admin-schedule-updated.window="formSchedule = $event.detail.schedule"
                   class="space-y-6">
                 @csrf
                 @method('patch')
 
-                <!-- SECTION A: Editable Personal Details -->
+                <!-- Personal & Account Details Form Grid -->
                 <div class="space-y-4">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-3.5 rounded-full bg-emerald-500"></span>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Editable Details</h4>
-                    </div>
-
                     <!-- Full Name Field -->
                     <div class="space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <label for="name" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                Full Name
-                            </label>
-                        </div>
+                        <label for="name" class="block text-xs font-bold @if($isAdminOrSuperAdmin) text-slate-700 dark:text-slate-300 @else text-slate-500 dark:text-slate-400 @endif uppercase tracking-wider">
+                            Full Name @if($isAdminOrSuperAdmin) <span class="text-rose-500">*</span> @endif
+                        </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
-                            <input type="text" name="name" id="name" x-model="formName" value="{{ old('name', $user->name) }}" required
-                                   class="no-uppercase normal-case font-normal w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-900/60 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                   style="text-transform: none !important; font-weight: 400 !important;">
-                        </div>
-                        @error('name') <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                <!-- SECTION B: Administrative Information (Locked) -->
-                <div class="space-y-4 pt-3 border-t border-slate-100 dark:border-slate-700/60">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="w-1.5 h-3.5 rounded-full bg-slate-400"></span>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Administrative Information</h4>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        
-                        <!-- Role / Position -->
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                Assigned Role
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                                    </svg>
-                                </div>
-                                <input type="text" value="{{ $roleTitle }}" readonly disabled
+                            @if($isAdminOrSuperAdmin)
+                                <input type="text" name="name" id="name" x-model="formName" value="{{ old('name', $user->name) }}" required
+                                       class="no-uppercase normal-case font-normal w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-900/60 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       style="text-transform: none !important; font-weight: 400 !important;">
+                            @else
+                                <input type="text" value="{{ $user->name }}" readonly disabled
                                        class="no-uppercase normal-case font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-200/60 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-none transition-all shadow-inner"
                                        style="text-transform: none !important; font-weight: 400 !important;">
                                 <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                                 </div>
-                            </div>
+                            @endif
+                        </div>
+                        @error('name') <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        
+                        <!-- Role / Position -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold @if($isAdminOrSuperAdmin) text-slate-700 dark:text-slate-300 @else text-slate-500 dark:text-slate-400 @endif uppercase tracking-wider">
+                                Assigned Role
+                            </label>
+                            @if(auth()->user()->can('promote-admin'))
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                        </svg>
+                                    </div>
+                                    <select name="role" id="role"
+                                            class="no-uppercase normal-case font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-900/60 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
+                                            style="text-transform: none !important; font-weight: 400 !important;">
+                                        <option value="super_admin" @selected(old('role', $user->role) === 'super_admin')>Super Administrator</option>
+                                        <option value="admin" @selected(old('role', $user->role) === 'admin')>Administrator</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" value="{{ $roleTitle }}" readonly disabled
+                                           class="no-uppercase normal-case font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-200/60 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-none transition-all shadow-inner"
+                                           style="text-transform: none !important; font-weight: 400 !important;">
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Staff / Employee ID -->
@@ -389,7 +405,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                                     </svg>
                                 </div>
-                                <input type="text" value="EMP-{{ str_pad($user->id, 4, '0', STR_PAD_LEFT) }}" readonly disabled
+                                <input type="text" value="{{ $user->staff_id ?? '—' }}" readonly disabled
                                        class="font-mono font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-200/60 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-none transition-all shadow-inner"
                                        style="font-weight: 400 !important;">
                                 <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
@@ -400,8 +416,8 @@
 
                         <!-- Email Address -->
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                Official Email Address
+                            <label for="email" class="block text-xs font-bold @if($isAdminOrSuperAdmin) text-slate-700 dark:text-slate-300 @else text-slate-500 dark:text-slate-400 @endif uppercase tracking-wider">
+                                Official Email Address @if($isAdminOrSuperAdmin) <span class="text-rose-500">*</span> @endif
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -409,13 +425,20 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
                                     </svg>
                                 </div>
-                                <input type="email" value="{{ $user->email }}" readonly disabled
-                                       class="no-uppercase normal-case font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-200/60 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-none transition-all shadow-inner"
-                                       style="text-transform: none !important; font-weight: 400 !important;">
-                                <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                </div>
+                                @if($isAdminOrSuperAdmin)
+                                    <input type="email" name="email" id="email" x-model="formEmail" value="{{ old('email', $user->email) }}" required
+                                           class="no-uppercase normal-case font-normal w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-900/60 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                           style="text-transform: none !important; font-weight: 400 !important;">
+                                @else
+                                    <input type="email" value="{{ $user->email }}" readonly disabled
+                                           class="no-uppercase normal-case font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-200/60 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-none transition-all shadow-inner"
+                                           style="text-transform: none !important; font-weight: 400 !important;">
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    </div>
+                                @endif
                             </div>
+                            @error('email') <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <!-- Member Since -->
@@ -439,51 +462,362 @@
                         </div>
 
                         <!-- Work Schedule -->
-                        <div class="space-y-1.5 sm:col-span-2">
-                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                Assigned Schedule
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                        @if($isAdminOrSuperAdmin)
+                            <div class="space-y-3 sm:col-span-2" x-data="adminSchedulePicker('{{ addslashes(old('schedule', $user->schedule ?? ($user->formatted_schedule ?: 'No Schedule Set'))) }}')">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <label for="schedule" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                        Assigned Schedule
+                                    </label>
+                                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                        Reflected live via date & time picker below
+                                    </span>
                                 </div>
-                                <input type="text" value="{{ $user->formatted_schedule ?? ($user->schedule ?: 'Mon - Fri • 8:00 AM - 5:00 PM') }}" readonly disabled
-                                       class="no-uppercase normal-case font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-200/60 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-none transition-all shadow-inner"
-                                       style="text-transform: none !important; font-weight: 400 !important;">
-                                <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+
+                                <!-- Schedule Input Field (Bound & Reflected Live) -->
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-teal-600 dark:text-teal-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="schedule" id="schedule" x-model="scheduleText"
+                                           @input="onManualInput($event.target.value)"
+                                           placeholder="e.g. Mon - Fri • 8:00 AM - 5:00 PM"
+                                           class="no-uppercase normal-case font-semibold w-full pl-10 pr-24 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:border-teal-500 dark:focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 transition-all shadow-2xs"
+                                           style="text-transform: none !important;">
+                                    
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1.5 pointer-events-none">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950/60 border border-teal-200/70 dark:border-teal-800/60 text-[10px] font-bold text-teal-700 dark:text-teal-300">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+                                            Live
+                                        </span>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="schedule_payload" :value="schedulePayload">
+                                @error('schedule') <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-1">{{ $message }}</p> @enderror
+
+                                <!-- Interactive Duty Days & Hours Picker Card -->
+                                <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/80 space-y-4 shadow-2xs">
+                                    
+                                    <!-- Duty Days Header & Presets -->
+                                    <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200/70 dark:border-slate-800">
+                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            Duty Days & Time Picker
+                                        </span>
+                                        <div class="flex flex-wrap gap-1.5 text-[11px]">
+                                            <button type="button" @click="selectPresetDays('weekdays')" class="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-teal-500 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer transition-colors">Mon - Fri</button>
+                                            <button type="button" @click="selectPresetDays('mon-sat')" class="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-teal-500 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer transition-colors">Mon - Sat</button>
+                                            <button type="button" @click="selectPresetDays('all')" class="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-teal-500 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer transition-colors">All 7 Days</button>
+                                            <button type="button" @click="selectPresetDays('clear')" class="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-rose-400 text-rose-600 dark:text-rose-400 font-semibold cursor-pointer transition-colors">Clear</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Duty Days Selection -->
+                                    <div class="space-y-2.5">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Duty Days:</span>
+                                            <span class="text-xs font-bold" :class="formattedDaysText === 'None' ? 'text-red-500 dark:text-red-400' : 'text-teal-600 dark:text-teal-400'" x-text="formattedDaysText"></span>
+                                        </div>
+
+                                        <!-- Day Pills -->
+                                        <div class="grid grid-cols-7 gap-1.5 sm:gap-2">
+                                            <template x-for="(isActive, day) in days" :key="day">
+                                                <button type="button" @click="toggleDay(day)"
+                                                        :class="isActive 
+                                                            ? 'bg-teal-600 text-white font-bold shadow-xs border-teal-600 ring-2 ring-teal-500/20' 
+                                                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 font-medium'"
+                                                        class="py-2 px-1 text-center border rounded-xl text-xs transition-all focus:outline-none cursor-pointer select-none">
+                                                    <span x-text="day"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Section: Duty Time In & Duty Time Out -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 border-t border-slate-200/70 dark:border-slate-800">
+                                        <!-- Duty Time In -->
+                                        <div class="relative" @click.outside="openTimeIn = false">
+                                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Duty Time In
+                                            </label>
+                                            <div @click="openTimeIn = !openTimeIn; openTimeOut = false"
+                                                 role="button" tabindex="0"
+                                                 class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all cursor-pointer select-none"
+                                                 :class="openTimeIn ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    <span x-text="format12Hour(timeIn)"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                        <button type="button" @click.stop="setTimeIn(undefined, undefined, 'AM')"
+                                                                :class="timeInPeriod === 'AM' ? 'bg-teal-600 text-white font-bold shadow-2xs' : 'text-slate-500 dark:text-slate-400'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click.stop="setTimeIn(undefined, undefined, 'PM')"
+                                                                :class="timeInPeriod === 'PM' ? 'bg-teal-600 text-white font-bold shadow-2xs' : 'text-slate-500 dark:text-slate-400'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="openTimeIn ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            <!-- Time In Popover -->
+                                            <div x-show="openTimeIn" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute left-0 bottom-full mb-2 z-50 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 backdrop-blur-md space-y-2.5">
+                                                
+                                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-700">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time:</span>
+                                                        <span class="text-xs font-black text-teal-600 dark:text-teal-400" x-text="format12Hour(timeIn)"></span>
+                                                    </div>
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                        <button type="button" @click="setTimeIn(undefined, undefined, 'AM')"
+                                                                :class="timeInPeriod === 'AM' ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 font-medium'"
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click="setTimeIn(undefined, undefined, 'PM')"
+                                                                :class="timeInPeriod === 'PM' ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 font-medium'"
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hour</div>
+                                                    <div class="grid grid-cols-6 gap-1">
+                                                        <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="'in-h-' + h">
+                                                            <button type="button" @click="setTimeIn(h, undefined, undefined)"
+                                                                    :class="timeInHour === h 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="h"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Minute</div>
+                                                    <div class="grid grid-cols-4 gap-1">
+                                                        <template x-for="m in ['00', '15', '30', '45']" :key="'in-m-' + m">
+                                                            <button type="button" @click="setTimeIn(undefined, m, undefined)"
+                                                                    :class="timeInMinute === m 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="':' + m"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div class="pt-1.5 border-t border-slate-100 dark:border-slate-700">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quick Presets</div>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        <button type="button" @click="setTimeIn(7, '00', 'AM'); openTimeIn = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">7:00 AM</button>
+                                                        <button type="button" @click="setTimeIn(8, '00', 'AM'); openTimeIn = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 AM</button>
+                                                        <button type="button" @click="setTimeIn(8, '30', 'AM'); openTimeIn = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:30 AM</button>
+                                                        <button type="button" @click="setTimeIn(9, '00', 'AM'); openTimeIn = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">9:00 AM</button>
+                                                        <button type="button" @click="setTimeIn(1, '00', 'PM'); openTimeIn = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">1:00 PM</button>
+                                                    </div>
+                                                </div>
+
+                                                <button type="button" @click="openTimeIn = false"
+                                                        class="w-full py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer">
+                                                    Done
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Duty Time Out -->
+                                        <div class="relative" @click.outside="openTimeOut = false">
+                                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Duty Time Out
+                                            </label>
+                                            <div @click="openTimeOut = !openTimeOut; openTimeIn = false"
+                                                 role="button" tabindex="0"
+                                                 class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold shadow-2xs hover:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all cursor-pointer select-none"
+                                                 :class="openTimeOut ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    <span x-text="format12Hour(timeOut)"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80" @click.stop>
+                                                        <button type="button" @click.stop="setTimeOut(undefined, undefined, 'AM')"
+                                                                :class="timeOutPeriod === 'AM' ? 'bg-teal-600 text-white font-bold shadow-2xs' : 'text-slate-500 dark:text-slate-400'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click.stop="setTimeOut(undefined, undefined, 'PM')"
+                                                                :class="timeOutPeriod === 'PM' ? 'bg-teal-600 text-white font-bold shadow-2xs' : 'text-slate-500 dark:text-slate-400'"
+                                                                class="px-1.5 py-0.5 rounded text-[10px] transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="openTimeOut ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            <!-- Time Out Popover -->
+                                            <div x-show="openTimeOut" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute right-0 bottom-full mb-2 z-50 w-72 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 backdrop-blur-md space-y-2.5">
+                                                
+                                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-700">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time:</span>
+                                                        <span class="text-xs font-black text-teal-600 dark:text-teal-400" x-text="format12Hour(timeOut)"></span>
+                                                    </div>
+                                                    <div class="flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600/80">
+                                                        <button type="button" @click="setTimeOut(undefined, undefined, 'AM')"
+                                                                :class="timeOutPeriod === 'AM' ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 font-medium'"
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">AM</button>
+                                                        <button type="button" @click="setTimeOut(undefined, undefined, 'PM')"
+                                                                :class="timeOutPeriod === 'PM' ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 font-medium'"
+                                                                class="px-2 py-0.5 rounded text-xs transition-all cursor-pointer">PM</button>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hour</div>
+                                                    <div class="grid grid-cols-6 gap-1">
+                                                        <template x-for="h in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" :key="'out-h-' + h">
+                                                            <button type="button" @click="setTimeOut(h, undefined, undefined)"
+                                                                    :class="timeOutHour === h 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="h"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Minute</div>
+                                                    <div class="grid grid-cols-4 gap-1">
+                                                        <template x-for="m in ['00', '15', '30', '45']" :key="'out-m-' + m">
+                                                            <button type="button" @click="setTimeOut(undefined, m, undefined)"
+                                                                    :class="timeOutMinute === m 
+                                                                        ? 'bg-teal-600 text-white shadow-xs font-bold border border-teal-500' 
+                                                                        : 'bg-slate-100 dark:bg-slate-700/90 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-600 hover:text-teal-600 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-600'"
+                                                                    class="py-1 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer"
+                                                                    x-text="':' + m"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div class="pt-1.5 border-t border-slate-100 dark:border-slate-700">
+                                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quick Presets</div>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        <button type="button" @click="setTimeOut(12, '00', 'PM'); openTimeOut = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">12:00 PM</button>
+                                                        <button type="button" @click="setTimeOut(1, '00', 'PM'); openTimeOut = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">1:00 PM</button>
+                                                        <button type="button" @click="setTimeOut(5, '00', 'PM'); openTimeOut = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">5:00 PM</button>
+                                                        <button type="button" @click="setTimeOut(6, '00', 'PM'); openTimeOut = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">6:00 PM</button>
+                                                        <button type="button" @click="setTimeOut(8, '00', 'PM'); openTimeOut = false" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/90 hover:bg-teal-50 dark:hover:bg-slate-600 text-[10px] font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600">8:00 PM</button>
+                                                    </div>
+                                                </div>
+
+                                                <button type="button" @click="openTimeOut = false"
+                                                        class="w-full py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer">
+                                                    Done
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Live Reflected Schedule Badge / Indicator -->
+                                    <div class="flex items-center gap-2 pt-2 border-t border-slate-200/70 dark:border-slate-800 text-xs">
+                                        <span :class="scheduleText === 'No Schedule Set' ? 'text-red-500 dark:text-red-400' : 'text-teal-600 dark:text-teal-400'" class="shrink-0 flex items-center">
+                                            <template x-if="scheduleText === 'No Schedule Set'">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            </template>
+                                            <template x-if="scheduleText !== 'No Schedule Set'">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            </template>
+                                        </span>
+                                        <span class="text-slate-500 dark:text-slate-400 font-medium">Reflecting schedule:</span>
+                                        <span :class="scheduleText === 'No Schedule Set' ? 'font-bold text-red-600 dark:text-red-400' : 'font-bold text-teal-700 dark:text-teal-300'" x-text="scheduleText"></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @else
+                            <div class="space-y-1.5 sm:col-span-2">
+                                <label for="schedule" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    Assigned Schedule
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" value="{{ $user->formatted_schedule ?? ($user->schedule ?: 'No Schedule Set') }}" readonly disabled
+                                           class="no-uppercase normal-case font-normal w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-200/60 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-none transition-all shadow-inner"
+                                           style="text-transform: none !important; font-weight: 400 !important;">
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
 
                     </div>
 
-                    <!-- Administrator Locked Notice Banner -->
-                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-700/60 flex items-start gap-3">
-                        <div class="w-7 h-7 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
+                    @if(!$isAdminOrSuperAdmin)
+                        <!-- Administrative Fields Locked Notice Banner -->
+                        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-700/60 flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                                <strong class="font-semibold text-slate-700 dark:text-slate-300">Administrative Fields Locked:</strong> Your assigned role, official email, and schedule credentials can only be modified by a System Administrator in Staff Management. Contact the administrator's office to request updates.
+                            </p>
                         </div>
-                        <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                            <strong class="font-semibold text-slate-700 dark:text-slate-300">Administrative Fields Locked:</strong> Your assigned role, official email, and schedule credentials can only be modified by a System Administrator. Contact the administrator's office to request updates.
-                        </p>
-                    </div>
+                    @endif
                 </div>
 
                 <!-- Save Changes CTA Button -->
-                <div class="pt-2">
-                    <button type="button" 
-                            @click="showConfirmModal = true"
-                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] shadow-lg shadow-emerald-700/20 hover:shadow-emerald-700/30 transition-all cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Save Profile Changes</span>
-                    </button>
-                </div>
+                @if($isAdminOrSuperAdmin)
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="showConfirmModal = true"
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] shadow-lg shadow-emerald-700/20 hover:shadow-emerald-700/30 transition-all cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Save Profile Changes</span>
+                        </button>
+                    </div>
+                @else
+                    <div class="pt-2" x-show="hasAvatar()">
+                        <button type="button" 
+                                @click="showConfirmModal = true"
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] shadow-lg shadow-emerald-700/20 hover:shadow-emerald-700/30 transition-all cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Save Profile Photo</span>
+                        </button>
+                    </div>
+                @endif
 
                 <!-- POP-UP CONFIRMATION MODAL: Profile Changes -->
                 <template x-teleport="body">
@@ -523,10 +857,25 @@
 
                         <!-- Summary Preview Box -->
                         <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/60 space-y-2.5">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="text-slate-500 dark:text-slate-400 font-medium">Updated Name:</span>
-                                <span class="font-bold text-slate-800 dark:text-slate-200" x-text="formName || '{{ $user->name }}'"></span>
-                            </div>
+                            @if($isAdminOrSuperAdmin)
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Updated Name:</span>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200" x-text="formName || '{{ $user->name }}'"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Official Email:</span>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200" x-text="formEmail || '{{ $user->email }}'"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Assigned Schedule:</span>
+                                    <span :class="formSchedule === 'No Schedule Set' ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'" class="font-bold truncate max-w-[200px]" x-text="formSchedule"></span>
+                                </div>
+                            @else
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Name:</span>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200">{{ $user->name }}</span>
+                                </div>
+                            @endif
                             <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
                                 <span class="text-slate-500 dark:text-slate-400 font-medium">Avatar Upload:</span>
                                 <template x-if="hasAvatar()">
@@ -541,10 +890,12 @@
                                     <span class="font-medium text-slate-400 dark:text-slate-500">Unchanged</span>
                                 </template>
                             </div>
-                            <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-                                <span class="text-slate-500 dark:text-slate-400 font-medium">Administrative Fields:</span>
-                                <span class="font-medium text-slate-500 dark:text-slate-400">Locked & Unchanged</span>
-                            </div>
+                            @if(!$isAdminOrSuperAdmin)
+                                <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Administrative Fields:</span>
+                                    <span class="font-medium text-slate-500 dark:text-slate-400">Locked & Unchanged</span>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Action Buttons -->
@@ -819,6 +1170,203 @@
 
     </div>
 </div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('adminSchedulePicker', (initialSchedule) => window.adminSchedulePicker(initialSchedule));
+});
+
+window.adminSchedulePicker = function(initialSchedule) {
+    return {
+        days: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false },
+        timeIn: '08:00',
+        timeOut: '17:00',
+        openTimeIn: false,
+        openTimeOut: false,
+        scheduleText: '',
+
+        init() {
+            this.parseInitial(initialSchedule);
+            if (!initialSchedule || initialSchedule === 'No Schedule Set') {
+                this.scheduleText = 'No Schedule Set';
+            } else {
+                this.scheduleText = this.formattedSchedule || initialSchedule;
+            }
+            this.updateSchedule();
+        },
+
+        parseInitial(str) {
+            if (!str || str === 'No Schedule Set' || str === 'None') {
+                const daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                daysList.forEach(d => this.days[d] = false);
+                return;
+            }
+            const daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            if (str.includes('Mon - Fri') || str.includes('Mon-Fri')) {
+                daysList.forEach(d => this.days[d] = ['Mon','Tue','Wed','Thu','Fri'].includes(d));
+            } else if (str.includes('Mon - Sun') || str.includes('Mon-Sun') || str.includes('Everyday')) {
+                daysList.forEach(d => this.days[d] = true);
+            } else if (str.includes('Mon - Sat') || str.includes('Mon-Sat')) {
+                daysList.forEach(d => this.days[d] = d !== 'Sun');
+            } else {
+                let anyFound = false;
+                daysList.forEach(d => {
+                    if (str.includes(d)) {
+                        this.days[d] = true;
+                        anyFound = true;
+                    } else {
+                        this.days[d] = false;
+                    }
+                });
+                if (!anyFound) {
+                    daysList.forEach(d => this.days[d] = false);
+                }
+            }
+
+            const timeMatches = [...str.matchAll(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi)];
+            if (timeMatches.length >= 2) {
+                this.timeIn = this.convertTo24(timeMatches[0][1], timeMatches[0][2], timeMatches[0][3]);
+                this.timeOut = this.convertTo24(timeMatches[1][1], timeMatches[1][2], timeMatches[1][3]);
+            } else if (timeMatches.length === 1) {
+                this.timeIn = this.convertTo24(timeMatches[0][1], timeMatches[0][2], timeMatches[0][3]);
+            }
+        },
+
+        convertTo24(h, m, ap) {
+            let hour = parseInt(h, 10);
+            if (ap) {
+                ap = ap.toUpperCase();
+                if (ap === 'PM' && hour !== 12) hour += 12;
+                if (ap === 'AM' && hour === 12) hour = 0;
+            }
+            return `${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        },
+
+        format12Hour(time24) {
+            if (!time24) return '';
+            let [h, m] = time24.split(':').map(Number);
+            const ap = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${String(m).padStart(2, '0')} ${ap}`;
+        },
+
+        toggleDay(day) {
+            this.days[day] = !this.days[day];
+            this.updateSchedule();
+        },
+
+        selectPresetDays(type) {
+            const daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            if (type === 'weekdays') {
+                daysList.forEach(d => this.days[d] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(d));
+            } else if (type === 'all') {
+                daysList.forEach(d => this.days[d] = true);
+            } else if (type === 'mon-sat') {
+                daysList.forEach(d => this.days[d] = d !== 'Sun');
+            } else if (type === 'clear') {
+                daysList.forEach(d => this.days[d] = false);
+            }
+            this.updateSchedule();
+        },
+
+        get timeInHour() {
+            let [h] = this.timeIn.split(':').map(Number);
+            return h % 12 || 12;
+        },
+        get timeInMinute() {
+            let [, m] = this.timeIn.split(':');
+            return m || '00';
+        },
+        get timeInPeriod() {
+            let [h] = this.timeIn.split(':').map(Number);
+            return h >= 12 ? 'PM' : 'AM';
+        },
+        get timeOutHour() {
+            let [h] = this.timeOut.split(':').map(Number);
+            return h % 12 || 12;
+        },
+        get timeOutMinute() {
+            let [, m] = this.timeOut.split(':');
+            return m || '00';
+        },
+        get timeOutPeriod() {
+            let [h] = this.timeOut.split(':').map(Number);
+            return h >= 12 ? 'PM' : 'AM';
+        },
+
+        setTimeIn(h, m, p) {
+            let hour12 = this.timeInHour;
+            let minute = this.timeInMinute;
+            let period = this.timeInPeriod;
+
+            if (h !== undefined) hour12 = h;
+            if (m !== undefined) minute = m;
+            if (p !== undefined) period = p;
+
+            let h24 = parseInt(hour12, 10);
+            if (period === 'PM' && h24 !== 12) h24 += 12;
+            if (period === 'AM' && h24 === 12) h24 = 0;
+
+            this.timeIn = `${String(h24).padStart(2, '0')}:${minute}`;
+            this.updateSchedule();
+        },
+
+        setTimeOut(h, m, p) {
+            let hour12 = this.timeOutHour;
+            let minute = this.timeOutMinute;
+            let period = this.timeOutPeriod;
+
+            if (h !== undefined) hour12 = h;
+            if (m !== undefined) minute = m;
+            if (p !== undefined) period = p;
+
+            let h24 = parseInt(hour12, 10);
+            if (period === 'PM' && h24 !== 12) h24 += 12;
+            if (period === 'AM' && h24 === 12) h24 = 0;
+
+            this.timeOut = `${String(h24).padStart(2, '0')}:${minute}`;
+            this.updateSchedule();
+        },
+
+        get formattedDaysText() {
+            const selected = Object.keys(this.days).filter(d => this.days[d]);
+            if (selected.length === 0) return 'None';
+            if (selected.length === 7) return 'Mon - Sun';
+            if (selected.length === 5 && ['Mon','Tue','Wed','Thu','Fri'].every(d => this.days[d])) return 'Mon - Fri';
+            if (selected.length === 6 && ['Mon','Tue','Wed','Thu','Fri','Sat'].every(d => this.days[d])) return 'Mon - Sat';
+            return selected.join(', ');
+        },
+
+        get formattedSchedule() {
+            const selected = Object.keys(this.days).filter(d => this.days[d]);
+            if (selected.length === 0) return 'No Schedule Set';
+            const timePart = `${this.format12Hour(this.timeIn)} - ${this.format12Hour(this.timeOut)}`;
+            return `${this.formattedDaysText} • ${timePart}`;
+        },
+
+        get schedulePayload() {
+            const selected = Object.keys(this.days).filter(d => this.days[d]);
+            if (selected.length === 0) return '';
+            return JSON.stringify(selected.map(day => ({
+                day: day,
+                time_in: this.timeIn,
+                time_out: this.timeOut
+            })));
+        },
+
+        onManualInput(val) {
+            this.scheduleText = val;
+            window.dispatchEvent(new CustomEvent('admin-schedule-updated', { detail: { schedule: val } }));
+        },
+
+        updateSchedule() {
+            const sched = this.formattedSchedule;
+            this.scheduleText = sched;
+            window.dispatchEvent(new CustomEvent('admin-schedule-updated', { detail: { schedule: sched } }));
+        }
+    };
+};
+</script>
 
 @include('partials.image-cropper')
 @endsection

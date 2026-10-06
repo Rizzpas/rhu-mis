@@ -13,6 +13,57 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 
+    /**
+     * Role → short department code used as the Staff ID prefix.
+     */
+    public const STAFF_ID_ROLE_CODES = [
+        'super_admin' => 'SAD',
+        'admin' => 'ADM',
+        'regular_doctor' => 'DOC',
+        'pedia_doctor' => 'PED',
+        'clinical_nurse' => 'NRS',
+        'vitals_nurse' => 'VTN',
+        'information_desk' => 'IFD',
+        'laboratory' => 'LAB',
+        'radiology' => 'RAD',
+        'pharmacy' => 'PHM',
+    ];
+
+    /**
+     * Characters used for the random Staff ID suffix (ambiguous 0/O/1/I/L removed).
+     */
+    protected const STAFF_ID_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->staff_id)) {
+                $user->staff_id = static::generateStaffId($user->role, now()->format('ym'));
+            }
+        });
+    }
+
+    /**
+     * Generate a unique Staff ID in the format {ROLE}-{YYMM}-{XXXX}, e.g. DOC-2610-7K3P.
+     * ROLE = department code, YYMM = year + month the staff joined, XXXX = random unique suffix.
+     */
+    public static function generateStaffId(?string $role, ?string $period = null): string
+    {
+        $code = self::STAFF_ID_ROLE_CODES[$role ?? ''] ?? 'STF';
+        $period = $period ?? now()->format('ym');
+        $alphabet = self::STAFF_ID_ALPHABET;
+
+        do {
+            $suffix = '';
+            for ($i = 0; $i < 4; $i++) {
+                $suffix .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+            $candidate = "{$code}-{$period}-{$suffix}";
+        } while (static::withTrashed()->where('staff_id', $candidate)->exists());
+
+        return $candidate;
+    }
+
     protected $fillable = [
         'name',
         'email',
@@ -65,38 +116,43 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the clean, un-prefixed full name normalized to First Middle Last order.
+     */
+    public function getCleanFullNameAttribute()
+    {
+        $rawName = $this->name ?? '';
+        $cleanName = trim(preg_replace('/^(Dr\.|Dr|Doc|Doctor|Nurse|MedTech|RadTech)\s+/i', '', $rawName));
+
+        // If stored as "LastName, FirstName MiddleName", normalize to "FirstName MiddleName LastName"
+        if (str_contains($cleanName, ',')) {
+            $parts = explode(',', $cleanName, 2);
+            $lastName = trim($parts[0]);
+            $firstMiddle = trim($parts[1] ?? '');
+            $cleanName = trim($firstMiddle . ' ' . $lastName);
+        }
+
+        return $cleanName;
+    }
+
+    /**
      * Get the standardized and formatted name based on the user's role.
-     * Enforces formats like "Dr. Lastname, Firstname".
+     * Formats names in First name > Middle > Last name order (e.g., "Dr. First Middle Last").
      */
     public function getFormattedNameAttribute()
     {
-        $rawName = $this->name ?? '';
+        $cleanName = $this->clean_full_name;
         $role = $this->role ?? '';
 
-        // Strip out existing prefixes to prevent duplication
-        $cleanName = trim(preg_replace('/^(Dr\.|Dr|Doc|Doctor|Nurse|MedTech)\s+/i', '', $rawName));
-
-        // Only format clinical staff
+        // Only format clinical staff with their professional prefix
         if (str_contains($role, 'doctor') || str_contains($role, 'nurse') || $role === 'laboratory' || $role === 'radiology') {
-            // Attempt to format as "Last, First"
-            $parts = explode(' ', $cleanName);
-            if (count($parts) > 1) {
-                $lastName = array_pop($parts);
-                $firstName = implode(' ', $parts);
-                $formattedName = $lastName.', '.$firstName;
-            } else {
-                $formattedName = $cleanName;
-            }
-
-            // Re-apply correct prefix
             if (str_contains($role, 'doctor')) {
-                return 'Dr. '.$formattedName;
+                return 'Dr. '.$cleanName;
             } elseif (str_contains($role, 'nurse')) {
-                return 'Nurse '.$formattedName;
+                return 'Nurse '.$cleanName;
             } elseif ($role === 'laboratory') {
-                return 'MedTech '.$formattedName;
+                return 'MedTech '.$cleanName;
             } elseif ($role === 'radiology') {
-                return 'RadTech '.$formattedName;
+                return 'RadTech '.$cleanName;
             }
         }
 
@@ -108,13 +164,13 @@ class User extends Authenticatable
      */
     public function getInitialsAttribute()
     {
-        $cleanName = trim(preg_replace('/^(Dr\.|Dr|Doc|Doctor|Nurse|MedTech)\s+/i', '', $this->name ?? 'A'));
+        $cleanName = $this->clean_full_name;
         $parts = preg_split('/\s+/', $cleanName);
         if (count($parts) >= 2) {
             return strtoupper(substr($parts[0], 0, 1).substr(end($parts), 0, 1));
         }
 
-        return strtoupper(substr($cleanName, 0, 1));
+        return strtoupper(substr($cleanName, 0, 2));
     }
 
     /**

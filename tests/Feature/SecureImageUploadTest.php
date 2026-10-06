@@ -11,8 +11,6 @@ use Tests\TestCase;
 
 class SecureImageUploadTest extends TestCase
 {
-    use DatabaseTransactions;
-
     protected $connection = 'mysql';
 
     protected const VALID_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
@@ -33,15 +31,14 @@ class SecureImageUploadTest extends TestCase
         ]);
         \Illuminate\Support\Facades\DB::purge('mysql');
         \Illuminate\Support\Facades\DB::reconnect('mysql');
+        \Illuminate\Support\Facades\DB::beginTransaction();
 
-        $this->user = User::where('role', 'patient')->first()
-            ?? User::first()
-            ?? User::create([
-                'name' => 'Test User',
-                'email' => 'test_user_' . uniqid() . '@example.com',
-                'password' => bcrypt('password'),
-                'role' => 'patient',
-            ]);
+        $this->user = User::create([
+            'name' => 'Temp Upload User',
+            'email' => 'temp_upload_user_' . uniqid() . '@rhu.gov.ph',
+            'password' => bcrypt('password'),
+            'role' => 'patient',
+        ]);
 
         $this->admin = User::where('role', 'super_admin')->first()
             ?? User::where('role', 'admin')->first()
@@ -51,6 +48,15 @@ class SecureImageUploadTest extends TestCase
                 'password' => bcrypt('password'),
                 'role' => 'admin',
             ]);
+    }
+
+    protected function tearDown(): void
+    {
+        \Illuminate\Support\Facades\DB::rollBack();
+        if (isset($this->user)) {
+            $this->user->delete();
+        }
+        parent::tearDown();
     }
 
     public function test_profile_avatar_upload_with_rejected_file_type_fails_validation(): void

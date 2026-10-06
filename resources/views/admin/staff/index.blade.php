@@ -46,6 +46,9 @@
                     selectedIds: [],
                     selectAll: false,
                     showBulkModal: false,
+                    showBulkStatusModal: false,
+                    showBulkPromoteModal: false,
+                    bulkStatusValue: 'Online',
                     toggleAll() {
                         if (this.selectAll) {
                             this.selectedIds = [...document.querySelectorAll('.rowCheckbox')].map(cb => cb.value);
@@ -74,61 +77,48 @@
                 <h3 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Staff Roster</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage personnel, roles, and system access
                     levels.</p>
-
-                <!-- Premium Legend -->
-                <div class="flex flex-wrap gap-2 mt-4">
-                    <div
-                        class="flex items-center gap-2 bg-slate-100 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl">
-                        <span class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
-                        <span
-                            class="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Doctor</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 bg-slate-100 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl">
-                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
-                        <span
-                            class="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Pedia</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 bg-slate-100 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl">
-                        <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.5)]"></span>
-                        <span
-                            class="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Nurse</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 bg-slate-100 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl">
-                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
-                        <span
-                            class="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Lab</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 bg-slate-100 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl">
-                        <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"></span>
-                        <span
-                            class="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Radio</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 bg-slate-100 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl">
-                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]"></span>
-                        <span
-                            class="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Admin</span>
-                    </div>
-                </div>
             </div>
             <div class="flex items-center gap-3">
-                @can('delete-staff')
-                <div x-show="selectedIds.length > 0" x-cloak>
+                <div x-show="selectedIds.length > 0" x-cloak class="flex items-center gap-2">
+                    <!-- Selected Count Badge -->
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-bold shadow-2xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        <span x-text="selectedIds.length"></span> selected
+                    </span>
+
+                    <!-- Bulk Set Status -->
+                    <button @click="showBulkStatusModal = true"
+                        class="h-10 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span>Set Status</span>
+                    </button>
+
+                    <!-- Bulk Promote -->
+                    @can('promote-admin')
+                    <button @click="showBulkPromoteModal = true"
+                        class="h-10 px-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-md shadow-violet-600/20 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                        </svg>
+                        <span>Promote</span>
+                    </button>
+                    @endcan
+
+                    <!-- Bulk Archive -->
+                    @can('delete-staff')
                     <button @click="showBulkModal = true"
-                        class="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="h-10 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                             </path>
                         </svg>
-                        <span>Archive Selected (<span x-text="selectedIds.length"></span>)</span>
+                        <span>Archive</span>
                     </button>
+                    @endcan
                 </div>
-                @endcan
                 <button @click="showAddDoctor = true"
                     class="h-10 px-5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold text-sm shadow-md shadow-teal-600/25 hover:shadow-teal-600/35 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +131,7 @@
 
         <!-- Advanced Search and Filter Bar -->
         <div class="px-6 py-4 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
-            <form method="GET" action="{{ route('admin.staff.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
+            <form method="GET" action="{{ route('admin.staff.index') }}" id="staffFilterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
                 <!-- Search Input -->
                 <div class="sm:col-span-2 lg:col-span-5">
                     <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
@@ -226,7 +216,7 @@
                         <span>Apply Filters</span>
                     </button>
                 </div>
-                <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+                <input type="hidden" name="per_page" id="staff_per_page" value="{{ request('per_page', 10) }}">
             </form>
         </div>
 
@@ -1107,11 +1097,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1">
-                                            <svg class="w-4 h-4 text-teal-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div class="text-xs flex items-center gap-1.5 pt-1" :class="formattedSchedule ? 'text-slate-500 dark:text-slate-400' : 'text-red-600 dark:text-red-400'">
+                                            <svg class="w-4 h-4 shrink-0" :class="formattedSchedule ? 'text-teal-500' : 'text-red-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                             </svg>
-                                            <span class="font-medium" x-text="formattedSchedule ? 'Current Schedule: ' + formattedSchedule : 'No schedule days selected'"></span>
+                                            <span :class="formattedSchedule ? 'font-medium' : 'font-semibold'" x-text="formattedSchedule ? 'Current Schedule: ' + formattedSchedule : 'No Schedule Set'"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -1220,11 +1210,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                                            <svg class="w-4 h-4 text-teal-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div class="flex items-center gap-2 text-xs" :class="formattedSchedule ? 'text-slate-600 dark:text-slate-400' : 'text-red-600 dark:text-red-400'">
+                                            <svg class="w-4 h-4 shrink-0" :class="formattedSchedule ? 'text-teal-500' : 'text-red-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                             </svg>
-                                            <span class="font-medium" x-text="formattedSchedule ? formattedSchedule : 'No schedule set (staff can work flexible hours)'"></span>
+                                            <span :class="formattedSchedule ? 'font-medium' : 'font-semibold'" x-text="formattedSchedule ? formattedSchedule : 'No Schedule Set'"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -1379,32 +1369,53 @@
                     }
                     
                     // Clean Name parsing
-                    let cleanName = (member.name || '').replace(/^(Dr\.|Nurse|MedTech|RadTech)\s+/i, '').trim();
-                    let parts = cleanName.split(/\s+/).filter(Boolean);
-                    let suffixes = ['Jr.', 'Sr.', 'III', 'IV', 'II', 'Jr', 'Sr'];
-
-                    if (parts.length > 0 && suffixes.includes(parts[parts.length - 1])) {
-                        this.suffix = parts.pop();
+                    let cleanName = (member.name || '').replace(/^(Dr\.|Dr|Doc|Doctor|Nurse|MedTech|RadTech)\s+/i, '').trim();
+                    if (cleanName.includes(',')) {
+                        let cParts = cleanName.split(',');
+                        let lName = (cParts[0] || '').trim();
+                        let fRest = (cParts[1] || '').trim();
+                        let fParts = fRest.split(/\s+/).filter(Boolean);
+                        let suffixes = ['Jr.', 'Sr.', 'III', 'IV', 'II', 'Jr', 'Sr'];
+                        if (fParts.length > 0 && suffixes.includes(fParts[fParts.length - 1])) {
+                            this.suffix = fParts.pop();
+                        } else {
+                            this.suffix = '';
+                        }
+                        this.lastName = lName;
+                        if (fParts.length > 0) {
+                            this.firstName = fParts.shift();
+                            this.middleName = fParts.join(' ');
+                        } else {
+                            this.firstName = '';
+                            this.middleName = '';
+                        }
                     } else {
-                        this.suffix = '';
-                    }
+                        let parts = cleanName.split(/\s+/).filter(Boolean);
+                        let suffixes = ['Jr.', 'Sr.', 'III', 'IV', 'II', 'Jr', 'Sr'];
 
-                    if (parts.length === 0) {
-                        this.firstName = '';
-                        this.middleName = '';
-                        this.lastName = '';
-                    } else if (parts.length === 1) {
-                        this.firstName = parts[0];
-                        this.middleName = '';
-                        this.lastName = '';
-                    } else if (parts.length === 2) {
-                        this.firstName = parts[0];
-                        this.middleName = '';
-                        this.lastName = parts[1];
-                    } else {
-                        this.firstName = parts.shift();
-                        this.lastName = parts.pop();
-                        this.middleName = parts.join(' ');
+                        if (parts.length > 0 && suffixes.includes(parts[parts.length - 1])) {
+                            this.suffix = parts.pop();
+                        } else {
+                            this.suffix = '';
+                        }
+
+                        if (parts.length === 0) {
+                            this.firstName = '';
+                            this.middleName = '';
+                            this.lastName = '';
+                        } else if (parts.length === 1) {
+                            this.firstName = parts[0];
+                            this.middleName = '';
+                            this.lastName = '';
+                        } else if (parts.length === 2) {
+                            this.firstName = parts[0];
+                            this.middleName = '';
+                            this.lastName = parts[1];
+                        } else {
+                            this.firstName = parts.shift();
+                            this.lastName = parts.pop();
+                            this.middleName = parts.join(' ');
+                        }
                     }
 
                     // Schedule parsing
@@ -2149,11 +2160,11 @@
                                         </div>
                                     </div>
 
-                                    <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1">
-                                        <svg class="w-4 h-4 text-teal-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div class="text-xs flex items-center gap-1.5 pt-1" :class="formattedSchedule ? 'text-slate-500 dark:text-slate-400' : 'text-red-600 dark:text-red-400'">
+                                        <svg class="w-4 h-4 shrink-0" :class="formattedSchedule ? 'text-teal-500' : 'text-red-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
-                                        <span class="font-medium" x-text="formattedSchedule ? 'Current Schedule: ' + formattedSchedule : 'No schedule days selected'"></span>
+                                        <span :class="formattedSchedule ? 'font-medium' : 'font-semibold'" x-text="formattedSchedule ? 'Current Schedule: ' + formattedSchedule : 'No Schedule Set'"></span>
                                     </div>
                                 </div>
                             </div>
@@ -2175,9 +2186,9 @@
                 </div>
             </div>
         </div>
-                <div class="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar">
+                <div class="overflow-x-auto">
                     <table class="w-full min-w-full divide-y dark:divide-slate-600 relative">
-                        <thead class="dark:bg-slate-800 bg-slate-100 sticky top-0 z-10 shadow-sm">
+                        <thead class="dark:bg-slate-800 bg-slate-100">
                             <tr>
                                 @can('delete-staff')
                                 <th class="px-6 py-3 text-left w-12">
@@ -2221,7 +2232,7 @@
                                                 <div
                                                     class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 font-bold overflow-hidden border border-slate-300 dark:border-slate-600 shadow-2xs">
                                                     @if($member->avatar_url)
-                                                        <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}"
+                                                        <img src="{{ $member->avatar_url }}" alt="{{ $member->clean_full_name }}"
                                                             class="h-full w-full object-cover">
                                                     @else
                                                         {{ $member->initials }}
@@ -2229,41 +2240,8 @@
                                                 </div>
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-semibold text-slate-900 dark:text-slate-300">
-                                                    @php
-                                                        $formattedName = $member->formatted_name;
-                                                        $role = $member->role;
-
-                                                        $roleColors = [
-                                                            'super_admin' => 'text-slate-500 dark:text-slate-400',
-                                                            'admin' => 'text-slate-500 dark:text-slate-400',
-                                                            'regular_doctor' => 'text-green-600 dark:text-green-500',
-                                                            'pedia_doctor' => 'text-red-600 dark:text-red-500',
-                                                            'laboratory' => 'text-blue-600 dark:text-blue-400',
-                                                            'radiology' => 'text-purple-600 dark:text-purple-400',
-                                                            'clinical_nurse' => 'text-yellow-500 dark:text-yellow-400',
-                                                            'vitals_nurse' => 'text-yellow-500 dark:text-yellow-400',
-                                                            'pharmacy' => 'text-teal-600 dark:text-teal-400',
-                                                            'information_desk' => 'text-slate-500 dark:text-slate-400',
-                                                        ];
-
-                                                        $prefixColor = $roleColors[$role] ?? 'text-green-600 dark:text-green-500';
-
-                                                        $prefixes = ['Dr.', 'Nurse', 'MedTech', 'RadTech'];
-                                                        $foundPrefix = null;
-                                                        foreach ($prefixes as $p) {
-                                                            if (str_starts_with($formattedName, $p)) {
-                                                                $foundPrefix = $p;
-                                                                break;
-                                                            }
-                                                        }
-                                                    @endphp
-                                                    @if($foundPrefix)
-                                                        <span class="{{ $prefixColor }} font-bold">{{ $foundPrefix }}</span>
-                                                        {{ str_replace($foundPrefix . ' ', '', $formattedName) }}
-                                                    @else
-                                                        {{ $formattedName }}
-                                                    @endif
+                                                <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                                    {{ $member->clean_full_name }}
                                                 </div>
                                                 <div class="text-xs text-slate-500">{{ $member->email }}</div>
                                             </div>
@@ -2273,8 +2251,12 @@
                                         <div class="text-sm text-slate-900 dark:text-slate-300 font-medium capitalize">
                                             {{ str_replace('_', ' ', $member->role) }}
                                         </div>
-                                        <div class="text-xs text-slate-500">
-                                            {{ $member->formatted_schedule ?? 'No Schedule Set' }}
+                                        @php
+                                            $displaySchedule = $member->formatted_schedule ?? ($member->schedule ?: 'No Schedule Set');
+                                            $isNoSchedule = empty($displaySchedule) || $displaySchedule === 'No Schedule Set';
+                                        @endphp
+                                        <div class="text-xs {{ $isNoSchedule ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-slate-500 dark:text-slate-400' }}">
+                                            {{ $isNoSchedule ? 'No Schedule Set' : $displaySchedule }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -2306,17 +2288,17 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/70 gap-1 shadow-2xs" x-data>
                                             <button
-                                                @click="updateStatus({{ $member->id }}, 'Online', '{{ addslashes($member->formatted_name) }}')"
+                                                @click="updateStatus({{ $member->id }}, 'Online', '{{ addslashes($member->clean_full_name) }}')"
                                                 class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $normalizedMemberStatus === 'Online' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-800' }}">
                                                 Online
                                             </button>
                                             <button
-                                                @click="updateStatus({{ $member->id }}, 'Offline', '{{ addslashes($member->formatted_name) }}')"
+                                                @click="updateStatus({{ $member->id }}, 'Offline', '{{ addslashes($member->clean_full_name) }}')"
                                                 class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $normalizedMemberStatus === 'Offline' ? 'bg-slate-600 dark:bg-slate-700 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800' }}">
                                                 Offline
                                             </button>
                                             <button
-                                                @click="updateStatus({{ $member->id }}, 'Occupied', '{{ addslashes($member->formatted_name) }}')"
+                                                @click="updateStatus({{ $member->id }}, 'Occupied', '{{ addslashes($member->clean_full_name) }}')"
                                                 class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $normalizedMemberStatus === 'Occupied' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-800' }}">
                                                 Occupied
                                             </button>
@@ -2325,15 +2307,15 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end gap-1.5 items-center">
                                             <!-- Edit Button -->
-                                            @if(!in_array($member->role, ['admin', 'super_admin']) || auth()->user()->can('manage-admins'))
+                                            @if(!in_array($member->role, ['admin', 'super_admin']) || auth()->user()->can('manage-admins') || auth()->id() === $member->id)
                                             <button
                                                 @click="$dispatch('open-edit-staff', {{ json_encode([
                                                     'id' => $member->id, 
-                                                    'name' => $member->name, 
+                                                    'name' => $member->clean_full_name, 
                                                     'email' => $member->email, 
                                                     'role' => $member->role, 
                                                     'status' => $member->status, 
-                                                    'schedule' => $member->schedule,
+                                                    'schedule' => $member->formatted_schedule ?? $member->schedule,
                                                     'avatar_url' => $member->avatar_url,
                                                     'initials' => $member->initials,
                                                 ]) }})"
@@ -2350,7 +2332,7 @@
                                             @can('delete-staff')
                                             <button @click="$dispatch('open-confirmation', {
                                                         title: 'Archive Staff Member',
-                                                        message: 'Are you sure you want to archive {{ addslashes($member->formatted_name) }}?',
+                                                        message: 'Are you sure you want to archive {{ addslashes($member->clean_full_name) }}?',
                                                         confirmText: 'Yes, Archive',
                                                         type: 'danger',
                                                         action: '{{ route('admin.staff.destroy', $member->id) }}',
@@ -2370,7 +2352,7 @@
                                                 @if(!in_array($member->role, ['admin', 'super_admin']))
                                                     <button @click="$dispatch('open-confirmation', {
                                                                 title: 'Promote to Admin',
-                                                                message: 'Are you sure you want to promote {{ addslashes($member->formatted_name) }} to Administrator?',
+                                                                message: 'Are you sure you want to promote {{ addslashes($member->clean_full_name) }} to Administrator?',
                                                                 confirmText: 'Yes, Promote',
                                                                 type: 'info',
                                                                 action: '{{ route('admin.staff.promote', $member->id) }}',
@@ -2405,38 +2387,40 @@
                     </table>
                 </div>
 
-                <!-- Pagination Controls with Styled <option> Tags -->
-                @if($staff->hasPages() || $staff->total() > 10)
-                    <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Items per page</label>
+                <!-- Pagination Controls -->
+                <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            Showing 
+                            <span class="font-bold text-slate-900 dark:text-white">{{ $staff->firstItem() ?? ($staff->count() > 0 ? 1 : 0) }}</span>
+                            to 
+                            <span class="font-bold text-slate-900 dark:text-white">{{ $staff->lastItem() ?? $staff->count() }}</span>
+                            of 
+                            <span class="font-bold text-slate-900 dark:text-white">{{ $staff->total() }}</span>
+                            staff members
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Per page:</label>
                             <x-select 
                                 :options="[
                                     '10' => '10 per page',
                                     '20' => '20 per page',
-                                    '30' => '30 per page',
                                     '50' => '50 per page'
                                 ]" 
                                 :value="request('per_page', 10)"
                                 size="sm"
                                 containerClass="w-36"
                                 :dropUp="true"
-                                @change="
-                                    const url = new URL(window.location.href);
-                                    url.searchParams.set('per_page', $event.detail);
-                                    url.searchParams.delete('page');
-                                    window.location.href = url.toString();
-                                "
+                                @change="document.getElementById('staff_per_page').value = $event.detail; document.getElementById('staffFilterForm').submit()"
                             />
                         </div>
-                        
-                        <div class="w-full sm:w-auto">
-                            @if($staff->hasPages())
-                                {{ $staff->appends(request()->query())->links('vendor.pagination.shadcn') }}
-                            @endif
-                        </div>
                     </div>
-                @endif
+                    
+                    <div>
+                        {{ $staff->appends(request()->query())->links('vendor.pagination.custom') }}
+                    </div>
+                </div>
                 <!-- Bulk Action Modal -->
                 <!-- Bulk Archive Modal -->
                 @can('delete-staff')
@@ -2485,6 +2469,174 @@
                                     <button type="button"
                                         class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
                                         @click="showBulkModal = false">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                @endcan
+
+                <!-- Bulk Status Change Modal -->
+                <template x-teleport="body">
+                    <div x-show="showBulkStatusModal" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="bulk-status-title" role="dialog" aria-modal="true">
+                        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="showBulkStatusModal = false"></div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                                <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
+                                    <div class="sm:flex sm:items-start">
+                                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                                            <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+                                            <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="bulk-status-title">Bulk Status Change</h3>
+                                            <div class="mt-2">
+                                                <p class="text-sm text-slate-500 dark:text-slate-400">Update availability status for <span class="font-black text-blue-600 dark:text-blue-400" x-text="selectedIds.length"></span> selected staff members.</p>
+                                            </div>
+
+                                            <!-- Status Selection -->
+                                            <div class="mt-4 space-y-2">
+                                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Select Status</label>
+                                                
+                                                <!-- Online -->
+                                                <label @click="bulkStatusValue = 'Online'" 
+                                                    class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                                                    :class="bulkStatusValue === 'Online' ? 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/30 shadow-sm' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/50'">
+                                                    <div class="flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all shrink-0"
+                                                        :class="bulkStatusValue === 'Online' ? 'border-emerald-500' : 'border-slate-300 dark:border-slate-600'">
+                                                        <div class="w-2.5 h-2.5 rounded-full transition-all"
+                                                            :class="bulkStatusValue === 'Online' ? 'bg-emerald-500 scale-100' : 'bg-transparent scale-0'"></div>
+                                                    </div>
+                                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] shrink-0"></span>
+                                                    <div>
+                                                        <span class="text-sm font-bold text-slate-900 dark:text-white">Online</span>
+                                                        <p class="text-xs text-slate-500 dark:text-slate-400">Staff will appear as available and active</p>
+                                                    </div>
+                                                </label>
+
+                                                <!-- Offline -->
+                                                <label @click="bulkStatusValue = 'Offline'"
+                                                    class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                                                    :class="bulkStatusValue === 'Offline' ? 'border-slate-500 bg-slate-50/80 dark:bg-slate-800/60 shadow-sm' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/50'">
+                                                    <div class="flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all shrink-0"
+                                                        :class="bulkStatusValue === 'Offline' ? 'border-slate-500' : 'border-slate-300 dark:border-slate-600'">
+                                                        <div class="w-2.5 h-2.5 rounded-full transition-all"
+                                                            :class="bulkStatusValue === 'Offline' ? 'bg-slate-500 scale-100' : 'bg-transparent scale-0'"></div>
+                                                    </div>
+                                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)] shrink-0"></span>
+                                                    <div>
+                                                        <span class="text-sm font-bold text-slate-900 dark:text-white">Offline</span>
+                                                        <p class="text-xs text-slate-500 dark:text-slate-400">Staff will appear as unavailable</p>
+                                                    </div>
+                                                </label>
+
+                                                <!-- Occupied -->
+                                                <label @click="bulkStatusValue = 'Occupied'"
+                                                    class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                                                    :class="bulkStatusValue === 'Occupied' ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/30 shadow-sm' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/50'">
+                                                    <div class="flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all shrink-0"
+                                                        :class="bulkStatusValue === 'Occupied' ? 'border-amber-500' : 'border-slate-300 dark:border-slate-600'">
+                                                        <div class="w-2.5 h-2.5 rounded-full transition-all"
+                                                            :class="bulkStatusValue === 'Occupied' ? 'bg-amber-500 scale-100' : 'bg-transparent scale-0'"></div>
+                                                    </div>
+                                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] shrink-0"></span>
+                                                    <div>
+                                                        <span class="text-sm font-bold text-slate-900 dark:text-white">Occupied</span>
+                                                        <p class="text-xs text-slate-500 dark:text-slate-400">Staff will appear as busy / in a session</p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                                    <form method="POST" action="{{ route('admin.staff.bulk-status') }}" @submit="
+                                        $el.querySelectorAll('input[name=\'ids[]\']').forEach(e => e.remove());
+                                        selectedIds.forEach(id => {
+                                            const inp = document.createElement('input');
+                                            inp.type = 'hidden';
+                                            inp.name = 'ids[]';
+                                            inp.value = id;
+                                            $el.appendChild(inp);
+                                        });
+                                    ">
+                                        @csrf
+                                        <input type="hidden" name="status" :value="bulkStatusValue">
+                                        <template x-for="id in selectedIds" :key="id">
+                                            <input type="hidden" name="ids[]" :value="id">
+                                        </template>
+                                        <button type="submit"
+                                            class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 transition-all cursor-pointer">
+                                            Update Status
+                                        </button>
+                                    </form>
+                                    <button type="button"
+                                        class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                                        @click="showBulkStatusModal = false">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Bulk Promote Modal -->
+                @can('promote-admin')
+                <template x-teleport="body">
+                    <div x-show="showBulkPromoteModal" x-cloak style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="bulk-promote-title" role="dialog" aria-modal="true">
+                        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="showBulkPromoteModal = false"></div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200 dark:border-slate-800">
+                                <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-6">
+                                    <div class="sm:flex sm:items-start">
+                                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                                            <svg class="h-6 w-6 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                            </svg>
+                                        </div>
+                                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                            <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="bulk-promote-title">Bulk Promote to Admin</h3>
+                                            <div class="mt-2">
+                                                <p class="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to promote <span class="font-black text-violet-600 dark:text-violet-400" x-text="selectedIds.length"></span> selected staff members to <span class="font-bold text-violet-600 dark:text-violet-400">Administrator</span> role?</p>
+                                            </div>
+                                            <div class="mt-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex items-start gap-2">
+                                                <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                                <p class="text-xs text-amber-800 dark:text-amber-300 font-medium">Promoted staff will gain full administrative privileges including managing other staff, content, and system settings. Only non-admin staff members will be affected.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 flex flex-row-reverse gap-3">
+                                    <form method="POST" action="{{ route('admin.staff.bulk-promote') }}" @submit="
+                                        $el.querySelectorAll('input[name=\'ids[]\']').forEach(e => e.remove());
+                                        selectedIds.forEach(id => {
+                                            const inp = document.createElement('input');
+                                            inp.type = 'hidden';
+                                            inp.name = 'ids[]';
+                                            inp.value = id;
+                                            $el.appendChild(inp);
+                                        });
+                                    ">
+                                        @csrf
+                                        <template x-for="id in selectedIds" :key="id">
+                                            <input type="hidden" name="ids[]" :value="id">
+                                        </template>
+                                        <button type="submit"
+                                            class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-lg px-6 py-2 bg-violet-600 text-sm font-bold text-white hover:bg-violet-700 transition-all cursor-pointer">
+                                            Promote to Admin
+                                        </button>
+                                    </form>
+                                    <button type="button"
+                                        class="inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm px-6 py-2 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                                        @click="showBulkPromoteModal = false">
                                         Cancel
                                     </button>
                                 </div>

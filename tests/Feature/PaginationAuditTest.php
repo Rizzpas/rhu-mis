@@ -108,4 +108,166 @@ class PaginationAuditTest extends TestCase
         $this->assertEquals(15, $archived->perPage());
         $this->assertEquals('archived_page', $archived->getPageName());
     }
+
+    public function test_admin_staff_pagination_controls_and_filters(): void
+    {
+        // Test 1: Page 1 should render with disabled Previous, active page 1
+        $response = $this->actingAs($this->admin)->get(route('admin.staff.index', ['q' => 'Test', 'role' => 'all']));
+        $response->assertOk();
+
+        $staff = $response->viewData('staff');
+        $this->assertInstanceOf(LengthAwarePaginator::class, $staff);
+        $this->assertEquals(10, $staff->perPage());
+
+        $content = $response->getContent();
+        // Check pagination controls
+        $this->assertStringContainsString('Previous', $content);
+        $this->assertStringContainsString('Next', $content);
+        $this->assertStringContainsString('aria-label="Pagination Navigation"', $content);
+        $this->assertStringContainsString('aria-current="page"', $content);
+
+        // Test 2: Invalid page parameter is safely validated
+        $invalidResponse = $this->actingAs($this->admin)->get(route('admin.staff.index', ['page' => -5]));
+        $invalidResponse->assertOk();
+        $this->assertEquals(1, $invalidResponse->viewData('staff')->currentPage());
+
+        $textResponse = $this->actingAs($this->admin)->get(route('admin.staff.index', ['page' => 'invalid_text']));
+        $textResponse->assertOk();
+        $this->assertEquals(1, $textResponse->viewData('staff')->currentPage());
+    }
+
+    public function test_admin_announcements_pagination_controls_and_filters(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.announcements.index'));
+        $response->assertOk();
+
+        $announcements = $response->viewData('announcements');
+        $this->assertInstanceOf(LengthAwarePaginator::class, $announcements);
+        $this->assertEquals(10, $announcements->perPage());
+
+        $content = $response->getContent();
+        $this->assertStringContainsString('Previous', $content);
+        $this->assertStringContainsString('Next', $content);
+        $this->assertStringContainsString('aria-label="Pagination Navigation"', $content);
+        $this->assertStringContainsString('aria-current="page"', $content);
+
+        // Test filter preservation
+        $filterResponse = $this->actingAs($this->admin)->get(route('admin.announcements.index', ['q' => 'Notice', 'status' => 'published']));
+        $filterResponse->assertOk();
+        $filterAnnouncements = $filterResponse->viewData('announcements');
+        $this->assertEquals(10, $filterAnnouncements->perPage());
+
+        // Test invalid page parameter is safely handled
+        $invalidResponse = $this->actingAs($this->admin)->get(route('admin.announcements.index', ['page' => 'not-a-number']));
+        $invalidResponse->assertOk();
+        $this->assertEquals(1, $invalidResponse->viewData('announcements')->currentPage());
+    }
+
+    public function test_pagination_multipage_controls_and_windowing_style(): void
+    {
+        // Seed enough announcements to guarantee at least 3 pages (>= 25 total)
+        for ($i = 0; $i < 20; $i++) {
+            \App\Models\Announcement::create([
+                'title' => 'Bulk Announcement Test ' . $i,
+                'content' => 'Content for bulk test ' . $i,
+                'status' => 'published',
+            ]);
+        }
+
+        // 1. Visit Page 1
+        $resPage1 = $this->actingAs($this->admin)->get(route('admin.announcements.index', ['page' => 1]));
+        $resPage1->assertOk();
+        $paginator1 = $resPage1->viewData('announcements');
+        $this->assertEquals(1, $paginator1->currentPage());
+        $this->assertGreaterThan(2, $paginator1->lastPage());
+        $html1 = $resPage1->getContent();
+
+        // On page 1: Previous is disabled, Next is enabled
+        $this->assertStringContainsString('aria-disabled="true"', $html1);
+        $this->assertStringContainsString('aria-label="Previous page"', $html1);
+        $this->assertStringContainsString('aria-label="Next page"', $html1);
+        $this->assertStringContainsString('page=2', $html1);
+        // Active page is 1
+        $this->assertMatchesRegularExpression('/aria-current="page"[^>]*>\s*1\s*</', $html1);
+
+        // 2. Visit Page 2
+        $resPage2 = $this->actingAs($this->admin)->get(route('admin.announcements.index', ['page' => 2]));
+        $resPage2->assertOk();
+        $html2 = $resPage2->getContent();
+
+        // On page 2: Previous is enabled pointing to page 1, active is 2
+        $this->assertStringContainsString('page=1', $html2);
+        $this->assertMatchesRegularExpression('/aria-current="page"[^>]*>\s*2\s*</', $html2);
+
+        // 3. Visit Last Page
+        $lastPage = $paginator1->lastPage();
+        $resLast = $this->actingAs($this->admin)->get(route('admin.announcements.index', ['page' => $lastPage]));
+        $resLast->assertOk();
+        $htmlLast = $resLast->getContent();
+
+        // On last page: Next is disabled
+        $this->assertStringContainsString('aria-disabled="true"', $htmlLast);
+        $this->assertStringContainsString('aria-label="Next page"', $htmlLast);
+        $this->assertMatchesRegularExpression('/aria-current="page"[^>]*>\s*' . $lastPage . '\s*</', $htmlLast);
+    }
+
+    public function test_admin_patient_records_pagination(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.patients.index'));
+        $response->assertOk();
+
+        $patients = $response->viewData('patients');
+        $this->assertInstanceOf(LengthAwarePaginator::class, $patients);
+        $this->assertEquals(10, $patients->perPage());
+
+        $content = $response->getContent();
+        $this->assertStringContainsString('Previous', $content);
+        $this->assertStringContainsString('Next', $content);
+        $this->assertStringContainsString('aria-label="Pagination Navigation"', $content);
+        $this->assertStringContainsString('aria-current="page"', $content);
+
+        // Test filter preservation
+        $filterResponse = $this->actingAs($this->admin)->get(route('admin.patients.index', ['search' => 'Juan', 'classification' => 'Regular Adult']));
+        $filterResponse->assertOk();
+        $this->assertEquals(10, $filterResponse->viewData('patients')->perPage());
+
+        // Test invalid page parameter safely handled
+        $invalidResponse = $this->actingAs($this->admin)->get(route('admin.patients.index', ['page' => -99]));
+        $invalidResponse->assertOk();
+        $this->assertEquals(1, $invalidResponse->viewData('patients')->currentPage());
+    }
+
+    public function test_frontdesk_patient_records_pagination(): void
+    {
+        $frontdeskUser = User::where('role', 'information_desk')->first()
+            ?? User::create([
+                'name' => 'Frontdesk Test',
+                'email' => 'frontdesk_pag_' . uniqid() . '@rhu.gov.ph',
+                'password' => bcrypt('password'),
+                'role' => 'information_desk',
+            ]);
+
+        $response = $this->actingAs($frontdeskUser)->get(route('frontdesk.patients.index'));
+        $response->assertOk();
+
+        $patients = $response->viewData('patients');
+        $this->assertInstanceOf(LengthAwarePaginator::class, $patients);
+        $this->assertEquals(10, $patients->perPage());
+
+        $content = $response->getContent();
+        $this->assertStringContainsString('Previous', $content);
+        $this->assertStringContainsString('Next', $content);
+        $this->assertStringContainsString('aria-label="Pagination Navigation"', $content);
+        $this->assertStringContainsString('aria-current="page"', $content);
+
+        // Test filter preservation
+        $filterResponse = $this->actingAs($frontdeskUser)->get(route('frontdesk.patients.index', ['search' => 'Maria', 'classification' => 'Pediatric']));
+        $filterResponse->assertOk();
+        $this->assertEquals(10, $filterResponse->viewData('patients')->perPage());
+
+        // Test invalid page parameter safely handled
+        $invalidResponse = $this->actingAs($frontdeskUser)->get(route('frontdesk.patients.index', ['page' => 'bad_input']));
+        $invalidResponse->assertOk();
+        $this->assertEquals(1, $invalidResponse->viewData('patients')->currentPage());
+    }
 }
