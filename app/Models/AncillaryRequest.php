@@ -92,4 +92,13 @@ class AncillaryRequest extends Model
     {
         return $this->hasMany(AncillaryRequest::class, 'parent_id');
     }
+
+    public function getResultFileUrlAttribute(): ?string
+    {
+        if (! $this->result_file_path) {
+            return null;
+        }
+
+        return route('ancillary.file', $this);
+    }
 }

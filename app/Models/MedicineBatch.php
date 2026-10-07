@@ -43,4 +43,9 @@ class MedicineBatch extends Model
     {
         return $query->where('status', 'disposed');
     }
+
+    public function scopeExpired($query)
+    {
+        return $query->where('status', 'expired');
+    }
 }

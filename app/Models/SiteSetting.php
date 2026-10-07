@@ -18,6 +18,12 @@ class SiteSetting extends Model
             return static::pluck('value', 'key')->toArray();
         });
 
+        if ($settings instanceof \Illuminate\Support\Collection) {
+            $model = $settings->firstWhere('key', $key);
+
+            return $model ? $model->value : $default;
+        }
+
         return $settings[$key] ?? $default;
     }
 
@@ -41,19 +47,11 @@ class SiteSetting extends Model
      */
     public static function getGroup(string $group): array
     {
-        $settings = Cache::remember('site_settings_all', 300, function () {
-            return static::all();
+        return Cache::remember('site_settings_group_'.$group, 300, function () use ($group) {
+            return static::where('group', $group)
+                ->pluck('value', 'key')
+                ->toArray();
         });
-
-        // If cached as array of key=>value (from get()), re-fetch with group info
-        if (! ($settings instanceof \Illuminate\Database\Eloquent\Collection)) {
-            $settings = static::all();
-        }
-
-        return $settings
-            ->where('group', $group)
-            ->pluck('value', 'key')
-            ->toArray();
     }
 
     /**
@@ -62,7 +60,7 @@ class SiteSetting extends Model
     public static function set(string $key, ?string $value, string $group = 'general', string $type = 'string'): void
     {
         static::updateOrCreate(['key' => $key], ['value' => $value, 'group' => $group, 'type' => $type]);
-        Cache::forget('site_settings_all');
+        static::clearCache();
     }
 
     /**
@@ -71,5 +69,9 @@ class SiteSetting extends Model
     public static function clearCache(): void
     {
         Cache::forget('site_settings_all');
+        $groups = ['topbar', 'hero', 'footer', 'about', 'steps', 'faq', 'privacy', 'organization', 'general'];
+        foreach ($groups as $grp) {
+            Cache::forget('site_settings_group_'.$grp);
+        }
     }
 }

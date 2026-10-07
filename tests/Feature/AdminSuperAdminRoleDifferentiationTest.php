@@ -327,4 +327,99 @@ class AdminSuperAdminRoleDifferentiationTest extends TestCase
             ->assertRedirect();
         $this->assertDatabaseMissing('facility_units', ['id' => $facility->id]);
     }
+
+    /** Staff Status Privilege Escalation Tests */
+    public function test_regular_admin_cannot_change_status_of_super_admin_or_other_admin(): void
+    {
+        $this->superAdmin->update(['status' => 'Online']);
+
+        // Regular admin trying to update Super Admin status -> 403
+        $response = $this->actingAs($this->regularAdmin)->post(route('admin.staff.status', $this->superAdmin->id), [
+            'status' => 'Offline',
+        ]);
+        $response->assertStatus(403);
+        $this->assertEquals('Online', $this->superAdmin->fresh()->status);
+
+        // Regular admin trying to update another Admin status -> 403
+        $otherAdmin = User::create([
+            'name' => 'Other Admin',
+            'email' => 'other_admin_' . uniqid() . '@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'admin',
+            'status' => 'Online',
+        ]);
+
+        $response2 = $this->actingAs($this->regularAdmin)->post(route('admin.staff.status', $otherAdmin->id), [
+            'status' => 'Offline',
+        ]);
+        $response2->assertStatus(403);
+        $this->assertEquals('Online', $otherAdmin->fresh()->status);
+    }
+
+    public function test_regular_admin_can_change_status_of_clinical_staff(): void
+    {
+        $nurse = User::create([
+            'name' => 'Nurse For Status Update',
+            'email' => 'nurse_status_' . uniqid() . '@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'clinical_nurse',
+            'status' => 'Online',
+        ]);
+
+        $response = $this->actingAs($this->regularAdmin)->post(route('admin.staff.status', $nurse->id), [
+            'status' => 'Offline',
+        ]);
+        $response->assertRedirect();
+        $this->assertEquals('Offline', $nurse->fresh()->status);
+    }
+
+    public function test_regular_admin_cannot_bulk_update_status_if_admin_accounts_included(): void
+    {
+        $this->superAdmin->update(['status' => 'Online']);
+
+        $nurse = User::create([
+            'name' => 'Nurse In Bulk',
+            'email' => 'nurse_bulk_' . uniqid() . '@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'clinical_nurse',
+            'status' => 'Online',
+        ]);
+
+        // Request includes a super_admin ID
+        $response = $this->actingAs($this->regularAdmin)->post(route('admin.staff.bulk-status'), [
+            'ids' => [$nurse->id, $this->superAdmin->id],
+            'status' => 'Offline',
+        ]);
+
+        $response->assertStatus(403);
+        $this->assertEquals('Online', $nurse->fresh()->status);
+        $this->assertEquals('Online', $this->superAdmin->fresh()->status);
+    }
+
+    public function test_super_admin_can_bulk_update_staff_status(): void
+    {
+        $nurse = User::create([
+            'name' => 'Nurse Bulk Super',
+            'email' => 'nurse_bs_' . uniqid() . '@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'clinical_nurse',
+            'status' => 'Online',
+        ]);
+        $doctor = User::create([
+            'name' => 'Doctor Bulk Super',
+            'email' => 'doc_bs_' . uniqid() . '@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'regular_doctor',
+            'status' => 'Online',
+        ]);
+
+        $response = $this->actingAs($this->superAdmin)->post(route('admin.staff.bulk-status'), [
+            'ids' => [$nurse->id, $doctor->id],
+            'status' => 'Occupied',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals('Occupied', $nurse->fresh()->status);
+        $this->assertEquals('Occupied', $doctor->fresh()->status);
+    }
 }

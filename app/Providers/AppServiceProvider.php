@@ -31,7 +31,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         try {
-            \Illuminate\Support\Facades\View::share('globalServices', \App\Models\Service::all());
+            $services = \Illuminate\Support\Facades\Cache::remember('global_services', 3600, function () {
+                return \App\Models\Service::all();
+            });
+            \Illuminate\Support\Facades\View::share('globalServices', $services);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\View::share('globalServices', collect());
         }

@@ -502,6 +502,7 @@ class ArchiveController extends Controller
 
             case 'ancillary':
                 if ($record->result_file_path) {
+                    Storage::disk('local')->delete($record->result_file_path);
                     Storage::disk('public')->delete($record->result_file_path);
                     Storage::disk('uploads')->delete($record->result_file_path);
                 }

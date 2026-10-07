@@ -907,6 +907,15 @@ button[data-collapse-toggle="mega-menu-full"][aria-expanded="true"] .hamburger-c
     animation: fadeInUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Hide scrollbars while retaining full touch/wheel scroll */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
 @media print {
 
     /* Hide sidebars, navigation, and unnecessary UI elements during print */

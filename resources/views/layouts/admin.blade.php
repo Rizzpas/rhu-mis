@@ -389,6 +389,7 @@
             x-data="{
                 searchQuery: '',
                 showResults: false,
+                mobileSearchOpen: false,
                 links: [
                     @can('view-audit-logs')
                     { name: 'Security Audit', route: '{{ route('admin.audit.index') }}', desc: 'System activity & security logs', keywords: ['audit', 'history', 'security', 'logs', 'changes'] },
@@ -411,8 +412,47 @@
             }"
             @click.away="showResults = false"
         >
-            <div class="flex justify-between items-center px-4 sm:px-6 py-2.5 sm:py-3 min-h-[64px] gap-3 sm:gap-4">
-                <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+            <div class="flex justify-between items-center px-4 sm:px-6 py-2.5 sm:py-3 min-h-[64px] gap-2 sm:gap-4 relative">
+                
+                {{-- MOBILE EXPANDED SEARCH VIEW (When mobileSearchOpen is true on small screens) --}}
+                <div x-show="mobileSearchOpen" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="sm:hidden absolute inset-0 z-30 bg-emerald-600 dark:bg-emerald-900 px-3 flex items-center gap-2">
+                    <button type="button" 
+                            @click="mobileSearchOpen = false; showResults = false; searchQuery = '';" 
+                            class="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition cursor-pointer"
+                            aria-label="Close search">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    </button>
+
+                    <div class="relative flex-1">
+                        <input type="text" 
+                            x-ref="mobileSearchInput"
+                            x-model="searchQuery" 
+                            @focus="showResults = true"
+                            @click="showResults = true"
+                            @input="showResults = true"
+                            @keydown.escape.stop="mobileSearchOpen = false; showResults = false;"
+                            placeholder="Search navigation or modules..." 
+                            class="no-uppercase w-full pl-9 pr-8 py-2 bg-white dark:bg-slate-900 rounded-full border border-emerald-400/40 text-xs text-slate-800 placeholder-slate-400 dark:text-slate-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-white/40"
+                            autocomplete="off"
+                            spellcheck="false">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </div>
+                        <button type="button" 
+                            x-show="searchQuery.length > 0" 
+                            @click="searchQuery = ''; showResults = false; $refs.mobileSearchInput.focus();" 
+                            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- NORMAL NAVBAR CONTENT (Visible when mobileSearchOpen is false on mobile, always visible on sm:) --}}
+                <div class="flex items-center gap-2 sm:gap-4 flex-1 min-w-0" :class="mobileSearchOpen ? 'invisible sm:visible' : ''">
                     <!-- Hamburger Button -->
                     <button @click="sidebarOpen = true"
                         class="md:hidden text-white/90 hover:text-white hover:bg-white/10 dark:hover:bg-black/20 focus:outline-none p-2 rounded-xl transition-all active:scale-95 shrink-0"
@@ -422,14 +462,15 @@
                         </svg>
                     </button>
                     
-                    <div class="flex items-center gap-2.5 min-w-0 shrink-0">
-                        <h1 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight truncate max-w-[150px] sm:max-w-xs md:max-w-sm lg:max-w-md flex items-center gap-2">
+                    <!-- Header Title -->
+                    <div class="flex items-center gap-2 min-w-0">
+                        <h1 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight truncate flex items-center gap-2">
                             @yield('header', __('Dashboard Overview'))
                         </h1>
                     </div>
 
-                    <!-- Intelligent Search Bar -->
-                    <div class="relative flex-1 max-w-md lg:max-w-xl mx-1 sm:mx-4 group">
+                    <!-- Intelligent Search Bar (Desktop / Tablet view: sm and above) -->
+                    <div class="hidden sm:block relative flex-1 max-w-md lg:max-w-xl mx-2 sm:mx-4 group">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-800/60 dark:text-emerald-300/70">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -455,57 +496,21 @@
                             aria-label="Clear search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
-
-                        <!-- Search Dropdown -->
-                        <div x-show="showResults && searchQuery.trim().length > 0" 
-                            x-transition:enter="transition ease-out duration-75"
-                            x-transition:enter-start="opacity-0 scale-98"
-                            x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-50"
-                            x-transition:leave-start="opacity-100 scale-100"
-                            x-transition:leave-end="opacity-0 scale-98"
-                            style="display: none;"
-                            class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 overflow-hidden top-full left-0 py-2">
-                            
-                            <div class="px-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
-                                <span>Quick Navigation</span>
-                                <button type="button" @click="showResults = false" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold lowercase text-[10px] cursor-pointer">Press Esc to close</button>
-                            </div>
-
-                            <template x-if="filteredLinks.length > 0">
-                                <ul class="max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-50 dark:divide-slate-800/40">
-                                    <template x-for="link in filteredLinks" :key="link.name">
-                                        <li>
-                                            <a :href="link.route" class="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800/80 text-sm transition-colors group/item">
-                                                <div class="p-1.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover/item:scale-105 transition-transform shrink-0">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <span class="font-bold text-slate-800 dark:text-white text-xs sm:text-sm block truncate" x-text="link.name"></span>
-                                                    <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="link.desc || 'Quick navigation shortcut'"></span>
-                                                </div>
-                                            </a>
-                                        </li>
-                                    </template>
-                                </ul>
-                            </template>
-
-                            <template x-if="filteredLinks.length === 0">
-                                <div class="px-5 py-6 text-center">
-                                    <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center mb-2.5">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                        </svg>
-                                    </div>
-                                    <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">No results found</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">We couldn't find any matches for "<span class="font-medium text-slate-700 dark:text-slate-300" x-text="searchQuery"></span>"</p>
-                                </div>
-                            </template>
-                        </div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                {{-- Right Side Actions --}}
+                <div class="flex items-center gap-1.5 sm:gap-3 shrink-0" :class="mobileSearchOpen ? 'invisible sm:visible' : ''">
+                    <!-- Mobile Search Trigger Button -->
+                    <button type="button" 
+                            @click="mobileSearchOpen = true; showResults = true; $nextTick(() => $refs.mobileSearchInput.focus());" 
+                            class="sm:hidden text-white/90 hover:text-white hover:bg-white/10 dark:hover:bg-black/20 focus:outline-none p-2 rounded-xl transition-all active:scale-95"
+                            aria-label="Search navigation">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+
                     <!-- Theme Toggle -->
                     @include('partials.theme-toggle')
 
@@ -514,6 +519,53 @@
                         <svg class="w-3.5 h-3.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span>{{ now()->format('l, F j, Y') }}</span>
                     </div>
+                </div>
+
+                <!-- Search Dropdown (Responsive: Full-width anchored on mobile, nested under search bar on desktop) -->
+                <div x-show="showResults && searchQuery.trim().length > 0" 
+                    x-transition:enter="transition ease-out duration-75"
+                    x-transition:enter-start="opacity-0 scale-98"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-50"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-98"
+                    style="display: none;"
+                    class="fixed inset-x-3 top-[68px] sm:absolute sm:inset-x-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-xl z-50 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 overflow-hidden py-2">
+                    
+                    <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                        <span>Quick Navigation</span>
+                        <button type="button" @click="showResults = false; mobileSearchOpen = false;" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold text-[11px] cursor-pointer">Close ✕</button>
+                    </div>
+
+                    <template x-if="filteredLinks.length > 0">
+                        <ul class="max-h-[60vh] sm:max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-50 dark:divide-slate-800/40">
+                            <template x-for="link in filteredLinks" :key="link.name">
+                                <li>
+                                    <a :href="link.route" @click="mobileSearchOpen = false; showResults = false;" class="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800/80 text-sm transition-colors group/item">
+                                        <div class="p-1.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover/item:scale-105 transition-transform shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="font-bold text-slate-800 dark:text-white text-xs sm:text-sm block truncate" x-text="link.name"></span>
+                                            <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="link.desc || 'Quick navigation shortcut'"></span>
+                                        </div>
+                                    </a>
+                                </li>
+                            </template>
+                        </ul>
+                    </template>
+
+                    <template x-if="filteredLinks.length === 0">
+                        <div class="px-5 py-6 text-center">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center mb-2.5">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                </svg>
+                            </div>
+                            <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">No results found</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">We couldn't find any matches for "<span class="font-medium text-slate-700 dark:text-slate-300" x-text="searchQuery"></span>"</p>
+                        </div>
+                    </template>
                 </div>
             </div>
         </header>

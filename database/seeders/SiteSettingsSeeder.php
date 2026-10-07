@@ -95,6 +95,179 @@ class SiteSettingsSeeder extends Seeder
                 'You have the right to access, correct, or request deletion of your data (subject to retention laws).',
             ]), 'type' => 'json'],
             ['group' => 'privacy', 'key' => 'privacy_footer', 'value' => 'For any privacy concerns, please contact our Data Protection Officer at the Municipal Hall.', 'type' => 'textarea'],
+
+            // ── Organizational Structure & Leadership ───────────────────
+            ['group' => 'organization', 'key' => 'org_kicker', 'value' => 'Leadership & Governance', 'type' => 'text'],
+            ['group' => 'organization', 'key' => 'org_title', 'value' => 'Organizational Structure & Leadership', 'type' => 'text'],
+            ['group' => 'organization', 'key' => 'org_subtitle', 'value' => 'The dedicated healthcare administrators, medical doctors, nurses, midwives, and diagnostic specialists of Rural Health Unit — Silang, Cavite.', 'type' => 'textarea'],
+            ['group' => 'organization', 'key' => 'mho_badge', 'value' => 'Executive Head', 'type' => 'text'],
+            ['group' => 'organization', 'key' => 'mho_subbadge', 'value' => 'Head of Agency', 'type' => 'text'],
+            ['group' => 'organization', 'key' => 'mho_name', 'value' => 'Jericho Joshua E. Palay, MD', 'type' => 'text'],
+            ['group' => 'organization', 'key' => 'mho_title', 'value' => 'Municipal Health Officer', 'type' => 'text'],
+            ['group' => 'organization', 'key' => 'mho_oversight_title', 'value' => 'Executive Oversight:', 'type' => 'text'],
+            ['group' => 'organization', 'key' => 'mho_oversight_desc', 'value' => 'Clinical governance, health policy, and public healthcare across all 64 barangays.', 'type' => 'textarea'],
+            ['group' => 'organization', 'key' => 'mho_image', 'value' => '', 'type' => 'image'],
+
+            ['group' => 'organization', 'key' => 'org_medical_officers', 'value' => json_encode([
+                ['name' => 'Angel Casapao, MD', 'role' => 'Specialist I', 'initials' => 'AC'],
+                ['name' => 'Michelle Mae Brofas, MD', 'role' => 'Medical Officer III', 'initials' => 'MB'],
+                ['name' => 'Jebriel Allen Desacada, MD', 'role' => 'Medical Officer III', 'initials' => 'JD'],
+                ['name' => 'Junee Elleigh Oway, MD', 'role' => 'Medical Officer II', 'initials' => 'JO']
+            ]), 'type' => 'json'],
+
+            ['group' => 'organization', 'key' => 'org_divisions', 'value' => json_encode([
+                [
+                    'id' => 'primary',
+                    'number' => '1',
+                    'title' => 'Primary Health',
+                    'badge' => '28 Staff',
+                    'subtitle' => 'Immunization (NIP), Animal Bite, TB DOTS, Disease Surveillance & Emergency Transport',
+                    'accent' => 'emerald',
+                    'units' => [
+                        [
+                            'title' => 'National Immunization (NIP)',
+                            'category' => 'Immunization',
+                            'lead_name' => 'Razelle Bendo, RN',
+                            'lead_role' => 'Nurse II',
+                            'members' => ['Merlita Leyban', 'Kyle Jaydee Buklatin']
+                        ],
+                        [
+                            'title' => 'Animal Bite Treatment (ABTC)',
+                            'category' => 'Specialized Clinic',
+                            'lead_name' => 'Elaine Mae Bayacal, RN',
+                            'lead_role' => 'Nurse',
+                            'members' => ['Stanley Emelo', 'Maribel Ramos', 'Czar Ian Calaycay', 'Hafisudin Adil', 'Aiby Villavicencio']
+                        ],
+                        [
+                            'title' => 'TB DOTS Clinic & Program',
+                            'category' => 'Infectious Diseases',
+                            'lead_name' => 'James Lee Ambojia, RN',
+                            'lead_role' => 'Nurse II',
+                            'members' => ['Edna Laureles', 'Nelson Malate', 'Neil Bryan Velando', 'Patricia Reyes']
+                        ],
+                        [
+                            'title' => 'MESU & Disease Surveillance',
+                            'category' => 'Epidemiology',
+                            'lead_name' => 'Roniben Garde, RN, MAN',
+                            'lead_role' => 'Nurse IV',
+                            'members' => ['Elaine Mae Bayacal, RN (Nurse III)', 'Chaz Angelo Palumpon', 'Emiliano Asas']
+                        ],
+                        [
+                            'title' => 'Non-Communicable Diseases',
+                            'category' => 'Wellness & Lifestyle',
+                            'lead_name' => 'Annaliza Marquina, RN',
+                            'lead_role' => 'Nurse II',
+                            'members' => ['Jenalyn De Castro, RN', 'Mon Christian Maneja, RN', 'Corazon Medina, RN', 'Narissa Agustin', 'Cecilia Amagan', 'Ivan Casapao']
+                        ],
+                        [
+                            'title' => 'Medic Team & Transport',
+                            'category' => 'Emergency Care',
+                            'lead_name' => 'Edgar Bayan',
+                            'lead_role' => 'Driver I',
+                            'members' => ['Roniben Garde, RN, MAN', 'Mon Christian Maneja, RN', 'Redentor Mojica', 'Renato Loyola']
+                        ]
+                    ]
+                ],
+                [
+                    'id' => 'maternal',
+                    'number' => '2',
+                    'title' => 'Maternal & Child Health',
+                    'badge' => '24 Staff',
+                    'subtitle' => 'Family Planning, Child Nutrition, BEmONC Birthing & 19 Licensed Barangay Midwives',
+                    'accent' => 'teal',
+                    'units' => [
+                        [
+                            'title' => 'Family Planning & Clinical Care',
+                            'category' => 'Maternal Care',
+                            'lead_name' => 'Tristan Voltaire Eguia, RN',
+                            'lead_role' => 'Nurse II',
+                            'members' => ['Razelle Bendo, RN (Maternal Health)', 'Maribel Ramos', 'Vanessa Erika Amon']
+                        ],
+                        [
+                            'title' => 'Child & Adolescent Health',
+                            'category' => 'Child Nutrition',
+                            'lead_name' => 'Charlene Paggao, RN',
+                            'lead_role' => 'Nutrition II',
+                            'members' => ['Cyrus James Navarro, RN (Nurse I)', 'Jenalyn De Castro, RN (Adolescent Health)']
+                        ]
+                    ]
+                ],
+                [
+                    'id' => 'ancillary',
+                    'number' => '3',
+                    'title' => 'Ancillary & Allied Health',
+                    'badge' => '20 Staff',
+                    'subtitle' => 'Dental Care, Pharmacy Supplies, Medical Laboratory, X-Ray & Public Sanitation',
+                    'accent' => 'cyan',
+                    'units' => [
+                        [
+                            'title' => 'Dental Clinic',
+                            'category' => 'Oral Health',
+                            'lead_name' => 'Sylvia Buen, DMD',
+                            'lead_role' => 'Dentist III',
+                            'members' => ['Marilou Galang']
+                        ],
+                        [
+                            'title' => 'Pharmacy & Supplies',
+                            'category' => 'Pharmacy',
+                            'lead_name' => 'Hannah Mae Josue, RPh',
+                            'lead_role' => 'Pharmacist III',
+                            'members' => ['Mary Jane Anarna', 'Elmer Belardo', 'Noelyn Belen', 'Mark Anthony Sebastian']
+                        ],
+                        [
+                            'title' => 'Laboratory & X-Ray',
+                            'category' => 'Diagnostics',
+                            'lead_name' => 'Evalyn Martin, RMT',
+                            'lead_role' => 'MedTech III',
+                            'members' => ['Benessie Madlangsakay, RMT (MedTech II)', 'Bettina Ramos, RMT', 'Diana Aquino, RMT', 'Celergene Pellerin, RRT (RadTech II)']
+                        ],
+                        [
+                            'title' => 'Sanitation & Environment',
+                            'category' => 'Public Health',
+                            'lead_name' => 'Aileen Del Barrio',
+                            'lead_role' => 'Inspector III',
+                            'members' => ['Maria Florinda Gonzalez, RN (Inspector I)', 'Rhonna Rhezza Jose, RN, MAN']
+                        ]
+                    ]
+                ],
+                [
+                    'id' => 'admin',
+                    'number' => '4',
+                    'title' => 'Administrative Staff',
+                    'badge' => '3 Staff',
+                    'subtitle' => 'Institutional Governance, Records Management, Procurement & Public Assistance',
+                    'accent' => 'amber',
+                    'units' => []
+                ]
+            ]), 'type' => 'json'],
+
+            ['group' => 'organization', 'key' => 'org_midwives', 'value' => json_encode([
+                ['name' => 'Maria Mendoza, RM', 'rank' => 'Midwife III'],
+                ['name' => 'Zosima Aquino, RM', 'rank' => 'Midwife III'],
+                ['name' => 'Nena Cotoner, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Engracia Dominguez, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Felilia Marino, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Evangeline Pulido, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Emma Yaya, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Charlene Gallardo, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Lara Vanessa Beaton, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Erlinda Videña, RM', 'rank' => 'Midwife II'],
+                ['name' => 'Anabelle Revilla, RM', 'rank' => 'Midwife I'],
+                ['name' => 'Anna Lissa Belardo, RM', 'rank' => 'Midwife I'],
+                ['name' => 'Silvestina Loyola, RM', 'rank' => 'Midwife I'],
+                ['name' => 'Ma. Dolores Lumagda, RM', 'rank' => 'Midwife I'],
+                ['name' => 'Merwinda Ignas, RM', 'rank' => 'Midwife'],
+                ['name' => 'Charo Halili, RM', 'rank' => 'Midwife'],
+                ['name' => 'Andrea Lei Javier, RM', 'rank' => 'Midwife'],
+                ['name' => 'Vanessa Erika Amon, RM', 'rank' => 'Midwife'],
+                ['name' => 'Marisa Seran', 'rank' => 'Staff']
+            ]), 'type' => 'json'],
+
+            ['group' => 'organization', 'key' => 'org_admins', 'value' => json_encode([
+                ['name' => 'Mark Anthony Sebastian', 'role' => 'Administrative Officer', 'initials' => 'MS'],
+                ['name' => 'Jacqueline Hapin', 'role' => 'Administrative Support', 'initials' => 'JH'],
+                ['name' => 'Apple Toledo', 'role' => 'Public Assistance & Records', 'initials' => 'AT']
+            ]), 'type' => 'json'],
         ];
 
         foreach ($settings as $setting) {

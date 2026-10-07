@@ -24,6 +24,15 @@ class Message extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function ($message) {
+            if ($message->isDirty('body') && is_string($message->body)) {
+                $message->body = trim(strip_tags($message->body));
+            }
+        });
+    }
+
     /**
      * The conversation this message belongs to.
      */

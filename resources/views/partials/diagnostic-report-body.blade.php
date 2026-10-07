@@ -151,7 +151,7 @@
             <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
                 <span style="display: block; font-size: 7pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 6px;">Attached Radiographic Plate Scan</span>
                 <div style="text-align: center; padding: 6px; background: #f1f5f9; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    <img src="{{ Storage::url($req->result_file_path) }}" alt="Radiographic Film Scan" style="max-height: 220px; max-width: 100%; margin: 0 auto; border-radius: 4px; border: 1px solid #cbd5e1; object-fit: contain; display: block;">
+                    <img src="{{ route('ancillary.file', $req) }}" alt="Radiographic Film Scan" style="max-height: 220px; max-width: 100%; margin: 0 auto; border-radius: 4px; border: 1px solid #cbd5e1; object-fit: contain; display: block;">
                 </div>
             </div>
             @endif

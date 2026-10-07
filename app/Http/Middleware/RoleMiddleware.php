@@ -35,6 +35,11 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
+        // Super admin has unrestricted access to all route groups
+        if ($request->user() && $request->user()->hasRole('super_admin')) {
+            return $next($request);
+        }
+
         if (! $request->user() || ! $request->user()->hasRole(...$roles)) {
             if ($request->user()) {
                 $home = self::homeForRole((string) $request->user()->role);

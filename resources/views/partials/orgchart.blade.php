@@ -1,4 +1,192 @@
 {{-- Modern Executive Leadership & On-Demand Departmental Directory --}}
+@php
+    $orgKicker = \App\Models\SiteSetting::get('org_kicker', 'Leadership & Governance');
+    $orgTitle = \App\Models\SiteSetting::get('org_title', 'Organizational Structure & Leadership');
+    $orgSubtitle = \App\Models\SiteSetting::get('org_subtitle', 'The dedicated healthcare administrators, medical doctors, nurses, midwives, and diagnostic specialists of Rural Health Unit — Silang, Cavite.');
+
+    $mhoBadge = \App\Models\SiteSetting::get('mho_badge', 'Executive Head');
+    $mhoSubbadge = \App\Models\SiteSetting::get('mho_subbadge', 'Head of Agency');
+    $mhoName = \App\Models\SiteSetting::get('mho_name', 'Jericho Joshua E. Palay, MD');
+    $mhoTitle = \App\Models\SiteSetting::get('mho_title', 'Municipal Health Officer');
+    $mhoOversightTitle = \App\Models\SiteSetting::get('mho_oversight_title', 'Executive Oversight:');
+    $mhoOversightDesc = \App\Models\SiteSetting::get('mho_oversight_desc', 'Clinical governance, health policy, and public healthcare across all 64 barangays.');
+    $mhoImage = \App\Models\SiteSetting::get('mho_image');
+
+    // Initials fallback for MHO
+    $mhoWords = preg_split('/\s+/', trim($mhoName));
+    $mhoInitials = '';
+    foreach ($mhoWords as $w) {
+        $cleaned = preg_replace('/[^a-zA-Z]/', '', $w);
+        if (!empty($cleaned) && !in_array(strtoupper($cleaned), ['MD', 'DR', 'RN', 'DMD', 'RMT', 'RPH'])) {
+            $mhoInitials .= strtoupper(substr($cleaned, 0, 1));
+        }
+    }
+    $mhoInitials = substr($mhoInitials ?: 'JP', 0, 2);
+
+    $medStaff = \App\Models\SiteSetting::getJson('org_medical_officers', [
+        ['name' => 'Angel Casapao, MD', 'role' => 'Specialist I', 'initials' => 'AC'],
+        ['name' => 'Michelle Mae Brofas, MD', 'role' => 'Medical Officer III', 'initials' => 'MB'],
+        ['name' => 'Jebriel Allen Desacada, MD', 'role' => 'Medical Officer III', 'initials' => 'JD'],
+        ['name' => 'Junee Elleigh Oway, MD', 'role' => 'Medical Officer II', 'initials' => 'JO']
+    ]);
+
+    $divisions = \App\Models\SiteSetting::getJson('org_divisions', [
+        [
+            'id' => 'primary',
+            'number' => '1',
+            'title' => 'Primary Health',
+            'badge' => '28 Staff',
+            'subtitle' => 'Immunization (NIP), Animal Bite, TB DOTS, Disease Surveillance & Emergency Transport',
+            'accent' => 'emerald',
+            'units' => [
+                [
+                    'title' => 'National Immunization (NIP)',
+                    'category' => 'Immunization',
+                    'lead_name' => 'Razelle Bendo, RN',
+                    'lead_role' => 'Nurse II',
+                    'members' => 'Merlita Leyban • Kyle Jaydee Buklatin'
+                ],
+                [
+                    'title' => 'Animal Bite Treatment (ABTC)',
+                    'category' => 'Specialized Clinic',
+                    'lead_name' => 'Elaine Mae Bayacal, RN',
+                    'lead_role' => 'Nurse',
+                    'members' => 'Stanley Emelo • Maribel Ramos • Czar Ian Calaycay • Hafisudin Adil • Aiby Villavicencio'
+                ],
+                [
+                    'title' => 'TB DOTS Clinic & Program',
+                    'category' => 'Infectious Diseases',
+                    'lead_name' => 'James Lee Ambojia, RN',
+                    'lead_role' => 'Nurse II',
+                    'members' => 'Edna Laureles • Nelson Malate • Neil Bryan Velando • Patricia Reyes'
+                ],
+                [
+                    'title' => 'MESU & Disease Surveillance',
+                    'category' => 'Epidemiology',
+                    'lead_name' => 'Roniben Garde, RN, MAN',
+                    'lead_role' => 'Nurse IV',
+                    'members' => 'Elaine Mae Bayacal, RN (Nurse III) • Chaz Angelo Palumpon • Emiliano Asas'
+                ],
+                [
+                    'title' => 'Non-Communicable Diseases',
+                    'category' => 'Wellness & Lifestyle',
+                    'lead_name' => 'Annaliza Marquina, RN',
+                    'lead_role' => 'Nurse II',
+                    'members' => 'Jenalyn De Castro, RN • Mon Christian Maneja, RN • Corazon Medina, RN • Narissa Agustin • Cecilia Amagan • Ivan Casapao'
+                ],
+                [
+                    'title' => 'Medic Team & Transport',
+                    'category' => 'Emergency Care',
+                    'lead_name' => 'Edgar Bayan',
+                    'lead_role' => 'Driver I',
+                    'members' => 'Roniben Garde, RN, MAN • Mon Christian Maneja, RN • Redentor Mojica • Renato Loyola'
+                ]
+            ]
+        ],
+        [
+            'id' => 'maternal',
+            'number' => '2',
+            'title' => 'Maternal & Child Health',
+            'badge' => '24 Staff',
+            'subtitle' => 'Family Planning, Child Nutrition, BEmONC Birthing & 19 Licensed Barangay Midwives',
+            'accent' => 'teal',
+            'units' => [
+                [
+                    'title' => 'Family Planning & Clinical Care',
+                    'category' => 'Maternal Care',
+                    'lead_name' => 'Tristan Voltaire Eguia, RN',
+                    'lead_role' => 'Nurse II',
+                    'members' => 'Razelle Bendo, RN (Maternal Health) • Maribel Ramos • Vanessa Erika Amon'
+                ],
+                [
+                    'title' => 'Child & Adolescent Health',
+                    'category' => 'Child Nutrition',
+                    'lead_name' => 'Charlene Paggao, RN',
+                    'lead_role' => 'Nutrition II',
+                    'members' => 'Cyrus James Navarro, RN (Nurse I) • Jenalyn De Castro, RN (Adolescent Health)'
+                ]
+            ]
+        ],
+        [
+            'id' => 'ancillary',
+            'number' => '3',
+            'title' => 'Ancillary & Allied Health',
+            'badge' => '20 Staff',
+            'subtitle' => 'Dental Care, Pharmacy Supplies, Medical Laboratory, X-Ray & Public Sanitation',
+            'accent' => 'cyan',
+            'units' => [
+                [
+                    'title' => 'Dental Clinic',
+                    'category' => 'Oral Health',
+                    'lead_name' => 'Sylvia Buen, DMD',
+                    'lead_role' => 'Dentist III',
+                    'members' => 'Marilou Galang'
+                ],
+                [
+                    'title' => 'Pharmacy & Supplies',
+                    'category' => 'Pharmacy',
+                    'lead_name' => 'Hannah Mae Josue, RPh',
+                    'lead_role' => 'Pharmacist III',
+                    'members' => 'Mary Jane Anarna • Elmer Belardo • Noelyn Belen • Mark Anthony Sebastian'
+                ],
+                [
+                    'title' => 'Laboratory & X-Ray',
+                    'category' => 'Diagnostics',
+                    'lead_name' => 'Evalyn Martin, RMT',
+                    'lead_role' => 'MedTech III',
+                    'members' => 'Benessie Madlangsakay, RMT (MedTech II) • Bettina Ramos, RMT • Diana Aquino, RMT • Celergene Pellerin, RRT (RadTech II)'
+                ],
+                [
+                    'title' => 'Sanitation & Environment',
+                    'category' => 'Public Health',
+                    'lead_name' => 'Aileen Del Barrio',
+                    'lead_role' => 'Inspector III',
+                    'members' => 'Maria Florinda Gonzalez, RN (Inspector I) • Rhonna Rhezza Jose, RN, MAN'
+                ]
+            ]
+        ],
+        [
+            'id' => 'admin',
+            'number' => '4',
+            'title' => 'Administrative Staff',
+            'badge' => '3 Staff',
+            'subtitle' => 'Institutional Governance, Records Management, Procurement & Public Assistance',
+            'accent' => 'amber',
+            'units' => []
+        ]
+    ]);
+
+    $midwives = \App\Models\SiteSetting::getJson('org_midwives', [
+        ['name' => 'Maria Mendoza, RM', 'rank' => 'Midwife III'],
+        ['name' => 'Zosima Aquino, RM', 'rank' => 'Midwife III'],
+        ['name' => 'Nena Cotoner, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Engracia Dominguez, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Felilia Marino, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Evangeline Pulido, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Emma Yaya, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Charlene Gallardo, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Lara Vanessa Beaton, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Erlinda Videña, RM', 'rank' => 'Midwife II'],
+        ['name' => 'Anabelle Revilla, RM', 'rank' => 'Midwife I'],
+        ['name' => 'Anna Lissa Belardo, RM', 'rank' => 'Midwife I'],
+        ['name' => 'Silvestina Loyola, RM', 'rank' => 'Midwife I'],
+        ['name' => 'Ma. Dolores Lumagda, RM', 'rank' => 'Midwife I'],
+        ['name' => 'Merwinda Ignas, RM', 'rank' => 'Midwife'],
+        ['name' => 'Charo Halili, RM', 'rank' => 'Midwife'],
+        ['name' => 'Andrea Lei Javier, RM', 'rank' => 'Midwife'],
+        ['name' => 'Vanessa Erika Amon, RM', 'rank' => 'Midwife'],
+        ['name' => 'Marisa Seran', 'rank' => 'Staff']
+    ]);
+
+    $admins = \App\Models\SiteSetting::getJson('org_admins', [
+        ['name' => 'Mark Anthony Sebastian', 'role' => 'Administrative Officer', 'initials' => 'MS'],
+        ['name' => 'Jacqueline Hapin', 'role' => 'Administrative Support', 'initials' => 'JH'],
+        ['name' => 'Apple Toledo', 'role' => 'Public Assistance & Records', 'initials' => 'AT']
+    ]);
+
+    $divMap = collect($divisions)->keyBy('id');
+@endphp
+
 <section id="org-chart" class="transition-colors"
          x-data="{
     searchQuery: '',
@@ -30,13 +218,13 @@
             <svg class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
             </svg>
-            Leadership & Governance
+            {{ $orgKicker }}
         </span>
         <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-            Organizational Structure & Leadership
+            {{ $orgTitle }}
         </h2>
         <p class="text-slate-600 dark:text-slate-400 mt-2 text-sm sm:text-base leading-relaxed">
-            The dedicated healthcare administrators, medical doctors, nurses, midwives, and diagnostic specialists of Rural Health Unit — Silang, Cavite.
+            {{ $orgSubtitle }}
         </p>
     </div>
 
@@ -49,32 +237,43 @@
             {{-- Executive Head: Municipal Health Officer --}}
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 pb-6 border-b border-slate-200/80 dark:border-slate-700/70">
                 <div class="flex items-center gap-4 sm:gap-5">
-                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center font-display text-xl sm:text-2xl font-extrabold shadow-md shrink-0 ring-4 ring-emerald-500/10">
-                        JP
-                    </div>
+                    @if($mhoImage)
+                        <img src="{{ asset($mhoImage) }}" alt="{{ $mhoName }}" 
+                             class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-md shrink-0 ring-4 ring-emerald-500/10 border border-emerald-200 dark:border-emerald-800">
+                    @else
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center font-display text-xl sm:text-2xl font-extrabold shadow-md shrink-0 ring-4 ring-emerald-500/10">
+                            {{ $mhoInitials }}
+                        </div>
+                    @endif
                     <div>
                         <div class="flex items-center gap-2 flex-wrap mb-1">
-                            <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wider border border-emerald-300/50 dark:border-emerald-700/50">
-                                Executive Head
-                            </span>
-                            <span class="text-xs text-slate-500 dark:text-slate-400">Head of Agency</span>
+                            @if($mhoBadge)
+                                <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wider border border-emerald-300/50 dark:border-emerald-700/50">
+                                    {{ $mhoBadge }}
+                                </span>
+                            @endif
+                            @if($mhoSubbadge)
+                                <span class="text-xs text-slate-500 dark:text-slate-400">{{ $mhoSubbadge }}</span>
+                            @endif
                         </div>
                         <h3 class="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white">
-                            Jericho Joshua E. Palay, MD
+                            {{ $mhoName }}
                         </h3>
                         <p class="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 mt-0.5">
-                            Municipal Health Officer
+                            {{ $mhoTitle }}
                         </p>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-800 rounded-xl px-3.5 py-2.5 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-600 dark:text-slate-300 max-w-xs">
-                    <span class="font-bold text-slate-900 dark:text-white block">Executive Oversight:</span>
-                    Clinical governance, health policy, and public healthcare across all 64 barangays.
-                </div>
+                @if($mhoOversightDesc)
+                    <div class="bg-white dark:bg-slate-800 rounded-xl px-3.5 py-2.5 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-600 dark:text-slate-300 max-w-xs">
+                        <span class="font-bold text-slate-900 dark:text-white block">{{ $mhoOversightTitle }}</span>
+                        {{ $mhoOversightDesc }}
+                    </div>
+                @endif
             </div>
 
-            {{-- Direct Clinical Reports: 4 Doctors --}}
+            {{-- Direct Clinical Reports: Doctors --}}
             <div class="pt-5">
                 <div class="flex items-center justify-between gap-2 mb-3">
                     <div class="flex items-center gap-2">
@@ -83,22 +282,15 @@
                             Medical Officers & Clinical Specialists (Direct Reports)
                         </span>
                     </div>
-                    <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium hidden sm:inline">4 Practicing Physicians</span>
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium hidden sm:inline">{{ count($medStaff) }} Practicing Physicians</span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    @php
-                        $medStaff = [
-                            ['name' => 'Angel Casapao, MD', 'role' => 'Specialist I', 'initials' => 'AC'],
-                            ['name' => 'Michelle Mae Brofas, MD', 'role' => 'Medical Officer III', 'initials' => 'MB'],
-                            ['name' => 'Jebriel Allen Desacada, MD', 'role' => 'Medical Officer III', 'initials' => 'JD'],
-                            ['name' => 'Junee Elleigh Oway, MD', 'role' => 'Medical Officer II', 'initials' => 'JO']
-                        ];
-                    @endphp
                     @foreach($medStaff as $ms)
-                        <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs flex items-center gap-3">
+                        <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs flex items-center gap-3"
+                             x-show="matchesSearch('{{ addslashes($ms['name'] . ' ' . $ms['role']) }}')">
                             <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-200/60 dark:border-emerald-800/60">
-                                {{ $ms['initials'] }}
+                                {{ $ms['initials'] ?? 'DR' }}
                             </div>
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-xs text-slate-900 dark:text-white truncate">{{ $ms['name'] }}</h4>
@@ -147,111 +339,90 @@
 
         {{-- 4 Division Selection Cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            {{-- Division 1 Card --}}
-            <button @click="toggleDivision('primary')" 
-                    :class="expandedDivision === 'primary' ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-800'"
-                    class="p-5 rounded-2xl border text-left transition-all duration-200 shadow-2xs group cursor-pointer flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-xs">
-                            1
-                        </div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-950/60 px-2 py-0.5 rounded">
-                            28 Staff
-                        </span>
-                    </div>
-                    <h4 class="font-bold text-sm text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                        Primary Health
-                    </h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                        Immunization (NIP), Animal Bite, TB DOTS, Disease Surveillance & Emergency Transport
-                    </p>
-                </div>
-                <div class="pt-4 mt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                    <span x-text="expandedDivision === 'primary' ? 'Hide Roster ▲' : 'View Staff Roster ▼'"></span>
-                    <svg class="w-4 h-4 transform transition-transform" :class="expandedDivision === 'primary' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-            </button>
+            @php
+                $colorStyles = [
+                    'emerald' => [
+                        'numBg' => 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300',
+                        'badge' => 'text-emerald-700 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-950/60',
+                        'hoverText' => 'group-hover:text-emerald-700 dark:group-hover:text-emerald-400',
+                        'actionText' => 'text-emerald-700 dark:text-emerald-400',
+                        'activeBorder' => 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/40 dark:bg-emerald-950/30'
+                    ],
+                    'teal' => [
+                        'numBg' => 'bg-teal-100 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300',
+                        'badge' => 'text-teal-700 dark:text-teal-400 bg-teal-100/60 dark:bg-teal-950/60',
+                        'hoverText' => 'group-hover:text-teal-700 dark:group-hover:text-teal-400',
+                        'actionText' => 'text-teal-700 dark:text-teal-400',
+                        'activeBorder' => 'border-teal-500 ring-2 ring-teal-500/20 bg-teal-50/40 dark:bg-teal-950/30'
+                    ],
+                    'cyan' => [
+                        'numBg' => 'bg-cyan-100 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300',
+                        'badge' => 'text-cyan-700 dark:text-cyan-400 bg-cyan-100/60 dark:bg-cyan-950/60',
+                        'hoverText' => 'group-hover:text-cyan-700 dark:group-hover:text-cyan-400',
+                        'actionText' => 'text-cyan-700 dark:text-cyan-400',
+                        'activeBorder' => 'border-cyan-500 ring-2 ring-cyan-500/20 bg-cyan-50/40 dark:bg-cyan-950/30'
+                    ],
+                    'amber' => [
+                        'numBg' => 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300',
+                        'badge' => 'text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-950/60',
+                        'hoverText' => 'group-hover:text-amber-700 dark:group-hover:text-amber-400',
+                        'actionText' => 'text-amber-700 dark:text-amber-400',
+                        'activeBorder' => 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/40 dark:bg-amber-950/30'
+                    ],
+                ];
+            @endphp
 
-            {{-- Division 2 Card --}}
-            <button @click="toggleDivision('maternal')" 
-                    :class="expandedDivision === 'maternal' ? 'border-teal-500 ring-2 ring-teal-500/20 bg-teal-50/40 dark:bg-teal-950/30' : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-800'"
-                    class="p-5 rounded-2xl border text-left transition-all duration-200 shadow-2xs group cursor-pointer flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 flex items-center justify-center font-bold text-xs">
-                            2
-                        </div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 bg-teal-100/60 dark:bg-teal-950/60 px-2 py-0.5 rounded">
-                            24 Staff
-                        </span>
-                    </div>
-                    <h4 class="font-bold text-sm text-slate-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
-                        Maternal & Child Health
-                    </h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                        Family Planning, Child Nutrition, BEmONC Birthing & 19 Licensed Barangay Midwives
-                    </p>
-                </div>
-                <div class="pt-4 mt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs font-semibold text-teal-700 dark:text-teal-400">
-                    <span x-text="expandedDivision === 'maternal' ? 'Hide Roster ▲' : 'View Staff Roster ▼'"></span>
-                    <svg class="w-4 h-4 transform transition-transform" :class="expandedDivision === 'maternal' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-            </button>
+            @foreach($divisions as $dIdx => $div)
+                @php
+                    $acc = $div['accent'] ?? ($dIdx === 0 ? 'emerald' : ($dIdx === 1 ? 'teal' : ($dIdx === 2 ? 'cyan' : 'amber')));
+                    $cs = $colorStyles[$acc] ?? $colorStyles['emerald'];
 
-            {{-- Division 3 Card --}}
-            <button @click="toggleDivision('ancillary')" 
-                    :class="expandedDivision === 'ancillary' ? 'border-cyan-500 ring-2 ring-cyan-500/20 bg-cyan-50/40 dark:bg-cyan-950/30' : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-800'"
-                    class="p-5 rounded-2xl border text-left transition-all duration-200 shadow-2xs group cursor-pointer flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-9 h-9 rounded-xl bg-cyan-100 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 flex items-center justify-center font-bold text-xs">
-                            3
+                    // Automatically count all staff in this division
+                    $divStaffCount = 0;
+                    if (!empty($div['units']) && is_array($div['units'])) {
+                        foreach ($div['units'] as $u) {
+                            if (!empty(trim($u['lead_name'] ?? ''))) $divStaffCount++;
+                            if (!empty($u['members'])) {
+                                $mList = is_array($u['members']) ? $u['members'] : explode('•', $u['members']);
+                                $divStaffCount += count(array_filter(array_map('trim', $mList)));
+                            }
+                        }
+                    }
+                    if (($div['id'] ?? '') === 'maternal' && !empty($midwives) && is_array($midwives)) {
+                        $divStaffCount += count(array_filter($midwives, fn($m) => !empty(trim($m['name'] ?? ''))));
+                    }
+                    if (($div['id'] ?? '') === 'admin' && !empty($admins) && is_array($admins)) {
+                        $divStaffCount += count(array_filter($admins, fn($a) => !empty(trim($a['name'] ?? ''))));
+                    }
+                    $badgeText = $divStaffCount > 0 ? ($divStaffCount . ' Staff') : ($div['badge'] ?? '');
+                @endphp
+                <button @click="toggleDivision('{{ $div['id'] }}')" 
+                        :class="expandedDivision === '{{ $div['id'] }}' ? '{{ $cs['activeBorder'] }}' : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-800'"
+                        class="p-5 rounded-2xl border text-left transition-all duration-200 shadow-2xs group cursor-pointer flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <div class="w-9 h-9 rounded-xl {{ $cs['numBg'] }} flex items-center justify-center font-bold text-xs">
+                                {{ $div['number'] ?? ($dIdx + 1) }}
+                            </div>
+                            @if(!empty($badgeText))
+                                <span class="text-[10px] font-bold uppercase tracking-wider {{ $cs['badge'] }} px-2 py-0.5 rounded">
+                                    {{ $badgeText }}
+                                </span>
+                            @endif
                         </div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 bg-cyan-100/60 dark:bg-cyan-950/60 px-2 py-0.5 rounded">
-                            20 Staff
-                        </span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white {{ $cs['hoverText'] }} transition-colors">
+                            {{ $div['title'] }}
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                            {{ $div['subtitle'] }}
+                        </p>
                     </div>
-                    <h4 class="font-bold text-sm text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-400 transition-colors">
-                        Ancillary & Allied Health
-                    </h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                        Dental Care, Pharmacy Supplies, Medical Laboratory, X-Ray & Public Sanitation
-                    </p>
-                </div>
-                <div class="pt-4 mt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs font-semibold text-cyan-700 dark:text-cyan-400">
-                    <span x-text="expandedDivision === 'ancillary' ? 'Hide Roster ▲' : 'View Staff Roster ▼'"></span>
-                    <svg class="w-4 h-4 transform transition-transform" :class="expandedDivision === 'ancillary' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-            </button>
-
-            {{-- Division 4 Card --}}
-            <button @click="toggleDivision('admin')" 
-                    :class="expandedDivision === 'admin' ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/40 dark:bg-amber-950/30' : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-800'"
-                    class="p-5 rounded-2xl border text-left transition-all duration-200 shadow-2xs group cursor-pointer flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">
-                            4
-                        </div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-950/60 px-2 py-0.5 rounded">
-                            3 Staff
-                        </span>
+                    <div class="pt-4 mt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs font-semibold {{ $cs['actionText'] }}">
+                        <span x-text="expandedDivision === '{{ $div['id'] }}' ? 'Hide Roster ▲' : 'View Staff Roster ▼'"></span>
+                        <svg class="w-4 h-4 transform transition-transform" :class="expandedDivision === '{{ $div['id'] }}' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </div>
-                    <h4 class="font-bold text-sm text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
-                        Administrative Staff
-                    </h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                        Institutional Governance, Records Management, Procurement & Public Assistance
-                    </p>
-                </div>
-                <div class="pt-4 mt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs font-semibold text-amber-700 dark:text-amber-400">
-                    <span x-text="expandedDivision === 'admin' ? 'Hide Roster ▲' : 'View Staff Roster ▼'"></span>
-                    <svg class="w-4 h-4 transform transition-transform" :class="expandedDivision === 'admin' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-            </button>
-
+                </button>
+            @endforeach
         </div>
     </div>
 
@@ -285,182 +456,106 @@
         {{-- ────────────────────────────────────────────────────────────
              PRIMARY HEALTH DIVISION DETAILS
         ──────────────────────────────────────────────────────────── --}}
+        @php
+            $primaryDiv = $divMap['primary'] ?? null;
+            $primaryUnits = $primaryDiv['units'] ?? [];
+        @endphp
         <div x-show="(expandedDivision === 'primary' || searchQuery.trim().length >= 2)" class="space-y-4 mb-8">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
                 <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-xs">1</div>
-                <h4 class="font-bold text-base text-slate-900 dark:text-white">Primary Health Division Roster</h4>
+                <h4 class="font-bold text-base text-slate-900 dark:text-white">{{ $primaryDiv['title'] ?? 'Primary Health' }} Roster</h4>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                
-                {{-- NIP --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('NIP National Immunization Program Razelle Bendo Merlita Leyban Kyle Jaydee Buklatin')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">Immunization</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">National Immunization (NIP)</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Razelle Bendo, RN</span>
-                            <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">Nurse II</span>
+                @foreach($primaryUnits as $u)
+                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
+                         x-show="matchesSearch('{{ addslashes($u['title'] . ' ' . ($u['category'] ?? '') . ' ' . ($u['lead_name'] ?? '') . ' ' . (is_array($u['members'] ?? null) ? implode(' ', $u['members']) : ($u['members'] ?? ''))) }}')">
+                        @if(!empty($u['category']))
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">{{ $u['category'] }}</span>
+                        @endif
+                        <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">{{ $u['title'] }}</h5>
+                        <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
+                            @if(!empty($u['lead_name']))
+                                <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
+                                    <span>{{ $u['lead_name'] }}</span>
+                                    @if(!empty($u['lead_role']))
+                                        <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">{{ $u['lead_role'] }}</span>
+                                    @endif
+                                </div>
+                            @endif
+                            @php
+                                $unitMembers = is_array($u['members'] ?? null) ? $u['members'] : (is_string($u['members'] ?? null) ? array_filter(array_map('trim', explode('•', $u['members']))) : []);
+                            @endphp
+                            @if(!empty($unitMembers))
+                                @foreach($unitMembers as $m)
+                                    @if(trim($m) !== '')
+                                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">{{ trim($m) }}</div>
+                                    @endif
+                                @endforeach
+                            @endif
                         </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Merlita Leyban</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Kyle Jaydee Buklatin</div>
                     </div>
-                </div>
-
-                {{-- ABTC --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('ABTC Animal Bite Treatment Elaine Mae Bayacal Stanley Emelo Maribel Ramos Czar Ian Calaycay Hafisudin Adil Aiby Villavicencio')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">Specialized Clinic</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Animal Bite Treatment (ABTC)</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Elaine Mae Bayacal, RN</span>
-                            <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">Nurse</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Stanley Emelo • Maribel Ramos</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Czar Ian Calaycay • Hafisudin Adil • Aiby Villavicencio</div>
-                    </div>
-                </div>
-
-                {{-- TB DOTS --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('TB Program DOTS James Lee Ambojia Edna Laureles Nelson Malate Neil Bryan Velando Patricia Reyes')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">Infectious Diseases</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">TB DOTS Clinic & Program</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>James Lee Ambojia, RN</span>
-                            <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">Nurse II</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Edna Laureles • Nelson Malate</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Neil Bryan Velando • Patricia Reyes</div>
-                    </div>
-                </div>
-
-                {{-- MESU --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('MESU Epidemiology Surveillance Roniben Garde Chaz Angelo Palumpon Emiliano Asas Elaine Mae Bayacal')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">Epidemiology</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">MESU & Disease Surveillance</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Roniben Garde, RN, MAN</span>
-                            <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">Nurse IV</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Elaine Mae Bayacal, RN (Nurse III)</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Chaz Angelo Palumpon • Emiliano Asas</div>
-                    </div>
-                </div>
-
-                {{-- NCD --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('NCD Non-Communicable Diseases Annaliza Marquina Jenalyn De Castro Mon Christian Maneja Corazon Medina Narissa Agustin Cecilia Amagan Ivan Casapao')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">Wellness & Lifestyle</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Non-Communicable Diseases</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Annaliza Marquina, RN</span>
-                            <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">Nurse II</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Jenalyn De Castro, RN • Mon Christian Maneja, RN</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Corazon Medina, RN • Narissa Agustin • Cecilia Amagan • Ivan Casapao</div>
-                    </div>
-                </div>
-
-                {{-- Emergency Medic & Transport --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('Emergency First Aid Medic Team Ambulance Transport Edgar Bayan Redentor Mojica Renato Loyola Roniben Garde Mon Christian Maneja')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">Emergency Care</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Medic Team & Transport</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Roniben Garde, RN, MAN • Mon Christian Maneja, RN</div>
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Edgar Bayan</span>
-                            <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.2 rounded">Driver I</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Redentor Mojica • Renato Loyola</div>
-                    </div>
-                </div>
-
+                @endforeach
             </div>
         </div>
 
         {{-- ────────────────────────────────────────────────────────────
              MATERNAL & CHILD HEALTH DIVISION DETAILS
         ──────────────────────────────────────────────────────────── --}}
+        @php
+            $maternalDiv = $divMap['maternal'] ?? null;
+            $maternalUnits = $maternalDiv['units'] ?? [];
+        @endphp
         <div x-show="(expandedDivision === 'maternal' || searchQuery.trim().length >= 2)" class="space-y-4 mb-8">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
                 <div class="w-7 h-7 rounded-lg bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center font-bold text-xs">2</div>
-                <h4 class="font-bold text-base text-slate-900 dark:text-white">Maternal & Child Health Division Roster</h4>
+                <h4 class="font-bold text-base text-slate-900 dark:text-white">{{ $maternalDiv['title'] ?? 'Maternal & Child Health' }} Roster</h4>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 
-                {{-- Family Planning & Nutrition --}}
+                {{-- Clinical Units (Family Planning & Child Health) --}}
                 <div class="lg:col-span-4 space-y-3.5">
-                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                         x-show="matchesSearch('Family Planning Reproductive Health Tristan Voltaire Eguia Maribel Ramos Vanessa Erika Amon Razelle Bendo')">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 block mb-1">Maternal Care</span>
-                        <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Family Planning & Clinical Care</h5>
-                        <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                            <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                                <span>Tristan Voltaire Eguia, RN</span>
-                                <span class="text-[10px] font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-1.5 py-0.2 rounded">Nurse II</span>
+                    @foreach($maternalUnits as $u)
+                        <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
+                             x-show="matchesSearch('{{ addslashes($u['title'] . ' ' . ($u['category'] ?? '') . ' ' . ($u['lead_name'] ?? '') . ' ' . (is_array($u['members'] ?? null) ? implode(' ', $u['members']) : ($u['members'] ?? ''))) }}')">
+                            @if(!empty($u['category']))
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 block mb-1">{{ $u['category'] }}</span>
+                            @endif
+                            <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">{{ $u['title'] }}</h5>
+                            <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
+                                @if(!empty($u['lead_name']))
+                                    <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
+                                        <span>{{ $u['lead_name'] }}</span>
+                                        @if(!empty($u['lead_role']))
+                                            <span class="text-[10px] font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-1.5 py-0.2 rounded">{{ $u['lead_role'] }}</span>
+                                        @endif
+                                    </div>
+                                @endif
+                                @php
+                                    $unitMembers = is_array($u['members'] ?? null) ? $u['members'] : (is_string($u['members'] ?? null) ? array_filter(array_map('trim', explode('•', $u['members']))) : []);
+                                @endphp
+                                @if(!empty($unitMembers))
+                                    @foreach($unitMembers as $m)
+                                        @if(trim($m) !== '')
+                                            <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">{{ trim($m) }}</div>
+                                        @endif
+                                    @endforeach
+                                @endif
                             </div>
-                            <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Razelle Bendo, RN (Maternal Health)</div>
-                            <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Maribel Ramos • Vanessa Erika Amon</div>
                         </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                         x-show="matchesSearch('Child Health Nutrition Cyrus James Navarro Charlene Paggao Jenalyn De Castro')">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 block mb-1">Child Nutrition</span>
-                        <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Child & Adolescent Health</h5>
-                        <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                            <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                                <span>Charlene Paggao, RN</span>
-                                <span class="text-[10px] font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-1.5 py-0.2 rounded">Nutrition II</span>
-                            </div>
-                            <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Cyrus James Navarro, RN (Nurse I)</div>
-                            <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Jenalyn De Castro, RN (Adolescent Health)</div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
 
-                {{-- 19 Barangay Midwives Grid --}}
+                {{-- Frontline Barangay Midwives Grid --}}
                 <div class="lg:col-span-8 p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('Midwives Midwife BEmONC Birthing Maria Mendoza Zosima Aquino Nena Cotoner Engracia Dominguez Felilia Marino Evangeline Pulido Emma Yaya Charlene Gallardo Lara Vanessa Beaton Erlinda Videña Anabelle Revilla Anna Lissa Belardo Silvestina Loyola Ma. Dolores Lumagda Merwinda Ignas Charo Halili Andrea Lei Javier Vanessa Erika Amon Marisa Seran')">
+                     x-show="matchesSearch('Midwives Midwife BEmONC Birthing {{ addslashes(implode(' ', array_column($midwives, 'name'))) }}')">
                     <div class="flex items-center justify-between gap-2 mb-2.5">
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 block">BEmONC Birthing Center</span>
-                            <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">19 Frontline Barangay Midwives</h5>
+                            <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">{{ count($midwives) }} Frontline Barangay Midwives</h5>
                         </div>
                     </div>
-
-                    @php
-                        $midwives = [
-                            ['name' => 'Maria Mendoza, RM', 'rank' => 'Midwife III'],
-                            ['name' => 'Zosima Aquino, RM', 'rank' => 'Midwife III'],
-                            ['name' => 'Nena Cotoner, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Engracia Dominguez, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Felilia Marino, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Evangeline Pulido, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Emma Yaya, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Charlene Gallardo, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Lara Vanessa Beaton, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Erlinda Videña, RM', 'rank' => 'Midwife II'],
-                            ['name' => 'Anabelle Revilla, RM', 'rank' => 'Midwife I'],
-                            ['name' => 'Anna Lissa Belardo, RM', 'rank' => 'Midwife I'],
-                            ['name' => 'Silvestina Loyola, RM', 'rank' => 'Midwife I'],
-                            ['name' => 'Ma. Dolores Lumagda, RM', 'rank' => 'Midwife I'],
-                            ['name' => 'Merwinda Ignas, RM', 'rank' => 'Midwife'],
-                            ['name' => 'Charo Halili, RM', 'rank' => 'Midwife'],
-                            ['name' => 'Andrea Lei Javier, RM', 'rank' => 'Midwife'],
-                            ['name' => 'Vanessa Erika Amon, RM', 'rank' => 'Midwife'],
-                            ['name' => 'Marisa Seran', 'rank' => 'Staff']
-                        ];
-                    @endphp
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1.5 mt-2">
                         @foreach($midwives as $mw)
@@ -481,102 +576,67 @@
         {{-- ────────────────────────────────────────────────────────────
              ANCILLARY & ALLIED HEALTH DIVISION DETAILS
         ──────────────────────────────────────────────────────────── --}}
+        @php
+            $ancillaryDiv = $divMap['ancillary'] ?? null;
+            $ancillaryUnits = $ancillaryDiv['units'] ?? [];
+        @endphp
         <div x-show="(expandedDivision === 'ancillary' || searchQuery.trim().length >= 2)" class="space-y-4 mb-8">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
                 <div class="w-7 h-7 rounded-lg bg-cyan-100 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 flex items-center justify-center font-bold text-xs">3</div>
-                <h4 class="font-bold text-base text-slate-900 dark:text-white">Ancillary & Allied Health Division Roster</h4>
+                <h4 class="font-bold text-base text-slate-900 dark:text-white">{{ $ancillaryDiv['title'] ?? 'Ancillary & Allied Health' }} Roster</h4>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                
-                {{-- Dental --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('Dental Sylvia Buen Marilou Galang Dentist')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block mb-1">Oral Health</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Dental Clinic</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Sylvia Buen, DMD</span>
-                            <span class="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1.5 py-0.2 rounded">Dentist III</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Marilou Galang</div>
-                    </div>
-                </div>
-
-                {{-- Pharmacy --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('Pharmacy Hannah Mae Josue Mary Jane Anarna Elmer Belardo Noelyn Belen Mark Anthony Sebastian Kelvin Reolalas')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block mb-1">Pharmacy</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Pharmacy & Supplies</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Hannah Mae Josue, RPh</span>
-                            <span class="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1.5 py-0.2 rounded">Pharmacist III</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Mary Jane Anarna • Elmer Belardo</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Noelyn Belen • Mark Anthony Sebastian</div>
-                    </div>
-                </div>
-
-                {{-- Laboratory & Radiology --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('Laboratory Radiology Evalyn Martin Benessie Madlangsakay Bettina Ramos Diana Angela Mae Aquino Shirleen Reyes Christina Kassandra Sesno Celergene Pellerin Ovielle Mardy Jose Stephanie Ann Estrella Kevin Saputil')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block mb-1">Diagnostics</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Laboratory & X-Ray</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Evalyn Martin, RMT</span>
-                            <span class="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1.5 py-0.2 rounded">MedTech III</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Benessie Madlangsakay, RMT (MedTech II)</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Bettina Ramos, RMT • Diana Aquino, RMT</div>
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Celergene Pellerin, RRT</span>
-                            <span class="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1.5 py-0.2 rounded">RadTech II</span>
+                @foreach($ancillaryUnits as $u)
+                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
+                         x-show="matchesSearch('{{ addslashes($u['title'] . ' ' . ($u['category'] ?? '') . ' ' . ($u['lead_name'] ?? '') . ' ' . (is_array($u['members'] ?? null) ? implode(' ', $u['members']) : ($u['members'] ?? ''))) }}')">
+                        @if(!empty($u['category']))
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block mb-1">{{ $u['category'] }}</span>
+                        @endif
+                        <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">{{ $u['title'] }}</h5>
+                        <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
+                            @if(!empty($u['lead_name']))
+                                <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
+                                    <span>{{ $u['lead_name'] }}</span>
+                                    @if(!empty($u['lead_role']))
+                                        <span class="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1.5 py-0.2 rounded">{{ $u['lead_role'] }}</span>
+                                    @endif
+                                </div>
+                            @endif
+                            @php
+                                $unitMembers = is_array($u['members'] ?? null) ? $u['members'] : (is_string($u['members'] ?? null) ? array_filter(array_map('trim', explode('•', $u['members']))) : []);
+                            @endphp
+                            @if(!empty($unitMembers))
+                                @foreach($unitMembers as $m)
+                                    @if(trim($m) !== '')
+                                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">{{ trim($m) }}</div>
+                                    @endif
+                                @endforeach
+                            @endif
                         </div>
                     </div>
-                </div>
-
-                {{-- Sanitation --}}
-                <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
-                     x-show="matchesSearch('Sanitation Environment Aileen Del Barrio Maria Florinda Gonzalez Katherine Ordonio Katherine Pallera Rhonna Rhezza Jose Tristan Voltaire Eguia Maribel Ramos')">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block mb-1">Public Health</span>
-                    <h5 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-2">Sanitation & Environment</h5>
-                    <div class="space-y-1 text-xs text-slate-700 dark:text-slate-300">
-                        <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            <span>Aileen Del Barrio</span>
-                            <span class="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1.5 py-0.2 rounded">Inspector III</span>
-                        </div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Maria Florinda Gonzalez, RN (Inspector I)</div>
-                        <div class="py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">Rhonna Rhezza Jose, RN, MAN</div>
-                    </div>
-                </div>
-
+                @endforeach
             </div>
         </div>
 
         {{-- ────────────────────────────────────────────────────────────
              ADMINISTRATIVE STAFF DIVISION DETAILS
         ──────────────────────────────────────────────────────────── --}}
+        @php
+            $adminDiv = $divMap['admin'] ?? null;
+        @endphp
         <div x-show="(expandedDivision === 'admin' || searchQuery.trim().length >= 2)" class="space-y-4 mb-4">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
                 <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">4</div>
-                <h4 class="font-bold text-base text-slate-900 dark:text-white">Administrative Staff Roster</h4>
+                <h4 class="font-bold text-base text-slate-900 dark:text-white">{{ $adminDiv['title'] ?? 'Administrative Staff' }} Roster</h4>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-2xl">
-                @php
-                    $admins = [
-                        ['name' => 'Mark Anthony Sebastian', 'role' => 'Administrative Officer', 'initials' => 'MS'],
-                        ['name' => 'Jacqueline Hapin', 'role' => 'Administrative Support', 'initials' => 'JH'],
-                        ['name' => 'Apple Toledo', 'role' => 'Public Assistance & Records', 'initials' => 'AT']
-                    ];
-                @endphp
                 @foreach($admins as $adm)
                     <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-3"
                          x-show="matchesSearch('{{ addslashes($adm['name'] . ' ' . $adm['role']) }}')">
                         <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-200/60 dark:border-amber-800/60">
-                            {{ $adm['initials'] }}
+                            {{ $adm['initials'] ?? 'AD' }}
                         </div>
                         <div class="min-w-0 flex-1">
                             <h5 class="font-bold text-xs text-slate-900 dark:text-white truncate">{{ $adm['name'] }}</h5>

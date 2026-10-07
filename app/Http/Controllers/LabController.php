@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Rules\SecureImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class LabController extends Controller
 {
@@ -212,7 +213,7 @@ class LabController extends Controller
         if ($request->hasFile('result_file')) {
             $file = $request->file('result_file');
             $filename = 'ancillary_'.$ancillary->id.'_'.time().'.'.$file->getClientOriginalExtension();
-            $path = $file->storeAs('ancillary_results', $filename, 'public');
+            $path = $file->storeAs('ancillary_results', $filename, 'local');
             $data['result_file_path'] = $path;
         }
 
@@ -283,9 +284,13 @@ class LabController extends Controller
         ];
 
         if ($request->hasFile('result_file')) {
+            if ($ancillary->result_file_path) {
+                Storage::disk('local')->delete($ancillary->result_file_path);
+                Storage::disk('public')->delete($ancillary->result_file_path);
+            }
             $file = $request->file('result_file');
             $filename = 'ancillary_'.$ancillary->id.'_amended_'.time().'.'.$file->getClientOriginalExtension();
-            $path = $file->storeAs('ancillary_results', $filename, 'public');
+            $path = $file->storeAs('ancillary_results', $filename, 'local');
             $updateData['result_file_path'] = $path;
         }
 
@@ -479,5 +484,57 @@ class LabController extends Controller
         $requests = collect([$ancillary]);
 
         return view('admin.ancillary.print', compact('patient', 'requests'));
+    }
+
+    /**
+     * Serve an authorized, authenticated patient diagnostic result file.
+     */
+    public function viewResultFile(AncillaryRequest $ancillary)
+    {
+        $user = Auth::user();
+        if (! $user) {
+            abort(401);
+        }
+
+        // Only authorized clinical and administrative roles may view diagnostic files
+        $authorizedRoles = [
+            'super_admin', 'admin',
+            'regular_doctor', 'pedia_doctor',
+            'clinical_nurse',
+            'laboratory', 'radiology',
+        ];
+
+        if (! in_array($user->role, $authorizedRoles)) {
+            abort(403, 'Unauthorized access to clinical diagnostic results.');
+        }
+
+        if (! $ancillary->result_file_path) {
+            abort(404, 'No diagnostic file attached to this request.');
+        }
+
+        // Check local (private) disk first, then fallback to public disk for legacy uploads
+        $disk = null;
+        if (Storage::disk('local')->exists($ancillary->result_file_path)) {
+            $disk = 'local';
+        } elseif (Storage::disk('public')->exists($ancillary->result_file_path)) {
+            $disk = 'public';
+        }
+
+        if (! $disk) {
+            abort(404, 'Diagnostic result file not found.');
+        }
+
+        $path = Storage::disk($disk)->path($ancillary->result_file_path);
+        $mime = Storage::disk($disk)->mimeType($ancillary->result_file_path) ?: 'application/octet-stream';
+
+        $response = response()->file($path, [
+            'Content-Type' => $mime,
+        ]);
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
+
+        return $response;
     }
 }

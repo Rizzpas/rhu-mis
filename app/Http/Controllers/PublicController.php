@@ -558,6 +558,28 @@ class PublicController extends Controller
             }
         }
 
+        // ── Enforce: Appointments are available only for the Main Health Center ──
+        // Reject any crafted request targeting a different facility.
+        if ($request->filled('facility_id') || $request->filled('facility')) {
+            $facilitySlug = $request->input('facility') ?? null;
+            $facilityId = $request->input('facility_id') ?? null;
+
+            if ($facilitySlug && $facilitySlug !== 'main-health-center') {
+                return back()->withErrors([
+                    'facility' => 'Online appointments are available only for the Main Health Center.',
+                ])->withInput();
+            }
+
+            if ($facilityId) {
+                $facility = \App\Models\FacilityUnit::find($facilityId);
+                if (!$facility || $facility->slug !== 'main-health-center') {
+                    return back()->withErrors([
+                        'facility_id' => 'Online appointments are available only for the Main Health Center.',
+                    ])->withInput();
+                }
+            }
+        }
+
         $ipKey = 'booking_ip:'.$request->ip();
         $emailKey = 'booking_email:'.strtolower($request->email ?? '');
 

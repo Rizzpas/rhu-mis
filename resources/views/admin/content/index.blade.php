@@ -28,12 +28,13 @@
 
     {{-- Modern Segmented Navigation Tabs (8 Dedicated Content Areas) --}}
     <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar sm:grid sm:grid-cols-3 lg:grid-cols-9 p-0.5">
             <template x-for="tab in [
                 { id: 'hero', name: 'Hero Banner', icon: 'hero' },
                 { id: 'topbar', name: 'Top Bar', icon: 'topbar' },
                 { id: 'facilities', name: 'Facilities', icon: 'facilities' },
                 { id: 'about', name: 'Mission & Charter', icon: 'about' },
+                { id: 'organization', name: 'Org Structure', icon: 'organization' },
                 { id: 'steps', name: 'Process Steps', icon: 'steps' },
                 { id: 'faq', name: 'FAQs', icon: 'faq' },
                 { id: 'privacy', name: 'Privacy Policy', icon: 'privacy' },
@@ -44,7 +45,7 @@
                         'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 font-bold': activeTab === tab.id,
                         'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold hover:bg-slate-100/80 dark:hover:bg-slate-800/80': activeTab !== tab.id
                     }"
-                    class="px-2.5 py-2.5 rounded-xl text-xs transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 cursor-pointer text-center select-none active:scale-[0.98]">
+                    class="shrink-0 sm:shrink px-3 sm:px-2.5 py-2 sm:py-2.5 rounded-xl text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer text-center select-none active:scale-[0.98]">
                     
                     {{-- Dynamic Tab Icons --}}
                     <span :class="activeTab === tab.id ? 'text-white' : 'text-slate-400 dark:text-slate-500'">
@@ -59,6 +60,9 @@
                         </template>
                         <template x-if="tab.icon === 'about'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                        </template>
+                        <template x-if="tab.icon === 'organization'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         </template>
                         <template x-if="tab.icon === 'steps'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
@@ -316,7 +320,7 @@
     </script>
 
     {{-- Main Content Settings Form --}}
-    <form id="landingContentForm" data-no-loader="true" x-data="landingContentManager()" @submit.prevent="validateAndConfirm()" action="{{ route('admin.content.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form id="landingContentForm" data-no-loader="true" x-data="landingContentManager()" @submit.prevent="validateAndConfirm()" action="{{ route('admin.content.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6 pb-28 sm:pb-20">
         @csrf
         @method('PUT')
 
@@ -958,6 +962,97 @@
         {{-- ─────────────────────────────────────────────────────────────
              TAB 3: FACILITIES & UNITS
         ───────────────────────────────────────────────────────────── --}}
+        @php
+            $facilityCategoriesMeta = [
+                'General Medicine' => [
+                    'value' => 'General Medicine',
+                    'label' => 'General Medicine',
+                    'iconBg' => 'bg-emerald-100/90 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
+                    'desc' => 'Primary outpatient consultation, routine adult care & vitals',
+                    'iconSvg' => '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
+                ],
+                'Maternity & Child Health' => [
+                    'value' => 'Maternity & Child Health',
+                    'label' => 'Maternity & Child Health',
+                    'iconBg' => 'bg-rose-100/90 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300 border-rose-200 dark:border-rose-800/60',
+                    'desc' => 'Prenatal, postnatal checkups, normal delivery & pediatric care',
+                    'iconSvg' => '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="7" r="4" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.5 21a6.5 6.5 0 0113 0M17 11a4 4 0 014 4m-18-4a4 4 0 00-4 4"/></svg>',
+                ],
+                'Women\'s Health' => [
+                    'value' => 'Women\'s Health',
+                    'label' => 'Women\'s Health',
+                    'iconBg' => 'bg-purple-100/90 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300 border-purple-200 dark:border-purple-800/60',
+                    'desc' => 'Gynecology, reproductive wellness & family planning services',
+                    'iconSvg' => '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="8" r="5" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13v8m-3.5-3.5h7"/></svg>',
+                ],
+                'Dental Care' => [
+                    'value' => 'Dental Care',
+                    'label' => 'Dental Care',
+                    'iconBg' => 'bg-cyan-100/90 text-cyan-700 dark:bg-cyan-900/60 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/60',
+                    'desc' => 'Dental consultations, oral cleaning, prophylaxis & tooth extraction',
+                    'iconSvg' => '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                ],
+                'Infectious Diseases' => [
+                    'value' => 'Infectious Diseases',
+                    'label' => 'Infectious Diseases',
+                    'iconBg' => 'bg-amber-100/90 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
+                    'desc' => 'TB-DOTS screening, GeneXpert testing & communicable disease care',
+                    'iconSvg' => '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>',
+                ],
+                'Emergency & Immunization' => [
+                    'value' => 'Emergency & Immunization',
+                    'label' => 'Emergency & Immunization',
+                    'iconBg' => 'bg-red-100/90 text-red-700 dark:bg-red-900/60 dark:text-red-300 border-red-200 dark:border-red-800/60',
+                    'desc' => 'Animal bite rabies assessments, tetanus toxoid & acute immunizations',
+                    'iconSvg' => '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
+                ],
+                'Diagnostic & Laboratory' => [
+                    'value' => 'Diagnostic & Laboratory',
+                    'label' => 'Diagnostic & Laboratory',
+                    'iconBg' => 'bg-indigo-100/90 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60',
+                    'desc' => 'Routine blood chemistry, urinalysis, microscopy & diagnostic assays',
+                    'iconSvg' => '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>',
+                ],
+            ];
+
+            $contactLabelsMeta = [
+                'Main Line' => [
+                    'value' => 'Main Line',
+                    'label' => 'Main Line',
+                    'desc' => 'Primary facility contact',
+                    'iconBg' => 'bg-emerald-100/90 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
+                    'iconSvg' => '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>',
+                ],
+                'Mobile Hotline' => [
+                    'value' => 'Mobile Hotline',
+                    'label' => 'Mobile Hotline',
+                    'desc' => 'Mobile & SMS inquiries',
+                    'iconBg' => 'bg-teal-100/90 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300 border-teal-200 dark:border-teal-800/60',
+                    'iconSvg' => '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>',
+                ],
+                'Emergency Line' => [
+                    'value' => 'Emergency Line',
+                    'label' => 'Emergency Line',
+                    'desc' => '24/7 urgent helpline',
+                    'iconBg' => 'bg-rose-100/90 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300 border-rose-200 dark:border-rose-800/60',
+                    'iconSvg' => '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>',
+                ],
+                'Landline' => [
+                    'value' => 'Landline',
+                    'label' => 'Landline',
+                    'desc' => 'Local desk telephone',
+                    'iconBg' => 'bg-blue-100/90 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border-blue-200 dark:border-blue-800/60',
+                    'iconSvg' => '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
+                ],
+                'Appointment Desk' => [
+                    'value' => 'Appointment Desk',
+                    'label' => 'Appointment Desk',
+                    'desc' => 'Booking & consultations',
+                    'iconBg' => 'bg-purple-100/90 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300 border-purple-200 dark:border-purple-800/60',
+                    'iconSvg' => '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>',
+                ],
+            ];
+        @endphp
         <div x-show="activeTab === 'facilities'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6"
              x-data="facilityManager()">
 
@@ -1225,15 +1320,97 @@
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                                             Clinical Category / Discipline <span class="text-rose-500">*</span>
                                         </label>
-                                        <div class="relative">
-                                            <select name="category" x-model="addState.category" required
-                                                    class="w-full h-11 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
-                                                @foreach(\App\Models\FacilityUnit::CATEGORIES as $cat)
-                                                    <option value="{{ $cat }}">{{ $cat }}</option>
+                                        <div class="relative z-30" x-data="{ openCategory: false }" @click.outside="openCategory = false" @keydown.escape.window="openCategory = false">
+                                            {{-- Hidden Form Input for Validation & Submission --}}
+                                            <input type="hidden" name="category" :value="addState.category" required>
+
+                                            {{-- Styled Trigger Button --}}
+                                            <button type="button" 
+                                                    @click="openCategory = !openCategory"
+                                                    class="w-full h-11 px-3.5 rounded-xl border bg-slate-50/70 dark:bg-slate-800/60 text-left transition-all duration-200 cursor-pointer shadow-2xs flex items-center justify-between gap-2.5 focus:outline-none group"
+                                                    :class="openCategory 
+                                                        ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-white dark:bg-slate-800 shadow-sm' 
+                                                        : 'border-slate-300 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500/60'">
+                                                
+                                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                    @foreach($facilityCategoriesMeta as $catKey => $cat)
+                                                        <div x-show="addState.category === '{{ addslashes($catKey) }}'" class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border {{ $cat['iconBg'] }} transition-transform duration-200 group-hover:scale-105">
+                                                                {!! $cat['iconSvg'] !!}
+                                                            </div>
+                                                            <span class="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                                                {{ $cat['label'] }}
+                                                            </span>
+                                                        </div>
+                                                    @endforeach
+
+                                                    {{-- Fallback if custom/unknown category --}}
+                                                    <div x-show="!{{ json_encode(array_keys($facilityCategoriesMeta)) }}.includes(addState.category)" class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border bg-emerald-100/90 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60">
+                                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                        </div>
+                                                        <span class="text-sm font-semibold text-slate-900 dark:text-white truncate" x-text="addState.category || 'Select Category'"></span>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Rotating Chevron Arrow --}}
+                                                <div class="shrink-0 flex items-center text-slate-400 dark:text-slate-400 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-200">
+                                                    <svg class="w-4 h-4 transition-transform duration-200"
+                                                         :class="openCategory ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                    </svg>
+                                                </div>
+                                            </button>
+
+                                            {{-- Custom Elevated Dropdown Panel --}}
+                                            <div x-show="openCategory" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute left-0 right-0 z-50 mt-1.5 max-h-72 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-2 custom-scrollbar backdrop-blur-xl space-y-1">
+                                                
+                                                <div class="px-2.5 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1">
+                                                    <span>Select Clinical Discipline</span>
+                                                </div>
+
+                                                @foreach($facilityCategoriesMeta as $catKey => $cat)
+                                                    <button type="button"
+                                                            @click="addState.category = '{{ addslashes($catKey) }}'; openCategory = false"
+                                                            class="w-full text-left p-2.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 group border"
+                                                            :class="addState.category === '{{ addslashes($catKey) }}'
+                                                                ? 'bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-200/90 dark:border-emerald-800/60 shadow-2xs' 
+                                                                : 'bg-transparent border-transparent hover:bg-slate-100/80 dark:hover:bg-slate-800/70 hover:border-slate-200/60 dark:hover:border-slate-700/60'">
+                                                        
+                                                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border {{ $cat['iconBg'] }} transition-transform duration-150 group-hover:scale-105">
+                                                                {!! $cat['iconSvg'] !!}
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-white block"
+                                                                      :class="addState.category === '{{ addslashes($catKey) }}' ? 'text-emerald-700 dark:text-emerald-300' : ''">
+                                                                    {{ $cat['label'] }}
+                                                                </span>
+                                                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{{ $cat['desc'] }}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="shrink-0 pl-1" x-show="addState.category === '{{ addslashes($catKey) }}'">
+                                                            <div class="w-6 h-6 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    </button>
                                                 @endforeach
-                                            </select>
+                                            </div>
                                         </div>
-                                        <p class="text-[11px] text-slate-400 mt-1">Classification shown as tag badge.</p>
+                                        <p class="text-[11px] text-slate-400 mt-1">Primary healthcare discipline for this facility unit.</p>
                                     </div>
                                 </div>
 
@@ -1322,10 +1499,10 @@
                                 </div>
 
                                 {{-- Row 4: Structured Philippine Contacts Repeater & Location --}}
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                     {{-- Multi-Contact Repeater --}}
-                                    <div class="space-y-3">
-                                        <div class="flex items-center justify-between">
+                                    <div class="space-y-2.5 min-w-0">
+                                        <div class="flex items-center justify-between h-5 mb-2">
                                             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                                 Contact Numbers
                                             </label>
@@ -1336,37 +1513,116 @@
                                         </div>
 
                                         <template x-for="(contact, cIdx) in addState.contacts" :key="cIdx">
-                                            <div class="flex items-center gap-2">
-                                                <select x-model="contact.label" 
-                                                        class="w-32 h-10 px-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs font-semibold">
-                                                    <option value="Main Line">Main Line</option>
-                                                    <option value="Mobile Hotline">Mobile Hotline</option>
-                                                    <option value="Emergency Line">Emergency Line</option>
-                                                    <option value="Landline">Landline</option>
-                                                    <option value="Appointment Desk">Appointment Desk</option>
-                                                </select>
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <div class="relative shrink-0 w-32 sm:w-36" x-data="{ openLabel: false }" @click.outside="openLabel = false" @keydown.escape.window="openLabel = false">
+                                                    {{-- Styled Trigger Button --}}
+                                                    <button type="button" 
+                                                            @click="openLabel = !openLabel"
+                                                            class="w-full h-10 px-2.5 rounded-xl border bg-slate-50/70 dark:bg-slate-800/60 text-left transition-all duration-200 cursor-pointer shadow-2xs flex items-center justify-between gap-1.5 focus:outline-none group"
+                                                            :class="openLabel 
+                                                                ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-white dark:bg-slate-800 shadow-sm' 
+                                                                : 'border-slate-300 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500/60'">
+                                                        
+                                                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                                                            @foreach($contactLabelsMeta as $lKey => $lbl)
+                                                                <div x-show="contact.label === '{{ addslashes($lKey) }}'" class="flex items-center gap-1.5 min-w-0 flex-1">
+                                                                    <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 border {{ $lbl['iconBg'] }}">
+                                                                        {!! $lbl['iconSvg'] !!}
+                                                                    </div>
+                                                                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                                                        {{ $lbl['label'] }}
+                                                                    </span>
+                                                                </div>
+                                                            @endforeach
+
+                                                            {{-- Fallback for custom/unmatched label --}}
+                                                            <div x-show="!{{ json_encode(array_keys($contactLabelsMeta)) }}.includes(contact.label)" class="flex items-center gap-1.5 min-w-0 flex-1">
+                                                                <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 border bg-emerald-100/90 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                                </div>
+                                                                <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate" x-text="contact.label || 'Select Line'"></span>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Chevron Arrow --}}
+                                                        <div class="shrink-0 flex items-center text-slate-400 dark:text-slate-400">
+                                                            <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                                                                 :class="openLabel ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                            </svg>
+                                                        </div>
+                                                    </button>
+
+                                                    {{-- Floating Dropdown Menu --}}
+                                                    <div x-show="openLabel" 
+                                                         x-transition:enter="transition ease-out duration-150"
+                                                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                         x-transition:leave="transition ease-in duration-100"
+                                                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                         style="display: none;"
+                                                         class="absolute left-0 z-50 mt-1.5 w-52 sm:w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-1.5 custom-scrollbar backdrop-blur-xl space-y-1">
+                                                        
+                                                        <div class="px-2 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-0.5">
+                                                            <span>Contact Line Type</span>
+                                                        </div>
+
+                                                        @foreach($contactLabelsMeta as $lKey => $lbl)
+                                                            <button type="button"
+                                                                    @click="contact.label = '{{ addslashes($lKey) }}'; openLabel = false"
+                                                                    class="w-full text-left p-2 rounded-xl text-xs font-medium flex items-center justify-between gap-2.5 cursor-pointer transition-all duration-150 group border"
+                                                                    :class="contact.label === '{{ addslashes($lKey) }}'
+                                                                        ? 'bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-200/90 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200 shadow-2xs' 
+                                                                        : 'bg-transparent border-transparent hover:bg-slate-100/80 dark:hover:bg-slate-800/70 hover:border-slate-200/60 dark:hover:border-slate-700/60 text-slate-700 dark:text-slate-300'">
+                                                                
+                                                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                                                                    <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border {{ $lbl['iconBg'] }} transition-transform duration-150 group-hover:scale-105">
+                                                                        {!! $lbl['iconSvg'] !!}
+                                                                    </div>
+                                                                    <div class="flex-1 min-w-0">
+                                                                        <span class="text-xs font-bold block"
+                                                                              :class="contact.label === '{{ addslashes($lKey) }}' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-800 dark:text-white'">
+                                                                            {{ $lbl['label'] }}
+                                                                        </span>
+                                                                        <p class="text-[10px] text-slate-400 dark:text-slate-400 truncate">{{ $lbl['desc'] }}</p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="shrink-0" x-show="contact.label === '{{ addslashes($lKey) }}'">
+                                                                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                                    </svg>
+                                                                </div>
+                                                            </button>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
                                                 <input type="text" :value="contact.number" @input="addState.formatPhone($event, cIdx)" placeholder="09XX XXX XXXX or (046) 414-XXXX"
-                                                       class="flex-1 h-10 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                                                       class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                                                 <button type="button" x-show="addState.contacts.length > 1" @click="addState.removeContact(cIdx)" 
-                                                        class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 flex items-center justify-center">
+                                                        class="shrink-0 w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 flex items-center justify-center">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                                 </button>
                                             </div>
                                         </template>
-                                        <p class="text-[11px] text-slate-400">First line is used as the primary clinic contact.</p>
+                                        <p class="text-[11px] text-slate-400 mt-1">First line is used as the primary clinic contact.</p>
                                     </div>
 
                                     {{-- Location --}}
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                                            Facility Location / Wing
-                                        </label>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center justify-between h-5 mb-2">
+                                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                                Facility Location / Wing
+                                            </label>
+                                        </div>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                             </div>
                                             <input type="text" name="location" x-model="addState.location" placeholder="e.g. Ground Floor, Wing B" 
-                                                   class="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
+                                                   class="w-full h-10 pl-10 pr-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
                                         </div>
                                         <p class="text-[11px] text-slate-400 mt-1">Physical location within the municipal health complex.</p>
                                     </div>
@@ -1721,15 +1977,97 @@
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                                             Clinical Category / Discipline <span class="text-rose-500">*</span>
                                         </label>
-                                        <div class="relative">
-                                            <select name="category" x-model="editState.category" required
-                                                    class="w-full h-11 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
-                                                @foreach(\App\Models\FacilityUnit::CATEGORIES as $cat)
-                                                    <option value="{{ $cat }}">{{ $cat }}</option>
+                                        <div class="relative z-30" x-data="{ openCategory: false }" @click.outside="openCategory = false" @keydown.escape.window="openCategory = false">
+                                            {{-- Hidden Form Input for Validation & Submission --}}
+                                            <input type="hidden" name="category" :value="editState.category" required>
+
+                                            {{-- Styled Trigger Button --}}
+                                            <button type="button" 
+                                                    @click="openCategory = !openCategory"
+                                                    class="w-full h-11 px-3.5 rounded-xl border bg-slate-50/70 dark:bg-slate-800/60 text-left transition-all duration-200 cursor-pointer shadow-2xs flex items-center justify-between gap-2.5 focus:outline-none group"
+                                                    :class="openCategory 
+                                                        ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-white dark:bg-slate-800 shadow-sm' 
+                                                        : 'border-slate-300 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500/60'">
+                                                
+                                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                    @foreach($facilityCategoriesMeta as $catKey => $cat)
+                                                        <div x-show="editState.category === '{{ addslashes($catKey) }}'" class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border {{ $cat['iconBg'] }} transition-transform duration-200 group-hover:scale-105">
+                                                                {!! $cat['iconSvg'] !!}
+                                                            </div>
+                                                            <span class="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                                                {{ $cat['label'] }}
+                                                            </span>
+                                                        </div>
+                                                    @endforeach
+
+                                                    {{-- Fallback if custom/unknown category --}}
+                                                    <div x-show="!{{ json_encode(array_keys($facilityCategoriesMeta)) }}.includes(editState.category)" class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border bg-emerald-100/90 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60">
+                                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                        </div>
+                                                        <span class="text-sm font-semibold text-slate-900 dark:text-white truncate" x-text="editState.category || 'Select Category'"></span>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Rotating Chevron Arrow --}}
+                                                <div class="shrink-0 flex items-center text-slate-400 dark:text-slate-400 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-200">
+                                                    <svg class="w-4 h-4 transition-transform duration-200"
+                                                         :class="openCategory ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                    </svg>
+                                                </div>
+                                            </button>
+
+                                            {{-- Custom Elevated Dropdown Panel --}}
+                                            <div x-show="openCategory" 
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                 style="display: none;"
+                                                 class="absolute left-0 right-0 z-50 mt-1.5 max-h-72 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-2 custom-scrollbar backdrop-blur-xl space-y-1">
+                                                
+                                                <div class="px-2.5 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1">
+                                                    <span>Select Clinical Discipline</span>
+                                                </div>
+
+                                                @foreach($facilityCategoriesMeta as $catKey => $cat)
+                                                    <button type="button"
+                                                            @click="editState.category = '{{ addslashes($catKey) }}'; openCategory = false"
+                                                            class="w-full text-left p-2.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 group border"
+                                                            :class="editState.category === '{{ addslashes($catKey) }}'
+                                                                ? 'bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-200/90 dark:border-emerald-800/60 shadow-2xs' 
+                                                                : 'bg-transparent border-transparent hover:bg-slate-100/80 dark:hover:bg-slate-800/70 hover:border-slate-200/60 dark:hover:border-slate-700/60'">
+                                                        
+                                                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border {{ $cat['iconBg'] }} transition-transform duration-150 group-hover:scale-105">
+                                                                {!! $cat['iconSvg'] !!}
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-white block"
+                                                                      :class="editState.category === '{{ addslashes($catKey) }}' ? 'text-emerald-700 dark:text-emerald-300' : ''">
+                                                                    {{ $cat['label'] }}
+                                                                </span>
+                                                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{{ $cat['desc'] }}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="shrink-0 pl-1" x-show="editState.category === '{{ addslashes($catKey) }}'">
+                                                            <div class="w-6 h-6 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    </button>
                                                 @endforeach
-                                            </select>
+                                            </div>
                                         </div>
-                                        <p class="text-[11px] text-slate-400 mt-1">Classification shown as tag badge.</p>
+                                        <p class="text-[11px] text-slate-400 mt-1">Primary healthcare discipline for this facility unit.</p>
                                     </div>
                                 </div>
 
@@ -1818,10 +2156,10 @@
                                 </div>
 
                                 {{-- Row 4: Structured Contacts & Location --}}
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                     {{-- Multi-Contact Repeater --}}
-                                    <div class="space-y-3">
-                                        <div class="flex items-center justify-between">
+                                    <div class="space-y-2.5 min-w-0">
+                                        <div class="flex items-center justify-between h-5 mb-2">
                                             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                                 Contact Numbers
                                             </label>
@@ -1832,37 +2170,116 @@
                                         </div>
 
                                         <template x-for="(contact, cIdx) in editState.contacts" :key="cIdx">
-                                            <div class="flex items-center gap-2">
-                                                <select x-model="contact.label" 
-                                                        class="w-32 h-10 px-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs font-semibold">
-                                                    <option value="Main Line">Main Line</option>
-                                                    <option value="Mobile Hotline">Mobile Hotline</option>
-                                                    <option value="Emergency Line">Emergency Line</option>
-                                                    <option value="Landline">Landline</option>
-                                                    <option value="Appointment Desk">Appointment Desk</option>
-                                                </select>
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <div class="relative shrink-0 w-32 sm:w-36" x-data="{ openLabel: false }" @click.outside="openLabel = false" @keydown.escape.window="openLabel = false">
+                                                    {{-- Styled Trigger Button --}}
+                                                    <button type="button" 
+                                                            @click="openLabel = !openLabel"
+                                                            class="w-full h-10 px-2.5 rounded-xl border bg-slate-50/70 dark:bg-slate-800/60 text-left transition-all duration-200 cursor-pointer shadow-2xs flex items-center justify-between gap-1.5 focus:outline-none group"
+                                                            :class="openLabel 
+                                                                ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-white dark:bg-slate-800 shadow-sm' 
+                                                                : 'border-slate-300 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500/60'">
+                                                        
+                                                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                                                            @foreach($contactLabelsMeta as $lKey => $lbl)
+                                                                <div x-show="contact.label === '{{ addslashes($lKey) }}'" class="flex items-center gap-1.5 min-w-0 flex-1">
+                                                                    <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 border {{ $lbl['iconBg'] }}">
+                                                                        {!! $lbl['iconSvg'] !!}
+                                                                    </div>
+                                                                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                                                        {{ $lbl['label'] }}
+                                                                    </span>
+                                                                </div>
+                                                            @endforeach
+
+                                                            {{-- Fallback for custom/unmatched label --}}
+                                                            <div x-show="!{{ json_encode(array_keys($contactLabelsMeta)) }}.includes(contact.label)" class="flex items-center gap-1.5 min-w-0 flex-1">
+                                                                <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 border bg-emerald-100/90 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                                </div>
+                                                                <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate" x-text="contact.label || 'Select Line'"></span>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Chevron Arrow --}}
+                                                        <div class="shrink-0 flex items-center text-slate-400 dark:text-slate-400">
+                                                            <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                                                                 :class="openLabel ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
+                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                            </svg>
+                                                        </div>
+                                                    </button>
+
+                                                    {{-- Floating Dropdown Menu --}}
+                                                    <div x-show="openLabel" 
+                                                         x-transition:enter="transition ease-out duration-150"
+                                                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                         x-transition:leave="transition ease-in duration-100"
+                                                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                         style="display: none;"
+                                                         class="absolute left-0 z-50 mt-1.5 w-52 sm:w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 shadow-2xl shadow-slate-900/20 p-1.5 custom-scrollbar backdrop-blur-xl space-y-1">
+                                                        
+                                                        <div class="px-2 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-0.5">
+                                                            <span>Contact Line Type</span>
+                                                        </div>
+
+                                                        @foreach($contactLabelsMeta as $lKey => $lbl)
+                                                            <button type="button"
+                                                                    @click="contact.label = '{{ addslashes($lKey) }}'; openLabel = false"
+                                                                    class="w-full text-left p-2 rounded-xl text-xs font-medium flex items-center justify-between gap-2.5 cursor-pointer transition-all duration-150 group border"
+                                                                    :class="contact.label === '{{ addslashes($lKey) }}'
+                                                                        ? 'bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-200/90 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200 shadow-2xs' 
+                                                                        : 'bg-transparent border-transparent hover:bg-slate-100/80 dark:hover:bg-slate-800/70 hover:border-slate-200/60 dark:hover:border-slate-700/60 text-slate-700 dark:text-slate-300'">
+                                                                
+                                                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                                                                    <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border {{ $lbl['iconBg'] }} transition-transform duration-150 group-hover:scale-105">
+                                                                        {!! $lbl['iconSvg'] !!}
+                                                                    </div>
+                                                                    <div class="flex-1 min-w-0">
+                                                                        <span class="text-xs font-bold block"
+                                                                              :class="contact.label === '{{ addslashes($lKey) }}' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-800 dark:text-white'">
+                                                                            {{ $lbl['label'] }}
+                                                                        </span>
+                                                                        <p class="text-[10px] text-slate-400 dark:text-slate-400 truncate">{{ $lbl['desc'] }}</p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="shrink-0" x-show="contact.label === '{{ addslashes($lKey) }}'">
+                                                                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                                    </svg>
+                                                                </div>
+                                                            </button>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
                                                 <input type="text" :value="contact.number" @input="editState.formatPhone($event, cIdx)" placeholder="09XX XXX XXXX or (046) 414-XXXX"
-                                                       class="flex-1 h-10 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                                                       class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                                                 <button type="button" x-show="editState.contacts.length > 1" @click="editState.removeContact(cIdx)" 
-                                                        class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 flex items-center justify-center">
+                                                        class="shrink-0 w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 flex items-center justify-center">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                                 </button>
                                             </div>
                                         </template>
-                                        <p class="text-[11px] text-slate-400">First line is used as the primary clinic contact.</p>
+                                        <p class="text-[11px] text-slate-400 mt-1">First line is used as the primary clinic contact.</p>
                                     </div>
 
                                     {{-- Location --}}
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                                            Facility Location / Wing
-                                        </label>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center justify-between h-5 mb-2">
+                                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                                Facility Location / Wing
+                                            </label>
+                                        </div>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                             </div>
-                                            <input type="text" name="location" x-model="editState.location" 
-                                                   class="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
+                                            <input type="text" name="location" x-model="editState.location" placeholder="e.g. Ground Floor, Wing B" 
+                                                   class="w-full h-10 pl-10 pr-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
                                         </div>
                                         <p class="text-[11px] text-slate-400 mt-1">Physical location within the municipal health complex.</p>
                                     </div>
@@ -2760,6 +3177,1298 @@
         </div>
 
         {{-- ─────────────────────────────────────────────────────────────
+             TAB: ORGANIZATIONAL STRUCTURE & LEADERSHIP
+        ───────────────────────────────────────────────────────────── --}}
+        @php
+            $orgKicker = old('settings.org_kicker', $settings['organization']['org_kicker']->value ?? 'Leadership & Governance');
+            $orgTitle = old('settings.org_title', $settings['organization']['org_title']->value ?? 'Organizational Structure & Leadership');
+            $orgSubtitle = old('settings.org_subtitle', $settings['organization']['org_subtitle']->value ?? 'The dedicated healthcare administrators, medical doctors, nurses, midwives, and diagnostic specialists of Rural Health Unit — Silang, Cavite.');
+
+            $mhoBadge = old('settings.mho_badge', $settings['organization']['mho_badge']->value ?? 'Executive Head');
+            $mhoSubbadge = old('settings.mho_subbadge', $settings['organization']['mho_subbadge']->value ?? 'Head of Agency');
+            $mhoName = old('settings.mho_name', $settings['organization']['mho_name']->value ?? 'Jericho Joshua E. Palay, MD');
+            $mhoTitle = old('settings.mho_title', $settings['organization']['mho_title']->value ?? 'Municipal Health Officer');
+            $mhoOversightTitle = old('settings.mho_oversight_title', $settings['organization']['mho_oversight_title']->value ?? 'Executive Oversight:');
+            $mhoOversightDesc = old('settings.mho_oversight_desc', $settings['organization']['mho_oversight_desc']->value ?? 'Clinical governance, health policy, and public healthcare across all 64 barangays.');
+            $mhoImageVal = $settings['organization']['mho_image']->value ?? '';
+            $currentMhoImageUrl = $mhoImageVal ? asset($mhoImageVal) : null;
+
+            $rawMedOfficers = null;
+            if(isset($settings['organization']['org_medical_officers'])) {
+                $rawMedOfficers = json_decode($settings['organization']['org_medical_officers']->value, true);
+            }
+            if(empty($rawMedOfficers) || !is_array($rawMedOfficers)) {
+                $rawMedOfficers = [
+                    ['name' => 'Angel Casapao, MD', 'role' => 'Specialist I', 'initials' => 'AC'],
+                    ['name' => 'Michelle Mae Brofas, MD', 'role' => 'Medical Officer III', 'initials' => 'MB'],
+                    ['name' => 'Jebriel Allen Desacada, MD', 'role' => 'Medical Officer III', 'initials' => 'JD'],
+                    ['name' => 'Junee Elleigh Oway, MD', 'role' => 'Medical Officer II', 'initials' => 'JO']
+                ];
+            }
+
+            $rawDivisions = null;
+            if(isset($settings['organization']['org_divisions'])) {
+                $rawDivisions = json_decode($settings['organization']['org_divisions']->value, true);
+            }
+            if(empty($rawDivisions) || !is_array($rawDivisions)) {
+                $rawDivisions = [
+                    [
+                        'id' => 'primary',
+                        'number' => '1',
+                        'title' => 'Primary Health',
+                        'badge' => '28 Staff',
+                        'subtitle' => 'Immunization (NIP), Animal Bite, TB DOTS, Disease Surveillance & Emergency Transport',
+                        'accent' => 'emerald',
+                        'units' => [
+                            [
+                                'title' => 'National Immunization (NIP)',
+                                'category' => 'Immunization',
+                                'lead_name' => 'Razelle Bendo, RN',
+                                'lead_role' => 'Nurse II',
+                                'members' => 'Merlita Leyban • Kyle Jaydee Buklatin'
+                            ],
+                            [
+                                'title' => 'Animal Bite Treatment (ABTC)',
+                                'category' => 'Specialized Clinic',
+                                'lead_name' => 'Elaine Mae Bayacal, RN',
+                                'lead_role' => 'Nurse',
+                                'members' => 'Stanley Emelo • Maribel Ramos • Czar Ian Calaycay • Hafisudin Adil • Aiby Villavicencio'
+                            ],
+                            [
+                                'title' => 'TB DOTS Clinic & Program',
+                                'category' => 'Infectious Diseases',
+                                'lead_name' => 'James Lee Ambojia, RN',
+                                'lead_role' => 'Nurse II',
+                                'members' => 'Edna Laureles • Nelson Malate • Neil Bryan Velando • Patricia Reyes'
+                            ],
+                            [
+                                'title' => 'MESU & Disease Surveillance',
+                                'category' => 'Epidemiology',
+                                'lead_name' => 'Roniben Garde, RN, MAN',
+                                'lead_role' => 'Nurse IV',
+                                'members' => 'Elaine Mae Bayacal, RN (Nurse III) • Chaz Angelo Palumpon • Emiliano Asas'
+                            ],
+                            [
+                                'title' => 'Non-Communicable Diseases',
+                                'category' => 'Wellness & Lifestyle',
+                                'lead_name' => 'Annaliza Marquina, RN',
+                                'lead_role' => 'Nurse II',
+                                'members' => 'Jenalyn De Castro, RN • Mon Christian Maneja, RN • Corazon Medina, RN • Narissa Agustin • Cecilia Amagan • Ivan Casapao'
+                            ],
+                            [
+                                'title' => 'Medic Team & Transport',
+                                'category' => 'Emergency Care',
+                                'lead_name' => 'Edgar Bayan',
+                                'lead_role' => 'Driver I',
+                                'members' => 'Roniben Garde, RN, MAN • Mon Christian Maneja, RN • Redentor Mojica • Renato Loyola'
+                            ]
+                        ]
+                    ],
+                    [
+                        'id' => 'maternal',
+                        'number' => '2',
+                        'title' => 'Maternal & Child Health',
+                        'badge' => '24 Staff',
+                        'subtitle' => 'Family Planning, Child Nutrition, BEmONC Birthing & 19 Licensed Barangay Midwives',
+                        'accent' => 'teal',
+                        'units' => [
+                            [
+                                'title' => 'Family Planning & Clinical Care',
+                                'category' => 'Maternal Care',
+                                'lead_name' => 'Tristan Voltaire Eguia, RN',
+                                'lead_role' => 'Nurse II',
+                                'members' => 'Razelle Bendo, RN (Maternal Health) • Maribel Ramos • Vanessa Erika Amon'
+                            ],
+                            [
+                                'title' => 'Child & Adolescent Health',
+                                'category' => 'Child Nutrition',
+                                'lead_name' => 'Charlene Paggao, RN',
+                                'lead_role' => 'Nutrition II',
+                                'members' => 'Cyrus James Navarro, RN (Nurse I) • Jenalyn De Castro, RN (Adolescent Health)'
+                            ]
+                        ]
+                    ],
+                    [
+                        'id' => 'ancillary',
+                        'number' => '3',
+                        'title' => 'Ancillary & Allied Health',
+                        'badge' => '20 Staff',
+                        'subtitle' => 'Dental Care, Pharmacy Supplies, Medical Laboratory, X-Ray & Public Sanitation',
+                        'accent' => 'cyan',
+                        'units' => [
+                            [
+                                'title' => 'Dental Clinic',
+                                'category' => 'Oral Health',
+                                'lead_name' => 'Sylvia Buen, DMD',
+                                'lead_role' => 'Dentist III',
+                                'members' => 'Marilou Galang'
+                            ],
+                            [
+                                'title' => 'Pharmacy & Supplies',
+                                'category' => 'Pharmacy',
+                                'lead_name' => 'Hannah Mae Josue, RPh',
+                                'lead_role' => 'Pharmacist III',
+                                'members' => 'Mary Jane Anarna • Elmer Belardo • Noelyn Belen • Mark Anthony Sebastian'
+                            ],
+                            [
+                                'title' => 'Laboratory & X-Ray',
+                                'category' => 'Diagnostics',
+                                'lead_name' => 'Evalyn Martin, RMT',
+                                'lead_role' => 'MedTech III',
+                                'members' => 'Benessie Madlangsakay, RMT (MedTech II) • Bettina Ramos, RMT • Diana Aquino, RMT • Celergene Pellerin, RRT (RadTech II)'
+                            ],
+                            [
+                                'title' => 'Sanitation & Environment',
+                                'category' => 'Public Health',
+                                'lead_name' => 'Aileen Del Barrio',
+                                'lead_role' => 'Inspector III',
+                                'members' => 'Maria Florinda Gonzalez, RN (Inspector I) • Rhonna Rhezza Jose, RN, MAN'
+                            ]
+                        ]
+                    ],
+                    [
+                        'id' => 'admin',
+                        'number' => '4',
+                        'title' => 'Administrative Staff',
+                        'badge' => '3 Staff',
+                        'subtitle' => 'Institutional Governance, Records Management, Procurement & Public Assistance',
+                        'accent' => 'amber',
+                        'units' => []
+                    ]
+                ];
+            }
+
+            $rawMidwives = null;
+            if(isset($settings['organization']['org_midwives'])) {
+                $rawMidwives = json_decode($settings['organization']['org_midwives']->value, true);
+            }
+            if(empty($rawMidwives) || !is_array($rawMidwives)) {
+                $rawMidwives = [
+                    ['name' => 'Maria Mendoza, RM', 'rank' => 'Midwife III'],
+                    ['name' => 'Zosima Aquino, RM', 'rank' => 'Midwife III'],
+                    ['name' => 'Nena Cotoner, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Engracia Dominguez, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Felilia Marino, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Evangeline Pulido, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Emma Yaya, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Charlene Gallardo, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Lara Vanessa Beaton, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Erlinda Videña, RM', 'rank' => 'Midwife II'],
+                    ['name' => 'Anabelle Revilla, RM', 'rank' => 'Midwife I'],
+                    ['name' => 'Anna Lissa Belardo, RM', 'rank' => 'Midwife I'],
+                    ['name' => 'Silvestina Loyola, RM', 'rank' => 'Midwife I'],
+                    ['name' => 'Ma. Dolores Lumagda, RM', 'rank' => 'Midwife I'],
+                    ['name' => 'Merwinda Ignas, RM', 'rank' => 'Midwife'],
+                    ['name' => 'Charo Halili, RM', 'rank' => 'Midwife'],
+                    ['name' => 'Andrea Lei Javier, RM', 'rank' => 'Midwife'],
+                    ['name' => 'Vanessa Erika Amon, RM', 'rank' => 'Midwife'],
+                    ['name' => 'Marisa Seran', 'rank' => 'Staff']
+                ];
+            }
+
+            $rawAdmins = null;
+            if(isset($settings['organization']['org_admins'])) {
+                $rawAdmins = json_decode($settings['organization']['org_admins']->value, true);
+            }
+            if(empty($rawAdmins) || !is_array($rawAdmins)) {
+                $rawAdmins = [
+                    ['name' => 'Mark Anthony Sebastian', 'role' => 'Administrative Officer', 'initials' => 'MS'],
+                    ['name' => 'Jacqueline Hapin', 'role' => 'Administrative Support', 'initials' => 'JH'],
+                    ['name' => 'Apple Toledo', 'role' => 'Public Assistance & Records', 'initials' => 'AT']
+                ];
+            }
+
+            // Normalize members in rawDivisions to array of strings
+            foreach ($rawDivisions as &$divItem) {
+                if (isset($divItem['units']) && is_array($divItem['units'])) {
+                    foreach ($divItem['units'] as &$unitItem) {
+                        if (isset($unitItem['members'])) {
+                            if (is_string($unitItem['members'])) {
+                                $unitItem['members'] = array_values(array_filter(array_map('trim', explode('•', $unitItem['members'])), fn($m) => $m !== ''));
+                            } elseif (is_array($unitItem['members'])) {
+                                $unitItem['members'] = array_values(array_filter(array_map('trim', $unitItem['members']), fn($m) => $m !== ''));
+                            } else {
+                                $unitItem['members'] = [];
+                            }
+                        } else {
+                            $unitItem['members'] = [];
+                        }
+                    }
+                }
+            }
+            unset($divItem, $unitItem);
+        @endphp
+
+        <div x-show="activeTab === 'organization'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6"
+             x-data="{
+                 activeView: 'editor',
+                 activeDivisionTab: 'primary',
+                 previewExpandedDivision: null,
+                 previewSearch: '',
+                 orgKicker: {{ json_encode($orgKicker) }},
+                 orgTitle: {{ json_encode($orgTitle) }},
+                 orgSubtitle: {{ json_encode($orgSubtitle) }},
+                 mhoBadge: {{ json_encode($mhoBadge) }},
+                 mhoSubbadge: {{ json_encode($mhoSubbadge) }},
+                 mhoName: {{ json_encode($mhoName) }},
+                 mhoTitle: {{ json_encode($mhoTitle) }},
+                 mhoOversightTitle: {{ json_encode($mhoOversightTitle) }},
+                 mhoOversightDesc: {{ json_encode($mhoOversightDesc) }},
+                 mhoImgUrl: {{ json_encode($currentMhoImageUrl) }},
+                 mhoImgPreview: null,
+                 removeMhoImg: false,
+                 systemStaff: {{ json_encode($systemStaff ?? []) }},
+                 doctorStaffSelect: '',
+                 adminStaffSelect: '',
+                 medOfficers: {{ json_encode($rawMedOfficers) }},
+                 divisions: {{ json_encode($rawDivisions) }},
+                 midwives: {{ json_encode($rawMidwives) }},
+                 admins: {{ json_encode($rawAdmins) }},
+
+                 moveItemUp(list, index) {
+                     if (index > 0 && index < list.length) {
+                         const item = list.splice(index, 1)[0];
+                         list.splice(index - 1, 0, item);
+                     }
+                 },
+                 moveItemDown(list, index) {
+                     if (index >= 0 && index < list.length - 1) {
+                         const item = list.splice(index, 1)[0];
+                         list.splice(index + 1, 0, item);
+                     }
+                 },
+                 getInitialsFromName(name) {
+                     if (!name) return 'ST';
+                     const words = name.trim().split(/\s+/);
+                     let ini = '';
+                     for (const w of words) {
+                         const clean = w.replace(/[^a-zA-Z]/g, '');
+                         if (clean && !['MD', 'DR', 'RN', 'DMD', 'RMT', 'RPH', 'RTRP'].includes(clean.toUpperCase())) {
+                             ini += clean[0].toUpperCase();
+                         }
+                     }
+                     return ini.slice(0, 2) || 'ST';
+                 },
+                 addMedicalOfficerFromStaff(staffId) {
+                     if (!staffId) return;
+                     const staff = this.systemStaff.find(s => s.id == staffId);
+                     if (!staff) return;
+                     const roleTitle = staff.role === 'pedia_doctor' ? 'Pediatric Specialist' : 'Medical Officer III';
+                     const initials = this.getInitialsFromName(staff.name);
+                     this.medOfficers.push({
+                         name: staff.name,
+                         role: roleTitle,
+                         initials: initials
+                     });
+                     this.doctorStaffSelect = '';
+                 },
+                 addAdminFromStaff(staffId) {
+                     if (!staffId) return;
+                     const staff = this.systemStaff.find(s => s.id == staffId);
+                     if (!staff) return;
+                     let position = 'Administrative Staff';
+                     if (staff.role === 'super_admin' || staff.role === 'admin') position = 'Administrative Officer';
+                     else if (staff.role === 'information_desk') position = 'Public Assistance & Frontline Officer';
+                     else if (staff.role === 'pharmacy') position = 'Pharmacy & Inventory Specialist';
+                     const initials = this.getInitialsFromName(staff.name);
+                     this.admins.push({
+                         name: staff.name,
+                         role: position,
+                         initials: initials
+                     });
+                     this.adminStaffSelect = '';
+                 },
+                 addMedicalOfficer() {
+                     this.medOfficers.push({ name: '', role: 'Medical Officer II', initials: 'MD' });
+                 },
+                 removeMedicalOfficer(index) {
+                     this.medOfficers.splice(index, 1);
+                 },
+                 addMidwife() {
+                     this.midwives.push({ name: '', rank: 'Midwife' });
+                 },
+                 removeMidwife(index) {
+                     this.midwives.splice(index, 1);
+                 },
+                 addAdmin() {
+                     this.admins.push({ name: '', role: 'Administrative Staff', initials: 'AS' });
+                 },
+                 removeAdmin(index) {
+                     this.admins.splice(index, 1);
+                 },
+                 addDivisionUnit(divIdx) {
+                     if (!this.divisions[divIdx].units) {
+                         this.divisions[divIdx].units = [];
+                     }
+                     this.divisions[divIdx].units.push({
+                         title: 'New Clinical Unit',
+                         category: 'Specialized Care',
+                         lead_name: '',
+                         lead_role: '',
+                         members: []
+                     });
+                 },
+                 removeDivisionUnit(divIdx, unitIdx) {
+                     this.divisions[divIdx].units.splice(unitIdx, 1);
+                 },
+                 addUnitMember(divIdx, unitIdx, memberName = '') {
+                     if (!this.divisions[divIdx].units[unitIdx].members) {
+                         this.divisions[divIdx].units[unitIdx].members = [];
+                     }
+                     this.divisions[divIdx].units[unitIdx].members.push(memberName);
+                 },
+                 removeUnitMember(divIdx, unitIdx, memberIdx) {
+                     if (this.divisions[divIdx].units[unitIdx].members) {
+                         this.divisions[divIdx].units[unitIdx].members.splice(memberIdx, 1);
+                     }
+                 },
+                 getUnitMembersCount(unit) {
+                     if (!unit || !unit.members) return 0;
+                     if (Array.isArray(unit.members)) return unit.members.length;
+                     if (typeof unit.members === 'string' && unit.members.trim().length > 0) {
+                         return unit.members.split(/[•\n]/).filter(m => m.trim().length > 0).length;
+                     }
+                     return 0;
+                 },
+                 getUnitTotalStaffCount(unit) {
+                     if (!unit) return 0;
+                     let count = 0;
+                     if (unit.lead_name && typeof unit.lead_name === 'string' && unit.lead_name.trim().length > 0) {
+                         count++;
+                     }
+                     count += this.getUnitMembersCount(unit);
+                     return count;
+                 },
+                 getDivisionStaffCount(div) {
+                     if (!div) return 0;
+                     let count = 0;
+                     if (div.units && Array.isArray(div.units)) {
+                         for (const u of div.units) {
+                             count += this.getUnitTotalStaffCount(u);
+                         }
+                     }
+                     if (div.id === 'maternal' && this.midwives && Array.isArray(this.midwives)) {
+                         count += this.midwives.filter(m => m.name && m.name.trim().length > 0).length;
+                     }
+                     if (div.id === 'admin' && this.admins && Array.isArray(this.admins)) {
+                         count += this.admins.filter(a => a.name && a.name.trim().length > 0).length;
+                     }
+                     return count;
+                 },
+                 previewMhoImage(event) {
+                     const file = event.target.files[0];
+                     if (file) {
+                         this.removeMhoImg = false;
+                         const reader = new FileReader();
+                         reader.onload = (e) => { this.mhoImgPreview = e.target.result; };
+                         reader.readAsDataURL(file);
+                     }
+                 },
+                 clearMhoImage() {
+                     this.mhoImgPreview = null;
+                     this.mhoImgUrl = null;
+                     this.removeMhoImg = true;
+                     const input = document.getElementById('mho_image_file_input');
+                     if (input) input.value = '';
+                 },
+                 getMhoInitials() {
+                     if (!this.mhoName) return 'JP';
+                     const words = this.mhoName.trim().split(/\s+/);
+                     let ini = '';
+                     for (const w of words) {
+                         const clean = w.replace(/[^a-zA-Z]/g, '');
+                         if (clean && !['MD', 'DR', 'RN', 'DMD', 'RMT', 'RPH'].includes(clean.toUpperCase())) {
+                             ini += clean[0].toUpperCase();
+                         }
+                     }
+                     return ini.slice(0, 2) || 'JP';
+                 },
+                 togglePreviewDivision(divId) {
+                     this.previewExpandedDivision = this.previewExpandedDivision === divId ? null : divId;
+                 },
+                 matchesPreviewSearch(text) {
+                     if (!this.previewSearch || this.previewSearch.trim().length < 2) return true;
+                     return text.toLowerCase().includes(this.previewSearch.toLowerCase().trim());
+                 }
+             }">
+
+            {{-- Top Mode Switcher: Form Editor vs Live Preview --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl self-start sm:self-auto">
+                    <button type="button" @click="activeView = 'editor'" 
+                            :class="activeView === 'editor' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-400 font-medium'"
+                            class="px-4 py-2 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <span>Content Editor</span>
+                    </button>
+                    <button type="button" @click="activeView = 'preview'" 
+                            :class="activeView === 'preview' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-400 font-medium'"
+                            class="px-4 py-2 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span>Live Org Chart Preview</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">All updates reflect immediately on the public <a href="{{ route('about') }}#org-chart" target="_blank" class="text-emerald-600 font-bold hover:underline">/about#org-chart</a> section.</span>
+                </div>
+            </div>
+
+            {{-- ─────────────────────────────────────────────────────────
+                 VIEW 1: FORM EDITOR
+            ───────────────────────────────────────────────────────── --}}
+            <div x-show="activeView === 'editor'" class="space-y-6">
+
+                {{-- Hidden input for removing MHO image --}}
+                <input type="hidden" name="remove_mho_image" :value="removeMhoImg ? '1' : '0'">
+
+                {{-- Section 1: Section Header & Civic Narrative --}}
+                <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-5">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Section Presentation & Narrative</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Top-level section kicker, title, and descriptive mission narrative.</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
+                            Header
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                Section Kicker / Badge Text
+                            </label>
+                            <input type="text" name="settings[org_kicker]" x-model="orgKicker" placeholder="e.g. Leadership & Governance"
+                                   class="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                Section Main Headline <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="settings[org_title]" x-model="orgTitle" required placeholder="e.g. Organizational Structure & Leadership"
+                                   class="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                Section Subtitle & Clinical Overview
+                            </label>
+                            <textarea name="settings[org_subtitle]" x-model="orgSubtitle" rows="2" placeholder="Describe the dedicated administrators, medical officers, nurses and staff..."
+                                      class="w-full p-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Section 2: Executive Head (Municipal Health Officer) --}}
+                <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs">
+                                MHO
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Executive Head (Municipal Health Officer)</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Top agency leader details, executive oversight mandate, and official portrait.</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
+                            Executive Spotlight
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        
+                        {{-- Photo / Portrait Upload --}}
+                        <div class="lg:col-span-4 flex flex-col items-center p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70 text-center">
+                            <div class="relative group mb-3">
+                                <template x-if="mhoImgPreview">
+                                    <img :src="mhoImgPreview" alt="MHO Preview" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-md ring-4 ring-emerald-500/20 border border-emerald-200 dark:border-emerald-800">
+                                </template>
+                                <template x-if="!mhoImgPreview && mhoImgUrl">
+                                    <img :src="mhoImgUrl" alt="MHO" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-md ring-4 ring-emerald-500/20 border border-emerald-200 dark:border-emerald-800">
+                                </template>
+                                <template x-if="!mhoImgPreview && !mhoImgUrl">
+                                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center font-display text-2xl sm:text-3xl font-extrabold shadow-md ring-4 ring-emerald-500/10"
+                                         x-text="getMhoInitials()">
+                                    </div>
+                                </template>
+
+                                <button type="button" x-show="mhoImgPreview || mhoImgUrl" @click="clearMhoImage()" 
+                                        class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-500 text-white hover:bg-rose-600 flex items-center justify-center text-xs shadow-md cursor-pointer transition-transform hover:scale-110"
+                                        title="Remove portrait">
+                                    ✕
+                                </button>
+                            </div>
+
+                            <label for="mho_image_file_input" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:border-emerald-500 shadow-2xs transition-colors">
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>Upload Portrait</span>
+                            </label>
+                            <input id="mho_image_file_input" type="file" name="mho_image_file" accept="image/*" @change="previewMhoImage($event)" class="hidden">
+                            <p class="text-[10px] text-slate-400 mt-2">Recommended: 1:1 square photo, JPG/PNG/WebP, max 10MB. Fallbacks to initials.</p>
+                        </div>
+
+                        {{-- Details Form Fields --}}
+                        <div class="lg:col-span-8 space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                        Executive Head Full Name <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="settings[mho_name]" x-model="mhoName" required placeholder="e.g. Jericho Joshua E. Palay, MD"
+                                           class="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                        Executive Designation / Role <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="settings[mho_title]" x-model="mhoTitle" required placeholder="e.g. Municipal Health Officer"
+                                           class="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                        Primary Badge Label
+                                    </label>
+                                    <input type="text" name="settings[mho_badge]" x-model="mhoBadge" placeholder="e.g. Executive Head"
+                                           class="w-full h-10 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                        Secondary Sub-Badge Label
+                                    </label>
+                                    <input type="text" name="settings[mho_subbadge]" x-model="mhoSubbadge" placeholder="e.g. Head of Agency"
+                                           class="w-full h-10 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                        Oversight Title
+                                    </label>
+                                    <input type="text" name="settings[mho_oversight_title]" x-model="mhoOversightTitle" placeholder="e.g. Executive Oversight:"
+                                           class="w-full h-10 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                        Executive Oversight Narrative
+                                    </label>
+                                    <input type="text" name="settings[mho_oversight_desc]" x-model="mhoOversightDesc" placeholder="e.g. Clinical governance, health policy, and public healthcare across all 64 barangays."
+                                           class="w-full h-10 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- Section 3: Medical Officers & Clinical Specialists (Direct Reports) --}}
+                <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Medical Officers & Clinical Specialists (Direct Reports)</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Management table for practicing clinical physicians reporting directly to the Municipal Health Officer.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200/80 dark:border-teal-800/60"
+                                  x-text="medOfficers.length + ' Physicians'">
+                            </span>
+                            {{-- Dropdown to import from registered staff --}}
+                            <div class="relative">
+                                <select x-model="doctorStaffSelect" @change="addMedicalOfficerFromStaff($event.target.value)"
+                                        class="h-9 pl-3 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer">
+                                    <option value="">+ Import from Staff Roster...</option>
+                                    <template x-for="st in systemStaff.filter(s => ['regular_doctor', 'pedia_doctor'].includes(s.role))" :key="st.id">
+                                        <option :value="st.id" x-text="st.name + ' (' + (st.role === 'pedia_doctor' ? 'Pediatric' : 'Doctor') + ')'"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <button type="button" @click="addMedicalOfficer()" 
+                                    class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                <span>Add Doctor</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Tabular Roster Table for Physicians --}}
+                    <div class="border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-x-auto shadow-2xs">
+                        <table class="w-full min-w-[540px] text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200/90 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">
+                                    <th class="p-3.5 w-20 text-center">Order</th>
+                                    <th class="p-3.5 w-20 text-center">Initials</th>
+                                    <th class="p-3.5">Physician Full Name & Credentials</th>
+                                    <th class="p-3.5">Clinical Rank / Role</th>
+                                    <th class="p-3.5 w-20 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                <template x-for="(doc, dIdx) in medOfficers" :key="dIdx">
+                                    <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td class="p-3.5 text-center">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <span class="font-mono font-bold text-slate-400 w-5 text-center" x-text="dIdx + 1"></span>
+                                                <div class="flex flex-col gap-0.5">
+                                                    <button type="button" @click="moveItemUp(medOfficers, dIdx)" :disabled="dIdx === 0"
+                                                            class="p-0.5 rounded text-slate-400 hover:text-teal-600 disabled:opacity-20 disabled:hover:text-slate-400 cursor-pointer"
+                                                            title="Move Up">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
+                                                    </button>
+                                                    <button type="button" @click="moveItemDown(medOfficers, dIdx)" :disabled="dIdx === medOfficers.length - 1"
+                                                            class="p-0.5 rounded text-slate-400 hover:text-teal-600 disabled:opacity-20 disabled:hover:text-slate-400 cursor-pointer"
+                                                            title="Move Down">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-3.5 text-center">
+                                            <div class="w-9 h-9 mx-auto rounded-xl bg-teal-100 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 font-bold text-xs flex items-center justify-center border border-teal-200/60 dark:border-teal-800/60 shadow-2xs">
+                                                <input type="text" :name="'org_medical_officers[' + dIdx + '][initials]'" x-model="doc.initials" maxlength="2"
+                                                       class="w-full text-center bg-transparent border-0 font-bold text-xs uppercase p-0 focus:ring-0 text-teal-800 dark:text-teal-200">
+                                            </div>
+                                        </td>
+                                        <td class="p-3.5">
+                                            <input type="text" :name="'org_medical_officers[' + dIdx + '][name]'" x-model="doc.name" placeholder="e.g. Angel Casapao, MD" required
+                                                   class="w-full h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                                        </td>
+                                        <td class="p-3.5">
+                                            <input type="text" :name="'org_medical_officers[' + dIdx + '][role]'" x-model="doc.role" placeholder="e.g. Medical Officer III" required
+                                                   class="w-full h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                                        </td>
+                                        <td class="p-3.5 text-right">
+                                            <button type="button" @click="removeMedicalOfficer(dIdx)" 
+                                                    class="w-8 h-8 ml-auto rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center text-xs transition cursor-pointer"
+                                                    title="Remove Doctor">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="medOfficers.length === 0">
+                                    <td colspan="5" class="p-8 text-center text-slate-400">
+                                        <p class="font-semibold text-xs">No practicing physicians configured yet.</p>
+                                        <p class="text-[11px] mt-1">Click "Add Doctor" or select from the staff roster dropdown above.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Section 4: Operational Divisions & Clinical Programs --}}
+                <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-500/20">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Operational Divisions & Departmental Rosters</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Configure division descriptions, clinical units, staff rosters, midwives, and administrative teams.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Horizontal Division Tab Bar --}}
+                    <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-x-auto">
+                        <button type="button" @click="activeDivisionTab = 'primary'"
+                                :class="activeDivisionTab === 'primary' ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 font-semibold'"
+                                class="px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>1. Primary Health</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono"
+                                  x-text="getDivisionStaffCount(divisions.find(d => d.id === 'primary')) + ' staff'"></span>
+                        </button>
+                        <button type="button" @click="activeDivisionTab = 'maternal'"
+                                :class="activeDivisionTab === 'maternal' ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 font-semibold'"
+                                class="px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                            <span>2. Maternal & Child Health</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono"
+                                  x-text="getDivisionStaffCount(divisions.find(d => d.id === 'maternal')) + ' staff'"></span>
+                        </button>
+                        <button type="button" @click="activeDivisionTab = 'ancillary'"
+                                :class="activeDivisionTab === 'ancillary' ? 'bg-white dark:bg-slate-700 text-cyan-700 dark:text-cyan-300 shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 font-semibold'"
+                                class="px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                            <span>3. Ancillary & Allied Health</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono"
+                                  x-text="getDivisionStaffCount(divisions.find(d => d.id === 'ancillary')) + ' staff'"></span>
+                        </button>
+                        <button type="button" @click="activeDivisionTab = 'admin'"
+                                :class="activeDivisionTab === 'admin' ? 'bg-white dark:bg-slate-700 text-amber-700 dark:text-amber-300 shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 font-semibold'"
+                                class="px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span>4. Administrative Staff</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono"
+                                  x-text="getDivisionStaffCount(divisions.find(d => d.id === 'admin')) + ' staff'"></span>
+                        </button>
+                    </div>
+
+                    {{-- Loop through the 4 divisions --}}
+                    <template x-for="(div, dIdx) in divisions" :key="div.id">
+                        <div x-show="activeDivisionTab === div.id" class="space-y-6">
+                            
+                            {{-- Hidden Metadata inputs --}}
+                            <input type="hidden" :name="'org_divisions[' + dIdx + '][id]'" :value="div.id">
+                            <input type="hidden" :name="'org_divisions[' + dIdx + '][number]'" :value="div.number">
+                            <input type="hidden" :name="'org_divisions[' + dIdx + '][accent]'" :value="div.accent">
+
+                            {{-- Division Overview Card --}}
+                            <div class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70 space-y-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-700/70">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-8 h-8 rounded-xl bg-slate-200/80 dark:bg-slate-700/80 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center border border-slate-300/60 dark:border-slate-600/60 shadow-2xs shrink-0"
+                                              x-text="'Div ' + (div.number || (dIdx + 1))"></span>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                                                Division Information & Scope
+                                            </h4>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Top-level division branding and operational scope displayed on department cards.</p>
+                                        </div>
+                                    </div>
+
+                                    {{-- Auto-calculated Staff Count Badge in Card Header --}}
+                                    <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs">
+                                            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="getDivisionStaffCount(div) + ' Total Personnel'"></span>
+                                            <span class="text-[9px] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded-md">Auto-Counted</span>
+                                        </div>
+                                        <input type="hidden" :name="'org_divisions[' + dIdx + '][badge]'" :value="getDivisionStaffCount(div) + ' Staff'">
+                                    </div>
+                                </div>
+
+                                {{-- Spacious Responsive Grid (4-col / 8-col split on desktop, full-width on mobile) --}}
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-4">
+                                    <div class="md:col-span-4 min-w-0">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 sm:mb-2">
+                                            Division Display Title <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="text" :name="'org_divisions[' + dIdx + '][title]'" x-model="div.title" required
+                                               placeholder="e.g. Primary Health"
+                                               class="w-full min-w-0 h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                    </div>
+                                    <div class="md:col-span-8 min-w-0">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 sm:mb-2">
+                                            Division Scope Summary <span class="text-slate-400 text-[10px] font-normal lowercase">(displayed on cards)</span>
+                                        </label>
+                                        <input type="text" :name="'org_divisions[' + dIdx + '][subtitle]'" x-model="div.subtitle" placeholder="e.g. Immunization (NIP), Animal Bite, TB DOTS, Disease Surveillance & Emergency Transport"
+                                               class="w-full min-w-0 h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div x-show="div.id !== 'admin'" class="space-y-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                                            <span>Clinical Units & Programs</span>
+                                            <span class="text-slate-400 text-[11px] font-normal" x-text="'(' + (div.units ? div.units.length : 0) + ' configured)'"></span>
+                                        </h4>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Specialized clinics, diagnostic sections, and health programs operating within this division.</p>
+                                    </div>
+                                    <button type="button" @click="addDivisionUnit(dIdx)" 
+                                            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 self-start sm:self-auto shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        <span>Add Clinical Unit</span>
+                                    </button>
+                                </div>
+
+                                {{-- Modular Clinical Unit Cards (Fully responsive, fluid on all screens) --}}
+                                <div class="space-y-4">
+                                    <template x-for="(unit, uIdx) in (div.units || [])" :key="uIdx">
+                                        <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all overflow-hidden">
+                                            
+                                            {{-- Unit Header Bar --}}
+                                            <div class="p-3.5 sm:p-5 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 space-y-3">
+                                                
+                                                {{-- Top Meta Row: Order badge, Staff Count, and Delete Unit button --}}
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <div class="flex items-center gap-2 flex-wrap min-w-0">
+                                                        {{-- Order Control --}}
+                                                        <div class="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs shrink-0">
+                                                            <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 w-5 text-center" x-text="'#' + (uIdx + 1)"></span>
+                                                            <div class="flex flex-col">
+                                                                <button type="button" @click="moveItemUp(div.units, uIdx)" :disabled="uIdx === 0"
+                                                                        class="p-0.5 rounded text-slate-400 hover:text-emerald-600 disabled:opacity-20 cursor-pointer" title="Move Up">
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+                                                                </button>
+                                                                <button type="button" @click="moveItemDown(div.units, uIdx)" :disabled="uIdx === div.units.length - 1"
+                                                                        class="p-0.5 rounded text-slate-400 hover:text-emerald-600 disabled:opacity-20 cursor-pointer" title="Move Down">
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Staff Count Badge --}}
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/70 text-[11px] font-bold shadow-2xs shrink-0 whitespace-nowrap">
+                                                            <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                            <span x-text="getUnitTotalStaffCount(unit) + ' Staff'"></span>
+                                                        </span>
+                                                    </div>
+
+                                                    {{-- Delete Unit Button --}}
+                                                    <button type="button" @click="removeDivisionUnit(dIdx, uIdx)" 
+                                                            class="px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-slate-200/80 dark:border-slate-700/80 transition flex items-center gap-1 text-xs font-semibold cursor-pointer shadow-2xs shrink-0"
+                                                            title="Remove Unit">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        <span class="text-[11px]">Remove</span>
+                                                    </button>
+                                                </div>
+
+                                                {{-- Inputs Row: Program Title and Category Tag (Fluid grid, full width on mobile) --}}
+                                                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                                                    <div class="sm:col-span-8 min-w-0">
+                                                        <input type="text" 
+                                                               :name="'org_divisions[' + dIdx + '][units][' + uIdx + '][title]'" 
+                                                               x-model="unit.title" 
+                                                               placeholder="Clinical Program / Unit Title (e.g. National Immunization)" 
+                                                               required
+                                                               class="w-full min-w-0 h-9 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:font-normal focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                                    </div>
+
+                                                    <div class="sm:col-span-4 min-w-0">
+                                                        <div class="relative">
+                                                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-bold uppercase tracking-wider pointer-events-none">Tag:</span>
+                                                            <input type="text" 
+                                                                   :name="'org_divisions[' + dIdx + '][units][' + uIdx + '][category]'" 
+                                                                   x-model="unit.category" 
+                                                                   placeholder="e.g. Immunization"
+                                                                   class="w-full min-w-0 h-9 pl-11 pr-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- Unit Body: 2-Column Responsive Layout (Lead Clinician & Assigned Members) --}}
+                                            <div class="p-3.5 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
+                                                
+                                                {{-- Left Column: Lead Clinician & Rank (5 Cols on large, full-width on mobile/tablet) --}}
+                                                <div class="lg:col-span-5 bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-3.5 sm:p-4 border border-slate-200/70 dark:border-slate-700/70 flex flex-col justify-between space-y-3.5 min-w-0">
+                                                    <div class="space-y-3">
+                                                        <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
+                                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                                <span>Lead Clinician / Unit Head</span>
+                                                            </span>
+                                                            <span class="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/70 px-2 py-0.5 rounded-md">Head</span>
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                                                                Full Name & Credentials
+                                                            </label>
+                                                            <input type="text" 
+                                                                   :name="'org_divisions[' + dIdx + '][units][' + uIdx + '][lead_name]'" 
+                                                                   x-model="unit.lead_name" 
+                                                                   placeholder="e.g. Razelle Bendo, RN"
+                                                                   class="w-full min-w-0 h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                                                                Position / Official Rank
+                                                            </label>
+                                                            <input type="text" 
+                                                                   :name="'org_divisions[' + dIdx + '][units][' + uIdx + '][lead_role]'" 
+                                                                   x-model="unit.lead_role" 
+                                                                   placeholder="e.g. Nurse II / Section Head"
+                                                                   class="w-full min-w-0 h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-emerald-700 dark:text-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
+                                                        </div>
+                                                    </div>
+
+                                                    <p class="text-[11px] text-slate-400 dark:text-slate-500 italic pt-1">
+                                                        Appears as the lead supervisor and clinic head in the public directory.
+                                                    </p>
+                                                </div>
+
+                                                {{-- Right Column: Assigned Team Members (7 Cols on large, full-width on mobile/tablet) --}}
+                                                <div class="lg:col-span-7 bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-3.5 sm:p-4 border border-slate-200/70 dark:border-slate-700/70 space-y-3 min-w-0">
+                                                    <div class="flex flex-wrap items-center justify-between gap-2.5 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
+                                                        <div class="flex items-center gap-2 min-w-0 shrink-0">
+                                                            <svg class="w-3.5 h-3.5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Assigned Team Members</span>
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/80 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 whitespace-nowrap shrink-0"
+                                                                  x-text="getUnitMembersCount(unit) + ' ' + (getUnitMembersCount(unit) === 1 ? 'Member' : 'Members')"></span>
+                                                        </div>
+
+                                                        {{-- Actions: Quick Add and Pick from System Staff --}}
+                                                        <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                                                            <button type="button" 
+                                                                    @click="addUnitMember(dIdx, uIdx)"
+                                                                    class="flex-1 sm:flex-none justify-center px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-slate-300 dark:border-slate-700 hover:border-emerald-400 transition flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 whitespace-nowrap">
+                                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                                                <span>Add Member</span>
+                                                            </button>
+
+                                                            <div class="relative flex-1 sm:w-44 min-w-0" x-data="{ staffPicker: '' }">
+                                                                <select x-model="staffPicker" 
+                                                                        @change="if ($event.target.value) { addUnitMember(dIdx, uIdx, $event.target.value); staffPicker = ''; }"
+                                                                        class="w-full h-8 pl-2 pr-7 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 focus:ring-1 focus:ring-emerald-500 cursor-pointer shadow-2xs truncate">
+                                                                    <option value="">+ Pick Staff...</option>
+                                                                    <template x-for="st in systemStaff" :key="st.id">
+                                                                        <option :value="st.name" x-text="st.name"></option>
+                                                                    </template>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Member List Items (Spacious, clean rows) --}}
+                                                    <div class="space-y-2">
+                                                        <template x-for="(mName, mIdx) in (unit.members || [])" :key="mIdx">
+                                                            <div class="flex items-center gap-2 p-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs group hover:border-emerald-500/50 transition-all">
+                                                                <span class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0" x-text="mIdx + 1"></span>
+                                                                <input type="text"
+                                                                       :name="'org_divisions[' + dIdx + '][units][' + uIdx + '][members][' + mIdx + ']'"
+                                                                       x-model="unit.members[mIdx]"
+                                                                       placeholder="Staff name / credentials..."
+                                                                       required
+                                                                       class="flex-1 min-w-0 h-8 px-2 text-xs rounded-lg bg-transparent border-0 text-slate-900 dark:text-white focus:ring-1 focus:ring-emerald-500 font-semibold placeholder:font-normal">
+                                                                <button type="button" 
+                                                                        @click="removeUnitMember(dIdx, uIdx, mIdx)"
+                                                                        class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition cursor-pointer shrink-0"
+                                                                        title="Remove Member">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                </button>
+                                                            </div>
+                                                        </template>
+
+                                                        {{-- Empty state when no members --}}
+                                                        <div x-show="!unit.members || unit.members.length === 0" 
+                                                             class="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/40 text-center">
+                                                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">No additional team members assigned yet.</p>
+                                                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Click "Add Member" or pick from the staff roster to assign personnel to this unit.</p>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </template>
+
+                                    {{-- Empty state if division has no units --}}
+                                    <div x-show="!div.units || div.units.length === 0" 
+                                         class="p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-center bg-slate-50/50 dark:bg-slate-800/30">
+                                        <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No clinical units configured in this division</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">Add health programs, specialized clinics, or testing sections to this operational division.</p>
+                                        <button type="button" @click="addDivisionUnit(dIdx)" 
+                                                class="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                            <span>Add First Clinical Unit</span>
+                                        </button>
+                                    </div>
+
+                                    {{-- Bottom "+ Add Another Unit" friendly card button --}}
+                                    <div x-show="div.units && div.units.length > 0" class="pt-1">
+                                        <button type="button" @click="addDivisionUnit(dIdx)" 
+                                                class="w-full py-3.5 rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-500 dark:border-slate-700 dark:hover:border-emerald-500 text-slate-600 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer bg-white/40 dark:bg-slate-900/40 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20">
+                                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                            <span>Add Another Clinical Unit or Program</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Frontline Barangay Midwives Section (Inside Maternal & Child Health) --}}
+                            <div x-show="div.id === 'maternal'" class="p-5 sm:p-6 rounded-3xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70 space-y-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-700/70">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider flex items-center gap-2">
+                                            <span>Frontline Barangay Midwives Roster</span>
+                                            <span class="text-slate-400 text-[10px] lowercase">(bemonc birthing center)</span>
+                                        </h4>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Management table for licensed barangay midwives deployed across municipal health stations.</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300"
+                                              x-text="midwives.length + ' Midwives'"></span>
+                                        <button type="button" @click="addMidwife()" 
+                                                class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs active:scale-95">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                            <span>Add Midwife</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Tabular Midwives Roster --}}
+                                <div class="border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-x-auto shadow-2xs">
+                                    <table class="w-full min-w-[500px] text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200/90 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">
+                                                <th class="p-3.5 w-20 text-center">Order</th>
+                                                <th class="p-3.5">Midwife Full Name & Credentials</th>
+                                                <th class="p-3.5 w-48">Designation / Rank</th>
+                                                <th class="p-3.5 w-20 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                            <template x-for="(mw, mwIdx) in midwives" :key="mwIdx">
+                                                <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                                                    <td class="p-3.5 text-center">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            <span class="font-mono font-bold text-slate-400 w-5 text-center" x-text="mwIdx + 1"></span>
+                                                            <div class="flex flex-col gap-0.5">
+                                                                <button type="button" @click="moveItemUp(midwives, mwIdx)" :disabled="mwIdx === 0"
+                                                                        class="p-0.5 rounded text-slate-400 hover:text-teal-600 disabled:opacity-20 cursor-pointer" title="Move Up">
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
+                                                                </button>
+                                                                <button type="button" @click="moveItemDown(midwives, mwIdx)" :disabled="mwIdx === midwives.length - 1"
+                                                                        class="p-0.5 rounded text-slate-400 hover:text-teal-600 disabled:opacity-20 cursor-pointer" title="Move Down">
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-3.5">
+                                                        <input type="text" :name="'org_midwives[' + mwIdx + '][name]'" x-model="mw.name" placeholder="e.g. Maria Mendoza, RM" required
+                                                               class="w-full h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                                                    </td>
+                                                    <td class="p-3.5">
+                                                        <input type="text" :name="'org_midwives[' + mwIdx + '][rank]'" x-model="mw.rank" placeholder="e.g. Midwife III"
+                                                               class="w-full h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-teal-700 dark:text-teal-300 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                                                    </td>
+                                                    <td class="p-3.5 text-right">
+                                                        <button type="button" @click="removeMidwife(mwIdx)" 
+                                                                class="w-8 h-8 ml-auto rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center text-xs transition cursor-pointer"
+                                                                title="Remove Midwife">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="midwives.length === 0">
+                                                <td colspan="4" class="p-6 text-center text-slate-400">
+                                                    <p class="font-semibold text-xs">No barangay midwives listed.</p>
+                                                    <p class="text-[11px] mt-1">Click "+ Add Midwife" above to add personnel.</p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Administrative Personnel Section (Inside Administrative Division) --}}
+                            <div x-show="div.id === 'admin'" class="p-5 sm:p-6 rounded-3xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70 space-y-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-700/70">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">
+                                            Administrative Staff Personnel Roster
+                                        </h4>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Management table for officers and support staff managing governance, records, and procurement.</p>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"
+                                              x-text="admins.length + ' Personnel'"></span>
+                                        {{-- Dropdown to import from registered staff --}}
+                                        <div class="relative">
+                                            <select x-model="adminStaffSelect" @change="addAdminFromStaff($event.target.value)"
+                                                    class="h-9 pl-3 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer">
+                                                <option value="">+ Import from Staff Roster...</option>
+                                                <template x-for="st in systemStaff.filter(s => ['super_admin', 'admin', 'information_desk', 'pharmacy'].includes(s.role))" :key="st.id">
+                                                    <option :value="st.id" x-text="st.name + ' (' + (st.role === 'information_desk' ? 'Front Desk' : (st.role === 'pharmacy' ? 'Pharmacy' : 'Admin')) + ')'"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <button type="button" @click="addAdmin()" 
+                                                class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs active:scale-95">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                            <span>Add Personnel</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Tabular Admin Roster --}}
+                                <div class="border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-x-auto shadow-2xs">
+                                    <table class="w-full min-w-[500px] text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200/90 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">
+                                                <th class="p-3.5 w-20 text-center">Order</th>
+                                                <th class="p-3.5 w-20 text-center">Initials</th>
+                                                <th class="p-3.5">Staff Full Name</th>
+                                                <th class="p-3.5">Position / Designation</th>
+                                                <th class="p-3.5 w-20 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                            <template x-for="(adm, aIdx) in admins" :key="aIdx">
+                                                <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                                                    <td class="p-3.5 text-center">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            <span class="font-mono font-bold text-slate-400 w-5 text-center" x-text="aIdx + 1"></span>
+                                                            <div class="flex flex-col gap-0.5">
+                                                                <button type="button" @click="moveItemUp(admins, aIdx)" :disabled="aIdx === 0"
+                                                                        class="p-0.5 rounded text-slate-400 hover:text-amber-600 disabled:opacity-20 cursor-pointer" title="Move Up">
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
+                                                                </button>
+                                                                <button type="button" @click="moveItemDown(admins, aIdx)" :disabled="aIdx === admins.length - 1"
+                                                                        class="p-0.5 rounded text-slate-400 hover:text-amber-600 disabled:opacity-20 cursor-pointer" title="Move Down">
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-3.5 text-center">
+                                                        <div class="w-9 h-9 mx-auto rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold text-xs flex items-center justify-center border border-amber-200/60 dark:border-amber-800/60 shadow-2xs">
+                                                            <input type="text" :name="'org_admins[' + aIdx + '][initials]'" x-model="adm.initials" maxlength="2"
+                                                                   class="w-full text-center bg-transparent border-0 font-bold text-xs uppercase p-0 focus:ring-0 text-amber-800 dark:text-amber-200">
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-3.5">
+                                                        <input type="text" :name="'org_admins[' + aIdx + '][name]'" x-model="adm.name" placeholder="e.g. Mark Anthony Sebastian" required
+                                                               class="w-full h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500">
+                                                    </td>
+                                                    <td class="p-3.5">
+                                                        <input type="text" :name="'org_admins[' + aIdx + '][role]'" x-model="adm.role" placeholder="e.g. Administrative Officer" required
+                                                               class="w-full h-9 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500">
+                                                    </td>
+                                                    <td class="p-3.5 text-right">
+                                                        <button type="button" @click="removeAdmin(aIdx)" 
+                                                                class="w-8 h-8 ml-auto rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center text-xs transition cursor-pointer"
+                                                                title="Remove Personnel">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="admins.length === 0">
+                                                <td colspan="5" class="p-6 text-center text-slate-400">
+                                                    <p class="font-semibold text-xs">No administrative personnel listed.</p>
+                                                    <p class="text-[11px] mt-1">Click "+ Add Personnel" or import from the staff roster above.</p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            {{-- ─────────────────────────────────────────────────────────
+                 VIEW 2: LIVE ORG CHART PREVIEW
+            ───────────────────────────────────────────────────────── --}}
+            <div x-show="activeView === 'preview'" class="space-y-8 p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800">
+                <div class="text-center max-w-3xl mx-auto mb-8">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-widest rounded-md border border-emerald-300/50 dark:border-emerald-700/50 mb-3"
+                          x-text="orgKicker"></span>
+                    <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+                        x-text="orgTitle"></h2>
+                    <p class="text-slate-600 dark:text-slate-400 mt-2 text-xs sm:text-sm leading-relaxed"
+                       x-text="orgSubtitle"></p>
+                </div>
+
+                {{-- Executive Spotlight Preview --}}
+                <div class="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 pb-6 border-b border-slate-200/80 dark:border-slate-800">
+                        <div class="flex items-center gap-4 sm:gap-5">
+                            <template x-if="mhoImgPreview">
+                                <img :src="mhoImgPreview" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-md ring-4 ring-emerald-500/10">
+                            </template>
+                            <template x-if="!mhoImgPreview && mhoImgUrl">
+                                <img :src="mhoImgUrl" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-md ring-4 ring-emerald-500/10">
+                            </template>
+                            <template x-if="!mhoImgPreview && !mhoImgUrl">
+                                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center font-display text-xl sm:text-2xl font-extrabold shadow-md shrink-0"
+                                     x-text="getMhoInitials()"></div>
+                            </template>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wider"
+                                          x-text="mhoBadge"></span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400" x-text="mhoSubbadge"></span>
+                                </div>
+                                <h3 class="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white"
+                                    x-text="mhoName"></h3>
+                                <p class="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 mt-0.5"
+                                   x-text="mhoTitle"></p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 border border-slate-200/80 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 max-w-xs">
+                            <span class="font-bold text-slate-900 dark:text-white block" x-text="mhoOversightTitle"></span>
+                            <span x-text="mhoOversightDesc"></span>
+                        </div>
+                    </div>
+
+                    {{-- Doctors Grid Preview --}}
+                    <div class="pt-5">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                Medical Officers & Clinical Specialists (Direct Reports)
+                            </span>
+                            <span class="text-[11px] text-slate-400 font-medium" x-text="medOfficers.length + ' Physicians'"></span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <template x-for="(doc, dIdx) in medOfficers" :key="dIdx">
+                                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0"
+                                         x-text="doc.initials || 'DR'"></div>
+                                    <div class="min-w-0 flex-1">
+                                        <h4 class="font-bold text-xs text-slate-900 dark:text-white truncate" x-text="doc.name"></h4>
+                                        <p class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mt-0.5 truncate" x-text="doc.role"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4 Division Selection Cards Preview --}}
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-display font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+                            Operational Divisions & Departmental Units
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <template x-for="(div, dIdx) in divisions" :key="div.id">
+                            <div class="p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between gap-2 mb-3">
+                                        <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs flex items-center justify-center"
+                                             x-text="div.number || (dIdx + 1)"></div>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                              x-text="getDivisionStaffCount(div) + ' Staff'"></span>
+                                    </div>
+                                    <h4 class="font-bold text-sm text-slate-900 dark:text-white" x-text="div.title"></h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2" x-text="div.subtitle"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- ─────────────────────────────────────────────────────────────
              TAB 5: PROCESS STEPS
         ───────────────────────────────────────────────────────────── --}}
         <div x-show="activeTab === 'steps'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
@@ -3195,42 +4904,43 @@
 
 
         {{-- Unified Sticky Save Changes Bar --}}
-        <div class="sticky bottom-6 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 px-6 sm:px-8 py-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                <div class="w-7 h-7 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
+        <div class="sticky bottom-2 sm:bottom-6 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 p-3 sm:px-8 sm:py-4 shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+            <div class="flex items-center justify-between sm:justify-start gap-2.5 text-xs text-slate-500 dark:text-slate-400">
                 <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                     <span class="hidden sm:inline font-medium">Review your adjustments across tabs before publishing updates live.</span>
-                    <span x-show="isDirty" x-cloak class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 text-xs font-bold border border-amber-300 dark:border-amber-800 shadow-2xs">
-                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span>Unsaved Changes</span>
-                    </span>
+                    <span class="sm:hidden font-semibold text-slate-700 dark:text-slate-300 text-xs">CMS Actions</span>
                 </div>
+                <span x-show="isDirty" x-cloak class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 text-[11px] sm:text-xs font-bold border border-amber-300 dark:border-amber-800 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>Unsaved Changes</span>
+                </span>
             </div>
 
-            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
                 {{-- Reset / Discard Changes Button --}}
                 <button type="button" 
                         @click="showResetModal = true"
-                        class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+                        class="flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-95 flex items-center gap-1.5 sm:gap-2 cursor-pointer"
                         title="Reset all fields back to saved normal values">
-                    <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>Discard Changes</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Discard</span>
                 </button>
 
                 <button type="button" 
                         @click="validateAndConfirm()"
                         :disabled="isSaving"
                         :class="isSaving ? 'opacity-60 cursor-not-allowed' : ''"
-                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-sm hover:shadow transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60">
+                        class="flex-1 sm:flex-none justify-center px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all active:scale-95 flex items-center gap-1.5 sm:gap-2 cursor-pointer disabled:opacity-60">
                     <template x-if="!isSaving">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                     </template>
                     <template x-if="isSaving">
-                        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg class="animate-spin w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     </template>
-                    <span x-text="isSaving ? 'Saving...' : 'Save All Changes'">Save All Changes</span>
+                    <span x-text="isSaving ? 'Saving...' : 'Save Changes'">Save Changes</span>
                 </button>
             </div>
         </div>

@@ -58,8 +58,14 @@ class PharmacyController extends Controller
         }
 
         // ── Inventory Stats for Banners ──
-        $expiredBatchesCount = MedicineBatch::where('quantity', '>', 0)
-            ->whereDate('expiration_date', '<=', today())->count();
+        $expiredBatchesCount = MedicineBatch::where(function ($q) {
+            $q->where('status', 'expired')
+              ->orWhere(function ($sub) {
+                  $sub->where('status', 'active')
+                      ->where('quantity', '>', 0)
+                      ->whereDate('expiration_date', '<=', today());
+              });
+        })->count();
 
         $expiringSoonCount = MedicineBatch::where('quantity', '>', 0)
             ->whereDate('expiration_date', '>', today())
