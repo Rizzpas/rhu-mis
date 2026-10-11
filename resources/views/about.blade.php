@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+
+
 @section('content')
 <div class="min-h-screen pb-24 bg-transparent">
 
@@ -64,7 +66,7 @@
                         <div>
                             <div class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $m['value'] ?? '' }}</div>
                             <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">{{ $m['title'] ?? '' }}</div>
-                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{{ $m['subtitle'] ?? '' }}</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ $m['subtitle'] ?? '' }}</p>
                         </div>
                     </div>
                 @endforeach
@@ -96,6 +98,8 @@
                     <div class="relative rounded-sm overflow-hidden aspect-[16/11]">
                         <img src="{{ $missionImgUrl }}" 
                              alt="{{ \App\Models\SiteSetting::get('mission_image_caption', 'Silang RHU Healthcare Consultation') }}" 
+                             loading="lazy" decoding="async"
+                             width="600" height="412"
                              class="w-full h-full object-cover">
                     </div>
                 </div>
@@ -143,7 +147,7 @@
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-950 to-slate-900 text-white p-8 sm:p-12 lg:p-16 border border-emerald-800/50 shadow-xl">
             {{-- Background Municipal Watermark --}}
             <div class="absolute -right-12 -bottom-12 w-80 h-80 opacity-5 pointer-events-none">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="" class="w-full h-full object-contain filter invert">
+                <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-contain filter invert">
             </div>
 
             <div class="relative z-10 max-w-3xl">
@@ -297,25 +301,40 @@
 
                 {{-- Right Column: Interactive Google Map Embed --}}
                 <div class="lg:col-span-7">
-                    <div class="relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-700/80 shadow-md bg-slate-100 dark:bg-slate-900 aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto lg:h-[420px]">
-                        {{-- Interactive Google Map Iframe --}}
-                        <iframe 
-                            src="https://maps.google.com/maps?q=14.2398345,120.9783859+(Silang+Rural+Health+Unit)&t=&z=18&ie=UTF8&iwloc=B&output=embed"
-                            class="w-full h-full border-0" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade"
-                            title="Google Map showing Silang Rural Health Unit Location">
-                        </iframe>
+                    <div x-data="{ mapLoaded: false }" 
+                         x-init="if ('IntersectionObserver' in window) {
+                             const observer = new IntersectionObserver((entries) => {
+                                 if (entries[0].isIntersecting) {
+                                     mapLoaded = true;
+                                     observer.disconnect();
+                                 }
+                             }, { rootMargin: '250px' });
+                             observer.observe($el);
+                         } else {
+                             mapLoaded = true;
+                         }"
+                         class="relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-700/80 shadow-md bg-slate-100 dark:bg-slate-900 aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto lg:h-[420px]">
+                        {{-- Interactive Google Map Iframe (deferred until scrolled near) --}}
+                        <template x-if="mapLoaded">
+                            <iframe 
+                                src="https://maps.google.com/maps?q=14.2398345,120.9783859+(Silang+Rural+Health+Unit)&t=&z=18&ie=UTF8&iwloc=B&output=embed"
+                                class="w-full h-full border-0" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade"
+                                title="Google Map showing Silang Rural Health Unit Location">
+                            </iframe>
+                        </template>
 
-                        {{-- Floating Location Pin Pill --}}
-                        <div class="absolute bottom-3 left-3 right-3 sm:right-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-lg flex items-center gap-2.5 pointer-events-none">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-ping"></span>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
-                                <span>Silang Rural Health Unit</span>
-                                <span class="text-slate-400 font-normal ml-1">(6XRH+3F6)</span>
+                        <div x-show="!mapLoaded" class="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/80 text-slate-400 p-6 select-none">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mb-2 shadow-xs">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </div>
+                            <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Silang RHU Location Map</span>
+                            <span class="text-[11px] text-slate-400 mt-0.5">Scroll into view to interact with live map</span>
                         </div>
+
+
                     </div>
                 </div>
 

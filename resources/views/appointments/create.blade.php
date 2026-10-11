@@ -67,10 +67,10 @@
                     @submit="submitForm($event)">
                     @csrf
                     <div x-show="step === 1" x-transition>
-                        <h3 class="font-display text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                        <h2 class="font-display text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                             Step 1: Select Consultation Service
-                        </h3>
+                        </h2>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Pediatrics Tile -->
                             <div @click="setService('pedia')"
@@ -109,16 +109,16 @@
                                 <div class="w-14 h-14 rounded-2xl bg-slate-200 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 flex items-center justify-center text-3xl mb-3">
                                     🏥
                                 </div>
-                                <span class="font-display font-extrabold text-lg text-slate-500 dark:text-slate-400">{{ __('Regular Adult') }}</span>
-                                <span class="text-xs text-slate-400 dark:text-slate-500 text-center mt-1 font-medium">First-time & general consultations for adults, seniors, and PWDs</span>
-                                <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200/80 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 border border-slate-300/50 dark:border-slate-600/50">
+                                <span class="font-display font-extrabold text-lg text-slate-700 dark:text-slate-200">{{ __('Regular Adult') }}</span>
+                                <span class="text-xs text-slate-600 dark:text-slate-300 text-center mt-1 font-medium">First-time & general consultations for adults, seniors, and PWDs</span>
+                                <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600">
                                     No Appointment Needed
                                 </span>
                                 {{-- Explanation --}}
                                 <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 w-full">
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-300 text-center leading-relaxed">
                                         <svg class="w-3.5 h-3.5 inline-block mr-0.5 -mt-0.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
-                                        Regular adult consultations have <strong>no slot limit</strong> — simply visit the RHU during clinic hours. No prior booking required.
+                                        Regular adult consultations have <strong class="text-slate-800 dark:text-slate-100">no slot limit</strong> — simply visit the RHU during clinic hours. No prior booking required.
                                     </p>
                                 </div>
                             </div>
@@ -161,8 +161,8 @@
                     </div>
 
                     <!-- Step 2: Patient Info -->
-                    <div x-show="step === 2" x-transition>
-                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">Step 2: Patient Information</h3>
+                    <div x-show="step === 2" x-transition style="display: none;">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">Step 2: Patient Information</h2>
 
                         {{-- Section 1: Personal Details --}}
                         <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
@@ -734,7 +734,7 @@
                                     } catch(e) { console.error(e); } 
                                     finally { this.loadingBrgy = false; }
                                 }
-                            }" x-init="fetchBarangays()" x-effect="formData.address = fullAddress; formData.barangay = barangay; formData.house_no = house_no; formData.street = street; formData.building = building; formData.city_province = city_province">
+                            }" x-init="$watch('$root.__x?.$data.step || step', s => { if (step === 2 && barangays.length === 0) fetchBarangays(); }); if (step === 2) fetchBarangays();" x-effect="formData.address = fullAddress; formData.barangay = barangay; formData.house_no = house_no; formData.street = street; formData.building = building; formData.city_province = city_province">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Address') }} <span class="text-red-500">*</span></label>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">For patients within Silang, Cavite only.</p>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
@@ -916,8 +916,8 @@
                     </div>
 
 <!-- Step 3: Date & Time Selection -->
-                    <div x-show="step === 3" x-transition x-init="initCalendar(); fetchAvailability();">
-                        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 3: Select Date & Arrival Time</h3>
+                    <div x-show="step === 3" x-transition style="display: none;">
+                        <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 3: Select Date & Arrival Time</h2>
                         
                         <div x-show="isFollowUp && doctorName" x-cloak class="mb-4 bg-teal-50 border border-teal-200 rounded-lg p-4 dark:bg-teal-900/20 dark:border-teal-800">
                             <h4 class="font-bold text-teal-800 dark:text-teal-300 flex items-center">
@@ -1018,9 +1018,9 @@
                     </div>
 
                     <!-- Step 4: OTP Verification -->
-                    <div x-show="step === 4" x-transition>
-                        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 4: Email Verification
-                        </h3>
+                    <div x-show="step === 4" x-transition style="display: none;">
+                        <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 4: Email Verification
+                        </h2>
                         <div class="text-center">
                             <div class="mb-4">
                                 <span class="text-5xl">📧</span>
@@ -1045,8 +1045,8 @@
                     </div>
 
                     <!-- Step 5: Confirm -->
-                    <div x-show="step === 5" x-transition>
-                        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 5: Review & Confirm</h3>
+                    <div x-show="step === 5" x-transition style="display: none;">
+                        <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 5: Review & Confirm</h2>
 
                         <dl
                             class="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 text-sm">
@@ -1616,6 +1616,10 @@
                     if (canProceed) {
                         this.step++;
                         if (this.step > this.maxStepReached) this.maxStepReached = this.step;
+                        if (this.step === 3) {
+                            this.initCalendar();
+                            this.fetchAvailability();
+                        }
                         this.updateProgress();
                     }
                 },
@@ -1631,6 +1635,10 @@
                     // Allow going back to any previous step, or forward if reached before
                     if (targetStep < this.step || targetStep <= this.maxStepReached) {
                         this.step = targetStep;
+                        if (this.step === 3) {
+                            this.initCalendar();
+                            this.fetchAvailability();
+                        }
                         this.updateProgress();
                     }
                 },

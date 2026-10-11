@@ -271,4 +271,114 @@ class ArchiveAndDiagnosticResultsTest extends TestCase
         $responseAll = $this->actingAs($this->admin)->post(route('admin.archive.truncate-all-year'));
         $responseAll->assertStatus(403);
     }
+
+    public function test_admin_can_view_patient_record_with_ancillary_results_including_double_encoded_json()
+    {
+        $patient = Patient::where('patient_id', 'RHU-2026-00040')->first() ?? $this->patient;
+
+        // Ensure an ancillary request exists on this patient with string/double-encoded JSON
+        $consultation = $patient->consultations()->first() ?? $this->consultation;
+        $ancillary = AncillaryRequest::create([
+            'consultation_id' => $consultation->id,
+            'type' => 'Laboratory',
+            'test_name' => 'Complete Blood Count (CBC)',
+            'status' => 'Done',
+            'result_data' => ['result' => 'Normal', 'notes' => 'Within normal limits'],
+            'completed_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.patients.show', $patient->patient_id));
+
+        $response->assertStatus(200);
+        $response->assertSee($patient->patient_id);
+        $response->assertSee('Complete Blood Count (CBC)');
+    }
+
+    public function test_ancillary_request_model_normalizes_double_encoded_json_and_plain_strings()
+    {
+        $request = new AncillaryRequest();
+
+        // 1. Array
+        $request->result_data = ['wbc' => '6.5', 'hgb' => '140'];
+        $this->assertIsArray($request->result_data);
+        $this->assertEquals('6.5', $request->result_data['wbc']);
+
+        // 2. Double-encoded JSON string
+        $rawDoubleEncoded = json_encode(json_encode(['result' => 'Normal', 'notes' => 'All clear']));
+        $this->assertEquals(['result' => 'Normal', 'notes' => 'All clear'], $request->normalizeJsonData($rawDoubleEncoded));
+
+        // 3. Plain string
+        $this->assertEquals(['result' => 'Clear'], $request->normalizeJsonData('Clear'));
+    }
+
+    public function test_admin_patient_show_renders_styled_authorized_phi_override_modal_with_custom_dropdown()
+    {
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.patients.show', $this->patient->patient_id));
+
+        $response->assertStatus(200);
+
+        // Verify styled modal elements
+        $response->assertSee('Authorized PHI Access Request', false);
+        $response->assertSee('DPA RA 10173 Protocol', false);
+        $response->assertSee('Permanent Audit Trail Logging', false);
+        $response->assertSee('Acknowledge &amp; Access PHI', false);
+
+        // Verify custom x-select container and rich options
+        $response->assertSee('custom-dropdown-container', false);
+        $response->assertSee('name="override_reason"', false);
+        $response->assertSee('Regulatory Compliance Audit', false);
+        $response->assertSee('DOH Audit', false);
+        $response->assertSee('Authorized Law Enforcement Inquiry', false);
+        $response->assertSee('Legal Order', false);
+        $response->assertSee('Technical Database Troubleshooting', false);
+        $response->assertSee('Medical Director Direct Written Authorization', false);
+        $response->assertSee('Director Auth', false);
+    }
+
+    public function test_medical_case_model_normalizes_double_encoded_json_and_string_vitals()
+    {
+        $case = new \App\Models\MedicalCase();
+
+        // 1. Array
+        $case->vitals_snapshot = ['bp' => '120/80', 'temp' => '36.5'];
+        $this->assertIsArray($case->vitals_snapshot);
+        $this->assertEquals('120/80', $case->vitals_snapshot['bp']);
+
+        // 2. Double-encoded JSON string
+        $rawDoubleEncoded = json_encode(json_encode(['blood_pressure' => '130/85', 'temperature' => 37.2]));
+        $this->assertEquals(['blood_pressure' => '130/85', 'temperature' => 37.2], $case->normalizeVitals($rawDoubleEncoded));
+
+        // 3. Null returns empty array
+        $this->assertEquals([], $case->normalizeVitals(null));
+    }
+
+    public function test_admin_patient_show_unmasked_renders_vitals_snapshot_cleanly_without_error()
+    {
+        $this->medicalCase->update([
+            'vitals_snapshot' => json_encode([
+                'blood_pressure' => '140/90',
+                'temperature' => '36.8',
+                'weight' => '65',
+                'height' => '165',
+                'heart_rate' => '78',
+                'respiratory_rate' => '18',
+                'pulse_rate' => '78',
+                'spo2' => '99',
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.patients.show', [
+            'patient' => $this->patient->patient_id,
+            'unmask' => '1',
+            'override_reason' => 'Technical Database Troubleshooting / System QA Audit',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Vitals Snapshot at Time of Case');
+        $response->assertSee('140/90');
+        $response->assertSee('36.8');
+    }
 }
+

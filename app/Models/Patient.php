@@ -16,7 +16,7 @@ class Patient extends Model
         'patient_id', 'first_name', 'middle_name', 'last_name', 'suffix', 'sex', 'dob', 'civil_status',
         'blood_type', 'known_allergies', 'address', 'house_no', 'street', 'building', 'barangay', 'city_province',
         'philhealth_number', 'education', 'religion', 'occupation', 'mothers_maiden_name',
-        'classification', 'email', 'contact_number',
+        'classification', 'is_pwd', 'email', 'contact_number',
         'guardian_name', 'guardian_first_name', 'guardian_middle_name', 'guardian_last_name', 'guardian_suffix',
         'guardian_relation', 'guardian_contact', 'guardian_philhealth',
         'expires_at', 'next_followup_date', 'previous_doctor_id',
@@ -30,6 +30,7 @@ class Patient extends Model
 
     protected $casts = [
         'dob' => 'date',
+        'is_pwd' => 'boolean',
         'expires_at' => 'datetime',
         'philhealth_number' => 'encrypted',
         'guardian_philhealth' => 'encrypted',
@@ -63,20 +64,24 @@ class Patient extends Model
             // Automatically push expiration 10 years from now whenever touched/saved
             $patient->expires_at = now()->addYears(10);
 
+            // If classification is PWD, flag is_pwd
+            if ($patient->classification === 'PWD') {
+                $patient->is_pwd = true;
+            }
+
             // ── Auto-correct classification based on DOB ──────────────
-            // PWD is not age-based, so skip auto-correction for that classification
-            if ($patient->dob && $patient->classification !== 'PWD') {
+            if ($patient->dob) {
                 $age = \Carbon\Carbon::parse($patient->dob)->age;
 
-                if ($age <= self::MAX_PEDIATRIC_AGE && $patient->classification !== 'Pediatric') {
+                if ($age <= self::MAX_PEDIATRIC_AGE) {
                     $patient->classification = 'Pediatric';
-                } elseif ($age > self::MAX_PEDIATRIC_AGE && $age < 60 && $patient->classification === 'Pediatric') {
-                    $patient->classification = 'Regular Adult';
-                } elseif ($age >= 60 && $patient->classification !== 'Senior Citizen') {
+                } elseif ($age >= 60) {
                     $patient->classification = 'Senior Citizen';
-                } elseif ($age > self::MAX_PEDIATRIC_AGE && $age < 60 && $patient->classification === 'Senior Citizen') {
+                } else {
                     $patient->classification = 'Regular Adult';
                 }
+            } elseif ($patient->classification === 'PWD') {
+                $patient->classification = 'Regular Adult';
             }
 
             // ── Auto-populate / normalize barangay from address if missing ───

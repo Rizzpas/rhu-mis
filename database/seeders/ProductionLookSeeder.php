@@ -815,7 +815,7 @@ class ProductionLookSeeder extends Seeder
                     'pre_triage_id'   => $preTriage->id,
                     'diagnosis'       => $diagnosis,
                     'prescription'    => $consultation->medical_notes,
-                    'vitals_snapshot'  => json_encode([
+                    'vitals_snapshot'  => [
                         'blood_pressure' => "{$bp_sys}/{$bp_dia}",
                         'temperature'    => $temp,
                         'weight'         => $weight,
@@ -824,7 +824,7 @@ class ProductionLookSeeder extends Seeder
                         'respiratory_rate' => $rr,
                         'pulse_rate'     => $pr,
                         'spo2'           => $spo2,
-                    ]),
+                    ],
                     'closed_at'       => $consultEndTime,
                     'created_at'      => $consultEndTime,
                     'updated_at'      => $consultEndTime,
@@ -860,7 +860,7 @@ class ProductionLookSeeder extends Seeder
                     'processing_started_at'  => $processingAt,
                     'completed_by'           => $completedAt ? $labStaff : null,
                     'completed_at'           => $completedAt,
-                    'result_data'            => $completedAt ? json_encode(['result' => 'Normal', 'notes' => 'Within normal limits']) : null,
+                    'result_data'            => $completedAt ? ['result' => 'Normal', 'notes' => 'Within normal limits'] : null,
                     'cancelled_by'           => $arStatus === 'Cancelled' ? $doctorId : null,
                     'cancelled_at'           => $arStatus === 'Cancelled' ? $consultStartTime->addMinutes(rand(5, 30)) : null,
                     'cancellation_reason'    => $arStatus === 'Cancelled' ? 'No longer clinically indicated' : null,

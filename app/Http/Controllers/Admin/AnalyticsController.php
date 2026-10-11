@@ -26,27 +26,34 @@ class AnalyticsController extends Controller
             'today' => now()->startOfDay(),
             'weekly' => now()->startOfWeek(),
             'monthly' => now()->startOfMonth(),
+            'yearly' => now()->startOfYear(),
             default => Carbon::create(2000, 1, 1),
         };
+        $previousStartDate = match ($timeFilter) {
+            'today' => now()->subDay()->startOfDay(),
+            'weekly' => now()->subWeek()->startOfWeek(),
+            'monthly' => now()->subMonth()->startOfMonth(),
+            'yearly' => now()->subYear()->startOfYear(),
+            default => Carbon::create(2000, 1, 1),
+        };
+        $previousEndDate = match ($timeFilter) {
+            'today' => now()->subDay()->endOfDay(),
+            'weekly' => now()->subWeek()->endOfWeek(),
+            'monthly' => now()->subMonth()->endOfMonth(),
+            'yearly' => now()->subYear()->endOfYear(),
+            default => Carbon::create(2000, 1, 1),
+        };
+
+        $census = $this->analyticsService->getPatientCensus($startDate, $previousStartDate, $previousEndDate);
+        $classificationSummary = $this->analyticsService->getClassificationBreakdown($startDate);
+        $topDiagnoses = $this->analyticsService->getTopDiagnoses($startDate, 10);
 
         $visitVolumeData = $this->analyticsService->getVisitVolumeData($timeFilter);
         $peakHoursData = $this->analyticsService->getPeakHoursData($startDate);
 
-        $topDiagnoses = Consultation::whereNotNull('diagnosis')
-            ->where('diagnosis', '!=', '')
-            ->where('created_at', '>=', $startDate)
-            ->select(DB::raw('diagnosis, COUNT(id) as count'))
-            ->groupBy('diagnosis')
-            ->orderByDesc('count')
-            ->limit(5)
-            ->get();
-
-        $classificationData = Consultation::join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
-            ->where('consultations.created_at', '>=', $startDate)
-            ->whereNotNull('patients.classification')
-            ->select(DB::raw('patients.classification, COUNT(DISTINCT consultations.patient_id) as count'))
-            ->groupBy('patients.classification')
-            ->pluck('count', 'classification');
+        $classificationData = collect($classificationSummary['categories'])
+            ->mapWithKeys(fn ($v, $k) => [$k => $v['served_count']])
+            ->all();
 
         $severityData = Consultation::select(DB::raw('severity, COUNT(id) as count'))
             ->whereNotNull('severity')
@@ -119,6 +126,8 @@ class AnalyticsController extends Controller
 
         return view('admin.analytics.index', compact(
             'timeFilter',
+            'census',
+            'classificationSummary',
             'visitVolumeData',
             'peakHoursData',
             'topDiagnoses',
@@ -364,24 +373,15 @@ class AnalyticsController extends Controller
             default => 'All Historical Records',
         };
 
+        $census = $this->analyticsService->getPatientCensus($startDate);
+        $classificationSummary = $this->analyticsService->getClassificationBreakdown($startDate);
+
         $visitVolumeData = $this->analyticsService->getVisitVolumeData($timeFilter);
         $peakHoursData = $this->analyticsService->getPeakHoursData($startDate);
+        $topDiagnoses = $this->analyticsService->getTopDiagnoses($startDate, 10);
 
-        $topDiagnoses = Consultation::whereNotNull('diagnosis')
-            ->where('diagnosis', '!=', '')
-            ->where('created_at', '>=', $startDate)
-            ->select(DB::raw('diagnosis, COUNT(id) as count'))
-            ->groupBy('diagnosis')
-            ->orderByDesc('count')
-            ->limit(10)
-            ->get();
-
-        $classificationData = Patient::join('consultations', 'patients.patient_id', '=', 'consultations.patient_id')
-            ->where('consultations.created_at', '>=', $startDate)
-            ->whereNotNull('patients.classification')
-            ->select('patients.classification', DB::raw('COUNT(consultations.id) as count'))
-            ->groupBy('patients.classification')
-            ->pluck('count', 'classification');
+        $classificationData = collect($classificationSummary['categories'])
+            ->mapWithKeys(fn ($v, $k) => [$k => $v['served_count']]);
 
         $severityData = Consultation::select(DB::raw('severity, COUNT(id) as count'))
             ->whereNotNull('severity')
@@ -458,6 +458,8 @@ class AnalyticsController extends Controller
 
         return response()->stream(function () use (
             $humanTimeframe,
+            $census,
+            $classificationSummary,
             $totalConsultations,
             $visitVolumeData,
             $peakHoursData,
@@ -478,10 +480,20 @@ class AnalyticsController extends Controller
             fputcsv($handle, ['Reporting Timeframe', $humanTimeframe]);
             fputcsv($handle, ['Generated At', now()->format('Y-m-d H:i:s')]);
             fputcsv($handle, ['Generated By', auth()->user() ? auth()->user()->name : 'System Administrator']);
+            fputcsv($handle, []);
+
+            // PATIENT POPULATION & CENSUS OVERVIEW
+            fputcsv($handle, ['=== PATIENT CENSUS & POPULATION OVERVIEW ===']);
+            fputcsv($handle, ['Total Registered Patients (All-Time)', $census['total_registered']]);
+            fputcsv($handle, ['New Patient Registrations (Selected Period)', $census['new_registered']]);
+            fputcsv($handle, ['Unique Patients Served (Selected Period)', $census['unique_served']]);
             fputcsv($handle, ['Total Consultations Recorded', $totalConsultations]);
+            fputcsv($handle, ['Registered Male Patients', $census['male_registered']]);
+            fputcsv($handle, ['Registered Female Patients', $census['female_registered']]);
+            fputcsv($handle, ['PhilHealth Insured Patients', $census['philhealth_registered']]);
             fputcsv($handle, ['Average Consultation Duration', ($staffProductivity['avgDuration'] ?? 0).' minutes']);
             fputcsv($handle, ['Average Queue Wait Time', ($staffProductivity['avgWaitTime'] ?? 0).' minutes']);
-            fputcsv($handle, ['Throughput (Patients / Hour)', ($staffProductivity['patientsPerHour'] ?? 0).' pts/hr']);
+            fputcsv($handle, ['Clinical Throughput', ($staffProductivity['patientsPerHour'] ?? 0).' pts/hr']);
             fputcsv($handle, []);
 
             // SECTION 1: VISIT VOLUME
@@ -537,19 +549,38 @@ class AnalyticsController extends Controller
             fputcsv($handle, ['Total Ranked Cases', $diagSum, '100%']);
             fputcsv($handle, []);
 
-            // SECTION 4: PATIENT CLASSIFICATION
-            fputcsv($handle, ['=== 4. PATIENT SOCIOECONOMIC CLASSIFICATION ===']);
-            fputcsv($handle, ['Classification Group', 'Patient Count', 'Distribution Share']);
-            $classSum = $classificationData->sum();
-            if ($classificationData->isEmpty()) {
-                fputcsv($handle, ['No classification data recorded', 0, '0%']);
-            } else {
-                foreach ($classificationData as $grp => $c) {
-                    $pct = $classSum > 0 ? round(($c / $classSum) * 100, 1).'%' : '0%';
-                    fputcsv($handle, [ucwords($grp), $c, $pct]);
-                }
+            // SECTION 4: PATIENT CLASSIFICATION BREAKDOWN
+            fputcsv($handle, ['=== 4. PATIENT CLASSIFICATION & VULNERABILITY BREAKDOWN ===']);
+            fputcsv($handle, ['Classification Group', 'Registered Count (All-Time)', 'Registered Share %', 'Period Patients Served', 'Period Served Share %']);
+            foreach ($classificationSummary['categories'] as $grp => $stats) {
+                $grpLabel = match ($grp) {
+                    'pediatric' => 'Pediatric (0-12 yrs)',
+                    'regular_adult' => 'Regular Adult (13-59 yrs)',
+                    'senior_citizen' => 'Senior Citizen (60+ yrs)',
+                    default => $stats['label'] ?? ucwords(str_replace('_', ' ', $grp)),
+                };
+                fputcsv($handle, [
+                    $grpLabel,
+                    $stats['registered_count'],
+                    $stats['registered_percentage'].'%',
+                    $stats['served_count'],
+                    $stats['served_percentage'].'%',
+                ]);
             }
-            fputcsv($handle, ['Total Patients Classified', $classSum, '100%']);
+            fputcsv($handle, [
+                'Total Demographic Census',
+                $classificationSummary['total_registered'],
+                '100%',
+                $classificationSummary['unique_served_total'],
+                '100%',
+            ]);
+            fputcsv($handle, [
+                'PWD (Persons with Disability)',
+                $classificationSummary['pwd']['registered_count'],
+                $classificationSummary['pwd']['registered_percentage'].'%',
+                $classificationSummary['pwd']['served_count'],
+                $classificationSummary['pwd']['served_percentage'].'%',
+            ]);
             fputcsv($handle, []);
 
             // SECTION 5: TRIAGE SEVERITY
@@ -674,14 +705,14 @@ class AnalyticsController extends Controller
         }
 
         if ($chart === 'classification') {
-            $data = Consultation::join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
-                ->where('consultations.created_at', '>=', $startDate)
-                ->whereNotNull('patients.classification')
-                ->select(DB::raw('patients.classification, COUNT(DISTINCT consultations.patient_id) as count'))
-                ->groupBy('patients.classification')
-                ->pluck('count', 'classification');
-
-            return response()->json(['labels' => array_keys($data->toArray()), 'data' => array_values($data->toArray())]);
+            $breakdown = $this->analyticsService->getClassificationBreakdown($startDate);
+            return response()->json([
+                'labels' => $breakdown['donut_chart']['labels'],
+                'data' => $breakdown['donut_chart']['data'],
+                'total' => $breakdown['donut_chart']['total'],
+                'categories' => $breakdown['categories'],
+                'pwd' => $breakdown['pwd'],
+            ]);
         }
 
         if ($chart === 'severity') {
@@ -695,7 +726,13 @@ class AnalyticsController extends Controller
                 return ucfirst($l);
             }, array_keys($data->toArray()));
 
-            return response()->json(['labels' => $labels, 'data' => array_values($data->toArray())]);
+            $total = array_sum(array_values($data->toArray()));
+
+            return response()->json([
+                'labels' => $labels,
+                'data' => array_values($data->toArray()),
+                'total' => $total,
+            ]);
         }
 
         if ($chart === 'barangay') {
@@ -780,6 +817,7 @@ class AnalyticsController extends Controller
             'today' => now()->startOfDay(),
             'weekly' => now()->startOfWeek(),
             'monthly' => now()->startOfMonth(),
+            'yearly' => now()->startOfYear(),
             default => Carbon::create(2000, 1, 1),
         };
 

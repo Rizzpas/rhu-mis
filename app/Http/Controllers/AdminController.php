@@ -33,206 +33,77 @@ class AdminController extends Controller
      */
     public function index(Request $request)
     {
-        $announcements = Announcement::latest()->take(5)->get();
-        $recentLogs = AuditLog::with('user')->latest()->take(10)->get();
+        $filterData = $this->resolveTimeFilter($request);
+        $timeFilter = $filterData['timeFilter'];
+        $startDate = $filterData['startDate'];
+        $endDate = $filterData['endDate'];
+        $previousStartDate = $filterData['previousStartDate'];
+        $previousEndDate = $filterData['previousEndDate'];
+        $dateRangeLabel = $filterData['dateRangeLabel'];
 
-        $timeFilter = $request->get('time_filter', 'monthly');
+        // 1. Patient Census & Demographics
+        $census = $this->analyticsService->getPatientCensus($startDate, $previousStartDate, $previousEndDate);
 
-        $startDate = match ($timeFilter) {
-            'today' => now()->startOfDay(),
-            'weekly' => now()->startOfWeek(),
-            'monthly' => now()->startOfMonth(),
-            'yearly' => now()->startOfYear(),
-            default => Carbon::create(2000, 1, 1),
-        };
-        $previousStartDate = match ($timeFilter) {
-            'today' => now()->subDay()->startOfDay(),
-            'weekly' => now()->subWeek()->startOfWeek(),
-            'monthly' => now()->subMonth()->startOfMonth(),
-            'yearly' => now()->subYear()->startOfYear(),
-            default => Carbon::create(2000, 1, 1),
-        };
-        $previousEndDate = match ($timeFilter) {
-            'today' => now()->subDay()->endOfDay(),
-            'weekly' => now()->subWeek()->endOfWeek(),
-            'monthly' => now()->subMonth()->endOfMonth(),
-            'yearly' => now()->subYear()->endOfYear(),
-            default => Carbon::create(2000, 1, 1),
-        };
+        // 2. Classification Breakdown (All-Time Registered & Period Served)
+        $classification = $this->analyticsService->getClassificationBreakdown($startDate);
 
-        $totalDoctors = User::whereIn('role', ['regular_doctor', 'pedia_doctor'])->count();
-        $presentDoctors = User::whereIn('role', ['regular_doctor', 'pedia_doctor'])->present()->count();
-        $presentNurses = User::whereIn('role', ['nurse', 'clinical_nurse', 'vitals_nurse'])->present()->count();
-        $todayAppointments = Appointment::whereDate('preferred_date', today())->count();
+        // 3. Operational Action Items
+        $inventoryAlerts = $this->analyticsService->getInventoryAlerts();
+        $followupStats = $this->analyticsService->getFollowupStats();
+        $pendingAnnouncements = Announcement::where('status', 'pending')->count();
         $pendingDeletionCount = Patient::whereNotNull('expires_at')->where('expires_at', '<=', now())->count();
 
-        $currentPeriodConsultations = Consultation::where('created_at', '>=', $startDate)->count();
-        $previousPeriodConsultations = Consultation::whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
+        // 4. System Module Summaries
+        $staffSummary = $this->analyticsService->getStaffSummary();
+        $announcementsSummary = $this->analyticsService->getAnnouncementsSummary();
+        $archiveCategories = app(\App\Http\Controllers\ArchiveController::class)->getCategories();
+        $securityStats = $this->analyticsService->getSecurityAuditStats($startDate);
 
-        $trendPercentage = 0;
-        if ($previousPeriodConsultations > 0) {
-            $trendPercentage = round((($currentPeriodConsultations - $previousPeriodConsultations) / $previousPeriodConsultations) * 100, 1);
-        } elseif ($currentPeriodConsultations > 0) {
-            $trendPercentage = 100;
-        }
+        // 5. Activity Feeds
+        $recentLogs = AuditLog::with('user')->latest()->take(6)->get();
+        $announcements = Announcement::latest()->take(5)->get();
+        $todayAppointments = Appointment::whereDate('preferred_date', today())->count();
 
-        $visitVolumeData = $this->analyticsService->getVisitVolumeData($timeFilter);
-        $peakHoursData = $this->analyticsService->getPeakHoursData($startDate);
-
-        $topDiagnoses = Consultation::whereNotNull('diagnosis')
-            ->where('diagnosis', '!=', '')
+        // 6. Operational Traffic Snapshot (Daily Volume, Peak Hours, Queue Wait Time)
+        $visitVolumeData = $this->analyticsService->getVisitVolumeData($timeFilter, $startDate, $endDate);
+        $peakHoursData = $this->analyticsService->getPeakHoursData($startDate, $endDate);
+        $avgWaitTime = round(Consultation::whereNotNull('consultation_start_time')
             ->where('created_at', '>=', $startDate)
-            ->select(DB::raw('diagnosis, COUNT(id) as count'))
-            ->groupBy('diagnosis')
-            ->orderByDesc('count')
-            ->limit(5)
-            ->get();
-
-        $classificationData = Consultation::join('patients', 'consultations.patient_id', '=', 'patients.patient_id')
-            ->where('consultations.created_at', '>=', $startDate)
-            ->whereNotNull('patients.classification')
-            ->select(DB::raw('patients.classification, COUNT(DISTINCT consultations.patient_id) as count'))
-            ->groupBy('patients.classification')
-            ->pluck('count', 'classification');
-
-        $severityData = Consultation::select(DB::raw('severity, COUNT(id) as count'))
-            ->whereNotNull('severity')
-            ->where('created_at', '>=', $startDate)
-            ->groupBy('severity')
-            ->pluck('count', 'severity');
-
-        $avgWaitTimeRaw = Consultation::whereNotNull('consultation_start_time')
-            ->where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
             ->select(DB::raw('AVG(TIMESTAMPDIFF(MINUTE, created_at, consultation_start_time)) as avg_wait_time'))
-            ->value('avg_wait_time');
-
-        $avgWaitTime = $avgWaitTimeRaw ? round($avgWaitTimeRaw) : 0;
-        $barangayData = $this->analyticsService->getBarangayData($startDate);
-
-        $demographics = DB::select("
-            SELECT 
-                p.sex,
-                CASE
-                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 0 AND 12 THEN '0-12 (Pediatric)'
-                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 13 AND 17 THEN '13-17 (Teen)'
-                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 18 AND 39 THEN '18-39 (Adult)'
-                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) BETWEEN 40 AND 59 THEN '40-59 (Middle Age)'
-                    WHEN TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) >= 60 THEN '60+ (Senior)'
-                    ELSE 'Unknown'
-                END as age_group,
-                COUNT(DISTINCT c.patient_id) as count
-            FROM consultations c
-            JOIN patients p ON c.patient_id = p.patient_id
-            WHERE c.created_at >= ?
-            AND p.sex IS NOT NULL
-            AND p.dob IS NOT NULL
-            GROUP BY p.sex, age_group
-        ", [$startDate]);
-
-        $demoData = [
-            'labels' => ['0-12 (Pediatric)', '13-17 (Teen)', '18-39 (Adult)', '40-59 (Middle Age)', '60+ (Senior)'],
-            'Male' => [0, 0, 0, 0, 0],
-            'Female' => [0, 0, 0, 0, 0],
-        ];
-
-        foreach ($demographics as $d) {
-            $idx = array_search($d->age_group, $demoData['labels']);
-            if ($idx !== false && isset($demoData[$d->sex])) {
-                $demoData[$d->sex][$idx] = $d->count;
-            }
-        }
-
-        $workloadData = Consultation::select(DB::raw('
-                COALESCE(doctor_id, nurse_id) as staff_id, 
-                COUNT(id) as count
-            '))
-            ->where('created_at', '>=', $startDate)
-            ->where(function ($q) {
-                $q->whereNotNull('doctor_id')->orWhereNotNull('nurse_id');
-            })
-            ->groupBy('staff_id')
-            ->get();
-
-        $staffIds = $workloadData->pluck('staff_id')->filter();
-        $staffNames = User::whereIn('id', $staffIds)->get()->pluck('formatted_name', 'id');
-
-        $workloadFormatted = [];
-        foreach ($workloadData as $row) {
-            if ($row->staff_id && isset($staffNames[$row->staff_id])) {
-                $workloadFormatted[$staffNames[$row->staff_id]] = $row->count;
-            }
-        }
-        arsort($workloadFormatted);
-        $workloadFormatted = array_slice($workloadFormatted, 0, 10);
-
-        $totalFollowupsNeeded = Consultation::where('is_followup_needed', true)
-            ->where('created_at', '<', now()->subDays(30))
-            ->count();
-
-        $compliantFollowups = 0;
-        if ($totalFollowupsNeeded > 0) {
-            $compliantFollowups = DB::select('
-                SELECT COUNT(DISTINCT c1.id) as compliant
-                FROM consultations c1
-                JOIN consultations c2 ON c1.patient_id = c2.patient_id 
-                    AND c2.created_at > c1.created_at 
-                    AND c2.created_at <= DATE_ADD(c1.created_at, INTERVAL 30 DAY)
-                WHERE c1.is_followup_needed = 1 
-                AND c1.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
-            ')[0]->compliant;
-        }
-
-        $complianceRate = $totalFollowupsNeeded > 0 ? round(($compliantFollowups / $totalFollowupsNeeded) * 100) : 0;
-
-        $topDispensed = InventoryLog::where('action', 'Dispensed')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->select('medicine_id', DB::raw('SUM(ABS(quantity_changed)) as total_dispensed'))
-            ->groupBy('medicine_id')
-            ->orderByDesc('total_dispensed')
-            ->limit(10)
-            ->with('medicine:id,name,generic_name')
-            ->get();
-
-        $monthlyTrend = InventoryLog::where('action', 'Dispensed')
-            ->where('created_at', '>=', now()->subMonths(6))
-            ->select(
-                DB::raw('YEAR(created_at) as year'),
-                DB::raw('MONTH(created_at) as month'),
-                DB::raw('SUM(ABS(quantity_changed)) as total_dispensed')
-            )
-            ->groupBy('year', 'month')
-            ->orderBy('year')
-            ->orderBy('month')
-            ->get()
-            ->map(function ($item) {
-                $item->label = Carbon::create($item->year, $item->month)->format('M Y');
-
-                return $item;
-            });
+            ->value('avg_wait_time') ?? 0);
+        $currentPeriodConsultations = $census['total_consultations'];
+        $trendPercentage = $census['trend_percentage'];
+        $presentDoctors = $staffSummary['doctors_present'];
+        $presentNurses = $staffSummary['nurses_present'];
+        $totalArchives = collect($archiveCategories)->sum('count');
 
         return view('admin.dashboard', compact(
-            'announcements',
             'timeFilter',
-            'trendPercentage',
-            'currentPeriodConsultations',
-            'totalDoctors',
-            'presentDoctors',
-            'todayAppointments',
+            'dateRangeLabel',
+            'startDate',
+            'endDate',
+            'census',
+            'classification',
+            'inventoryAlerts',
+            'followupStats',
+            'pendingAnnouncements',
             'pendingDeletionCount',
+            'staffSummary',
+            'announcementsSummary',
+            'archiveCategories',
+            'securityStats',
+            'recentLogs',
+            'announcements',
+            'todayAppointments',
             'visitVolumeData',
             'peakHoursData',
-            'presentNurses',
-            'topDiagnoses',
-            'classificationData',
-            'severityData',
             'avgWaitTime',
-            'barangayData',
-            'demoData',
-            'workloadFormatted',
-            'complianceRate',
-            'totalFollowupsNeeded',
-            'topDispensed',
-            'monthlyTrend'
+            'currentPeriodConsultations',
+            'trendPercentage',
+            'presentDoctors',
+            'presentNurses',
+            'totalArchives'
         ));
     }
 
@@ -262,72 +133,100 @@ class AdminController extends Controller
      */
     public function apiDashboardStats(Request $request)
     {
-        $timeFilter = $request->get('time_filter', 'monthly');
+        $filterData = $this->resolveTimeFilter($request);
+        $timeFilter = $filterData['timeFilter'];
+        $startDate = $filterData['startDate'];
+        $endDate = $filterData['endDate'];
+        $previousStartDate = $filterData['previousStartDate'];
+        $previousEndDate = $filterData['previousEndDate'];
+        $dateRangeLabel = $filterData['dateRangeLabel'];
 
-        $startDate = match ($timeFilter) {
-            'today' => now()->startOfDay(),
-            'weekly' => now()->startOfWeek(),
-            'monthly' => now()->startOfMonth(),
-            'yearly' => now()->startOfYear(),
-            default => Carbon::create(2000, 1, 1),
-        };
-        $previousStartDate = match ($timeFilter) {
-            'today' => now()->subDay()->startOfDay(),
-            'weekly' => now()->subWeek()->startOfWeek(),
-            'monthly' => now()->subMonth()->startOfMonth(),
-            'yearly' => now()->subYear()->startOfYear(),
-            default => Carbon::create(2000, 1, 1),
-        };
-        $previousEndDate = match ($timeFilter) {
-            'today' => now()->subDay()->endOfDay(),
-            'weekly' => now()->subWeek()->endOfWeek(),
-            'monthly' => now()->subMonth()->endOfMonth(),
-            'yearly' => now()->subYear()->endOfYear(),
-            default => Carbon::create(2000, 1, 1),
-        };
-
-        $currentPeriodConsultations = Consultation::where('created_at', '>=', $startDate)->count();
-        $previousPeriodConsultations = Consultation::whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
-
-        $trendPercentage = 0;
-        if ($previousPeriodConsultations > 0) {
-            $trendPercentage = round((($currentPeriodConsultations - $previousPeriodConsultations) / $previousPeriodConsultations) * 100, 1);
-        } elseif ($currentPeriodConsultations > 0) {
-            $trendPercentage = 100;
-        }
-
-        $avgWaitTimeRaw = Consultation::whereNotNull('consultation_start_time')
+        $census = $this->analyticsService->getPatientCensus($startDate, $previousStartDate, $previousEndDate);
+        $classification = $this->analyticsService->getClassificationBreakdown($startDate);
+        $securityStats = $this->analyticsService->getSecurityAuditStats($startDate);
+        $avgWaitTime = round(Consultation::whereNotNull('consultation_start_time')
             ->where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
             ->select(DB::raw('AVG(TIMESTAMPDIFF(MINUTE, created_at, consultation_start_time)) as avg_wait_time'))
-            ->value('avg_wait_time');
-        $avgWaitTime = $avgWaitTimeRaw ? round($avgWaitTimeRaw) : 0;
+            ->value('avg_wait_time') ?? 0);
 
-        $totalFollowupsNeeded = Consultation::where('is_followup_needed', true)
-            ->where('created_at', '<', now()->subDays(30))
-            ->count();
-
-        $compliantFollowups = 0;
-        if ($totalFollowupsNeeded > 0) {
-            $compliantFollowups = DB::select('
-                SELECT COUNT(DISTINCT c1.id) as compliant
-                FROM consultations c1
-                JOIN consultations c2 ON c1.patient_id = c2.patient_id 
-                    AND c2.created_at > c1.created_at 
-                    AND c2.created_at <= DATE_ADD(c1.created_at, INTERVAL 30 DAY)
-                WHERE c1.is_followup_needed = 1 
-                AND c1.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
-            ')[0]->compliant;
-        }
-        $complianceRate = $totalFollowupsNeeded > 0 ? round(($compliantFollowups / $totalFollowupsNeeded) * 100) : 0;
+        $visitVolumeData = $this->analyticsService->getVisitVolumeData($timeFilter, $startDate, $endDate);
+        $peakHoursData = $this->analyticsService->getPeakHoursData($startDate, $endDate);
 
         return response()->json([
-            'currentPeriodConsultations' => number_format($currentPeriodConsultations),
-            'currentPeriodConsultationsRaw' => $currentPeriodConsultations,
-            'trendPercentage' => $trendPercentage,
+            'timeFilter' => $timeFilter,
+            'dateRangeLabel' => $dateRangeLabel,
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d'),
+            'census' => $census,
+            'classification' => $classification,
+            'securityStats' => $securityStats,
+            'currentPeriodConsultations' => number_format($census['total_consultations']),
+            'currentPeriodConsultationsRaw' => $census['total_consultations'],
+            'trendPercentage' => $census['trend_percentage'],
             'avgWaitTime' => $avgWaitTime,
-            'complianceRate' => $complianceRate,
-            'totalFollowupsNeeded' => number_format($totalFollowupsNeeded),
+            'visitVolumeData' => $visitVolumeData,
+            'peakHoursData' => $peakHoursData,
         ]);
+    }
+
+    /**
+     * Resolve time filter, start/end dates, and labels for dashboard analytics.
+     */
+    protected function resolveTimeFilter(Request $request): array
+    {
+        $timeFilter = $request->get('time_filter', 'monthly');
+        $customStart = $request->get('start_date');
+        $customEnd = $request->get('end_date');
+
+        if (($timeFilter === 'custom' || ($customStart && $customEnd)) && $customStart && $customEnd) {
+            $timeFilter = 'custom';
+            $startDate = Carbon::parse($customStart)->startOfDay();
+            $endDate = Carbon::parse($customEnd)->endOfDay();
+            $diffDays = max(1, $startDate->diffInDays($endDate));
+            $previousStartDate = (clone $startDate)->subDays($diffDays)->startOfDay();
+            $previousEndDate = (clone $startDate)->subSecond();
+            $dateRangeLabel = 'Custom Range (' . $startDate->format('M d, Y') . ' – ' . $endDate->format('M d, Y') . ')';
+        } else {
+            $startDate = match ($timeFilter) {
+                'today' => now()->startOfDay(),
+                'weekly' => now()->startOfWeek(),
+                'monthly' => now()->startOfMonth(),
+                'yearly' => now()->startOfYear(),
+                default => Carbon::create(2000, 1, 1),
+            };
+            $endDate = now()->endOfDay();
+            $previousStartDate = match ($timeFilter) {
+                'today' => now()->subDay()->startOfDay(),
+                'weekly' => now()->subWeek()->startOfWeek(),
+                'monthly' => now()->subMonth()->startOfMonth(),
+                'yearly' => now()->subYear()->startOfYear(),
+                default => Carbon::create(2000, 1, 1),
+            };
+            $previousEndDate = match ($timeFilter) {
+                'today' => now()->subDay()->endOfDay(),
+                'weekly' => now()->subWeek()->endOfWeek(),
+                'monthly' => now()->subMonth()->endOfMonth(),
+                'yearly' => now()->subYear()->endOfYear(),
+                default => Carbon::create(2000, 1, 1),
+            };
+            $dateRangeLabel = match ($timeFilter) {
+                'today' => 'Today (' . now()->format('F d, Y') . ')',
+                'weekly' => 'This Week (' . now()->startOfWeek()->format('M d') . ' – ' . now()->endOfWeek()->format('M d, Y') . ')',
+                'monthly' => 'This Month (' . now()->format('F Y') . ')',
+                'yearly' => 'This Year (' . now()->format('Y') . ')',
+                default => 'All Time (Complete Historical Registry)',
+            };
+        }
+
+        return [
+            'timeFilter' => $timeFilter,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'previousStartDate' => $previousStartDate,
+            'previousEndDate' => $previousEndDate,
+            'dateRangeLabel' => $dateRangeLabel,
+        ];
     }
 
     // =========================================================================

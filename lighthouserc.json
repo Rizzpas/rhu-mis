@@ -1,0 +1,32 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "php artisan serve --port=8085 --no-interaction",
+      "startServerReadyPattern": "started",
+      "url": [
+        "http://localhost:8085/",
+        "http://localhost:8085/about",
+        "http://localhost:8085/units",
+        "http://localhost:8085/announcements",
+        "http://localhost:8085/appointment"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--no-sandbox --headless"
+      },
+      "chromePath": "C:\\Users\\jonat\\.cache\\puppeteer\\chrome\\win64-154.0.8037.57\\chrome-win64\\chrome.exe"
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.8 }],
+        "categories:accessibility": ["error", { "minScore": 0.9 }],
+        "categories:best-practices": ["error", { "minScore": 0.9 }],
+        "categories:seo": ["error", { "minScore": 0.9 }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./lighthouse-reports"
+    }
+  }
+}

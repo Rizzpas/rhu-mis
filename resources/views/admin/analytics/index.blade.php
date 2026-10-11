@@ -120,382 +120,430 @@
     }
 @endphp
 
-<!-- Quick Intelligence Ribbon -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
-        <div>
-            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Total Consults</p>
-            <p class="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ number_format($totalPeriodVisits) }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">Recorded in period</p>
+<!-- Scope Clarification Banner (Detailed Analytics vs Executive Dashboard) -->
+<div class="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50 via-emerald-50 to-sky-50 dark:from-slate-800/90 dark:via-emerald-950/20 dark:to-slate-800/90 border border-emerald-200/80 dark:border-emerald-800/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs print:hidden">
+    <div class="flex items-start gap-3.5">
+        <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
         </div>
-        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-2xs">Deep Analytics Scope</span>
+                <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Longitudinal Epidemiological Surveillance & HR Telemetry</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                This module provides longitudinal public health epidemiology, vulnerable demographic distributions, disease morbidity surveillance, catchment heatmaps, and staff productivity telemetry. For daily operational pulse, immediate inventory alerts, and real-time live queues, switch to the <a href="{{ route('admin.dashboard') }}" class="font-bold text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-800">Executive Dashboard &rarr;</a>
+            </p>
+        </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
+        <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 font-bold text-xs hover:bg-emerald-50 dark:hover:bg-slate-700/80 transition-all shadow-2xs">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Executive Dashboard</span>
+        </a>
+    </div>
+</div>
+
+<!-- Section Shortcut Jump Anchors -->
+<div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none print:hidden">
+    <span class="text-[10px] uppercase font-black text-slate-400 tracking-wider shrink-0">Quick Jump:</span>
+    <a href="#section-population" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:border-emerald-500 hover:text-emerald-600 transition-colors shrink-0 shadow-2xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span>1. Population & Demographics</span>
+    </a>
+    <a href="#section-facility-flow" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:border-purple-500 hover:text-purple-600 transition-colors shrink-0 shadow-2xs">
+        <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+        <span>2. Facility Influx Dynamics</span>
+    </a>
+    <a href="#section-staff-telemetry" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:border-amber-500 hover:text-amber-600 transition-colors shrink-0 shadow-2xs">
+        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+        <span>3. Clinical Staff Telemetry</span>
+    </a>
+</div>
+
+<!-- Restored: Four Summary Cards (Operational Flow Highlights) -->
+<div class="mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Operational Flow Highlights &bull; Selected Period Peaks</h2>
+        </div>
+        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500">Quick intelligence snapshot</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Total Visits -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Total Period Encounters</p>
+                <div class="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+            </div>
+            <div>
+                <p class="text-3xl font-black text-slate-900 dark:text-white tracking-tight tabular-nums">{{ number_format($totalPeriodVisits) }}</p>
+                <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>Consultations recorded</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Volume Total</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Peak Flow Window -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Peak Patient Flow</p>
+                <div class="w-9 h-9 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate" title="{{ $busiestHourLabel }}">{{ $busiestHourLabel }}</p>
+                <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>Busiest operating time</span>
+                    <span class="font-bold text-purple-600 dark:text-purple-400">{{ number_format($peakHourMaxVal) }} visits peak</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Top Demographic -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Top Demographic Cohort</p>
+                <div class="w-9 h-9 rounded-2xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">{{ $maxDemoGroup }}</p>
+                <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>Largest consulting cohort</span>
+                    <span class="font-bold text-sky-600 dark:text-sky-400">{{ number_format($maxDemoCount) }} cases</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Dominant Acuity / Severity -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Prevalent Clinical Acuity</p>
+                <div class="w-9 h-9 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">{{ $dominantSeverity }}</p>
+                <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>Dominant triage severity</span>
+                    <span class="font-bold text-amber-600 dark:text-amber-400">Triage Profile</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Census Ribbon (Municipal Registry Baseline) -->
+<div class="mb-4">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Municipal Patient Census &bull; Official Master Registry</h2>
+        </div>
+        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500">Registry Totals</span>
+    </div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Total Registered Patients</p>
+            <div class="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+        </div>
+        <div>
+            <p class="text-3xl font-black text-slate-900 dark:text-white tracking-tight tabular-nums">{{ number_format($census['total_registered']) }}</p>
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-1.5 font-bold">
+                    <span class="text-blue-600 dark:text-blue-400">M: {{ number_format($census['male_registered']) }}</span>
+                    <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                    <span class="text-pink-600 dark:text-pink-400">F: {{ number_format($census['female_registered']) }}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                    {{ $census['philhealth_percentage'] }}% PhilHealth
+                </span>
+            </div>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
-        <div>
-            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Peak Patient Flow</p>
-            <p class="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ $busiestHourLabel }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">High traffic window</p>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">New Registrations</p>
+            <div class="w-9 h-9 rounded-2xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            </div>
         </div>
-        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div>
+            <p class="text-3xl font-black text-slate-900 dark:text-white tracking-tight tabular-nums">{{ number_format($census['new_registered']) }}</p>
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                <span>Enrolled this period</span>
+                <span class="font-bold text-teal-600 dark:text-teal-400">{{ ucfirst($timeFilter) }}</span>
+            </div>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
-        <div>
-            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Top Demographic</p>
-            <p class="text-lg font-black text-slate-900 dark:text-white mt-1 truncate max-w-[140px]" title="{{ $maxDemoGroup }}">{{ $maxDemoGroup }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">Majority demographic</p>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Unique Patients Served</p>
+            <div class="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
         </div>
-        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <div>
+            <p class="text-3xl font-black text-slate-900 dark:text-white tracking-tight tabular-nums">{{ number_format($census['unique_patients_served']) }}</p>
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                <span>Distinct people seen</span>
+                <span class="font-bold text-indigo-600 dark:text-indigo-400">Deduplicated</span>
+            </div>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
-        <div>
-            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Triage Priority</p>
-            <p class="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ $dominantSeverity }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">Prevalent urgency</p>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Total Consultations</p>
+            <div class="w-9 h-9 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            </div>
         </div>
-        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <div>
+            <div class="flex items-baseline justify-between">
+                <p class="text-3xl font-black text-slate-900 dark:text-white tracking-tight tabular-nums">{{ number_format($census['total_consultations']) }}</p>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold {{ $census['trend_percentage'] > 0 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20' : ($census['trend_percentage'] < 0 ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-500/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300') }}">
+                    @if($census['trend_percentage'] > 0)
+                        <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>+{{ $census['trend_percentage'] }}%
+                    @elseif($census['trend_percentage'] < 0)
+                        <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>{{ $census['trend_percentage'] }}%
+                    @else
+                        0%
+                    @endif
+                </span>
+            </div>
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                <span>Encounters recorded</span>
+                <span>vs previous window</span>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Alpine component to manage individual chart data fetching -->
-<div x-data="analyticsDashboard()" class="space-y-8">
-    
-    <!-- Row 1: Visit Volume (Full Width) -->
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full h-[520px]">
-        <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                </div>
-                <div>
-                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
-                        class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
-                        Visit Volume
-                        <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        
-                        <!-- Custom Tooltip -->
-                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
-                            Tracks the total number of consultations recorded over the selected timeframe.
-                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
-                        </div>
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Total patient consultations over time</p>
-                </div>
+<!-- Alpine component to manage individual chart data fetching -->
+<div x-data="analyticsDashboard()" class="space-y-12">
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: POPULATION HEALTH & EPIDEMIOLOGICAL SURVEILLANCE              -->
+    <!-- ========================================================================= -->
+    <div id="section-population" class="pt-2">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800 mb-6">
+            <div class="flex items-center gap-2.5">
+                <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    1. Population Health, Morbidity &amp; Demographic Profile
+                </h2>
             </div>
-            <div class="flex items-center gap-2">
-                <!-- Custom Timeframe Dropdown -->
-                <div class="relative" x-data="{
-                    open: false,
-                    selected: '{{ $timeFilter }}',
-                    options: {
-                        'today': 'Today',
-                        'weekly': 'This Week',
-                        'monthly': 'This Month',
-                        'yearly': 'This Year',
-                        'all': 'All Time'
-                    },
-                    select(val) {
-                        this.selected = val;
-                        this.open = false;
-                        updateChart('volume', val);
-                    }
-                }" @click.outside="open = false">
-                    <button type="button" @click="open = !open"
-                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
-                        <span x-text="options[selected] || 'This Month'"></span>
-                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
-                             :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-
-                    <!-- Custom Floating Menu -->
-                    <div x-show="open"
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                         style="display: none;"
-                         class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
-                        <template x-for="(label, key) in options" :key="key">
-                            <button type="button" @click="select(key)"
-                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
-                                    :class="selected === key 
-                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
-                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
-                                <span x-text="label"></span>
-                                <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Custom Export Dropdown -->
-                <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
-                    <button @click="openExport = !openExport" title="Export Chart" 
-                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
-                            :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
-                    <div x-show="openExport" 
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                         style="display: none;" 
-                         class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
-                        <a href="#" @click.prevent="exportChart('visitVolumeChart'); openExport = false" 
-                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
-                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span>Download PNG</span>
-                        </a>
-                        <a href="#" @click.prevent="exportCSV('volume'); openExport = false" 
-                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
-                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            <span>Download CSV</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="relative flex-1 w-full min-h-0">
-            <canvas id="visitVolumeChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Row 2: Peak Hours & Workload (Half/Half) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col h-[420px]">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
-                            Peak Hours
-                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            
-                            <!-- Custom Tooltip -->
-                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
-                                Visualizes the busiest times of day based on consultation start times.
-                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
-                            </div>
-                        </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Consultation distribution by hour</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <!-- Custom Timeframe Dropdown -->
-                    <div class="relative" x-data="{
-                        open: false,
-                        selected: '{{ $timeFilter }}',
-                        options: {
-                            'today': 'Today',
-                            'weekly': 'This Week',
-                            'monthly': 'This Month',
-                            'yearly': 'This Year',
-                            'all': 'All Time'
-                        },
-                        select(val) {
-                            this.selected = val;
-                            this.open = false;
-                            updateChart('peak', val);
-                        }
-                    }" @click.outside="open = false">
-                        <button type="button" @click="open = !open"
-                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
-                            <span x-text="options[selected] || 'This Month'"></span>
-                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
-                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-
-                        <div x-show="open"
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                             style="display: none;"
-                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
-                            <template x-for="(label, key) in options" :key="key">
-                                <button type="button" @click="select(key)"
-                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
-                                        :class="selected === key 
-                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
-                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
-                                    <span x-text="label"></span>
-                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Custom Export Dropdown -->
-                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
-                        <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
-                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        </button>
-                        <div x-show="openExport" 
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                             style="display: none;" 
-                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
-                            <a href="#" @click.prevent="exportChart('peakHoursChart'); openExport = false" 
-                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
-                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                <span>Download PNG</span>
-                            </a>
-                            <a href="#" @click.prevent="exportCSV('peak'); openExport = false" 
-                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
-                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <span>Download CSV</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="relative flex-1 w-full min-h-0"><canvas id="peakHoursChart"></canvas></div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                DOH-aligned morbidity ranking, vulnerable sector matrices, and community catchment
+            </p>
         </div>
 
-        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col h-[420px]">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <div class="space-y-8">
+            <!-- Row 1.1: Patient Classification Matrix & Top 10 Leading Diagnoses (Evaluator Priority) -->
+            <!-- Row 4.5: Patient Classification Matrix & Top 10 Leading Causes of Morbidity (Evaluator Priority) -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <!-- 1. Patient Classification Breakdown Matrix -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Patient Classification Matrix</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">All-time registered census vs period clinical utilization</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
-                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
-                            Staff Workload
-                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            
-                            <!-- Custom Tooltip -->
-                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
-                                Shows the distribution of patient cases across different doctors and nurses.
-                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
-                            </div>
-                        </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Consultations per doctor/nurse</p>
-                    </div>
+                    <span class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                        {{ ucfirst($timeFilter) }}
+                    </span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <!-- Custom Timeframe Dropdown -->
-                    <div class="relative" x-data="{
-                        open: false,
-                        selected: '{{ $timeFilter }}',
-                        options: {
-                            'today': 'Today',
-                            'weekly': 'This Week',
-                            'monthly': 'This Month',
-                            'yearly': 'This Year',
-                            'all': 'All Time'
-                        },
-                        select(val) {
-                            this.selected = val;
-                            this.open = false;
-                            updateChart('workload', val);
-                        }
-                    }" @click.outside="open = false">
-                        <button type="button" @click="open = !open"
-                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
-                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
-                            <span x-text="options[selected] || 'This Month'"></span>
-                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
-                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
 
-                        <div x-show="open"
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                             style="display: none;"
-                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
-                            <template x-for="(label, key) in options" :key="key">
-                                <button type="button" @click="select(key)"
-                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
-                                        :class="selected === key 
-                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
-                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
-                                    <span x-text="label"></span>
-                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Custom Export Dropdown -->
-                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
-                        <button @click="openExport = !openExport" title="Export Chart" 
-                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
-                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        </button>
-                        <div x-show="openExport" 
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                             style="display: none;" 
-                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
-                            <a href="#" @click.prevent="exportChart('workloadChart'); openExport = false" 
-                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
-                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                <span>Download PNG</span>
-                            </a>
-                            <a href="#" @click.prevent="exportCSV('workload'); openExport = false" 
-                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
-                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <span>Download CSV</span>
-                            </a>
-                        </div>
-                    </div>
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-700/70 mt-4">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-700/70 text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+                                <th class="py-3 px-4">Classification Sector</th>
+                                <th class="py-3 px-4 text-right">Registered (All-Time)</th>
+                                <th class="py-3 px-4 text-right">Served (Period)</th>
+                                <th class="py-3 px-4 text-left">Clinical Program</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60 font-medium">
+                            <!-- Pediatric -->
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/30 transition-colors">
+                                <td class="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                                    <span>Pediatric (0–12 yrs)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums">
+                                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($classificationSummary['categories']['pediatric']['registered_count']) }}</span>
+                                    <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['pediatric']['registered_pct'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums">
+                                    <span class="font-bold text-sky-600 dark:text-sky-400">{{ number_format($classificationSummary['categories']['pediatric']['served_count']) }}</span>
+                                    <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['pediatric']['served_pct'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">Well-Child / EPI / Pedia OPD</td>
+                            </tr>
+                            <!-- Regular Adult -->
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/30 transition-colors">
+                                <td class="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                                    <span>Regular Adult (13–59 yrs)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums">
+                                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($classificationSummary['categories']['regular_adult']['registered_count']) }}</span>
+                                    <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['regular_adult']['registered_pct'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums">
+                                    <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ number_format($classificationSummary['categories']['regular_adult']['served_count']) }}</span>
+                                    <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['regular_adult']['served_pct'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">General OPD &amp; Adult Consults</td>
+                            </tr>
+                            <!-- Senior Citizen -->
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/30 transition-colors">
+                                <td class="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <span>Senior Citizen (60+ yrs)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums">
+                                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($classificationSummary['categories']['senior_citizen']['registered_count']) }}</span>
+                                    <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['senior_citizen']['registered_pct'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums">
+                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ number_format($classificationSummary['categories']['senior_citizen']['served_count']) }}</span>
+                                    <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['senior_citizen']['served_pct'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">Geriatric Fast-Track &amp; NCD</td>
+                            </tr>
+                            <!-- Subtotal Row -->
+                            <tr class="bg-slate-100/70 dark:bg-slate-700/50 font-black">
+                                <td class="py-2.5 px-4 text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">Demographic Subtotal</td>
+                                <td class="py-2.5 px-4 text-right tabular-nums text-slate-900 dark:text-white">
+                                    {{ number_format($classificationSummary['total_registered']) }} <span class="text-[10px] text-slate-400">(100%)</span>
+                                </td>
+                                <td class="py-2.5 px-4 text-right tabular-nums text-slate-900 dark:text-white">
+                                    {{ number_format($classificationSummary['unique_served_total']) }} <span class="text-[10px] text-slate-400">(100%)</span>
+                                </td>
+                                <td class="py-2.5 px-4 text-slate-500 dark:text-slate-400 text-[10px] uppercase">Master Registry</td>
+                            </tr>
+                            <!-- PWD Overlay Row -->
+                            <tr class="bg-amber-50/70 dark:bg-amber-950/30 border-t-2 border-amber-500/30 font-bold">
+                                <td class="py-3 px-4 text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                    <span>PWD (Disability Condition Overlay)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums text-amber-900 dark:text-amber-200">
+                                    {{ number_format($classificationSummary['pwd']['registered_count']) }}
+                                    <span class="text-[10px] text-amber-600 dark:text-amber-400">({{ $classificationSummary['pwd']['registered_percentage'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-right tabular-nums text-amber-900 dark:text-amber-200">
+                                    {{ number_format($classificationSummary['pwd']['served_count']) }}
+                                    <span class="text-[10px] text-amber-600 dark:text-amber-400">({{ $classificationSummary['pwd']['served_percentage'] }}%)</span>
+                                </td>
+                                <td class="py-3 px-4 text-amber-800 dark:text-amber-300 text-[11px] font-medium">
+                                    Express Priority / Patients can be Senior + PWD
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="relative flex-1 w-full min-h-0"><canvas id="workloadChart"></canvas></div>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-3 italic">
+                * Note: PWD is tracked as an independent health condition so patients can accurately belong to an age sector (Senior/Adult) while receiving PWD accessibility priority.
+            </p>
+        </div>
+
+        <!-- 2. Top 10 Leading Diagnoses / Causes of Morbidity -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Top 10 Diagnoses (Morbidity Surveillance)</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Leading clinical causes of consultation during this timeframe</p>
+                        </div>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-400">
+                        {{ $topDiagnoses->sum('count') }} Total Cases
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-700/70 mt-4 max-h-[360px] overflow-y-auto">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-10">
+                            <tr class="border-b border-slate-200/80 dark:border-slate-700/70 text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+                                <th class="py-3 px-3 w-10 text-center">#</th>
+                                <th class="py-3 px-4">Clinical Diagnosis</th>
+                                <th class="py-3 px-4 text-right w-24">Cases</th>
+                                <th class="py-3 px-4 text-left w-36">% Share</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60 font-medium">
+                            @forelse($topDiagnoses as $index => $diag)
+                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/30 transition-colors">
+                                    <td class="py-2.5 px-3 text-center font-bold text-slate-400">
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full {{ $index === 0 ? 'bg-rose-100 text-rose-700 font-black' : ($index === 1 ? 'bg-amber-100 text-amber-700' : ($index === 2 ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-600')) }} text-[10px]">
+                                            {{ $index + 1 }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2.5 px-4 font-bold text-slate-900 dark:text-white truncate max-w-[200px]" title="{{ $diag->diagnosis }}">
+                                        {{ $diag->diagnosis }}
+                                    </td>
+                                    <td class="py-2.5 px-4 text-right font-black text-slate-900 dark:text-white tabular-nums">
+                                        {{ number_format($diag->count) }}
+                                    </td>
+                                    <td class="py-2.5 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                                <div class="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full" style="width: {{ min(100, $diag->percentage) }}%"></div>
+                                            </div>
+                                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums w-10 text-right">
+                                                {{ $diag->percentage }}%
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="py-8 text-center text-slate-400">
+                                        No diagnoses recorded for this timeframe.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-3">
+                Source: Primary physician clinical notes and encounter diagnoses encoded into EMR.
+            </p>
         </div>
     </div>
 
-    <!-- Row 3: Age-Sex Pyramid (Full Width) -->
+            <!-- Row 1.2: Age-Sex Demographic Pyramid (Full Width) -->
+            <!-- Row 3: Age-Sex Pyramid (Full Width) -->
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full h-[520px]">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
@@ -601,7 +649,9 @@
         </div>
         <div class="relative flex-1 w-full min-h-0"><canvas id="ageSexChart"></canvas></div>
     </div>
-    <!-- Row 4: Classification & Severity (Half/Half Doughnuts) -->
+
+            <!-- Row 1.3: Patient Classification & Severity (Doughnuts) -->
+            <!-- Row 4: Classification & Severity (Half/Half Doughnuts) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col h-[420px]">
             <div class="flex justify-between items-center mb-6">
@@ -816,7 +866,8 @@
         </div>
     </div>
 
-    <!-- Row 5: Barangay Heatmap (Full Width) -->
+            <!-- Row 1.4: Barangay Heatmap (Full Width) -->
+            <!-- Row 5: Barangay Heatmap (Full Width) -->
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full" style="min-height: 400px;">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
@@ -931,8 +982,375 @@
             </div>
         </div>
     </div>
+        </div>
+    </div>
 
-    <!-- Row 6: Staff Productivity -->
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: FACILITY INFLUX & PATIENT TRAFFIC FLOW                        -->
+    <!-- ========================================================================= -->
+    <div id="section-facility-flow" class="pt-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800 mb-6">
+            <div class="flex items-center gap-2.5">
+                <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    2. Facility Influx &amp; Hourly Rush-Hour Dynamics
+                </h2>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Temporal encounter volumes and peak arrival rush hours to forecast staffing needs
+            </p>
+        </div>
+
+        <div class="space-y-8">
+            <!-- Row 2.1: Visit Volume (Full Width) -->
+            <!-- Row 1: Visit Volume (Full Width) -->
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full h-[520px]">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <div>
+                    <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
+                        class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                        Visit Volume
+                        <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        
+                        <!-- Custom Tooltip -->
+                        <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                            Tracks the total number of consultations recorded over the selected timeframe.
+                            <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                        </div>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total patient consultations over time</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Custom Timeframe Dropdown -->
+                <div class="relative" x-data="{
+                    open: false,
+                    selected: '{{ $timeFilter }}',
+                    options: {
+                        'today': 'Today',
+                        'weekly': 'This Week',
+                        'monthly': 'This Month',
+                        'yearly': 'This Year',
+                        'all': 'All Time'
+                    },
+                    select(val) {
+                        this.selected = val;
+                        this.open = false;
+                        updateChart('volume', val);
+                    }
+                }" @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                            class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                            :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                        <span x-text="options[selected] || 'This Month'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                             :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Custom Floating Menu -->
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;"
+                         class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                        <template x-for="(label, key) in options" :key="key">
+                            <button type="button" @click="select(key)"
+                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                    :class="selected === key 
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                <span x-text="label"></span>
+                                <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Custom Export Dropdown -->
+                <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                    <button @click="openExport = !openExport" title="Export Chart" 
+                            class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                            :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                    <div x-show="openExport" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                         style="display: none;" 
+                         class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                        <a href="#" @click.prevent="exportChart('visitVolumeChart'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span>Download PNG</span>
+                        </a>
+                        <a href="#" @click.prevent="exportCSV('volume'); openExport = false" 
+                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span>Download CSV</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="relative flex-1 w-full min-h-0">
+            <canvas id="visitVolumeChart"></canvas>
+        </div>
+    </div>
+
+            <!-- Row 2.2: Peak Operating Hours (Full Width) -->
+            <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full h-[450px]">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                            Peak Hours
+                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            
+                            <!-- Custom Tooltip -->
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                                Visualizes the busiest times of day based on consultation start times.
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                            </div>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Consultation distribution by hour</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Custom Timeframe Dropdown -->
+                    <div class="relative" x-data="{
+                        open: false,
+                        selected: '{{ $timeFilter }}',
+                        options: {
+                            'today': 'Today',
+                            'weekly': 'This Week',
+                            'monthly': 'This Month',
+                            'yearly': 'This Year',
+                            'all': 'All Time'
+                        },
+                        select(val) {
+                            this.selected = val;
+                            this.open = false;
+                            updateChart('peak', val);
+                        }
+                    }" @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <span x-text="options[selected] || 'This Month'"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;"
+                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                            <template x-for="(label, key) in options" :key="key">
+                                <button type="button" @click="select(key)"
+                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                        :class="selected === key 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                    <span x-text="label"></span>
+                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Custom Export Dropdown -->
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </button>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('peakHoursChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
+                            <a href="#" @click.prevent="exportCSV('peak'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>Download CSV</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex-1 w-full min-h-0"><canvas id="peakHoursChart"></canvas></div>
+        </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: CLINICAL PERSONNEL PERFORMANCE & OPERATIONAL HR TELEMETRY      -->
+    <!-- ========================================================================= -->
+    <div id="section-staff-telemetry" class="pt-4">
+        <div class="p-4 sm:p-5 rounded-3xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 mb-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5">
+                    <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                        3. Clinical Personnel Productivity, Workload &amp; Front-Line Efficiency
+                    </h2>
+                </div>
+                <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 shrink-0">Administrative Telemetry</span>
+            </div>
+            <p class="text-xs text-amber-900/80 dark:text-amber-300/80 mt-2 leading-relaxed">
+                <strong>Administrative Notice:</strong> The metrics in this section evaluate internal provider throughput, physician consultation duration, nurse triage encoding speed, and queue wait times. These are administrative operational telemetry figures, isolated here so they are not confused with patient public health epidemiology.
+            </p>
+        </div>
+
+        <div class="space-y-8">
+            <!-- Row 3.1: Staff Workload Distribution (Full Width) -->
+            <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm transition-all border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full h-[450px]">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/80 dark:border-slate-600/60">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"
+                            class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 relative">
+                            Staff Workload
+                            <svg class="w-3.5 h-3.5 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            
+                            <!-- Custom Tooltip -->
+                            <div x-show="showTooltip" x-transition class="absolute z-50 bottom-full mb-2 left-0 w-48 p-2 bg-slate-950 text-white text-[10px] rounded-xl shadow-2xl pointer-events-none font-medium leading-tight border border-slate-800" style="display: none;">
+                                Shows the distribution of patient cases across different doctors and nurses.
+                                <div class="absolute top-full left-4 border-[4px] border-transparent border-t-slate-950"></div>
+                            </div>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Consultations per doctor/nurse</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Custom Timeframe Dropdown -->
+                    <div class="relative" x-data="{
+                        open: false,
+                        selected: '{{ $timeFilter }}',
+                        options: {
+                            'today': 'Today',
+                            'weekly': 'This Week',
+                            'monthly': 'This Month',
+                            'yearly': 'This Year',
+                            'all': 'All Time'
+                        },
+                        select(val) {
+                            this.selected = val;
+                            this.open = false;
+                            updateChart('workload', val);
+                        }
+                    }" @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:border-emerald-500 transition-all flex items-center gap-2 cursor-pointer"
+                                :class="open ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <span x-text="options[selected] || 'This Month'"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200"
+                                 :class="open ? 'rotate-180 text-emerald-500' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;"
+                             class="absolute right-0 z-50 mt-1.5 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                            <template x-for="(label, key) in options" :key="key">
+                                <button type="button" @click="select(key)"
+                                        class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                        :class="selected === key 
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                    <span x-text="label"></span>
+                                    <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Custom Export Dropdown -->
+                    <div class="relative" x-data="{ openExport: false }" @click.outside="openExport = false">
+                        <button @click="openExport = !openExport" title="Export Chart" 
+                                class="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/90 dark:border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-2xs focus:outline-none cursor-pointer"
+                                :class="openExport ? 'border-emerald-500 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400' : ''">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </button>
+                        <div x-show="openExport" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             style="display: none;" 
+                             class="absolute right-0 mt-1.5 w-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-900/20 border border-slate-200 dark:border-slate-700 p-1.5 z-50 backdrop-blur-md">
+                            <a href="#" @click.prevent="exportChart('workloadChart'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Download PNG</span>
+                            </a>
+                            <a href="#" @click.prevent="exportCSV('workload'); openExport = false" 
+                               class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl transition-colors">
+                                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>Download CSV</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex-1 w-full min-h-0"><canvas id="workloadChart"></canvas></div>
+        </div>
+
+            <!-- Row 3.2: Staff Productivity & Front-Line Efficiency Panel -->
+            <!-- Row 6: Staff Productivity -->
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xs hover:shadow-sm border border-slate-200/90 dark:border-slate-700/80 p-6 sm:p-8 flex flex-col w-full mt-8 transition-all">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div class="flex items-center gap-3">
@@ -1188,7 +1606,7 @@
             <template x-if="productivityTab === 'triage'">
                 <div class="bg-slate-50/70 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 transition-all col-span-2 sm:col-span-1">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Wait Time</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Queue Wait (Triage &rarr; MD)</span>
                         <div class="w-7 h-7 rounded-xl bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
@@ -1197,6 +1615,9 @@
                         <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight" x-text="productivityData.avgWaitTime">{{ $staffProductivity['avgWaitTime'] }}</span>
                         <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">min in queue</span>
                     </div>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 leading-tight">
+                        Triage completion to physician examination (queue duration, not door arrival).
+                    </p>
                 </div>
             </template>
         </div>
@@ -1284,6 +1705,8 @@
                 </div>
                 <div class="relative flex-1 w-full min-h-0"><canvas id="encodingSpeedChart"></canvas></div>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 
@@ -1391,55 +1814,197 @@
             }
         });
 
-        // 5. Classification Doughnut
+        // Center Text Plugin for Doughnut Charts (Displays Total in Donut Center)
+        const doughnutCenterTextPlugin = {
+            id: 'doughnutCenterText',
+            beforeDraw: function(chart) {
+                if (chart.config.type !== 'doughnut') return;
+                const chartArea = chart.chartArea;
+                if (!chartArea) return;
+                const { ctx } = chart;
+                ctx.save();
+                const dataset = chart.data.datasets[0];
+                const total = (dataset ? dataset.data : []).reduce((a, b) => a + Number(b), 0);
+                const subLabel = chart.canvas.id === 'classificationChart' ? 'Patients' : 'Cases';
+                const centerX = (chartArea.left + chartArea.right) / 2;
+                const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                ctx.font = '800 22px "Inter", sans-serif';
+                ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a';
+                ctx.fillText(total.toLocaleString(), centerX, centerY - 8);
+
+                ctx.font = '700 10px "Inter", sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText(subLabel.toUpperCase(), centerX, centerY + 12);
+                ctx.restore();
+            }
+        };
+
+        // 5. Classification Doughnut (Formatted in Percentages with Center Total)
         const classCtx = document.getElementById('classificationChart').getContext('2d');
         const classDataRaw = {!! json_encode($classificationData) !!};
         charts['classification'] = new Chart(classCtx, {
             type: 'doughnut',
             data: {
                 labels: Object.keys(classDataRaw),
-                datasets: [{ data: Object.values(classDataRaw), backgroundColor: ['#0ea5e9', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#64748b'], borderWidth: 0, hoverOffset: 4 }]
+                datasets: [{
+                    data: Object.values(classDataRaw),
+                    backgroundColor: ['#0ea5e9', '#6366f1', '#10b981'],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
             },
+            plugins: [doughnutCenterTextPlugin],
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        position: window.innerWidth < 768 ? 'bottom' : 'right', 
-                        labels: { boxWidth: 12, padding: 15, font: { size: 11, weight: '600' }, usePointStyle: true } 
-                    } 
-                }, 
-                cutout: '70%',
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: {
+                    legend: {
+                        position: window.innerWidth < 768 ? 'bottom' : 'right',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 12,
+                            font: { size: 11, weight: '600' },
+                            usePointStyle: true,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    const dataset = data.datasets[0];
+                                    const total = dataset.data.reduce((a, b) => a + Number(b), 0);
+                                    return data.labels.map((label, i) => {
+                                        const val = Number(dataset.data[i]) || 0;
+                                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+                                        const meta = chart.getDatasetMeta(0);
+                                        const style = meta.controller ? meta.controller.getStyle(i) : {};
+                                        return {
+                                            text: `${label}: ${val.toLocaleString()} (${pct}%)`,
+                                            fillStyle: style.backgroundColor || dataset.backgroundColor[i],
+                                            strokeStyle: '#ffffff',
+                                            lineWidth: 0,
+                                            hidden: isNaN(dataset.data[i]) || meta.data[i]?.hidden,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    datalabels: {
+                        color: '#ffffff',
+                        font: { weight: '800', size: 11 },
+                        formatter: function(value, ctx) {
+                            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + Number(b), 0);
+                            if (!sum || value === 0) return '';
+                            return ((value / sum) * 100).toFixed(1) + '%';
+                        },
+                        display: function(ctx) {
+                            return ctx.dataset.data[ctx.dataIndex] > 0;
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const val = Number(context.raw) || 0;
+                                const sum = context.dataset.data.reduce((a, b) => a + Number(b), 0);
+                                const pct = sum > 0 ? ((val / sum) * 100).toFixed(1) : '0.0';
+                                return ` ${context.label}: ${val.toLocaleString()} (${pct}%)`;
+                            }
+                        }
+                    }
+                },
                 onResize: function(chart, size) {
                     chart.options.plugins.legend.position = size.width < 500 ? 'bottom' : 'right';
                 }
             }
         });
 
-        // 6. Severity Doughnut
+        // 6. Severity Doughnut (Formatted in Percentages with Center Total)
         const sevCtx = document.getElementById('severityChart').getContext('2d');
         const sevDataRaw = {!! json_encode($severityData) !!};
         const sevColors = Object.keys(sevDataRaw).map(l => {
             const lower = l.toLowerCase();
             if (lower === 'light') return '#10b981';
             if (lower === 'mild') return '#f59e0b';
-            if (lower === 'severe') return '#ef4444';
+            if (lower === 'severe' || lower === 'emergency') return '#ef4444';
+            if (lower === 'urgent') return '#ea580c';
             return '#64748b';
         });
         charts['severity'] = new Chart(sevCtx, {
             type: 'doughnut',
             data: {
                 labels: Object.keys(sevDataRaw).map(l => l.charAt(0).toUpperCase() + l.slice(1)),
-                datasets: [{ data: Object.values(sevDataRaw), backgroundColor: sevColors, borderWidth: 0, hoverOffset: 4 }]
+                datasets: [{
+                    data: Object.values(sevDataRaw),
+                    backgroundColor: sevColors,
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
             },
+            plugins: [doughnutCenterTextPlugin],
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        position: window.innerWidth < 768 ? 'bottom' : 'right', 
-                        labels: { boxWidth: 12, padding: 15, font: { size: 11, weight: '600' }, usePointStyle: true } 
-                    } 
-                }, 
-                cutout: '70%',
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: {
+                    legend: {
+                        position: window.innerWidth < 768 ? 'bottom' : 'right',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 12,
+                            font: { size: 11, weight: '600' },
+                            usePointStyle: true,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    const dataset = data.datasets[0];
+                                    const total = dataset.data.reduce((a, b) => a + Number(b), 0);
+                                    return data.labels.map((label, i) => {
+                                        const val = Number(dataset.data[i]) || 0;
+                                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+                                        const meta = chart.getDatasetMeta(0);
+                                        const style = meta.controller ? meta.controller.getStyle(i) : {};
+                                        return {
+                                            text: `${label}: ${val.toLocaleString()} (${pct}%)`,
+                                            fillStyle: style.backgroundColor || dataset.backgroundColor[i],
+                                            strokeStyle: '#ffffff',
+                                            lineWidth: 0,
+                                            hidden: isNaN(dataset.data[i]) || meta.data[i]?.hidden,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    datalabels: {
+                        color: '#ffffff',
+                        font: { weight: '800', size: 11 },
+                        formatter: function(value, ctx) {
+                            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + Number(b), 0);
+                            if (!sum || value === 0) return '';
+                            return ((value / sum) * 100).toFixed(1) + '%';
+                        },
+                        display: function(ctx) {
+                            return ctx.dataset.data[ctx.dataIndex] > 0;
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const val = Number(context.raw) || 0;
+                                const sum = context.dataset.data.reduce((a, b) => a + Number(b), 0);
+                                const pct = sum > 0 ? ((val / sum) * 100).toFixed(1) : '0.0';
+                                return ` ${context.label}: ${val.toLocaleString()} (${pct}%)`;
+                            }
+                        }
+                    }
+                },
                 onResize: function(chart, size) {
                     chart.options.plugins.legend.position = size.width < 500 ? 'bottom' : 'right';
                 }
@@ -1649,13 +2214,18 @@
                             chart.data.labels = json.labels;
                             chart.data.datasets[0].data = json.data;
                             
+                            if (chartId === 'classification') {
+                                chart.data.datasets[0].backgroundColor = ['#0ea5e9', '#6366f1', '#10b981'];
+                            }
+
                             // Adjust colors if severity dynamically changes length
                             if (chartId === 'severity') {
                                 chart.data.datasets[0].backgroundColor = json.labels.map(l => {
                                     const lower = l.toLowerCase();
                                     if (lower === 'light') return '#10b981';
                                     if (lower === 'mild') return '#f59e0b';
-                                    if (lower === 'severe') return '#ef4444';
+                                    if (lower === 'severe' || lower === 'emergency') return '#ef4444';
+                                    if (lower === 'urgent') return '#ea580c';
                                     return '#64748b';
                                 });
                             }
@@ -1755,7 +2325,7 @@
             } catch(e) { return ''; }
         }
 
-        const charts = {
+        const chartImages = {
             visitVolume: rasterize('visitVolumeChart'),
             peakHours: rasterize('peakHoursChart'),
             workload: rasterize('workloadChart'),
@@ -1772,6 +2342,16 @@
             $thStyle = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:4px 6px;text-align:left;"';
             $thStyleR = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:4px 6px;text-align:right;"';
             $thStyleC = 'style="background:#f1f5f9;color:#1e293b;font-size:7pt;font-weight:800;text-transform:uppercase;border:1px solid #cbd5e1;padding:4px 6px;text-align:center;"';
+
+            // Timeframe label for print report
+            $printTimeframeLabel = match($timeFilter) {
+                'today' => 'Today (' . now()->format('F d, Y') . ')',
+                'weekly' => 'This Week (' . now()->startOfWeek()->format('M d') . ' - ' . now()->endOfWeek()->format('M d, Y') . ')',
+                'monthly' => 'This Month (' . now()->format('F Y') . ')',
+                'yearly' => 'This Year (' . now()->format('Y') . ')',
+                default => 'All Time (Complete Historical Data)',
+            };
+
 
             // 1. Visit Volume Table
             $vvRows = '';
@@ -1853,21 +2433,43 @@
 
             // 5. Classification Table
             $classRows = '';
-            $classArr = is_array($classificationData) ? $classificationData : (is_object($classificationData) ? $classificationData->toArray() : []);
-            $classTotal = array_sum($classArr);
-            $ci = 0;
-            foreach($classArr as $cls => $cnt) {
-                $pct = $classTotal > 0 ? round(($cnt / $classTotal) * 100, 1) : 0;
-                $classRows .= '<tr' . ($ci % 2 === 1 ? ' style="background:#f8fafc;"' : '') . '>';
-                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#334155;font-size:7.5pt;">' . ucfirst(addslashes($cls)) . '</td>';
-                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#0f172a;font-weight:700;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . number_format($cnt) . '</td>';
-                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;color:#64748b;text-align:right;font-size:7.5pt;font-variant-numeric:tabular-nums;">' . $pct . '%</td></tr>';
-                $ci++;
+            if (isset($classificationSummary['categories'])) {
+                foreach($classificationSummary['categories'] as $cKey => $cData) {
+                    $cName = match($cKey) {
+                        'pediatric' => 'Pediatric (0–12 yrs)',
+                        'regular_adult' => 'Regular Adult (13–59 yrs)',
+                        'senior_citizen' => 'Senior Citizen (60+ yrs)',
+                        default => ucfirst($cKey),
+                    };
+                    $classRows .= '<tr>';
+                    $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:700;">' . $cName . '</td>';
+                    $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;font-variant-numeric:tabular-nums;">' . number_format($cData['registered_count']) . '</td>';
+                    $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;color:#64748b;">' . $cData['registered_pct'] . '%</td>';
+                    $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;">' . number_format($cData['served_count']) . '</td>';
+                    $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;color:#64748b;">' . $cData['served_pct'] . '%</td>';
+                    $classRows .= '</tr>';
+                }
+                // Demographic Subtotal
+                $classRows .= '<tr style="background:#f1f5f9;font-weight:800;">';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #cbd5e1;">Demographic Subtotal</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #cbd5e1;text-align:right;">' . number_format($classificationSummary['total_registered']) . '</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #cbd5e1;text-align:right;">100%</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #cbd5e1;text-align:right;">' . number_format($classificationSummary['unique_served_total']) . '</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #cbd5e1;text-align:right;">100%</td>';
+                $classRows .= '</tr>';
+                // PWD Overlay
+                $classRows .= '<tr style="background:#fef3c7;font-weight:700;color:#92400e;">';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;">PWD (Disability Condition Overlay)</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;">' . number_format($classificationSummary['pwd']['registered_count']) . '</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;">' . $classificationSummary['pwd']['registered_percentage'] . '%</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;">' . number_format($classificationSummary['pwd']['served_count']) . '</td>';
+                $classRows .= '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:right;">' . $classificationSummary['pwd']['served_percentage'] . '%</td>';
+                $classRows .= '</tr>';
             }
             if(empty($classRows)) {
-                $classRows = '<tr><td colspan="3" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No patient classification data available.</td></tr>';
+                $classRows = '<tr><td colspan="5" style="padding:6px;text-align:center;color:#94a3b8;font-size:7.5pt;">No patient classification data available.</td></tr>';
             }
-            $classTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Classification Category</th><th ' . $thStyleR . '>Count</th><th ' . $thStyleR . '>% Share</th></tr></thead><tbody>' . $classRows . '</tbody></table>';
+            $classTable = '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><thead><tr><th ' . $thStyle . '>Classification Cohort</th><th ' . $thStyleR . '>Registered</th><th ' . $thStyleR . '>% Registry</th><th ' . $thStyleR . '>Served (Period)</th><th ' . $thStyleR . '>% Volume</th></tr></thead><tbody>' . $classRows . '</tbody></table>';
 
             // 6. Severity Table
             $sevRows = '';
@@ -2017,10 +2619,10 @@
                             <h1 style="font-size:15pt;font-weight:800;color:#0f172a;letter-spacing:-0.02em;margin:0 0 2px 0;">Epidemiological & Operational Analytics Report</h1>
                             <p style="font-size:8.5pt;font-weight:500;color:#64748b;margin:0 0 10px 0;">Deep-dive facility metrics, demographics, and patient flow trends.</p>
                             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:8px 12px;font-size:8pt;">
-                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Period</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ ucfirst($timeFilter) }} — {{ now()->format('F Y') }}</div></div>
+                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Reporting Period</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ addslashes($printTimeframeLabel) }}</div></div>
                                 <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Facility</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ addslashes(\App\Models\SiteSetting::get('topbar_municipality', 'Municipality of Silang')) }} — RHU</div></div>
                                 <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Generated By</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ auth()->check() ? auth()->user()->name : 'System Generated' }}</div></div>
-                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Date</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ now()->format('M d, Y h:i A') }}</div></div>
+                                <div><div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">Date & Time</div><div style="font-weight:700;color:#0f172a;margin-top:1px;">{{ now()->format('M d, Y h:i A') }}</div></div>
                             </div>
                         </div>
 
@@ -2032,47 +2634,108 @@
                                 <th {!! $thStyleR !!}>Value</th>
                             </tr></thead>
                             <tbody>
-                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Total Consultations</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ number_format($totalPeriodVisits) }}</td></tr>
-                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Peak Patient Flow Window</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $busiestHourLabel }}</td></tr>
-                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Top Demographic Group</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $maxDemoGroup }}</td></tr>
-                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Prevalent Triage Priority</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $dominantSeverity }}</td></tr>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;font-weight:700;">Total Master Registry Patients</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ number_format($census['total_registered']) }}</td></tr>
+                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;font-weight:700;">New Registrations in Period</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ number_format($census['new_registered']) }}</td></tr>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;font-weight:700;">Unique Individuals Served</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ number_format($census['unique_patients_served']) }}</td></tr>
+                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;font-weight:700;">Total Consultations</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ number_format($totalPeriodVisits) }}</td></tr>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Peak Patient Flow Window</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $busiestHourLabel }}</td></tr>
+                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Top Demographic Group</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $maxDemoGroup }}</td></tr>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Prevalent Triage Priority</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;">{{ $dominantSeverity }}</td></tr>
+                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Avg Consultation Duration</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ $staffProductivity['avgDuration'] ?? 0 }} min</td></tr>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Clinical Throughput</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ $staffProductivity['patientsPerHour'] ?? 0 }} patients/hr</td></tr>
+                                <tr style="background:#f8fafc;"><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Avg Queue Wait Time</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#0f172a;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ $staffProductivity['avgWaitTime'] ?? 0 }} min</td></tr>
+                                <tr><td style="padding:6px 10px;border:1px solid #e2e8f0;color:#334155;">Cancellation Rate</td><td style="padding:6px 10px;border:1px solid #e2e8f0;color:{{ ($staffProductivity['cancellationRate'] ?? 0) > 10 ? '#dc2626' : '#0f172a' }};font-weight:800;text-align:right;font-variant-numeric:tabular-nums;">{{ $staffProductivity['cancellationRate'] ?? 0 }}%</td></tr>
                             </tbody>
                         </table>
 
-                        <!-- ═════════ SECTION 1: PATIENT FLOW ANALYSIS ═════════ -->
-                        <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Patient Flow Analysis</h3>
+                        <!-- ═════════ SECTION 1: VISIT VOLUME & PEAK HOURS ═════════ -->
+                        <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Section 1 &mdash; Visit Volume &amp; Peak Hours</h3>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-                            ${chartBlock(charts.visitVolume, 'Visit Volume Over Time', 'Tracks total patient consultation traffic across the reporting period to identify daily trends, surges, and seasonal patterns for clinical staffing and medicine inventory planning.', {!! json_encode($vvTable) !!})}
-                            ${chartBlock(charts.peakHours, 'Peak Hours Distribution', 'Displays patient arrival density by hour of the day. Identifies high-traffic triage windows (typically 8:00 AM - 11:00 AM) to optimize staff scheduling and reduce waiting hall congestion.', {!! json_encode($phTable) !!})}
+                            ${chartBlock(chartImages.visitVolume, 'Visit Volume Over Time', 'Tracks total patient consultation traffic across the reporting period to identify daily trends, surges, and seasonal patterns for clinical staffing and medicine inventory planning.', {!! json_encode($vvTable) !!})}
+                            ${chartBlock(chartImages.peakHours, 'Peak Hours Distribution', 'Displays patient arrival density by hour of the day. Identifies high-traffic triage windows (typically 8:00 AM - 11:00 AM) to optimize staff scheduling and reduce waiting hall congestion.', {!! json_encode($phTable) !!})}
                         </div>
 
-                        <!-- ═════════ SECTION 2: DEMOGRAPHICS & CLINICAL ANALYSIS ═════════ -->
+                        <!-- ═════════ SECTION 2: STAFF WORKLOAD ═════════ -->
+                        <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Section 2 &mdash; Staff Workload Distribution</h3>
+                        <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:16px;">
+                            ${chartBlock(chartImages.workload, 'Clinical Staff Workload', 'Quantifies patient consultations and clinical cases handled by doctors and healthcare staff, ensuring balanced clinical duty allocation and provider productivity monitoring.', {!! json_encode($wlTable) !!})}
+                        </div>
+
+                        <!-- ═════════ SECTION 3: PATIENT DEMOGRAPHICS ═════════ -->
                         <div style="page-break-before:auto;">
-                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Demographics & Clinical Morbidity</h3>
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Section 3 &mdash; Patient Demographics (Age-Sex Pyramid)</h3>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-                                ${chartBlock(charts.ageSex, 'Age-Sex Demographic Pyramid', 'Epidemiological demographic pyramid classifying patient visits by age bracket and sex, highlighting pediatric, reproductive-age, and geriatric healthcare utilization across Silang.', {!! json_encode($demoTable) !!})}
+                                ${chartBlock(chartImages.ageSex, 'Age-Sex Demographic Pyramid', 'Epidemiological demographic pyramid classifying patient visits by age bracket and sex, highlighting pediatric, reproductive-age, and geriatric healthcare utilization across Silang.', {!! json_encode($demoTable) !!})}
                                 ${chartBlock(null, 'Top Diagnoses & Morbidity Surveillance', 'Prevalent diseases recorded among attending patients during the reporting period, informing public health prevention and pharmaceutical stockpiling.', {!! json_encode($diagTable) !!})}
                             </div>
+                        </div>
+
+                        <!-- ═════════ SECTION 4: PATIENT CLASSIFICATION & TRIAGE SEVERITY ═════════ -->
+                        <div style="page-break-before:auto;">
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Section 4 &mdash; Patient Classification &amp; Triage Severity</h3>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-                                ${chartBlock(charts.classification, 'Patient Classification Breakdown', 'Categorizes patients by priority classification (Senior Citizen, 4Ps/Indigent, PWD, Pediatric, General), supporting municipal healthcare subsidy audits and PhilHealth primary care coverage.', {!! json_encode($classTable) !!})}
-                                ${chartBlock(charts.severity, 'Triage Severity Distribution', 'Clinical triage acuity breakdown (Non-Urgent, Semi-Urgent, Urgent, Emergency), monitoring acute clinical severity to evaluate emergency readiness and doctor allocation.', {!! json_encode($sevTable) !!})}
+                                ${chartBlock(chartImages.classification, 'Patient Classification Breakdown', 'Categorizes patients by priority classification (Senior Citizen, 4Ps/Indigent, PWD, Pediatric, General), supporting municipal healthcare subsidy audits and PhilHealth primary care coverage.', {!! json_encode($classTable) !!})}
+                                ${chartBlock(chartImages.severity, 'Triage Severity Distribution', 'Clinical triage acuity breakdown (Non-Urgent, Semi-Urgent, Urgent, Emergency), monitoring acute clinical severity to evaluate emergency readiness and doctor allocation.', {!! json_encode($sevTable) !!})}
                             </div>
                         </div>
 
-                        <!-- ═════════ SECTION 3: GEOGRAPHIC & STAFF PRODUCTIVITY ═════════ -->
+                        <!-- ═════════ SECTION 5: BARANGAY HEATMAP ═════════ -->
                         <div style="page-break-before:auto;">
-                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Geographic Catchment & Staff Operations</h3>
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Section 5 &mdash; Barangay Patient Heatmap &amp; Geographic Catchment</h3>
+                            <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:16px;">
+                                ${chartBlock(chartImages.barangay, 'Barangay Patient Distribution', 'Geographic catchment mapping of patients across Silang barangays, identifying high-demand communities to guide mobile clinic deployments and health outreach programs.', {!! json_encode($bgyTable) !!})}
+                            </div>
+                        </div>
+
+                        <!-- ═════════ SECTION 6: STAFF PRODUCTIVITY & PERFORMANCE ═════════ -->
+                        <div style="page-break-before:auto;">
+                            <h3 style="font-size:11pt;font-weight:800;color:#0f172a;margin:20px 0 8px 0;text-transform:uppercase;letter-spacing:0.04em;">Section 6 &mdash; Staff Productivity &amp; Operational Performance</h3>
                             
-                            {{-- Row 1: Barangay Distribution & Staff Workload (Full 1/2 Column Each) --}}
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-                                ${chartBlock(charts.barangay, 'Barangay Patient Distribution', 'Geographic catchment mapping of patients across Silang barangays, identifying high-demand communities to guide mobile clinic deployments and health outreach programs.', {!! json_encode($bgyTable) !!})}
-                                ${chartBlock(charts.workload, 'Staff Workload Distribution', 'Quantifies patient consultations and clinical cases handled by doctors and healthcare staff, ensuring balanced clinical duty allocation and provider productivity monitoring.', {!! json_encode($wlTable) !!})}
+                            {{-- Staff Productivity KPI Cards --}}
+                            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;">
+                                <div style="border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;background:#f8fafc;page-break-inside:avoid;">
+                                    <div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px;">Avg Duration</div>
+                                    <div style="font-size:14pt;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums;">{{ $staffProductivity['avgDuration'] ?? 0 }}<span style="font-size:7.5pt;font-weight:600;color:#64748b;margin-left:2px;">min</span></div>
+                                    <div style="font-size:6.5pt;color:#64748b;margin-top:2px;">Per patient encounter</div>
+                                </div>
+                                <div style="border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;background:#f8fafc;page-break-inside:avoid;">
+                                    <div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px;">Total Completed</div>
+                                    <div style="font-size:14pt;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums;">{{ number_format($staffProductivity['totalPatients'] ?? 0) }}</div>
+                                    <div style="font-size:6.5pt;color:#64748b;margin-top:2px;">Finished consultations</div>
+                                </div>
+                                <div style="border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;background:#f8fafc;page-break-inside:avoid;">
+                                    <div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px;">Throughput</div>
+                                    <div style="font-size:14pt;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums;">{{ $staffProductivity['patientsPerHour'] ?? 0 }}<span style="font-size:7.5pt;font-weight:600;color:#64748b;margin-left:2px;">pts/hr</span></div>
+                                    <div style="font-size:6.5pt;color:#64748b;margin-top:2px;">Patient processing rate</div>
+                                </div>
+                                <div style="border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;background:#f8fafc;page-break-inside:avoid;">
+                                    <div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px;">Avg Wait Time</div>
+                                    <div style="font-size:14pt;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums;">{{ $staffProductivity['avgWaitTime'] ?? 0 }}<span style="font-size:7.5pt;font-weight:600;color:#64748b;margin-left:2px;">min</span></div>
+                                    <div style="font-size:6.5pt;color:#64748b;margin-top:2px;">From queue to consult</div>
+                                </div>
+                                <div style="border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;background:#f8fafc;page-break-inside:avoid;">
+                                    <div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px;">Cancellation Rate</div>
+                                    <div style="font-size:14pt;font-weight:900;color:{{ ($staffProductivity['cancellationRate'] ?? 0) > 10 ? '#dc2626' : '#0f172a' }};font-variant-numeric:tabular-nums;">{{ $staffProductivity['cancellationRate'] ?? 0 }}%</div>
+                                    <div style="font-size:6.5pt;color:#64748b;margin-top:2px;">Cancelled vs completed</div>
+                                </div>
                             </div>
 
-                            {{-- Row 2: Consultation Duration & EHR Encoding Speed (Full 1/2 Column Each - PROPERLY SIZED) --}}
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-                                ${chartBlock(charts.durationStaff, 'Consultation Duration by Practitioner', 'Average examination and consultation minutes per provider, benchmarking clinical thoroughness against patient throughput and queue efficiency.', {!! json_encode($durTable) !!})}
-                                ${chartBlock(charts.encodingSpeed, 'EHR Charting & Encoding Speed', 'Average electronic medical records (EMR) charting turnaround time per consultation, assessing medical informatics efficiency and digital health compliance.', {!! json_encode($encTable) !!})}
+                            {{-- Sub-section A: Clinical Performance (Doctors/Nurses) --}}
+                            <div style="margin-bottom:10px;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;">
+                                <div style="font-size:8pt;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:0.04em;">&#9654; Clinical Performance &mdash; Doctors / Nurses</div>
+                                <div style="font-size:7pt;color:#15803d;margin-top:1px;">Average consultation duration per attending physician, measuring clinical thoroughness vs patient throughput.</div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:16px;">
+                                ${chartBlock(chartImages.durationStaff, 'Avg Consultation Duration per Provider (Minutes)', 'Average examination and consultation minutes per provider, benchmarking clinical thoroughness against patient throughput and queue efficiency.', {!! json_encode($durTable) !!})}
+                            </div>
+
+                            {{-- Sub-section B: Front-Line Efficiency (Triage/Info Desk) --}}
+                            <div style="margin-bottom:10px;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;">
+                                <div style="font-size:8pt;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:0.04em;">&#9654; Front-Line Efficiency &mdash; Triage / Info Desk</div>
+                                <div style="font-size:7pt;color:#2563eb;margin-top:1px;">Average EMR charting turnaround time at the triage and information desk, assessing front-line processing speed.</div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:16px;">
+                                ${chartBlock(chartImages.encodingSpeed, 'Triage Encoding Speed per Nurse (Seconds)', 'Average electronic medical records (EMR) charting turnaround time per consultation at the triage and information desk, assessing front-line processing speed and digital health compliance.', {!! json_encode($encTable) !!})}
                             </div>
                         </div>
 
@@ -2084,7 +2747,7 @@
                         <div style="width:100%;border-top:1px solid #cbd5e1;margin-bottom:6px;"></div>
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;font-size:7pt;color:#64748b;line-height:1.35;">
                             <div style="flex:1;max-width:65%;text-align:justify;">CONFIDENTIAL HEALTH & ADMINISTRATIVE RECORD — Contains protected health information subject to Republic Act No. 10173 (Data Privacy Act of 2012). Unauthorized disclosure, copying, or distribution is strictly prohibited.</div>
-                            <div style="flex-shrink:0;text-align:right;font-weight:600;color:#334155;"><div>Epidemiological & Operational Analytics Report</div><div>Printed: {{ now()->format('M d, Y h:i A') }} &bull; {{ auth()->check() ? auth()->user()->name : 'System' }}</div></div>
+                            <div style="flex-shrink:0;text-align:right;font-weight:600;color:#334155;"><div>Epidemiological & Operational Analytics Report</div><div>Timeframe: {{ addslashes($printTimeframeLabel) }}</div><div>Printed: {{ now()->format('M d, Y h:i A') }} &bull; {{ auth()->check() ? auth()->user()->name : 'System' }}</div></div>
                         </div>
                     </footer>
                 </td></tr></tfoot>
@@ -2092,7 +2755,7 @@
         `;
 
         window.printIsolated(reportHTML, {
-            title: 'Epidemiological & Operational Analytics Report',
+            title: 'Epidemiological & Operational Analytics Report — {{ addslashes($printTimeframeLabel) }}',
             paperSize: 'auto'
         });
     }

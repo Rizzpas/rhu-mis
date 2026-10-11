@@ -357,11 +357,6 @@ class AnnouncementController extends Controller
             return back()->with('error', 'Invalid status requested.');
         }
 
-        // Only super_admin can set to published directly
-        if ($newStatus === 'published' && ! Auth::user()->hasRole('super_admin')) {
-            $newStatus = 'pending';
-        }
-
         $announcement->status = $newStatus;
 
         // If we are activating (reposting to published), update the creation time so it appears at the top
@@ -418,5 +413,33 @@ class AnnouncementController extends Controller
         Announcement::whereIn('id', $request->ids)->delete();
 
         return back()->with('success', count($request->ids).' announcements archived successfully!');
+    }
+
+    public function bulkStatus(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:announcements,id',
+            'status' => 'required|string|in:draft,pending,published',
+        ]);
+
+        $newStatus = $request->input('status');
+
+        $updateData = ['status' => $newStatus];
+        if ($newStatus === 'published') {
+            $updateData['created_at'] = now();
+        }
+
+        Announcement::whereIn('id', $request->ids)->update($updateData);
+
+        $statusMsg = match ($newStatus) {
+            'published' => 'published',
+            'pending' => 'moved to pending review',
+            'draft' => 'moved to draft',
+            default => "updated to {$newStatus}"
+        };
+        $count = count($request->ids);
+
+        return back()->with('success', "{$count} announcement(s) successfully {$statusMsg}!");
     }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-6 sm:py-10">
+<div class="py-6 sm:py-8">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <x-breadcrumb :items="['Appointments' => route('appointment.create'), 'Manage Appointment' => '']" />

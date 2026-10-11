@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\TrackUserActivity::class,
             \App\Http\Middleware\PreventBackHistory::class,
+            \App\Http\Middleware\GzipResponse::class,
         ]);
         $middleware->validateCsrfTokens(except: [
             'logout',

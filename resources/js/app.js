@@ -82,12 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { threshold: 0.01, rootMargin: '50px 0px 50px 0px' });
 
         document.querySelectorAll('[data-reveal]').forEach(el => {
-            const rect = el.getBoundingClientRect();
-            if (rect.top < window.innerHeight) {
-                el.classList.add('is-visible');
-            } else {
-                revealObserver.observe(el);
-            }
+            revealObserver.observe(el);
         });
 
         // Re-observe after Alpine live-update refreshes content
@@ -419,21 +414,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initAllCustomSelects();
 
     // Watch for dynamically added select elements (modals, Alpine steps, AJAX)
+    let scanTimeout = null;
     const bodyObserver = new MutationObserver((mutations) => {
         let shouldScan = false;
-        mutations.forEach(m => {
+        for (let i = 0; i < mutations.length; i++) {
+            const m = mutations[i];
             if (m.addedNodes.length) {
-                m.addedNodes.forEach(node => {
-                    if (node.nodeType === 1) {
-                        if (node.tagName === 'SELECT' || node.querySelector?.('select')) {
-                            shouldScan = true;
-                        }
+                for (let j = 0; j < m.addedNodes.length; j++) {
+                    const node = m.addedNodes[j];
+                    if (node.nodeType === 1 && (node.tagName === 'SELECT' || node.querySelector?.('select'))) {
+                        shouldScan = true;
+                        break;
                     }
-                });
+                }
             }
-        });
+            if (shouldScan) break;
+        }
         if (shouldScan) {
-            initAllCustomSelects();
+            clearTimeout(scanTimeout);
+            scanTimeout = setTimeout(() => initAllCustomSelects(), 50);
         }
     });
 

@@ -165,6 +165,7 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_
     Route::post('/announcements/{announcement}/toggle', [\App\Http\Controllers\Admin\AnnouncementController::class, 'toggle'])->name('admin.announcements.toggle');
     Route::delete('/announcements/images/bulk/delete', [\App\Http\Controllers\Admin\AnnouncementController::class, 'bulkDeleteImages'])->name('admin.announcements.bulk-delete-images');
     Route::delete('/announcements/bulk/delete', [\App\Http\Controllers\Admin\AnnouncementController::class, 'bulkDelete'])->name('admin.announcements.bulk-delete')->middleware('can:delete-announcements');
+    Route::post('/announcements/bulk/status', [\App\Http\Controllers\Admin\AnnouncementController::class, 'bulkStatus'])->name('admin.announcements.bulk-status');
     Route::delete('/announcements/images/{image}', [\App\Http\Controllers\Admin\AnnouncementController::class, 'deleteImage'])->name('admin.announcements.delete-image');
 
     // Staff Management

@@ -123,9 +123,9 @@
                                 </span>
                             </div>
 
-                            <h3 class="font-display text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                            <h2 class="font-display text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                 {{ $uName }}
-                            </h3>
+                            </h2>
                             <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed mb-4 line-clamp-3 font-normal">
                                 {{ $uDesc }}
                             </p>
@@ -139,7 +139,7 @@
                                         </span>
                                     @endforeach
                                     @if(count($uServices) > 4)
-                                        <span class="px-2 py-1 rounded-md text-[10px] font-bold text-slate-400 bg-slate-50 dark:bg-slate-800">
+                                        <span class="px-2 py-1 rounded-md text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800">
                                             +{{ count($uServices) - 4 }} more
                                         </span>
                                     @endif
@@ -150,7 +150,7 @@
 
                     {{-- Footer Action Link --}}
                     <div class="px-6 pb-6 pt-3 border-t border-slate-100 dark:border-slate-700/70 flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
                             {{ $unit->contact_number ?: 'Silang RHU' }}
                         </span>
                         <a href="{{ route('units.show', $uSlug) }}" 
@@ -165,7 +165,7 @@
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No Facilities Currently Available</h3>
+                    <h2 class="text-base font-bold text-slate-800 dark:text-slate-200">No Facilities Currently Available</h2>
                     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Please check back later or visit the Rural Health Unit main desk.</p>
                 </div>
             @endforelse

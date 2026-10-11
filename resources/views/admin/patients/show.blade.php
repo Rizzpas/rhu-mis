@@ -305,13 +305,42 @@
                             <div class="md:col-span-2 pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-3">Vitals Snapshot at Time of Case</p>
                                 @if($isUnmasked)
+                                    @php
+                                        $vitals = is_iterable($case->vitals_snapshot) 
+                                            ? $case->vitals_snapshot 
+                                            : (is_string($case->vitals_snapshot) ? (json_decode(json_decode($case->vitals_snapshot, true) ?: $case->vitals_snapshot, true) ?? []) : []);
+                                        if (is_string($vitals)) {
+                                            $vitals = json_decode($vitals, true) ?? [];
+                                        }
+                                        $vitalLabelMap = [
+                                            'bp' => 'BP',
+                                            'blood_pressure' => 'BP',
+                                            'temp' => 'Temp',
+                                            'temperature' => 'Temp',
+                                            'wt' => 'Weight',
+                                            'weight' => 'Weight',
+                                            'ht' => 'Height',
+                                            'height' => 'Height',
+                                            'hr' => 'HR',
+                                            'heart_rate' => 'HR',
+                                            'rr' => 'RR',
+                                            'respiratory_rate' => 'RR',
+                                            'pr' => 'Pulse',
+                                            'pulse_rate' => 'Pulse',
+                                            'spo2' => 'SpO2',
+                                        ];
+                                    @endphp
                                     <div class="grid grid-cols-4 md:grid-cols-8 gap-4 text-center">
-                                        @foreach($case->vitals_snapshot as $key => $val)
+                                        @forelse($vitals as $key => $val)
                                         <div>
-                                            <p class="text-[9px] font-bold text-gray-400 uppercase">{{ $key }}</p>
+                                            <p class="text-[9px] font-bold text-gray-400 uppercase">{{ $vitalLabelMap[strtolower((string)$key)] ?? str_replace('_', ' ', (string)$key) }}</p>
                                             <p class="text-sm font-bold text-gray-800 dark:text-white">{{ $val ?: '--' }}</p>
                                         </div>
-                                        @endforeach
+                                        @empty
+                                        <div class="col-span-4 md:col-span-8 text-xs text-gray-400 italic">
+                                            No vital signs recorded for this case.
+                                        </div>
+                                        @endforelse
                                     </div>
                                 @else
                                     <p class="text-xs font-mono text-slate-400 italic">[Vitals recorded by clinical staff at triage — Clinical clearance required to view]</p>
@@ -398,23 +427,27 @@
 
                                         @if($req->result_data)
                                             @php
+                                                $resData = is_array($req->result_data) ? $req->result_data : (is_string($req->result_data) ? (json_decode($req->result_data, true) ?: ['result' => $req->result_data]) : []);
+                                                if (is_string($resData)) {
+                                                    $resData = json_decode($resData, true) ?: ['result' => $resData];
+                                                }
                                                 $testLower = strtolower($req->test_name);
-                                                $isRad = $req->type === 'Radiology' || str_contains($testLower, 'x-ray') || str_contains($testLower, 'xray') || isset($req->result_data['findings']);
+                                                $isRad = $req->type === 'Radiology' || str_contains($testLower, 'x-ray') || str_contains($testLower, 'xray') || (is_array($resData) && isset($resData['findings']));
                                             @endphp
                                             <div class="mt-2 space-y-1.5 text-xs bg-white/70 dark:bg-slate-900/50 p-2.5 rounded-lg border border-indigo-100 dark:border-indigo-900/40">
-                                                @if($isRad && isset($req->result_data['findings']))
+                                                @if($isRad && is_array($resData) && isset($resData['findings']))
                                                     <div>
                                                         <span class="font-bold text-slate-700 dark:text-slate-300 block text-[10px] uppercase">Findings:</span>
-                                                        <p class="text-slate-900 dark:text-white leading-relaxed line-clamp-3">{{ $req->result_data['findings'] }}</p>
+                                                        <p class="text-slate-900 dark:text-white leading-relaxed line-clamp-3">{{ $resData['findings'] }}</p>
                                                     </div>
-                                                    @if(isset($req->result_data['impression']))
+                                                    @if(isset($resData['impression']))
                                                     <div class="pt-1 border-t border-indigo-100 dark:border-indigo-900/30">
                                                         <span class="font-bold text-emerald-800 dark:text-emerald-400 block text-[10px] uppercase">Impression:</span>
-                                                        <p class="font-bold text-slate-900 dark:text-white">{{ $req->result_data['impression'] }}</p>
+                                                        <p class="font-bold text-slate-900 dark:text-white">{{ $resData['impression'] }}</p>
                                                     </div>
                                                     @endif
-                                                @else
-                                                    @foreach($req->result_data as $key => $val)
+                                                @elseif(!empty($resData) && is_iterable($resData))
+                                                    @foreach($resData as $key => $val)
                                                         @if(is_string($val) && !in_array($key, ['remarks', 'exam_view']) && !empty($val))
                                                             <div class="flex justify-between border-b border-indigo-50 dark:border-indigo-900/20 pb-0.5">
                                                                 <span class="text-indigo-700/80 dark:text-indigo-400">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
@@ -464,43 +497,150 @@
     </div>
 
     <!-- Authorized PHI Override Modal -->
-    <div x-show="showOverrideModal" x-cloak class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-        <div @click.away="showOverrideModal = false" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
-             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-            <form action="{{ route('admin.patients.show', $patient) }}" method="GET" class="p-6">
+    @php
+        $phiOverrideReasonOptions = [
+            [
+                'value' => 'Official DOH / Regulatory Compliance Audit',
+                'label' => 'Official DOH / Regulatory Compliance Audit',
+                'sublabel' => 'Statutory reporting & health facility inspection',
+                'badge' => 'DOH Audit',
+                'badgeClass' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+                'icon' => 'user',
+                'iconColor' => 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
+            ],
+            [
+                'value' => 'Legal Subpoena / Authorized Law Enforcement Inquiry',
+                'label' => 'Legal Subpoena / Authorized Law Enforcement Inquiry',
+                'sublabel' => 'Court-ordered discovery or active official inquiry',
+                'badge' => 'Legal Order',
+                'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+                'icon' => 'star',
+                'iconColor' => 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400',
+            ],
+            [
+                'value' => 'Technical Database Troubleshooting / System QA Audit',
+                'label' => 'Technical Database Troubleshooting / System QA Audit',
+                'sublabel' => 'Administrative diagnostics & data consistency validation',
+                'badge' => 'Technical',
+                'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+                'icon' => 'edit',
+                'iconColor' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+            ],
+            [
+                'value' => 'Medical Director Direct Written Authorization',
+                'label' => 'Medical Director Direct Written Authorization',
+                'sublabel' => 'MHO / Physician-in-charge approved exception',
+                'badge' => 'Director Auth',
+                'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+                'icon' => 'star',
+                'iconColor' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+            ],
+        ];
+    @endphp
+    <div x-show="showOverrideModal" x-cloak 
+         class="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 bg-slate-950/65 backdrop-blur-md"
+         x-transition:enter="transition ease-out duration-300" 
+         x-transition:enter-start="opacity-0" 
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0">
+
+        <div @click.away="showOverrideModal = false" 
+             class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl shadow-slate-950/30 w-full max-w-lg overflow-visible border border-slate-200/90 dark:border-slate-800/90"
+             x-transition:enter="transition ease-out duration-300 transform" 
+             x-transition:enter-start="opacity-0 scale-95 translate-y-3" 
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200 transform" 
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0" 
+             x-transition:leave-end="opacity-0 scale-95 translate-y-3">
+        
+
+            {{-- Close Dialog Button --}}
+            <button type="button" 
+                    @click="showOverrideModal = false" 
+                    class="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer z-10" 
+                    title="Close dialog">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <form action="{{ route('admin.patients.show', $patient) }}" method="GET" 
+                  @submit="
+                      const reasonInput = $el.querySelector('input[name=\'override_reason\']');
+                      if (!reasonInput || !reasonInput.value) {
+                          $event.preventDefault();
+                          window.toast ? window.toast.error('Please select an audit justification before accessing PHI records.', 'Audit Justification Required') : alert('Please select an audit justification before accessing PHI records.');
+                          return false;
+                      }
+                  "
+                  class="p-6 sm:p-7">
                 <input type="hidden" name="unmask" value="1">
-                <div class="flex items-start gap-3 mb-4">
-                    <div class="p-2.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded-xl shrink-0">
+
+                {{-- Header with Icon & Compliance Badge --}}
+                <div class="flex items-start gap-3.5 mb-5">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-300/60 dark:border-amber-800/60 shadow-xs">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
                     </div>
-                    <div>
-                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Authorized PHI Access Request</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Under RA 10173, viewing unmasked patient clinical records is tracked and logged permanently in the system audit trail.</p>
+                    <div class="min-w-0 pr-6">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                DPA RA 10173 Protocol
+                            </span>
+                            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 font-mono">STRICT ACCESS</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Authorized PHI Access Request</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                            Viewing unmasked clinical diagnoses, doctor notes, and diagnostic findings is restricted to authorized personnel under active regulatory audit compliance.
+                        </p>
                     </div>
                 </div>
 
-                <div class="space-y-3 mb-5">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Audit Justification / Purpose <span class="text-rose-500">*</span></label>
-                        <select name="override_reason" required class="w-full text-xs rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2.5 focus:ring-amber-500 focus:border-amber-500">
-                            <option value="">-- Select Purpose --</option>
-                            <option value="Official DOH / Regulatory Compliance Audit">Official DOH / Regulatory Compliance Audit</option>
-                            <option value="Legal Subpoena / Authorized Law Enforcement Inquiry">Legal Subpoena / Authorized Law Enforcement Inquiry</option>
-                            <option value="Technical Database Troubleshooting / System QA Audit">Technical Database Troubleshooting / System QA Audit</option>
-                            <option value="Medical Director Direct Written Authorization">Medical Director Direct Written Authorization</option>
-                        </select>
+                {{-- Security Callout Box --}}
+                <div class="mb-5 p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/90 to-slate-50/70 dark:from-amber-950/20 dark:to-slate-900/60 border border-amber-200/80 dark:border-amber-900/40 flex items-start gap-3 shadow-2xs">
+                    <div class="w-7 h-7 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5 border border-amber-300/40">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div class="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300 flex-1">
+                        <p class="font-black text-slate-900 dark:text-slate-100">Permanent Audit Trail Logging</p>
+                        <p class="text-slate-500 dark:text-slate-400 mt-0.5">
+                            Your account (<span class="font-bold text-slate-800 dark:text-slate-200">{{ auth()->user()->name }}</span>), IP address, and timestamp will be permanently linked to this unmasked inspection in the Immutable Audit Log.
+                        </p>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
-                    <button type="button" @click="showOverrideModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer">
+                {{-- Audit Justification / Purpose Field --}}
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Audit Justification / Purpose <span class="text-rose-500">*</span>
+                    </label>
+                    <x-select 
+                        name="override_reason" 
+                        :options="$phiOverrideReasonOptions" 
+                        placeholder="-- Select Regulatory Audit Justification --"
+                        class="w-full text-xs"
+                    />
+                </div>
+
+                {{-- Modal Action Buttons --}}
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" 
+                            @click="showOverrideModal = false" 
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition cursor-pointer">
-                        Acknowledge & Access PHI
+                    <button type="submit" 
+                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-700 hover:to-amber-700 text-white text-xs font-black shadow-md shadow-amber-600/25 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Acknowledge &amp; Access PHI</span>
                     </button>
                 </div>
             </form>

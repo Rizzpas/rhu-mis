@@ -7,8 +7,6 @@
         activeSlide: 0,
         totalSlides: {{ 1 + $announcement->images->where('type', 'slide')->count() }},
         fullscreenMedia: null,
-        shareMenuOpen: false,
-        fontSizeLevel: 1, // 0: sm, 1: base/lg, 2: xl
         scrollProgress: 0,
         
         copyLink() {
@@ -61,7 +59,7 @@
      }"
      x-init="initPolling()"
      @scroll.window="updateScroll()"
-     class="relative min-h-screen pt-3 pb-16 sm:pt-6 sm:pb-24 bg-gradient-to-b from-slate-50 via-white to-slate-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors">
+     class="relative min-h-screen pt-6 pb-16 sm:pt-8 sm:pb-24 bg-gradient-to-b from-slate-50 via-white to-slate-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors">
 
     {{-- Top Reading Progress Indicator (Fixed) --}}
     <div class="fixed top-0 left-0 right-0 h-1 z-50 bg-transparent pointer-events-none print:hidden">
@@ -95,123 +93,31 @@
     @endphp
 
     {{-- Breadcrumbs & Citizen Utility Bar --}}
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 print:hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2 border-b border-slate-200/60 dark:border-slate-800">
-            
-            {{-- Breadcrumb trail --}}
-            <nav class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 overflow-x-auto py-1">
-                <a href="{{ route('welcome') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5 shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Home</span>
-                </a>
-                <span class="text-slate-300 dark:text-slate-700">/</span>
-                <a href="{{ route('announcements.index') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
-                    Announcements
-                </a>
-                <span class="text-slate-300 dark:text-slate-700">/</span>
-                <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold {{ $cat['bg'] }} shrink-0">
-                    {{ $cat['label'] }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-700">/</span>
-                <span class="text-slate-700 dark:text-slate-300 font-semibold truncate max-w-[200px] sm:max-w-xs" title="{{ $announcement->title }}">
-                    Bulletin #{{ str_pad($announcement->id, 3, '0', STR_PAD_LEFT) }}
-                </span>
-            </nav>
-
-            {{-- Action Buttons --}}
-            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                {{-- Font Size Controls --}}
-                <div class="hidden sm:flex items-center gap-1 p-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 print:hidden">
+        <x-breadcrumb :items="[
+            'Announcements' => route('announcements.index'),
+            $cat['label'] . ' Bulletin #' . str_pad($announcement->id, 3, '0', STR_PAD_LEFT) => ''
+        ]">
+            <x-slot:right>
+                {{-- Action Buttons --}}
+                <div class="flex items-center gap-2 shrink-0">
+                    {{-- Print Button --}}
                     <button type="button" 
-                            @click="fontSizeLevel = Math.max(0, fontSizeLevel - 1)" 
-                            :class="fontSizeLevel === 0 ? 'text-emerald-600 font-bold bg-slate-100 dark:bg-slate-700' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-                            class="px-2 py-1 rounded-lg transition" title="Smaller text">
-                        A-
-                    </button>
-                    <button type="button" 
-                            @click="fontSizeLevel = 1" 
-                            :class="fontSizeLevel === 1 ? 'text-emerald-600 font-bold bg-slate-100 dark:bg-slate-700' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-                            class="px-2 py-1 rounded-lg transition" title="Default text">
-                        A
-                    </button>
-                    <button type="button" 
-                            @click="fontSizeLevel = Math.min(2, fontSizeLevel + 1)" 
-                            :class="fontSizeLevel === 2 ? 'text-emerald-600 font-bold bg-slate-100 dark:bg-slate-700' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-                            class="px-2 py-1 rounded-lg transition" title="Larger text">
-                        A+
-                    </button>
-                </div>
-
-                {{-- Share Dropdown --}}
-                <div class="relative" @click.outside="shareMenuOpen = false">
-                    <button type="button"
-                            @click="shareMenuOpen = !shareMenuOpen"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs transition-all">
-                        <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                            onclick="window.printReport({ title: 'Official Public Health Bulletin' })" 
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs transition-all cursor-pointer"
+                            title="Print this official notice">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                         </svg>
-                        <span>Share</span>
+                        <span>Print</span>
                     </button>
-
-                    <div x-show="shareMenuOpen"
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                         style="display: none;"
-                         class="absolute right-0 mt-2 w-52 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl p-1.5 z-40">
-                        
-                        <button type="button" 
-                                @click="copyLink(); shareMenuOpen = false" 
-                                class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                                <span>Copy Link</span>
-                            </div>
-                            <span x-show="copied" class="text-[10px] text-emerald-600 font-bold">Copied!</span>
-                        </button>
-
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->fullUrl()) }}" 
-                           target="_blank" rel="noopener noreferrer"
-                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition">
-                            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                            <span>Facebook</span>
-                        </a>
-
-                        <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->fullUrl()) }}&text={{ urlencode($announcement->title) }}" 
-                           target="_blank" rel="noopener noreferrer"
-                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition">
-                            <svg class="w-4 h-4 text-slate-800 dark:text-slate-200" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                            <span>X (Twitter)</span>
-                        </a>
-
-                        <a href="https://api.whatsapp.com/send?text={{ urlencode($announcement->title . ' ' . request()->fullUrl()) }}" 
-                           target="_blank" rel="noopener noreferrer"
-                           class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition">
-                            <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.301-.15-1.777-.878-2.052-.978-.276-.1-.476-.15-.677.15-.201.3-.777.978-.953 1.179-.176.201-.351.226-.652.076-.301-.15-1.27-.468-2.42-1.493-.895-.798-1.5-1.784-1.676-2.085-.176-.3-.019-.463.132-.613.135-.135.301-.351.451-.527.15-.176.201-.301.301-.502.1-.201.05-.377-.025-.527-.075-.15-.677-1.632-.928-2.234-.244-.587-.492-.508-.677-.517-.176-.009-.377-.01-.578-.01-.201 0-.527.075-.803.377-.276.301-1.054 1.03-1.054 2.511 0 1.482 1.079 2.912 1.23 3.113.15.201 2.124 3.242 5.145 4.547.719.311 1.28.497 1.718.636.723.23 1.381.198 1.901.12.58-.088 1.777-.726 2.028-1.428.251-.702.251-1.304.176-1.428-.075-.125-.276-.2-.577-.35zM12.04 2C6.502 2 2.016 6.486 2.016 12.024c0 1.825.49 3.535 1.341 5.02L2 22l5.12-1.34c1.43.782 3.064 1.22 4.92 1.22 5.538 0 10.024-4.486 10.024-10.024C22.064 6.486 17.578 2 12.04 2z"/></svg>
-                            <span>WhatsApp</span>
-                        </a>
-                    </div>
                 </div>
-
-                {{-- Print Button --}}
-                <button type="button" 
-                        onclick="window.printReport({ title: 'Official Public Health Bulletin' })" 
-                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs transition-all cursor-pointer"
-                        title="Print this official notice">
-                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                    </svg>
-                    <span class="hidden sm:inline">Print</span>
-                </button>
-            </div>
-        </div>
+            </x-slot:right>
+        </x-breadcrumb>
     </div>
 
     {{-- Main Container Layout --}}
-    <div id="announcement-container" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="announcement-container" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
@@ -492,12 +398,7 @@
 
                     {{-- Main Editorial Content Body --}}
                     <div class="p-6 sm:p-10 lg:p-12">
-                        <div class="transition-all duration-150"
-                             :class="{
-                                'text-sm leading-relaxed': fontSizeLevel === 0,
-                                'text-base leading-relaxed sm:leading-8': fontSizeLevel === 1,
-                                'text-lg leading-relaxed sm:leading-9': fontSizeLevel === 2
-                             }">
+                        <div class="text-base leading-relaxed sm:leading-8 transition-all duration-150">
                             <div class="text-slate-800 dark:text-slate-100 font-normal space-y-6">
                                 {!! nl2br(e($announcement->content)) !!}
                             </div>

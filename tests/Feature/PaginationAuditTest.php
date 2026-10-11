@@ -270,4 +270,45 @@ class PaginationAuditTest extends TestCase
         $invalidResponse->assertOk();
         $this->assertEquals(1, $invalidResponse->viewData('patients')->currentPage());
     }
+
+    public function test_pharmacy_portal_pages_have_no_breadcrumbs_while_other_portals_retain_them(): void
+    {
+        $pharmacyUser = User::where('role', 'pharmacy')->first()
+            ?? User::create([
+                'name' => 'Pharmacist Test',
+                'email' => 'pharmacy_bc_' . uniqid() . '@rhu.gov.ph',
+                'password' => bcrypt('password'),
+                'role' => 'pharmacy',
+            ]);
+
+        // Pharmacy routes should all render 200 without breadcrumbs
+        $routes = [
+            'pharmacy.dashboard',
+            'pharmacy.medicines',
+            'pharmacy.history',
+            'pharmacy.written-off',
+        ];
+
+        foreach ($routes as $route) {
+            $response = $this->actingAs($pharmacyUser)->get(route($route));
+            $response->assertOk();
+            $content = $response->getContent();
+            $this->assertStringNotContainsString('aria-label="Breadcrumb"', $content, "Failed asserting that $route has no breadcrumb.");
+            $this->assertStringNotContainsString('Breadcrumb Navigation', $content, "Failed asserting that $route has no breadcrumb comment.");
+        }
+
+        // Verify other portals (e.g. frontdesk) STILL retain their breadcrumbs
+        $frontdeskUser = User::where('role', 'information_desk')->first()
+            ?? User::create([
+                'name' => 'Frontdesk BC Test',
+                'email' => 'frontdesk_bc_' . uniqid() . '@rhu.gov.ph',
+                'password' => bcrypt('password'),
+                'role' => 'information_desk',
+            ]);
+
+        $fdResponse = $this->actingAs($frontdeskUser)->get(route('frontdesk.registration.index'));
+        $fdResponse->assertOk();
+        $this->assertStringContainsString('aria-label="Breadcrumb"', $fdResponse->getContent());
+    }
 }
+

@@ -7,22 +7,20 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Rural Health Unit - Silang</title>
-    <link rel="icon" type="image/png" href="{{ asset('assets/images/logo.png') }}">
+    <meta name="description" content="@yield('meta_description', 'Rural Health Unit of Silang, Cavite — book consultations online, view health facilities and services, and read the latest public health announcements.')">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/logo-sm.png') }}">
 
-    <!-- Fonts -->
+    <!-- Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"></noscript>
 
     @stack('head')
 
-    <!-- Flatpickr for better date pickers -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
     <!-- Styles & Scripts -->
     <link rel="stylesheet" href="{{ asset('css/print.css') }}">
-    <script src="{{ asset('js/print-helper.js') }}"></script>
-    <script src="{{ asset('js/secure-image-validator.js') }}"></script>
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
@@ -41,7 +39,7 @@
                             }
                         },
                         fontFamily: {
-                            sans: ['Inter', 'Outfit', 'sans-serif'],
+                            sans: ['Inter', 'sans-serif'],
                         }
                     }
                 }
@@ -51,7 +49,7 @@
 
     <style>
         body {
-            font-family: 'Inter', 'Outfit', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             letter-spacing: -0.025em;
             background-color: #faf8f2;
         }
@@ -207,7 +205,7 @@
         <div class="flex flex-wrap justify-between items-center mx-auto max-w-7xl px-4 py-3.5 md:px-8">
             <a href="{{ route('welcome') }}" class="flex items-center gap-3 rtl:space-x-reverse">
                 <div class="shrink-0">
-                    <img src="{{ asset('assets/images/logo.png') }}" alt="RHU Official Seal"
+                    <img src="{{ asset('assets/images/logo-sm.png') }}" alt="RHU Official Seal" width="44" height="44"
                         class="w-11 h-11 object-contain bg-white dark:bg-slate-800 rounded-full p-0.5 shadow-2xs border border-slate-200/80 dark:border-slate-700/80" />
                 </div>
                 <div>
@@ -314,7 +312,7 @@
                                     class="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700/60 transition-all group">
                                     <span class="shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors overflow-hidden border border-emerald-200/50 dark:border-emerald-800/50">
                                         @if($fUnit->image_url)
-                                            <img src="{{ $fUnit->image_url }}" alt="" class="w-full h-full object-cover">
+                                            <img src="{{ $fUnit->image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover">
                                         @else
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                         @endif
@@ -474,7 +472,7 @@
                             class="flex items-start gap-4 p-4 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30 group">
                             <span class="shrink-0 w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-700 group-hover:text-white transition-colors overflow-hidden border border-emerald-200/50 dark:border-emerald-800/50">
                                 @if($fUnit->image_url)
-                                    <img src="{{ $fUnit->image_url }}" alt="" class="w-full h-full object-cover">
+                                    <img src="{{ $fUnit->image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover">
                                 @else
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                 @endif
@@ -601,7 +599,7 @@
                         <a href="{{ route('welcome') }}"
                         class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-900"
                         aria-label="Rural Health Unit Silang - Back to Homepage">
-                            <img src="{{ asset('assets/images/logo.png') }}"
+                            <img src="{{ asset('assets/images/logo-sm.png') }}" width="64" height="64" loading="lazy" decoding="async"
                                 class="h-16 w-16 object-contain sm:h-[58px] sm:w-[58px]"
                                 alt="Rural Health Unit Silang Official Seal">
                         </a>
@@ -800,7 +798,7 @@
                     <div>
 
                         <a href="{{ route('appointment.create') }}"
-                           class="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-sm shadow-emerald-900/40 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none">
+                           class="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-sm shadow-emerald-900/40 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                             </svg>
@@ -884,7 +882,6 @@
     </footer>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         // Flash Message Auto-dismiss
         const flash = document.getElementById('flash-message');

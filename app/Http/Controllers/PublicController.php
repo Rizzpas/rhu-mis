@@ -266,6 +266,8 @@ class PublicController extends Controller
                 'event_date' => $event->event_date ? $event->event_date->format('M d, Y') : null,
                 'start_time' => $event->start_time ? $event->start_time->format('g:i A') : null,
                 'created_at_formatted' => $event->created_at ? $event->created_at->format('F d, Y') : '',
+                'created_at_timestamp' => $event->created_at ? $event->created_at->timestamp : 0,
+                'created_at_raw' => $event->created_at ? $event->created_at->toIso8601String() : '',
                 'created_date_key' => $dateKey,
                 'created_month_key' => $monthKey,
                 'relative_time' => $event->created_at ? $event->created_at->diffForHumans() : '',

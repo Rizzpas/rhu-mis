@@ -5,7 +5,7 @@
         $heroImage = \App\Models\SiteSetting::get('hero_image', 'assets/images/rhu-facility.jpg');
         $heroImageUrl = asset($heroImage);
     @endphp
-    <link rel="preload" as="image" href="{{ $heroImageUrl }}">
+    <link rel="preload" as="image" href="{{ $heroImageUrl }}" fetchpriority="high">
 @endpush
 
 @section('content')
@@ -63,9 +63,11 @@
                     });
             },
             init() {
-                setInterval(() => {
-                    this.checkForUpdates();
-                }, 5000);
+                setTimeout(() => {
+                    setInterval(() => {
+                        this.checkForUpdates();
+                    }, 15000);
+                }, 10000);
             }
         }" x-init="init()">
 
@@ -81,34 +83,91 @@
                          x-data="{ 
                             activeSlide: 0,
                             slidesCount: {{ count($announcements) + 1 }},
+                            interval: null,
                             touchStartX: 0,
                             touchEndX: 0,
-                            nextSlide() { this.activeSlide = (this.activeSlide + 1) % this.slidesCount },
-                            prevSlide() { this.activeSlide = (this.activeSlide - 1 + this.slidesCount) % this.slidesCount },
-                            autoPlay() { this.interval = setInterval(() => this.nextSlide(), 6000); },
-                            stopAutoPlay() { clearInterval(this.interval); },
-                            handleTouchStart(e) { this.touchStartX = e.changedTouches[0].screenX; },
+                            goToSlide(index) {
+                                this.activeSlide = index;
+                                this.autoPlay();
+                            },
+                            nextSlide() {
+                                if (this.slidesCount <= 1) return;
+                                this.activeSlide = (this.activeSlide + 1) % this.slidesCount;
+                            },
+                            prevSlide() {
+                                if (this.slidesCount <= 1) return;
+                                this.activeSlide = (this.activeSlide - 1 + this.slidesCount) % this.slidesCount;
+                            },
+                            autoPlay() {
+                                this.stopAutoPlay();
+                                if (this.slidesCount <= 1) return;
+                                this.interval = setInterval(() => {
+                                    this.nextSlide();
+                                }, 6000);
+                            },
+                            stopAutoPlay() {
+                                if (this.interval) {
+                                    clearInterval(this.interval);
+                                    this.interval = null;
+                                }
+                            },
+                            handleTouchStart(e) {
+                                this.touchStartX = e.changedTouches[0].screenX;
+                            },
                             handleTouchEnd(e) {
                                 this.touchEndX = e.changedTouches[0].screenX;
                                 const diff = this.touchStartX - this.touchEndX;
                                 if (Math.abs(diff) > 50) {
                                     diff > 0 ? this.nextSlide() : this.prevSlide();
+                                    this.autoPlay();
                                 }
+                            },
+                            init() {
+                                const start = () => {
+                                    if (!this.interval) this.autoPlay();
+                                };
+
+                                // Synchronize initial start with skeleton loader dismissal so the user sees the first slide for the full 6 seconds
+                                const loader = document.getElementById('global-skeleton-loader');
+                                if (loader && loader.style.display !== 'none' && window.getComputedStyle(loader).display !== 'none') {
+                                    const checkLoader = setInterval(() => {
+                                        if (!loader || loader.style.display === 'none' || window.getComputedStyle(loader).opacity === '0') {
+                                            clearInterval(checkLoader);
+                                            start();
+                                        }
+                                    }, 100);
+                                    setTimeout(() => {
+                                        clearInterval(checkLoader);
+                                        start();
+                                    }, 3000);
+                                } else {
+                                    start();
+                                }
+
+                                // Pause when browser tab is hidden to prevent queued timer skips
+                                document.addEventListener('visibilitychange', () => {
+                                    if (document.hidden) {
+                                        this.stopAutoPlay();
+                                    } else {
+                                        this.autoPlay();
+                                    }
+                                });
                             }
                          }"
                          @mouseenter="stopAutoPlay" @mouseleave="autoPlay" @touchstart="handleTouchStart" @touchend="handleTouchEnd"
-                         x-init="autoPlay">
+                         x-init="init()">
                         
-                        <div class="relative w-full aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-200/90 dark:border-slate-700/80 bg-slate-900">
+                        <div class="group relative w-full aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-200/90 dark:border-slate-700/80 bg-slate-900">
                             {{-- Base Image Slide --}}
-                            <div class="absolute inset-0 transition-opacity duration-1000" :class="activeSlide === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'">
-                                <img src="{{ $heroImageUrl }}" alt="RHU Silang Main Health Facility" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 transition-opacity duration-500 bg-slate-900" 
+                                 :class="activeSlide === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'">
+                                <img src="{{ $heroImageUrl }}" alt="RHU Silang Main Health Facility" fetchpriority="high" width="600" height="450" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent"></div>
                                 <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6 pb-9 sm:pb-10 text-white">
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-600/90 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm mb-1.5 backdrop-blur-xs">
                                         Municipal Facility
                                     </span>
-                                    <h3 class="font-display text-lg sm:text-2xl font-bold leading-tight mb-1 text-white">{{ \App\Models\SiteSetting::get('carousel_hero_title', 'RHU Silang, Cavite') }}</h3>
+                                    <h2 class="font-display text-lg sm:text-2xl font-bold leading-tight mb-1 text-white">{{ \App\Models\SiteSetting::get('carousel_hero_title', 'RHU Silang, Cavite') }}</h2>
                                     <p class="text-slate-200 text-xs sm:text-sm font-normal leading-snug">{{ \App\Models\SiteSetting::get('carousel_hero_subtitle', 'Providing Responsive & Quality Healthcare for All Constituents') }}</p>
                                 </div>
                             </div>
@@ -124,18 +183,22 @@
                                     ? (\Illuminate\Support\Str::startsWith($slideImg, ['uploads/', 'http']) ? asset($slideImg) : asset('uploads/' . $slideImg))
                                     : null;
                             @endphp
-                            <div class="absolute inset-0 transition-opacity duration-1000 bg-slate-900" :class="activeSlide === {{ $index + 1 }} ? 'opacity-100 z-10' : 'opacity-0 z-0'">
+                            <div class="absolute inset-0 transition-opacity duration-500 bg-slate-900" 
+                                 :class="activeSlide === {{ $index + 1 }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'">
                                 @if($slideImgUrl)
                                     @if(\Illuminate\Support\Str::endsWith($slideImg, '.mp4'))
-                                        <video src="{{ $slideImgUrl }}" class="w-full h-full object-cover" muted loop autoplay></video>
+                                        <video src="{{ $slideImgUrl }}" class="w-full h-full object-cover" muted loop autoplay preload="none"></video>
                                     @else
-                                        <img src="{{ $slideImgUrl }}" alt="{{ $announcement->title }}" class="w-full h-full object-cover">
+                                        <img src="{{ $slideImgUrl }}" alt="{{ $announcement->title }}" width="600" height="450" loading="lazy" class="w-full h-full object-cover">
                                     @endif
+                                @else
+                                    {{-- Facility ambient backdrop overlay when announcement has no custom media --}}
+                                    <img src="{{ $heroImageUrl }}" alt="{{ $announcement->title }}" width="600" height="450" loading="lazy" class="w-full h-full object-cover opacity-25 filter blur-[0.5px]">
                                 @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent"></div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/35 to-transparent"></div>
                                 <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6 pb-9 sm:pb-10 text-white">
                                     <span class="inline-flex items-center px-2.5 py-0.5 bg-emerald-600/90 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm mb-1.5 backdrop-blur-xs">Public Bulletin</span>
-                                    <h3 class="font-display text-lg sm:text-xl md:text-2xl font-bold leading-tight mb-1 text-white">{{ $announcement->title }}</h3>
+                                    <h2 class="font-display text-lg sm:text-xl md:text-2xl font-bold leading-tight mb-1 text-white">{{ $announcement->title }}</h2>
                                     <p class="text-slate-200 text-xs sm:text-sm leading-snug line-clamp-2 max-w-lg">{{ $announcement->content }}</p>
                                     <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center gap-1.5 mt-2 text-xs sm:text-sm text-emerald-300 hover:text-white font-semibold transition-colors">
                                         Read full notice <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -144,10 +207,29 @@
                             </div>
                             @endforeach
 
+                            {{-- Left / Right Slide Arrows (Visible on hover) --}}
+                            @if(count($announcements) > 0)
+                            <button type="button" 
+                                    @click="prevSlide(); autoPlay()" 
+                                    class="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-950/40 hover:bg-slate-900/80 text-white/80 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer backdrop-blur-xs shadow-md"
+                                    aria-label="Previous slide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button type="button" 
+                                    @click="nextSlide(); autoPlay()" 
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-950/40 hover:bg-slate-900/80 text-white/80 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer backdrop-blur-xs shadow-md"
+                                    aria-label="Next slide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                            @endif
+
                             {{-- Carousel Navigation Dots --}}
-                            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+                            <div class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center z-20">
                                 <template x-for="i in slidesCount">
-                                    <button @click="activeSlide = i - 1; stopAutoPlay(); autoPlay()" class="h-1.5 rounded-full transition-all duration-300" :class="activeSlide === i - 1 ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'" aria-label="Go to slide"></button>
+                                    {{-- 24px hit area around the small visible dot --}}
+                                    <button type="button" @click="goToSlide(i - 1)" class="group h-6 min-w-6 px-1 flex items-center justify-center cursor-pointer" :aria-label="'Go to slide ' + i" :aria-current="activeSlide === i - 1 ? 'true' : 'false'">
+                                        <span class="block h-1.5 rounded-full transition-all duration-300" :class="activeSlide === i - 1 ? 'w-6 bg-white' : 'w-1.5 bg-white/40 group-hover:bg-white/70'"></span>
+                                    </button>
                                 </template>
                             </div>
                         </div>
@@ -292,7 +374,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
                                                         </svg>
                                                     </div>
-                                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">RHU Bulletin</span>
+                                                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">RHU Bulletin</span>
                                                 </div>
                                             @endif
 
@@ -571,7 +653,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ __('Regular Clinic Hours') }}</p>
+                                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ __('Regular Clinic Hours') }}</p>
                                     <p class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{{ \App\Models\SiteSetting::get('clinic_hours', 'Mon - Fri | 8:00 AM - 5:00 PM') }}</p>
                                 </div>
                             </div>
@@ -581,7 +663,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ __('RHU Contact Number') }}</p>
+                                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ __('RHU Contact Number') }}</p>
                                     <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate">{{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}</p>
                                 </div>
                             </div>
@@ -607,7 +689,7 @@
                         <div>
                             <p class="font-bold text-slate-900 dark:text-white text-sm">{{ __('RHU Contact Number') }}</p>
                             <p class="text-emerald-700 dark:text-emerald-400 text-sm font-bold mt-0.5">{{ \App\Models\SiteSetting::get('emergency_hotlines', '(046) 432-1234') }}</p>
-                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Direct Landline & Public Desk</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Direct Landline & Public Desk</p>
                         </div>
                     </div>
 
@@ -618,7 +700,7 @@
                         <div>
                             <p class="font-bold text-slate-900 dark:text-white text-sm">{{ __('Main Health Facility') }}</p>
                             <p class="text-slate-600 dark:text-slate-300 text-sm font-medium mt-0.5">{{ \App\Models\SiteSetting::get('footer_address_line1', 'M.H del Pilar St.') }}, {{ \App\Models\SiteSetting::get('footer_address_line2', 'Silang, Cavite') }}</p>
-                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Municipal Health Complex</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Municipal Health Complex</p>
                         </div>
                     </div>
 

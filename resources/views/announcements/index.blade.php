@@ -1,14 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="relative z-10 bg-transparent min-h-screen pt-4 pb-12 sm:pt-6 sm:pb-16"
+<div class="relative z-10 bg-transparent min-h-screen pt-6 pb-12 sm:pt-8 sm:pb-16"
      x-data="{
         search: '{{ addslashes($initialSearch) }}',
         category: '{{ $initialCategory }}',
         dateFilter: '{{ $initialDate }}',
         monthFilter: '{{ $initialMonth }}',
         sortOrder: 'newest',
+        perPage: 10,
+        currentPage: 1,
         items: {{ Js::from($items) }},
+
+        init() {
+            this.$watch('search', () => { this.currentPage = 1; });
+            this.$watch('category', () => { this.currentPage = 1; });
+            this.$watch('dateFilter', () => { this.currentPage = 1; });
+            this.$watch('monthFilter', () => { this.currentPage = 1; });
+            this.$watch('sortOrder', () => { this.currentPage = 1; });
+        },
 
         get filteredItems() {
             return this.items.filter(item => {
@@ -40,25 +50,90 @@
 
                 return true;
             }).sort((a, b) => {
+                const timeA = a.created_at_timestamp || (a.created_date_key ? new Date(a.created_date_key).getTime() : 0);
+                const timeB = b.created_at_timestamp || (b.created_date_key ? new Date(b.created_date_key).getTime() : 0);
                 if (this.sortOrder === 'oldest') {
-                    return (a.id > b.id) ? 1 : -1;
+                    if (timeA !== timeB) return timeA - timeB;
+                    return a.id - b.id;
                 }
-                return (a.id < b.id) ? 1 : -1;
+                if (timeA !== timeB) return timeB - timeA;
+                return b.id - a.id;
             });
+        },
+
+        get totalPages() {
+            if (this.perPage === 'all') return 1;
+            return Math.max(1, Math.ceil(this.filteredItems.length / Number(this.perPage)));
+        },
+
+        get showingStart() {
+            if (this.filteredItems.length === 0) return 0;
+            if (this.perPage === 'all') return 1;
+            return (this.currentPage - 1) * Number(this.perPage) + 1;
+        },
+
+        get showingEnd() {
+            if (this.perPage === 'all') return this.filteredItems.length;
+            return Math.min(this.currentPage * Number(this.perPage), this.filteredItems.length);
+        },
+
+        get visiblePages() {
+            const total = this.totalPages;
+            const current = this.currentPage;
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+            const pages = [];
+            pages.push(1);
+            if (current > 3) pages.push('...');
+            const start = Math.max(2, current - 1);
+            const end = Math.min(total - 1, current + 1);
+            for (let i = start; i <= end; i++) {
+                pages.push(i);
+            }
+            if (current < total - 2) pages.push('...');
+            pages.push(total);
+            return pages;
+        },
+
+        isItemOnCurrentPage(itemId) {
+            if (this.perPage === 'all') return true;
+            const index = this.filteredItems.findIndex(i => i.id === itemId);
+            if (index === -1) return false;
+            const pp = parseInt(this.perPage, 10);
+            const start = (this.currentPage - 1) * pp;
+            return index >= start && index < (start + pp);
+        },
+
+        getItemOrder(itemId) {
+            const index = this.filteredItems.findIndex(i => i.id === itemId);
+            return index >= 0 ? index : 9999;
+        },
+
+        goToPage(page) {
+            if (page < 1 || page > this.totalPages) return;
+            this.currentPage = page;
+            const target = document.getElementById('announcements-list-top');
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         },
 
         setCategory(cat) {
             this.category = cat;
+            this.currentPage = 1;
         },
 
         setDate(date) {
             this.dateFilter = (this.dateFilter === date) ? '' : date;
             if (this.dateFilter) this.monthFilter = '';
+            this.currentPage = 1;
         },
 
         setMonth(month) {
             this.monthFilter = (this.monthFilter === month) ? '' : month;
             if (this.monthFilter) this.dateFilter = '';
+            this.currentPage = 1;
         },
 
         resetFilters() {
@@ -67,6 +142,21 @@
             this.dateFilter = '';
             this.monthFilter = '';
             this.sortOrder = 'newest';
+            this.currentPage = 1;
+        },
+
+        isItemVisible(item) {
+            if (this.category !== 'all' && item.category !== this.category) return false;
+            if (this.dateFilter && item.created_date_key !== this.dateFilter) return false;
+            if (this.monthFilter && item.created_month_key !== this.monthFilter) return false;
+            if (this.search.trim() !== '') {
+                const q = this.search.toLowerCase().trim();
+                const titleMatch = (item.title || '').toLowerCase().includes(q);
+                const subMatch = (item.subheading || '').toLowerCase().includes(q);
+                const contentMatch = (item.content_raw || '').toLowerCase().includes(q);
+                if (!titleMatch && !subMatch && !contentMatch) return false;
+            }
+            return true;
         },
 
         hasActiveFilters() {
@@ -76,24 +166,8 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {{-- Top Navigation & Breadcrumb --}}
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-            <a href="{{ route('welcome') }}"
-               class="inline-flex items-center gap-2 text-sm font-semibold text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 transition group">
-                <span class="p-1.5 rounded-lg bg-green-100/70 dark:bg-green-900/40 text-green-700 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
-                </span>
-                Back to Home
-            </a>
-
-            <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <a href="{{ route('welcome') }}" class="hover:underline">Home</a>
-                <span>/</span>
-                <span class="text-gray-900 dark:text-white font-medium">Announcements</span>
-            </div>
-        </div>
+        {{-- Breadcrumb Navigation --}}
+        <x-breadcrumb :items="['Announcements' => '']" />
 
         {{-- Page Header — 2-Column Split Hero --}}
         <div class="mb-10" data-reveal>
@@ -124,10 +198,10 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
             {{-- Left / Main Column (8 cols on lg) --}}
-            <div class="lg:col-span-8 space-y-6">
+            <div class="lg:col-span-8 space-y-6 relative z-10">
 
                 {{-- Interactive Search & Filters Bar --}}
-                <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-gray-200/80 dark:border-gray-700/80 shadow-sm space-y-4">
+                <div class="relative z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-gray-200/80 dark:border-gray-700/80 shadow-sm space-y-4">
                     
                     {{-- Search Input and Sort --}}
                     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -159,6 +233,8 @@
                                     value="newest"
                                     x-model="sortOrder" 
                                     size="sm"
+                                    align="right"
+                                    minWidth="w-full min-w-[150px]"
                                     class="bg-slate-50 dark:bg-slate-900/60"
                                 />
                             </div>
@@ -170,7 +246,7 @@
                         <button type="button"
                                 @click="setCategory('all')"
                                 :class="category === 'all' 
-                                    ? 'bg-green-600 text-white shadow-xs' 
+                                    ? 'bg-green-700 text-white shadow-xs' 
                                     : 'bg-gray-100 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
                                 class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap">
                             All Topics
@@ -281,34 +357,56 @@
                     </div>
                 </div>
 
-                {{-- Status / Counter Header --}}
-                <div class="flex items-center justify-between px-1">
+                {{-- Scroll Target for Pagination --}}
+                <div id="announcements-list-top" class="scroll-mt-24"></div>
+
+                {{-- Status / Counter Header & Per Page Selector --}}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 py-1">
                     <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                        Showing <span class="text-gray-900 dark:text-white font-bold" x-text="filteredItems.length"></span> of <span x-text="items.length"></span> announcements
+                        Showing 
+                        <span class="text-gray-900 dark:text-white font-bold" x-text="showingStart"></span>–<span class="text-gray-900 dark:text-white font-bold" x-text="showingEnd"></span>
+                        of <span class="text-gray-900 dark:text-white font-bold" x-text="filteredItems.length">{{ count($items) }}</span> announcements
                     </p>
+
+                    {{-- Custom Showing Result (Per Page) --}}
+                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span class="font-medium">Show:</span>
+                        <div class="inline-flex rounded-xl bg-gray-100 dark:bg-gray-800/80 p-0.5 border border-gray-200/80 dark:border-gray-700/80 shadow-2xs">
+                            <template x-for="count in [10, 20, 50, 'all']" :key="count">
+                                <button type="button"
+                                        @click="perPage = count; currentPage = 1"
+                                        :class="(perPage === count) 
+                                            ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 font-bold shadow-2xs' 
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                                        class="px-2.5 py-1 text-xs rounded-lg transition-all capitalize cursor-pointer"
+                                        x-text="count === 'all' ? 'All' : count">
+                                </button>
+                            </template>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Vertical List View (Stacked Horizontal Cards) --}}
-                <div class="space-y-4 sm:space-y-5">
-                    <template x-for="(item, idx) in filteredItems" :key="item.id">
-                        <article class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl border border-gray-200/70 dark:border-gray-700/60 overflow-hidden shadow-xs hover:shadow-xl hover:border-green-500/40 transition-all duration-300 group flex flex-col md:flex-row">
+                <div class="flex flex-col gap-4 sm:gap-5">
+                    @foreach($items as $loopIndex => $item)
+                        <article x-show="isItemOnCurrentPage({{ $item['id'] }})"
+                                 :style="'order: ' + getItemOrder({{ $item['id'] }})"
+                                 class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl border border-gray-200/70 dark:border-gray-700/60 overflow-hidden shadow-xs hover:shadow-xl hover:border-green-500/40 transition-all duration-300 group flex flex-col md:flex-row">
                             
                             {{-- Media / Thumbnail side (Desktop left, Mobile top) --}}
                             <div class="md:w-64 lg:w-72 md:shrink-0 relative overflow-hidden bg-slate-100 dark:bg-slate-900 min-h-[190px] md:min-h-full">
-                                <template x-if="item.has_image && !item.is_video">
-                                    <img :src="item.image_url"
-                                         :alt="item.title"
+                                @if($item['has_image'] && !$item['is_video'])
+                                    <img src="{{ $item['image_url'] }}"
+                                         alt="{{ $item['title'] }}"
+                                         width="288" height="190"
                                          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                         loading="lazy">
-                                </template>
-
-                                <template x-if="item.has_image && item.is_video">
-                                    <video :src="item.image_url"
+                                         loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                         {{ $loop->first ? 'fetchpriority="high"' : '' }}>
+                                @elseif($item['has_image'] && $item['is_video'])
+                                    <video src="{{ $item['image_url'] }}"
                                            class="w-full h-full object-cover"
-                                           muted loop autoplay playsinline></video>
-                                </template>
-
-                                <template x-if="!item.has_image">
+                                           muted loop autoplay playsinline preload="none"></video>
+                                @else
                                     <div class="w-full h-full bg-gradient-to-br from-emerald-50 via-teal-50 to-green-100 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-gray-900 flex flex-col items-center justify-center p-6 text-center">
                                         <div class="w-12 h-12 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-xs flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,13 +415,13 @@
                                         </div>
                                         <span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">RHU Bulletin</span>
                                     </div>
-                                </template>
+                                @endif
 
                                 {{-- Category Tag overlay --}}
                                 <div class="absolute top-3 left-3">
-                                    <span class="inline-block px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wide backdrop-blur-md shadow-xs"
-                                          :class="item.category_class"
-                                          x-text="item.category_label"></span>
+                                    <span class="inline-block px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wide backdrop-blur-md shadow-xs {{ $item['category_class'] }}">
+                                        {{ $item['category_label'] }}
+                                    </span>
                                 </div>
                             </div>
 
@@ -336,41 +434,42 @@
                                             <svg class="w-3.5 h-3.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/>
                                             </svg>
-                                            <span x-text="item.created_at_formatted"></span>
-                                            <span class="text-gray-400" x-text="'(' + item.relative_time + ')'"></span>
+                                            <span>{{ $item['created_at_formatted'] }}</span>
+                                            <span class="text-gray-400">({{ $item['relative_time'] }})</span>
                                         </span>
 
-                                        <template x-if="item.event_date">
+                                        @if($item['event_date'])
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold text-[11px]">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                 </svg>
-                                                Event: <span x-text="item.event_date"></span>
-                                                <template x-if="item.start_time">
-                                                    <span x-text="'@ ' + item.start_time"></span>
-                                                </template>
+                                                Event: <span>{{ $item['event_date'] }}</span>
+                                                @if($item['start_time'])
+                                                    <span>@ {{ $item['start_time'] }}</span>
+                                                @endif
                                             </span>
-                                        </template>
+                                        @endif
                                     </div>
 
                                     {{-- Title --}}
                                     <h2 class="font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-snug mb-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                                        <a :href="item.url" x-text="item.title"></a>
+                                        <a href="{{ $item['url'] }}">{{ $item['title'] }}</a>
                                     </h2>
 
                                     {{-- Subheading (if any) --}}
-                                    <template x-if="item.subheading">
-                                        <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2" x-text="item.subheading"></p>
-                                    </template>
+                                    @if($item['subheading'])
+                                        <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2">{{ $item['subheading'] }}</p>
+                                    @endif
 
                                     {{-- Description snippet --}}
-                                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3 mb-4"
-                                       x-text="item.content_plain"></p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3 mb-4">
+                                        {{ $item['content_plain'] }}
+                                    </p>
                                 </div>
 
                                 {{-- Action Footer --}}
                                 <div class="pt-4 border-t border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
-                                    <a :href="item.url"
+                                    <a href="{{ $item['url'] }}"
                                        class="inline-flex items-center gap-2 text-sm font-bold text-green-600 dark:text-green-400 group-hover:text-green-700 dark:group-hover:text-green-300 group-hover:gap-3 transition-all">
                                         <span>Read Full Announcement</span>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,16 +477,66 @@
                                         </svg>
                                     </a>
 
-                                    <a :href="item.url"
-                                       class="p-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="{{ $item['url'] }}"
+                                       aria-label="Open announcement: {{ $item['title'] }}"
+                                       class="p-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                                         </svg>
                                     </a>
                                 </div>
                             </div>
                         </article>
-                    </template>
+                    @endforeach
+                </div>
+
+                {{-- Pagination Controls Footer --}}
+                <div x-show="filteredItems.length > 0 && perPage !== 'all' && totalPages > 1"
+                     class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl p-4 border border-gray-200/80 dark:border-gray-700/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+                    
+                    <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        Page <span class="font-bold text-gray-900 dark:text-white" x-text="currentPage"></span> of <span class="font-bold text-gray-900 dark:text-white" x-text="totalPages"></span>
+                    </div>
+
+                    {{-- Page Navigation Buttons --}}
+                    <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                        {{-- Previous Button --}}
+                        <button type="button"
+                                @click="goToPage(currentPage - 1)"
+                                :disabled="currentPage <= 1"
+                                class="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-semibold flex items-center gap-1 transition disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700/60 text-gray-700 dark:text-gray-200 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            <span>Prev</span>
+                        </button>
+
+                        {{-- Page Numbers with smart ellipsis --}}
+                        <template x-for="p in visiblePages" :key="p">
+                            <div>
+                                <template x-if="p === '...'">
+                                    <span class="px-2 py-1 text-xs text-gray-400 font-bold select-none">...</span>
+                                </template>
+                                <template x-if="p !== '...'">
+                                    <button type="button"
+                                            @click="goToPage(p)"
+                                            :class="currentPage === p 
+                                                ? 'bg-emerald-600 text-white font-bold shadow-xs' 
+                                                : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 font-medium'"
+                                            class="w-8 h-8 rounded-xl text-xs flex items-center justify-center transition cursor-pointer"
+                                            x-text="p">
+                                    </button>
+                                </template>
+                            </div>
+                        </template>
+
+                        {{-- Next Button --}}
+                        <button type="button"
+                                @click="goToPage(currentPage + 1)"
+                                :disabled="currentPage >= totalPages"
+                                class="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-semibold flex items-center gap-1 transition disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700/60 text-gray-700 dark:text-gray-200 cursor-pointer">
+                            <span>Next</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
                 </div>
 
                 {{-- Empty State --}}
@@ -434,27 +583,21 @@
 
                     {{-- Pick Exact Day --}}
                     <div class="mb-5">
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        <label for="announcement-date-filter" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                             Filter by Specific Date
                         </label>
-                        <div class="flex items-center gap-2">
-                            <input type="date"
-                                   x-model="dateFilter"
-                                   class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                            <button type="button"
-                                    x-show="dateFilter !== ''"
-                                    @click="dateFilter = ''"
-                                    class="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-red-600 text-xs font-bold transition"
-                                    title="Clear date">
-                                ✕
-                            </button>
-                        </div>
+                        <x-date-picker
+                            id="announcement-date-filter"
+                            x-model="dateFilter"
+                            placeholder="Select specific date..."
+                            :highlightDates="array_column($datesArchive ?? [], 'date')"
+                        />
                     </div>
 
                     {{-- Timeline Dates List --}}
                     @if(!empty($datesArchive))
                     <div class="mb-5">
-                        <span class="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2.5">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5">
                             Recent Announcement Dates
                         </span>
                         <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
@@ -462,7 +605,7 @@
                             <button type="button"
                                     @click="setDate('{{ $dateItem['date'] }}')"
                                     :class="dateFilter === '{{ $dateItem['date'] }}'
-                                        ? 'bg-teal-600 text-white shadow-xs'
+                                        ? 'bg-teal-700 text-white shadow-xs'
                                         : 'bg-gray-50 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-950/30 hover:text-teal-700 dark:hover:text-teal-300'"
                                     class="w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium transition text-left">
                                 <div class="flex items-center gap-2.5">
@@ -485,7 +628,7 @@
                     {{-- Monthly Archive --}}
                     @if(!empty($monthsArchive))
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-700/60">
-                        <span class="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                             Monthly Archive
                         </span>
                         <div class="flex flex-wrap gap-1.5">
@@ -493,7 +636,7 @@
                             <button type="button"
                                     @click="setMonth('{{ $monthItem['month'] }}')"
                                     :class="monthFilter === '{{ $monthItem['month'] }}'
-                                        ? 'bg-green-600 text-white shadow-xs'
+                                        ? 'bg-green-700 text-white shadow-xs'
                                         : 'bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/30 dark:hover:text-green-300'"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition">
                                 <span>{{ $monthItem['display'] }}</span>

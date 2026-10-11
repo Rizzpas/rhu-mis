@@ -197,7 +197,7 @@
         [
             'value' => 'Pediatric',
             'label' => 'Pediatric (Child / Minor)',
-            'sublabel' => 'Ages 0 to 17 years old with Guardian',
+            'sublabel' => 'Ages 0 to 12 years old with Guardian',
             'badge' => 'Minor',
             'badgeClass' => 'bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 border-pink-200 dark:border-pink-700',
             'icon' => 'child',
@@ -406,6 +406,54 @@
             'sublabel' => 'Enter custom religion below',
             'badge' => 'Custom',
             'badgeClass' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        ],
+    ];
+
+    $demographicGuardianRelationOptions = [
+        [
+            'value' => 'Mother',
+            'label' => 'Mother',
+            'sublabel' => 'Biological or adoptive mother',
+            'badge' => 'Mother',
+            'badgeClass' => 'bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 border-pink-200 dark:border-pink-700',
+            'icon' => 'user',
+            'iconColor' => 'bg-pink-50 text-pink-600 dark:bg-pink-950/60 dark:text-pink-400',
+        ],
+        [
+            'value' => 'Father',
+            'label' => 'Father',
+            'sublabel' => 'Biological or adoptive father',
+            'badge' => 'Father',
+            'badgeClass' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-700',
+            'icon' => 'user',
+            'iconColor' => 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
+        ],
+        [
+            'value' => 'Grandparent',
+            'label' => 'Grandparent',
+            'sublabel' => 'Grandmother or grandfather',
+            'badge' => 'Elder',
+            'badgeClass' => 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-700',
+            'icon' => 'star',
+            'iconColor' => 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+        ],
+        [
+            'value' => 'Sibling',
+            'label' => 'Sibling',
+            'sublabel' => 'Brother or sister of legal age',
+            'badge' => 'Sibling',
+            'badgeClass' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700',
+            'icon' => 'child',
+            'iconColor' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+        ],
+        [
+            'value' => 'Others (Please Specify)',
+            'label' => 'Others (Please Specify)',
+            'sublabel' => 'Aunt, uncle, legal guardian, caregiver',
+            'badge' => 'Custom',
+            'badgeClass' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200 dark:border-purple-700',
+            'icon' => 'edit',
+            'iconColor' => 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400',
         ],
     ];
 
@@ -1126,12 +1174,92 @@
                 </div>
                 
                 <!-- Separate Form for Updating Demographics -->
+                @php
+                    $rawGrel = old('guardian_relation', $selectedPatient->guardian_relation ?? '');
+                    $knownGrels = ['Mother', 'Father', 'Grandparent', 'Sibling'];
+                    $matchedGrel = collect($knownGrels)->first(fn($r) => strtolower($r) === strtolower($rawGrel));
+                    $editGrelVal = $matchedGrel ?? ($rawGrel ? 'Others (Please Specify)' : '');
+                    $editGrelCust = $matchedGrel ? '' : $rawGrel;
+                @endphp
                 <div x-data="{ 
                     editingInfo: false, 
                     classification: '{{ old('classification', $selectedPatient->classification) }}',
                     isSaving: false,
                     saveError: '',
                     saveSuccess: false,
+                    mother_first: '',
+                    mother_middle: '',
+                    mother_last: '',
+                    mother_suffix: '',
+                    get mothersMaidenFullName() {
+                        return `${this.mother_first} ${this.mother_middle ? this.mother_middle + ' ' : ''}${this.mother_last}${this.mother_suffix ? ' ' + this.mother_suffix : ''}`.trim().replace(/\s+/g, ' ').toUpperCase();
+                    },
+                    guardian_first: '{{ addslashes(old('guardian_first_name', $selectedPatient->guardian_first_name ?? '')) }}',
+                    guardian_middle: '{{ addslashes(old('guardian_middle_name', $selectedPatient->guardian_middle_name ?? '')) }}',
+                    guardian_last: '{{ addslashes(old('guardian_last_name', $selectedPatient->guardian_last_name ?? '')) }}',
+                    guardian_suffix: '{{ addslashes(old('guardian_suffix', $selectedPatient->guardian_suffix ?? '')) }}',
+                    motherIsGuardian: false,
+                    selectedGuardianRelation: '{{ addslashes($editGrelVal) }}',
+                    customGuardianRelation: '{{ addslashes($editGrelCust) }}',
+                    get finalGuardianRelation() { 
+                        return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; 
+                    },
+                    parseMotherName(fullName) {
+                        if(!fullName) return { first: '', middle: '', last: '', suffix: '' };
+                        let parts = fullName.split(' ');
+                        if(parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' };
+                        if(parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' };
+                        let first = parts[0];
+                        let last = parts[parts.length - 1];
+                        let middle = parts.slice(1, parts.length - 1).join(' ');
+                        let suffixes = ['JR', 'SR', 'II', 'III', 'IV', 'V', 'JR.', 'SR.'];
+                        let suffix = '';
+                        if(suffixes.includes(last.toUpperCase())) {
+                            suffix = last;
+                            last = parts[parts.length - 2] || '';
+                            middle = parts.slice(1, parts.length - 2).join(' ');
+                        }
+                        return { first, middle, last, suffix };
+                    },
+                    init() {
+                        let parsed = this.parseMotherName('{{ addslashes(old('mothers_maiden_name', $selectedPatient->mothers_maiden_name ?? '')) }}');
+                        this.mother_first = parsed.first;
+                        this.mother_middle = parsed.middle;
+                        this.mother_last = parsed.last;
+                        this.mother_suffix = parsed.suffix;
+
+                        const mFirst = (this.mother_first || '').trim().toUpperCase();
+                        const mLast = (this.mother_last || '').trim().toUpperCase();
+                        const gFirst = (this.guardian_first || '').trim().toUpperCase();
+                        const gLast = (this.guardian_last || '').trim().toUpperCase();
+                        const gRel = (this.selectedGuardianRelation || '').trim().toUpperCase();
+
+                        if (gRel === 'MOTHER' && gFirst && gFirst === mFirst && (!gLast || !mLast || gLast === mLast)) {
+                            this.motherIsGuardian = true;
+                        }
+
+                        this.$watch('mother_first', val => { if (this.motherIsGuardian) this.guardian_first = (val || '').toUpperCase(); });
+                        this.$watch('mother_middle', val => { if (this.motherIsGuardian) this.guardian_middle = (val || '').toUpperCase(); });
+                        this.$watch('mother_last', val => { if (this.motherIsGuardian) this.guardian_last = (val || '').toUpperCase(); });
+                        this.$watch('mother_suffix', val => { if (this.motherIsGuardian) this.guardian_suffix = (val || '').toUpperCase(); });
+                        this.$watch('selectedGuardianRelation', val => {
+                            if ((val || '').toLowerCase() !== 'mother') {
+                                this.motherIsGuardian = false;
+                            }
+                        });
+                    },
+                    toggleMotherAsGuardian() {
+                        if (this.motherIsGuardian) {
+                            this.syncMotherToGuardian();
+                            this.selectedGuardianRelation = 'Mother';
+                        }
+                    },
+                    syncMotherToGuardian() {
+                        this.guardian_first = (this.mother_first || '').trim().toUpperCase();
+                        this.guardian_middle = (this.mother_middle || '').trim().toUpperCase();
+                        this.guardian_last = (this.mother_last || '').trim().toUpperCase();
+                        this.guardian_suffix = (this.mother_suffix || '').trim().toUpperCase();
+                    },
                     submitEditForm(e) {
                         this.isSaving = true;
                         this.saveError = '';
@@ -1197,7 +1325,7 @@
                         @if($prefillApt)
                             <input type="hidden" name="appointment_id" value="{{ $prefillApt->id }}">
                         @endif
-                        <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex justify-between items-center pb-3.5 mb-5 border-b border-slate-100 dark:border-slate-800">
                             <div class="flex items-center gap-2">
                                 <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -1503,7 +1631,7 @@
                             </div>
                             <!-- Background fields -->
                             <div x-show="classification !== 'Pediatric'" x-cloak>
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Education <span class="text-rose-500">*</span></label>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Highest Education Attained <span class="text-rose-500">*</span></label>
                                 <x-select name="education" :options="$demographicEducationOptions" :value="old('education', $selectedPatient->education ?? '')" placeholder="Select Attainment..." x-bind:disabled="!editingInfo" />
                             </div>
                             <div x-show="classification !== 'Pediatric'" x-cloak
@@ -1633,52 +1761,23 @@
                                 </div>
                             </div>
 
-                            <div class="md:col-span-2" x-data="{
-                                parseName(fullName) {
-                                    if(!fullName) return { first: '', middle: '', last: '', suffix: '' };
-                                    let parts = fullName.split(' ');
-                                    if(parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' };
-                                    if(parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' };
-                                    let first = parts[0];
-                                    let last = parts[parts.length - 1];
-                                    let middle = parts.slice(1, parts.length - 1).join(' ');
-                                    let suffixes = ['JR', 'SR', 'II', 'III', 'IV', 'V', 'JR.', 'SR.'];
-                                    let suffix = '';
-                                    if(suffixes.includes(last.toUpperCase())) {
-                                        suffix = last;
-                                        last = parts[parts.length - 2] || '';
-                                        middle = parts.slice(1, parts.length - 2).join(' ');
-                                    }
-                                    return { first, middle, last, suffix };
-                                },
-                                init() {
-                                    let parsed = this.parseName('{{ old('mothers_maiden_name', $selectedPatient->mothers_maiden_name ?? '') }}');
-                                    this.first = parsed.first;
-                                    this.middle = parsed.middle;
-                                    this.last = parsed.last;
-                                    this.suffix = parsed.suffix;
-                                },
-                                first: '', middle: '', last: '', suffix: '',
-                                get fullName() {
-                                    return `${this.first} ${this.middle ? this.middle + ' ' : ''}${this.last}${this.suffix ? ' ' + this.suffix : ''}`.trim().replace(/\s+/g, ' ').toUpperCase();
-                                }
-                            }">
+                            <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Mother's Maiden Name <span class="text-rose-500">*</span></label>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                                     <div class="md:col-span-4">
-                                        <input type="text" required x-model="first" placeholder="First Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" required x-model="mother_first" @input="mother_first = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="First Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-3">
-                                        <input type="text" x-model="middle" placeholder="Middle Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" x-model="mother_middle" @input="mother_middle = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="Middle Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-3">
-                                        <input type="text" required x-model="last" placeholder="Last Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" required x-model="mother_last" @input="mother_last = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="Last Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-2">
-                                        <input type="text" x-model="suffix" placeholder="Suffix" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" x-model="mother_suffix" @input="mother_suffix = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="Suffix" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                 </div>
-                                <input type="hidden" name="mothers_maiden_name" :value="fullName">
+                                <input type="hidden" name="mothers_maiden_name" :value="mothersMaidenFullName">
                             </div>
                             
                             <!-- Guardian Information (Pediatric only) -->
@@ -1687,41 +1786,102 @@
                                     <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                     Guardian Information (Required for Pediatrics)
                                 </h5>
-                                <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
+
+                                {{-- Mother is also Guardian Toggle Card --}}
+                                <div class="col-span-1 md:col-span-2">
+                                    <label class="group relative flex items-center justify-between gap-4 p-3.5 rounded-xl border transition-all duration-200 select-none"
+                                        :class="[
+                                            !editingInfo ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer',
+                                            motherIsGuardian 
+                                                ? 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 shadow-xs ring-1 ring-emerald-500/20' 
+                                                : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700 shadow-2xs'
+                                        ]">
+                                        <div class="flex items-center gap-3.5 min-w-0">
+                                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200"
+                                                :class="motherIsGuardian 
+                                                    ? 'bg-emerald-600 text-white shadow-xs' 
+                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'">
+                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                                                        Mother is also the patient's guardian
+                                                    </span>
+                                                    <span x-show="motherIsGuardian" x-cloak class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white tracking-wide uppercase shadow-2xs">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        Linked
+                                                    </span>
+                                                </div>
+                                                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                    <span x-show="!motherIsGuardian">Click to auto-fill guardian name using mother's information from above</span>
+                                                    <span x-show="motherIsGuardian" class="text-emerald-600 dark:text-emerald-400 font-medium">Auto-filled and synced with Mother's Name</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <!-- Toggle Switch -->
+                                        <div class="relative inline-flex items-center shrink-0">
+                                            <input type="checkbox" x-model="motherIsGuardian" @change="toggleMotherAsGuardian()" :disabled="!editingInfo" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-500/40 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600 shadow-inner"></div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                                    <div class="md:col-span-4">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">First Name <span class="text-rose-500">*</span></label>
-                                        <input type="text" name="guardian_first_name" x-bind:required="classification === 'Pediatric'" value="{{ old('guardian_first_name', $selectedPatient->guardian_first_name ?? '') }}" placeholder="First Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" name="guardian_first_name" x-model="guardian_first" x-bind:required="classification === 'Pediatric'" placeholder="First Name" 
+                                            :readonly="!editingInfo || motherIsGuardian" :disabled="!editingInfo"
+                                            :class="(!editingInfo || motherIsGuardian) 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white'" 
+                                            class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_first = $event.target.value.toUpperCase(); }">
                                     </div>
-                                    <div>
+                                    <div class="md:col-span-3">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Middle Name</label>
-                                        <input type="text" name="guardian_middle_name" value="{{ old('guardian_middle_name', $selectedPatient->guardian_middle_name ?? '') }}" placeholder="Middle Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" name="guardian_middle_name" x-model="guardian_middle" placeholder="Middle Name" 
+                                            :readonly="!editingInfo || motherIsGuardian" :disabled="!editingInfo"
+                                            :class="(!editingInfo || motherIsGuardian) 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white'" 
+                                            class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_middle = $event.target.value.toUpperCase(); }">
                                     </div>
-                                    <div>
+                                    <div class="md:col-span-3">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Last Name <span class="text-rose-500">*</span></label>
-                                        <input type="text" name="guardian_last_name" x-bind:required="classification === 'Pediatric'" value="{{ old('guardian_last_name', $selectedPatient->guardian_last_name ?? '') }}" placeholder="Last Name" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" name="guardian_last_name" x-model="guardian_last" x-bind:required="classification === 'Pediatric'" placeholder="Last Name" 
+                                            :readonly="!editingInfo || motherIsGuardian" :disabled="!editingInfo"
+                                            :class="(!editingInfo || motherIsGuardian) 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white'" 
+                                            class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_last = $event.target.value.toUpperCase(); }">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Suffix</label>
+                                        <input type="text" name="guardian_suffix" x-model="guardian_suffix" placeholder="Suffix" 
+                                            :readonly="!editingInfo || motherIsGuardian" :disabled="!editingInfo"
+                                            :class="(!editingInfo || motherIsGuardian) 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white'" 
+                                            class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_suffix = $event.target.value.toUpperCase(); }">
                                     </div>
                                 </div>
-                                @php
-                                    $rawGrel = old('guardian_relation', $selectedPatient->guardian_relation ?? '');
-                                    $knownGrels = ['Mother', 'Father', 'Grandparent', 'Sibling'];
-                                    $matchedGrel = collect($knownGrels)->first(fn($r) => strtolower($r) === strtolower($rawGrel));
-                                    $editGrelVal = $matchedGrel ?? ($rawGrel ? 'Others (Please Specify)' : '');
-                                    $editGrelCust = $matchedGrel ? '' : $rawGrel;
-                                @endphp
-                                <div x-data="{
-                                    selectedGuardianRelation: '{{ addslashes($editGrelVal) }}',
-                                    customGuardianRelation: '{{ addslashes($editGrelCust) }}',
-                                    get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; }
-                                }">
+                                
+                                <div>
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Relationship <span class="text-rose-500">*</span></label>
-                                    <select x-model="selectedGuardianRelation" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors mb-2">
-                                        <option value="">Select Relationship...</option>
-                                        <option value="Mother">Mother</option>
-                                        <option value="Father">Father</option>
-                                        <option value="Grandparent">Grandparent</option>
-                                        <option value="Sibling">Sibling</option>
-                                        <option value="Others (Please Specify)">Others (Please Specify)</option>
-                                    </select>
+                                    <x-select 
+                                        x-model="selectedGuardianRelation" 
+                                        :options="$demographicGuardianRelationOptions" 
+                                        placeholder="Select Relationship..." 
+                                        x-bind:disabled="!editingInfo" 
+                                        class="mb-2" 
+                                        @change="if(selectedGuardianRelation !== 'Mother') motherIsGuardian = false;" 
+                                    />
                                     <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation" placeholder="Specify relationship" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase()">
                                     <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
                                 </div>
@@ -1874,6 +2034,29 @@
                     @endif
                     <input type="hidden" name="is_new_patient_form" value="1">
                     
+                    @if(session('error') || (isset($errors) && $errors->any()))
+                        <div class="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 shadow-xs">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                </div>
+                                <div class="flex-1 text-xs">
+                                    <h4 class="font-bold text-rose-900 dark:text-rose-200 mb-1">Registration Could Not Be Completed</h4>
+                                    @if(session('error'))
+                                        <p class="text-rose-700 dark:text-rose-300 font-semibold mb-1">{{ session('error') }}</p>
+                                    @endif
+                                    @if(isset($errors) && $errors->any())
+                                        <ul class="list-disc list-inside space-y-0.5 text-rose-700 dark:text-rose-300">
+                                            @foreach($errors->all() as $err)
+                                                <li>{{ $err }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     @php
                         $defaultClassification = '';
                         if (isset($newFromTriage) && $newFromTriage->classification) {
@@ -1882,8 +2065,135 @@
                         } elseif (isset($prefillApt) && $prefillApt && $prefillApt->type === 'pedia') {
                             $defaultClassification = 'Pediatric';
                         }
+
+                        $rawGrelNew = old('guardian_relation', $prefillApt->guardian_relation ?? '');
+                        $knownGrels = ['Mother', 'Father', 'Grandparent', 'Sibling'];
+                        $matchedGrelNew = collect($knownGrels)->first(fn($r) => strtolower($r) === strtolower($rawGrelNew));
+                        $newGrelVal = $matchedGrelNew ?? ($rawGrelNew ? 'Others (Please Specify)' : '');
+                        $newGrelCust = $matchedGrelNew ? '' : $rawGrelNew;
                     @endphp
-                    <div x-data="{ classification: '{{ old('classification', $defaultClassification) }}', editingInfo: true }">
+                    <div x-data="{ 
+                        classification: '{{ old('classification', $defaultClassification) }}', 
+                        selectedDob: '{{ old('dob', $prefillApt && $prefillApt->dob ? \Carbon\Carbon::parse($prefillApt->dob)->format('Y-m-d') : (isset($newFromTriage) && $newFromTriage->dob ? $newFromTriage->dob : '')) }}',
+                        calculateAge(dobStr) {
+                            if (!dobStr) return null;
+                            const d = new Date(dobStr);
+                            if (isNaN(d.getTime())) return null;
+                            const today = new Date();
+                            let age = today.getFullYear() - d.getFullYear();
+                            const m = today.getMonth() - d.getMonth();
+                            if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+                                age--;
+                            }
+                            return age;
+                        },
+                        syncClassificationWithDob(dobStr, autoSwitch = true) {
+                            if (!dobStr) return;
+                            this.selectedDob = dobStr;
+                            const age = this.calculateAge(dobStr);
+                            if (age === null || !autoSwitch) return;
+                            if (age <= 12) {
+                                this.classification = 'Pediatric';
+                            } else if (age >= 60) {
+                                if (this.classification !== 'PWD') {
+                                    this.classification = 'Senior Citizen';
+                                }
+                            } else {
+                                if (this.classification === 'Pediatric' || !this.classification) {
+                                    this.classification = 'Regular Adult';
+                                }
+                            }
+                        },
+                        get ageMismatchWarning() {
+                            if (!this.selectedDob) return null;
+                            const age = this.calculateAge(this.selectedDob);
+                            if (age === null) return null;
+                            if (this.classification === 'Pediatric' && age > 12) {
+                                return `Age Mismatch: The patient is ${age} years old. Pediatric classification is restricted to children 12 years old and below. Please select Regular Adult, Senior Citizen, or PWD.`;
+                            }
+                            if (this.classification === 'Regular Adult' && age <= 12) {
+                                return `Age Mismatch: The patient is ${age} years old. Adult classification requires the patient to be at least 13 years old. Please select Pediatric.`;
+                            }
+                            if (this.classification === 'Senior Citizen' && age < 60) {
+                                return `Age Mismatch: The patient is ${age} years old. Senior Citizen classification requires the patient to be at least 60 years old.`;
+                            }
+                            return null;
+                        },
+                        editingInfo: true,
+                        mother_first: '',
+                        mother_middle: '',
+                        mother_last: '',
+                        mother_suffix: '',
+                        get mothersMaidenFullName() {
+                            return `${this.mother_first} ${this.mother_middle ? this.mother_middle + ' ' : ''}${this.mother_last}${this.mother_suffix ? ' ' + this.mother_suffix : ''}`.trim().replace(/\s+/g, ' ').toUpperCase();
+                        },
+                        guardian_first: '{{ addslashes(old('guardian_first_name', $prefillApt ? $prefillApt->guardian_first_name : '')) }}',
+                        guardian_middle: '{{ addslashes(old('guardian_middle_name', $prefillApt ? $prefillApt->guardian_middle_name : '')) }}',
+                        guardian_last: '{{ addslashes(old('guardian_last_name', $prefillApt ? $prefillApt->guardian_last_name : '')) }}',
+                        guardian_suffix: '{{ addslashes(old('guardian_suffix', $prefillApt ? $prefillApt->guardian_suffix : '')) }}',
+                        motherIsGuardian: false,
+                        selectedGuardianRelation: '{{ addslashes($newGrelVal) }}',
+                        customGuardianRelation: '{{ addslashes($newGrelCust) }}',
+                        get finalGuardianRelation() { 
+                            return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; 
+                        },
+                        parseMotherName(fullName) {
+                            if(!fullName) return { first: '', middle: '', last: '', suffix: '' };
+                            let parts = fullName.split(' ');
+                            if(parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' };
+                            if(parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' };
+                            let first = parts[0];
+                            let last = parts[parts.length - 1];
+                            let middle = parts.slice(1, parts.length - 1).join(' ');
+                            let suffixes = ['JR', 'SR', 'II', 'III', 'IV', 'V', 'JR.', 'SR.'];
+                            let suffix = '';
+                            if(suffixes.includes(last.toUpperCase())) {
+                                suffix = last;
+                                last = parts[parts.length - 2] || '';
+                                middle = parts.slice(1, parts.length - 2).join(' ');
+                            }
+                            return { first, middle, last, suffix };
+                        },
+                        init() {
+                            let parsed = this.parseMotherName('{{ addslashes(old('mothers_maiden_name', $prefillApt ? $prefillApt->mothers_maiden_name : '')) }}');
+                            this.mother_first = parsed.first;
+                            this.mother_middle = parsed.middle;
+                            this.mother_last = parsed.last;
+                            this.mother_suffix = parsed.suffix;
+
+                            const mFirst = (this.mother_first || '').trim().toUpperCase();
+                            const mLast = (this.mother_last || '').trim().toUpperCase();
+                            const gFirst = (this.guardian_first || '').trim().toUpperCase();
+                            const gLast = (this.guardian_last || '').trim().toUpperCase();
+                            const gRel = (this.selectedGuardianRelation || '').trim().toUpperCase();
+
+                            if (gRel === 'MOTHER' && gFirst && gFirst === mFirst && (!gLast || !mLast || gLast === mLast)) {
+                                this.motherIsGuardian = true;
+                            }
+
+                            this.$watch('mother_first', val => { if (this.motherIsGuardian) this.guardian_first = (val || '').toUpperCase(); });
+                            this.$watch('mother_middle', val => { if (this.motherIsGuardian) this.guardian_middle = (val || '').toUpperCase(); });
+                            this.$watch('mother_last', val => { if (this.motherIsGuardian) this.guardian_last = (val || '').toUpperCase(); });
+                            this.$watch('mother_suffix', val => { if (this.motherIsGuardian) this.guardian_suffix = (val || '').toUpperCase(); });
+                            this.$watch('selectedGuardianRelation', val => {
+                                if ((val || '').toLowerCase() !== 'mother') {
+                                    this.motherIsGuardian = false;
+                                }
+                            });
+                        },
+                        toggleMotherAsGuardian() {
+                            if (this.motherIsGuardian) {
+                                this.syncMotherToGuardian();
+                                this.selectedGuardianRelation = 'Mother';
+                            }
+                        },
+                        syncMotherToGuardian() {
+                            this.guardian_first = (this.mother_first || '').trim().toUpperCase();
+                            this.guardian_middle = (this.mother_middle || '').trim().toUpperCase();
+                            this.guardian_last = (this.mother_last || '').trim().toUpperCase();
+                            this.guardian_suffix = (this.mother_suffix || '').trim().toUpperCase();
+                        }
+                    }">
                         <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
                             <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -1974,6 +2284,10 @@
                                     const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
                                     const d = String(day).padStart(2, '0');
                                     this.selectedDate = `${y}-${m}-${d}`;
+                                    this.selectedDob = this.selectedDate;
+                                    if (typeof this.syncClassificationWithDob === 'function') {
+                                        this.syncClassificationWithDob(this.selectedDate, true);
+                                    }
                                     this.showDatepicker = false;
                                     this.showMonthPicker = false;
                                     this.showYearPicker = false;
@@ -1988,6 +2302,7 @@
                                 init() {
                                     if (this.selectedDate) {
                                         this.currentDate = new Date(this.selectedDate);
+                                        this.selectedDob = this.selectedDate;
                                     }
                                 }
                             }" class="relative" :class="showDatepicker ? 'z-40' : 'z-10'">
@@ -2170,6 +2485,23 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- Age vs Classification Mismatch Real-time Warning Banner --}}
+                            <div x-show="ageMismatchWarning" x-cloak class="md:col-span-2 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 flex items-start gap-3 shadow-2xs">
+                                <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                </div>
+                                <div class="flex-1 text-xs">
+                                    <h5 class="font-bold text-amber-900 dark:text-amber-200">Classification Mismatch Detected</h5>
+                                    <p class="text-amber-800 dark:text-amber-300 mt-0.5" x-text="ageMismatchWarning"></p>
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <button type="button" @click="syncClassificationWithDob(selectedDob, true)" class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition shadow-2xs cursor-pointer">
+                                            Auto-Fix Classification to Match Age
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div x-show="classification !== 'Pediatric'" x-cloak x-data="{
                                 phone: '{{ old('contact_number', $prefillApt ? ($prefillApt->type === 'pedia' ? ($prefillApt->guardian_contact ?: $prefillApt->contact_number) : $prefillApt->contact_number) : '') }}',
                                 formatPhone() {
@@ -2185,7 +2517,7 @@
                             </div>
                             <!-- Background fields -->
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Education <span class="text-rose-500">*</span></label>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Highest Education Attained <span class="text-rose-500">*</span></label>
                                 <x-select name="education" :options="$demographicEducationOptions" :value="old('education', $prefillApt ? $prefillApt->education : '')" placeholder="Select Attainment..." />
                             </div>
                             <div x-show="classification !== 'Pediatric'" x-cloak
@@ -2321,52 +2653,23 @@
                                 </div>
                             </div>
 
-                            <div class="md:col-span-2" x-data="{
-                                parseName(fullName) {
-                                    if(!fullName) return { first: '', middle: '', last: '', suffix: '' };
-                                    let parts = fullName.split(' ');
-                                    if(parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' };
-                                    if(parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' };
-                                    let first = parts[0];
-                                    let last = parts[parts.length - 1];
-                                    let middle = parts.slice(1, parts.length - 1).join(' ');
-                                    let suffixes = ['JR', 'SR', 'II', 'III', 'IV', 'V', 'JR.', 'SR.'];
-                                    let suffix = '';
-                                    if(suffixes.includes(last.toUpperCase())) {
-                                        suffix = last;
-                                        last = parts[parts.length - 2] || '';
-                                        middle = parts.slice(1, parts.length - 2).join(' ');
-                                    }
-                                    return { first, middle, last, suffix };
-                                },
-                                init() {
-                                    let parsed = this.parseName('{{ old('mothers_maiden_name', $prefillApt ? $prefillApt->mothers_maiden_name : '') }}');
-                                    this.first = parsed.first;
-                                    this.middle = parsed.middle;
-                                    this.last = parsed.last;
-                                    this.suffix = parsed.suffix;
-                                },
-                                first: '', middle: '', last: '', suffix: '',
-                                get fullName() {
-                                    return `${this.first} ${this.middle ? this.middle + ' ' : ''}${this.last}${this.suffix ? ' ' + this.suffix : ''}`.trim().replace(/\s+/g, ' ').toUpperCase();
-                                }
-                            }">
+                            <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Mother's Maiden Name <span class="text-rose-500">*</span></label>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                                     <div class="md:col-span-4">
-                                        <input type="text" required x-model="first" placeholder="First Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" required x-model="mother_first" @input="mother_first = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="First Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-3">
-                                        <input type="text" x-model="middle" placeholder="Middle Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" x-model="mother_middle" @input="mother_middle = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="Middle Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-3">
-                                        <input type="text" required x-model="last" placeholder="Last Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" required x-model="mother_last" @input="mother_last = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="Last Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-2">
-                                        <input type="text" x-model="suffix" placeholder="Suffix" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" x-model="mother_suffix" @input="mother_suffix = $event.target.value.toUpperCase(); if(motherIsGuardian) syncMotherToGuardian();" placeholder="Suffix" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                 </div>
-                                <input type="hidden" name="mothers_maiden_name" :value="fullName">
+                                <input type="hidden" name="mothers_maiden_name" :value="mothersMaidenFullName">
                             </div>
                             
                             <!-- Guardian Information (Pediatric only) -->
@@ -2375,41 +2678,98 @@
                                     <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                     Guardian Information (Required for Pediatrics)
                                 </h5>
-                                <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
+
+                                {{-- Mother is also Guardian Toggle Card --}}
+                                <div class="col-span-1 md:col-span-2">
+                                    <label class="group relative flex items-center justify-between gap-4 p-3.5 rounded-xl border transition-all duration-200 cursor-pointer select-none"
+                                        :class="motherIsGuardian 
+                                            ? 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 shadow-xs ring-1 ring-emerald-500/20' 
+                                            : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700 shadow-2xs'">
+                                        <div class="flex items-center gap-3.5 min-w-0">
+                                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200"
+                                                :class="motherIsGuardian 
+                                                    ? 'bg-emerald-600 text-white shadow-xs' 
+                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'">
+                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                                                        Mother is also the patient's guardian
+                                                    </span>
+                                                    <span x-show="motherIsGuardian" x-cloak class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white tracking-wide uppercase shadow-2xs">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        Linked
+                                                    </span>
+                                                </div>
+                                                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                    <span x-show="!motherIsGuardian">Click to auto-fill guardian name using mother's information from above</span>
+                                                    <span x-show="motherIsGuardian" class="text-emerald-600 dark:text-emerald-400 font-medium">Auto-filled and synced with Mother's Name</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <!-- Toggle Switch -->
+                                        <div class="relative inline-flex items-center shrink-0">
+                                            <input type="checkbox" x-model="motherIsGuardian" @change="toggleMotherAsGuardian()" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-500/40 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600 shadow-inner"></div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                                    <div class="md:col-span-4">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">First Name <span class="text-rose-500">*</span></label>
-                                        <input type="text" name="guardian_first_name" x-bind:required="classification === 'Pediatric'" value="{{ old('guardian_first_name', $prefillApt ? $prefillApt->guardian_first_name : '') }}" placeholder="First Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" name="guardian_first_name" x-model="guardian_first" x-bind:required="classification === 'Pediatric'" placeholder="First Name" 
+                                            :readonly="motherIsGuardian"
+                                            :class="motherIsGuardian 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500'" 
+                                            class="w-full rounded-xl px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_first = $event.target.value.toUpperCase(); }">
                                     </div>
-                                    <div>
+                                    <div class="md:col-span-3">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Middle Name</label>
-                                        <input type="text" name="guardian_middle_name" value="{{ old('guardian_middle_name', $prefillApt ? $prefillApt->guardian_middle_name : '') }}" placeholder="Middle Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" name="guardian_middle_name" x-model="guardian_middle" placeholder="Middle Name" 
+                                            :readonly="motherIsGuardian"
+                                            :class="motherIsGuardian 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500'" 
+                                            class="w-full rounded-xl px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_middle = $event.target.value.toUpperCase(); }">
                                     </div>
-                                    <div>
+                                    <div class="md:col-span-3">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Last Name <span class="text-rose-500">*</span></label>
-                                        <input type="text" name="guardian_last_name" x-bind:required="classification === 'Pediatric'" value="{{ old('guardian_last_name', $prefillApt ? $prefillApt->guardian_last_name : '') }}" placeholder="Last Name" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" name="guardian_last_name" x-model="guardian_last" x-bind:required="classification === 'Pediatric'" placeholder="Last Name" 
+                                            :readonly="motherIsGuardian"
+                                            :class="motherIsGuardian 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500'" 
+                                            class="w-full rounded-xl px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_last = $event.target.value.toUpperCase(); }">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Suffix</label>
+                                        <input type="text" name="guardian_suffix" x-model="guardian_suffix" placeholder="Suffix" 
+                                            :readonly="motherIsGuardian"
+                                            :class="motherIsGuardian 
+                                                ? 'border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 cursor-not-allowed' 
+                                                : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500'" 
+                                            class="w-full rounded-xl px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            @input="if(!motherIsGuardian) { guardian_suffix = $event.target.value.toUpperCase(); }">
                                     </div>
                                 </div>
-                                @php
-                                    $rawGrelNew = old('guardian_relation', $prefillApt->guardian_relation ?? '');
-                                    $knownGrels = ['Mother', 'Father', 'Grandparent', 'Sibling'];
-                                    $matchedGrelNew = collect($knownGrels)->first(fn($r) => strtolower($r) === strtolower($rawGrelNew));
-                                    $newGrelVal = $matchedGrelNew ?? ($rawGrelNew ? 'Others (Please Specify)' : '');
-                                    $newGrelCust = $matchedGrelNew ? '' : $rawGrelNew;
-                                @endphp
-                                <div x-data="{
-                                    selectedGuardianRelation: '{{ addslashes($newGrelVal) }}',
-                                    customGuardianRelation: '{{ addslashes($newGrelCust) }}',
-                                    get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; }
-                                }">
+                                
+                                <div>
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Relationship <span class="text-rose-500">*</span></label>
-                                    <select x-model="selectedGuardianRelation" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors mb-2">
-                                        <option value="">Select Relationship...</option>
-                                        <option value="Mother">Mother</option>
-                                        <option value="Father">Father</option>
-                                        <option value="Grandparent">Grandparent</option>
-                                        <option value="Sibling">Sibling</option>
-                                        <option value="Others (Please Specify)">Others (Please Specify)</option>
-                                    </select>
+                                    <x-select 
+                                        x-model="selectedGuardianRelation" 
+                                        :options="$demographicGuardianRelationOptions" 
+                                        placeholder="Select Relationship..." 
+                                        class="mb-2" 
+                                        @change="if(selectedGuardianRelation !== 'Mother') motherIsGuardian = false;" 
+                                    />
                                     <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation" placeholder="Specify relationship" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase()">
                                     <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
                                 </div>
@@ -2454,6 +2814,10 @@
                         @if(isset($newFromTriage) && $newFromTriage)
                         <button type="button" 
                                 @click="
+                                    if (ageMismatchWarning) {
+                                        window.toast ? window.toast.error(ageMismatchWarning, 'Validation Warning') : alert(ageMismatchWarning);
+                                        return;
+                                    }
                                     const form = document.getElementById('newPatientQueueForm');
                                     const fName = form?.querySelector('input[name=\'first_name\']')?.value || '';
                                     const lName = form?.querySelector('input[name=\'last_name\']')?.value || '';
@@ -2479,7 +2843,15 @@
                             Register &amp; Generate Queue
                         </button>
                         @else
-                        <button type="submit" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer text-xs">
+                        <button type="submit" 
+                                @click="
+                                    if (ageMismatchWarning) {
+                                        $event.preventDefault();
+                                        window.toast ? window.toast.error(ageMismatchWarning, 'Validation Warning') : alert(ageMismatchWarning);
+                                        return;
+                                    }
+                                "
+                                class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer text-xs">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                             Register Patient
                         </button>
@@ -2922,7 +3294,7 @@
 <script>
     // Filter fields to strictly alphanumeric uppercase without symbols/numbers
     document.addEventListener('input', function(e) {
-        const nameFields = ['first_name', 'middle_name', 'last_name', 'suffix', 'guardian_name', 'mothers_maiden_name'];
+        const nameFields = ['first_name', 'middle_name', 'last_name', 'suffix', 'guardian_name', 'mothers_maiden_name', 'guardian_first_name', 'guardian_middle_name', 'guardian_last_name', 'guardian_suffix'];
         if (e.target.tagName === 'INPUT' && nameFields.includes(e.target.name)) {
             let val = e.target.value;
             let newVal = val.replace(/[^a-zA-ZÑñ\s\.\-]/g, '').toUpperCase();

@@ -101,4 +101,41 @@ class AncillaryRequest extends Model
 
         return route('ancillary.file', $this);
     }
+
+    public function getResultDataAttribute($value)
+    {
+        return $this->normalizeJsonData($value);
+    }
+
+    public function getPreviousResultDataAttribute($value)
+    {
+        return $this->normalizeJsonData($value);
+    }
+
+    public function normalizeJsonData($value): ?array
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+            if (is_string($decoded)) {
+                $doubleDecoded = json_decode($decoded, true);
+                if (is_array($doubleDecoded)) {
+                    return $doubleDecoded;
+                }
+            }
+            return ['result' => $value];
+        }
+
+        return (array) $value;
+    }
 }

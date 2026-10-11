@@ -12,6 +12,8 @@
     'dropUp' => false,
     'searchable' => false,
     'searchPlaceholder' => 'Search options...',
+    'align' => 'left', // 'left', 'right', 'auto'
+    'minWidth' => null,
 ])
 
 @php
@@ -79,6 +81,8 @@
         search: '',
         searchable: @js((bool)$searchable),
         dropUp: @js((bool)$dropUp),
+        align: @js($align),
+        alignRight: @js($align === 'right'),
         
         isDisabled() {
             @if($alpineDisabled)
@@ -193,6 +197,14 @@
                     this.dropUp = false;
                 }
                 @endif
+
+                if (this.align === 'auto') {
+                    const rect = this.$el.getBoundingClientRect();
+                    const spaceRight = window.innerWidth - rect.right;
+                    this.alignRight = spaceRight < 240 && rect.left > spaceRight;
+                } else {
+                    this.alignRight = this.align === 'right';
+                }
 
                 this.$nextTick(() => {
                     if (this.searchable && this.$refs.searchInput) {
@@ -315,6 +327,14 @@
                     <template x-if="selectedOption.icon === 'child'">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
                     </template>
+                    {{-- Users / Family --}}
+                    <template x-if="selectedOption.icon === 'users'">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </template>
+                    {{-- Edit / Custom --}}
+                    <template x-if="selectedOption.icon === 'edit'">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </template>
                 </span>
             </template>
 
@@ -348,8 +368,12 @@
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          :x-transition:leave-end="dropUp ? 'opacity-0 translate-y-1 scale-95' : 'opacity-0 -translate-y-1 scale-95'"
          style="display: none;"
-         class="absolute z-50 w-full min-w-[220px] max-h-64 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl shadow-slate-900/15 dark:shadow-slate-950/60 p-1.5 backdrop-blur-md focus:outline-none custom-scrollbar"
-         :class="dropUp ? 'bottom-full mb-1.5' : 'mt-1.5'"
+         class="absolute z-50 {{ $minWidth ?? 'w-full min-w-[220px]' }} max-h-64 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl shadow-slate-900/15 dark:shadow-slate-950/60 p-1.5 backdrop-blur-md focus:outline-none custom-scrollbar"
+         :class="[
+             dropUp ? 'bottom-full mb-1.5' : 'mt-1.5',
+             alignRight ? 'right-0 left-auto' : 'left-0',
+             (dropUp && alignRight) ? 'origin-bottom-right' : (dropUp ? 'origin-bottom-left' : (alignRight ? 'origin-top-right' : 'origin-top-left'))
+         ]"
          tabindex="-1"
          role="listbox">
         
@@ -406,6 +430,12 @@
                                 </template>
                                 <template x-if="opt.icon === 'child'">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
+                                </template>
+                                <template x-if="opt.icon === 'users'">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </template>
+                                <template x-if="opt.icon === 'edit'">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </template>
                             </span>
                         </template>

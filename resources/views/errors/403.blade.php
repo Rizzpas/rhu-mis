@@ -2,9 +2,8 @@
 
 @section('content')
 <div class="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto">
-    <x-breadcrumb :items="['Error 403 (Access Denied)' => '']" />
 
-    <div class="rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 shadow-xl backdrop-blur-md p-8 sm:p-12 relative overflow-hidden text-center">
+    <div class="p-8 sm:p-12 relative overflow-hidden text-center">
        
         {{-- Big Graphic Number with Icon --}}
         <div class="relative mb-6">

@@ -4829,7 +4829,7 @@
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-slate-900 dark:text-white">Footer Address & Municipal Directory</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Official physical location, municipal email, and telephone lines displayed on the portal footer.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Official physical location and municipal contact email displayed on the portal footer.</p>
                     </div>
                 </div>
             </div>
@@ -4859,19 +4859,7 @@
                     <p class="text-[11px] text-slate-400 mt-1">City or Municipality, Province, and Postal code.</p>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Public Telephone Line</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                        </div>
-                        <input type="text" name="settings[footer_phone]" value="{{ old('settings.footer_phone', $settings['footer']['footer_phone']->value ?? $settings['topbar']['emergency_hotlines']->value ?? '') }}"
-                               class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs transition-all">
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-1">Landline telephone or direct health office line.</p>
-                </div>
-
-                <div>
+                <div class="sm:col-span-2">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Official Email Address</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">

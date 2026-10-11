@@ -446,7 +446,7 @@
 
                                         <div class="mt-3 bg-slate-50 dark:bg-slate-900/50 rounded-md p-3 border border-slate-100 dark:border-slate-700">
                                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Results / Findings</p>
-                                            @if($ancillary->status === 'Done' && $ancillary->result_data)
+                                            @if($ancillary->status === 'Done' && !empty($ancillary->result_data) && is_iterable($ancillary->result_data))
                                                 <div class="grid grid-cols-2 gap-2 mt-2">
                                                     @foreach($ancillary->result_data as $key => $value)
                                                         @if($value)

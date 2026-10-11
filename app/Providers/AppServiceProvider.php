@@ -19,6 +19,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Auth\Events\Login::class,
+            \App\Listeners\LogSuccessfulLogin::class
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Auth\Events\Failed::class,
+            \App\Listeners\LogFailedLogin::class
+        );
+
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
             try {
                 $facilities = \Illuminate\Support\Facades\Cache::remember('global_facility_units', 3600, function () {

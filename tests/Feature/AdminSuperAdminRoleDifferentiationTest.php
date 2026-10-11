@@ -254,6 +254,73 @@ class AdminSuperAdminRoleDifferentiationTest extends TestCase
         $this->assertNotNull($a2->fresh()->deleted_at);
     }
 
+    public function test_both_admin_and_super_admin_can_bulk_update_announcement_status(): void
+    {
+        $a1 = Announcement::create([
+            'title' => 'Bulk Status 1 ' . uniqid(),
+            'content' => 'Body 1',
+            'author_id' => $this->superAdmin->id,
+            'category' => 'General Notice',
+            'priority' => 'normal',
+            'status' => 'published',
+        ]);
+        $a2 = Announcement::create([
+            'title' => 'Bulk Status 2 ' . uniqid(),
+            'content' => 'Body 2',
+            'author_id' => $this->superAdmin->id,
+            'category' => 'General Notice',
+            'priority' => 'normal',
+            'status' => 'published',
+        ]);
+
+        // Regular admin can bulk update status to draft
+        $response = $this->actingAs($this->regularAdmin)->post(route('admin.announcements.bulk-status'), [
+            'ids' => [$a1->id, $a2->id],
+            'status' => 'draft',
+        ]);
+        $response->assertRedirect();
+
+        $this->assertEquals('draft', $a1->fresh()->status);
+        $this->assertEquals('draft', $a2->fresh()->status);
+
+        // Super admin can bulk update status to published
+        $this->actingAs($this->superAdmin)->post(route('admin.announcements.bulk-status'), [
+            'ids' => [$a1->id, $a2->id],
+            'status' => 'published',
+        ])->assertRedirect();
+
+        $this->assertEquals('published', $a1->fresh()->status);
+        $this->assertEquals('published', $a2->fresh()->status);
+    }
+
+    public function test_regular_admin_can_bulk_update_to_published(): void
+    {
+        $a1 = Announcement::create([
+            'title' => 'Published Status 1 ' . uniqid(),
+            'content' => 'Body 1',
+            'author_id' => $this->regularAdmin->id,
+            'category' => 'General Notice',
+            'priority' => 'normal',
+            'status' => 'draft',
+        ]);
+        $a2 = Announcement::create([
+            'title' => 'Published Status 2 ' . uniqid(),
+            'content' => 'Body 2',
+            'author_id' => $this->regularAdmin->id,
+            'category' => 'General Notice',
+            'priority' => 'normal',
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($this->regularAdmin)->post(route('admin.announcements.bulk-status'), [
+            'ids' => [$a1->id, $a2->id],
+            'status' => 'published',
+        ])->assertRedirect();
+
+        $this->assertEquals('published', $a1->fresh()->status);
+        $this->assertEquals('published', $a2->fresh()->status);
+    }
+
     /** Retention Purging */
     public function test_regular_admin_can_extend_retention_but_cannot_delete_or_purge(): void
     {

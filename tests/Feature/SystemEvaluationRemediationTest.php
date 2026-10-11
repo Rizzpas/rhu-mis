@@ -49,7 +49,7 @@ class SystemEvaluationRemediationTest extends TestCase
             'status' => 'approved',
         ]);
 
-        $nextDate = now()->addDays(7);
+        $nextDate = now()->next(\Carbon\Carbon::WEDNESDAY);
         $nextDateStr = $nextDate->toDateString();
         $dayShort = $nextDate->format('D');
 
@@ -64,9 +64,8 @@ class SystemEvaluationRemediationTest extends TestCase
             'user_id' => $pediaDoc->id,
             'day_of_week' => $dayShort,
         ], [
-            'start_time' => '08:00:00',
-            'end_time' => '17:00:00',
-            'slot_duration_minutes' => 30,
+            'time_in' => '08:00:00',
+            'time_out' => '17:00:00',
         ]);
 
         $response = $this->withSession(['manage_appointment_id' => $appointment->id])
@@ -128,7 +127,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Maria',
             'last_name' => 'Clara',
             'dob' => '1995-05-15',
@@ -183,7 +182,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Juan',
             'last_name' => 'Dela Cruz',
             'dob' => '1990-01-01',
@@ -245,7 +244,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Pedro',
             'last_name' => 'Penduko',
             'dob' => '1988-08-08',
@@ -344,7 +343,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Retained',
             'last_name' => 'Patient',
             'dob' => '1980-01-01',
@@ -399,7 +398,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Historical',
             'last_name' => 'Reviewee',
             'dob' => '1985-04-12',
@@ -454,7 +453,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'LabPatient',
             'last_name' => 'PendingResults',
             'dob' => '1992-02-02',
@@ -524,7 +523,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Walkout',
             'last_name' => 'Patient',
             'dob' => '1996-06-06',
@@ -604,7 +603,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Chart',
             'last_name' => 'Addendum',
             'dob' => '1990-01-01',
@@ -679,7 +678,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Anaemic',
             'last_name' => 'Patient',
             'dob' => '1985-05-15',
@@ -915,7 +914,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Traceable',
             'last_name' => 'Patient',
             'dob' => '1995-03-20',
@@ -1021,7 +1020,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'Catalog',
             'last_name' => 'Patient',
             'dob' => '1992-08-12',
@@ -1104,7 +1103,7 @@ class SystemEvaluationRemediationTest extends TestCase
         ]);
 
         $patient = \App\Models\Patient::create([
-            'patient_id' => 'RHU-' . date('Y') . '-' . str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'patient_id' => 'RHU-TEST-' . uniqid(),
             'first_name' => 'CSVExport',
             'last_name' => 'Patient',
             'dob' => '1990-05-15',

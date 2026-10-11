@@ -24,6 +24,7 @@
         }
     </script>
     <script src="{{ asset('js/secure-image-validator.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         body {
@@ -697,6 +698,7 @@
     </script>
 
     @include('partials.chat-widget')
+    @stack('scripts')
 </body>
 
 </html>

@@ -4,12 +4,21 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "lighthouse": "npm run build && lhci autorun",
+        "test": "jest",
+        "test:coverage": "jest --coverage"
     },
     "devDependencies": {
+        "@babel/core": "^8.0.7",
+        "@babel/preset-env": "^8.0.7",
+        "@lhci/cli": "^0.15.1",
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",
+        "babel-jest": "^30.5.2",
         "concurrently": "^9.0.1",
+        "jest": "^30.5.2",
+        "jest-environment-jsdom": "^30.5.2",
         "laravel-echo": "^2.4.0",
         "laravel-vite-plugin": "^2.0.0",
         "pusher-js": "^8.6.0",

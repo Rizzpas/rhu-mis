@@ -5,23 +5,6 @@
 @section('content')
 <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8 pb-16">
     
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center justify-between gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 py-2.5 border-b border-slate-200/70 dark:border-slate-800 print:hidden" aria-label="Breadcrumb">
-        <div class="flex items-center gap-2 flex-wrap">
-            <a href="{{ route('pharmacy.dashboard') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5 shrink-0">
-                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                <span>Home</span>
-            </a>
-            <span class="text-slate-300 dark:text-slate-700">/</span>
-            <span class="text-slate-500 dark:text-slate-400">Pharmacy</span>
-            <span class="text-slate-300 dark:text-slate-700">/</span>
-            <span class="text-emerald-700 dark:text-emerald-400 font-extrabold">Prescription History</span>
-        </div>
-        <div class="hidden sm:flex items-center gap-2 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Permanent Clinical Log</span>
-        </div>
-    </nav>
 
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800 print:hidden">
