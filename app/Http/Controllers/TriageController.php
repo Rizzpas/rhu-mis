@@ -251,6 +251,17 @@ class TriageController extends Controller
         $validated['status'] = 'waiting';
         $validated['is_emergency'] = $request->boolean('is_emergency', false);
 
+        // Enforce 6-Month Minimum Age Requirement for Pediatric Consultations
+        if ($validated['classification'] === 'Pediatric' && ! empty($validated['dob'])) {
+            $dob = Carbon::parse($validated['dob']);
+            if ($dob->isFuture() || $dob->diffInMonths(now()) < \App\Models\Patient::MIN_PEDIA_CONSULTATION_MONTHS) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.',
+                ]);
+            }
+        }
+
         // Enforce 5-Slot Pedia Walk-in Cap (excluding cancelled entries)
         if ($validated['classification'] === 'Pediatric' && empty($validated['appointment_id']) && ! $validated['is_emergency']) {
             $walkInCount = \App\Models\PreTriage::whereDate('created_at', today())

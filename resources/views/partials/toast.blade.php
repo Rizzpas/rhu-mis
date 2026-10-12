@@ -154,11 +154,12 @@
         }, 120);
     }
 }"
-class="fixed top-4 inset-x-4 sm:inset-x-auto sm:top-5 sm:right-5 z-[9999] flex flex-col items-end gap-2.5 pointer-events-none sm:w-[390px] max-w-full"
-@add-toast.window="addToast($event.detail.type, $event.detail.message, $event.detail.duration, $event.detail.title)"
-role="region"
-aria-label="Notifications"
-aria-live="polite">
+@add-toast.window="addToast($event.detail.type, $event.detail.message, $event.detail.duration, $event.detail.title)">
+    <template x-teleport="body">
+        <div class="fixed top-4 inset-x-4 sm:inset-x-auto sm:top-5 sm:right-5 z-[9999] flex flex-col items-end gap-2.5 pointer-events-none sm:w-[390px] max-w-full"
+             role="region"
+             aria-label="Notifications"
+             aria-live="polite">
 
     {{-- Clear all pill for multiple notifications --}}
     <div x-show="toasts.length > 1" 
@@ -234,6 +235,8 @@ aria-live="polite">
                     </svg>
                 </button>
             </div>
+        </div>
+    </template>
         </div>
     </template>
 </div>

@@ -263,7 +263,7 @@
 
                     <!-- Desktop Theme Toggle -->
                     <li>
-                        @include('partials.theme-toggle', ['id' => 'theme-toggle'])
+                        @include('partials.theme-toggle', ['id' => 'theme-toggle', 'variant' => 'switch'])
                     </li>
                     <!-- Desktop Book Appointment CTA -->
                     <li>
@@ -435,7 +435,7 @@
                                 <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Switch Light / Dark Theme</span>
                             </div>
                         </div>
-                        @include('partials.theme-toggle', ['id' => 'mobile-theme-toggle'])
+                        @include('partials.theme-toggle', ['id' => 'mobile-theme-toggle', 'variant' => 'switch'])
                     </div>
 
                     <!-- Mobile Book Appointment Button -->

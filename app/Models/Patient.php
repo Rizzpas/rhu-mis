@@ -12,6 +12,9 @@ class Patient extends Model
     // Centralized pediatric age cutoff (inclusive). A patient is pediatric if age <= 12
     public const MAX_PEDIATRIC_AGE = 12;
 
+    // Minimum eligible age for Pedia Consultation service (in months)
+    public const MIN_PEDIA_CONSULTATION_MONTHS = 6;
+
     protected $fillable = [
         'patient_id', 'first_name', 'middle_name', 'last_name', 'suffix', 'sex', 'dob', 'civil_status',
         'blood_type', 'known_allergies', 'address', 'house_no', 'street', 'building', 'barangay', 'city_province',

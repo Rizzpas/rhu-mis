@@ -150,11 +150,11 @@
         x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 md:hidden" style="display: none;"></div>
+        class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 md:hidden" style="display: none;"></div>
 
     <!-- Sidebar -->
     <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 flex flex-col shrink-0 transition-transform duration-300 transform md:relative md:translate-x-0 shadow-lg">
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 flex flex-col shrink-0 transition-transform duration-300 transform md:relative md:translate-x-0 shadow-lg">
 
         <!-- Sidebar Header -->
         <div class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -202,167 +202,48 @@
                 </div>
             @endif
         </nav>
-
-        <!-- Bottom User Panel -->
-        <div class="border-t border-gray-100 dark:border-gray-700 px-6 py-8">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0 overflow-hidden border border-emerald-200 dark:border-emerald-800">
-                    @if(auth()->user()->avatar_url)
-                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
-                    @else
-                        <span class="text-sm font-bold text-emerald-700 dark:text-emerald-400">{{ auth()->user()->initials }}</span>
-                    @endif
-                </div>
-                <div class="min-w-0">
-                    <p class="text-base font-semibold text-gray-800 dark:text-white truncate">{{ auth()->user()->name }}</p>
-                    <p class="text-xs text-gray-400 truncate capitalize">{{ auth()->user()->role === 'vitals_nurse' ? 'Vitals Nurse' : 'Clinical Nurse' }}</p>
-                </div>
-            </div>
-            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 mb-1">
-                <svg class="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>Settings</span>
-            </a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-500 hover:text-white transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                    <span>Logout</span>
-                </button>
-            </form>
-        </div>
     </div>
 
     <!-- Main Content -->
     <div class="print:overflow-visible flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
         <!-- Top bar -->
-        <header class="print:hidden bg-emerald-600 dark:bg-emerald-800/95 sticky top-0 z-20 shadow-xs border-b border-emerald-500/20 dark:border-emerald-700/40 backdrop-blur-md transition-colors duration-200"
-            x-data="{
-                searchQuery: '',
-                showResults: false,
-                links: [
-                    { name: 'Vitals Station', route: '{{ route('triage.dashboard') }}', desc: 'Pre-triage queue & vitals recording', keywords: ['triage', 'vitals', 'blood pressure', 'temperature', 'weight', 'station'] },
-                    { name: 'Clinical Nurse Dashboard', route: '{{ route('nurse.dashboard') }}', desc: 'Patient consultation overview', keywords: ['dashboard', 'home', 'overview', 'consultations', 'patients'] },
-                    { name: 'Nurse Profile & Status', route: '{{ route('profile.edit') }}', desc: 'Account settings & duty toggle', keywords: ['profile', 'settings', 'duty', 'status', 'online', 'offline'] }
-                ],
-                get filteredLinks() {
-                    if (this.searchQuery.trim() === '') return [];
-                    const query = this.searchQuery.toLowerCase().trim();
-                    return this.links.filter(link => {
-                        return link.name.toLowerCase().includes(query) || (link.desc && link.desc.toLowerCase().includes(query)) || link.keywords.some(k => k.includes(query));
-                    });
-                },
-                triggerSearch() {
-                    window.dispatchEvent(new CustomEvent('triage-global-search', { detail: this.searchQuery }));
-                },
-                clearSearch() {
-                    this.searchQuery = '';
-                    this.triggerSearch();
-                    this.showResults = false;
-                }
-            }" @click.away="showResults = false">
-            
-            <div class="flex justify-between items-center px-4 sm:px-6 py-2.5 sm:py-3 min-h-[64px] gap-3 sm:gap-4">
-                <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+        <header class="print:hidden bg-emerald-600 dark:bg-emerald-800/95 sticky top-0 z-40 shadow-xs border-b border-emerald-500/20 dark:border-emerald-700/40 backdrop-blur-md transition-colors duration-200">
+            <div class="flex justify-between items-center px-4 sm:px-6 py-2.5 sm:py-3 min-h-[64px] gap-3 sm:gap-4 relative">
+                <!-- Left: Mobile Menu Toggle & Title -->
+                <div class="flex items-center gap-2 sm:gap-4 min-w-0">
                     <button @click="sidebarOpen = true"
-                        class="md:hidden text-white/90 hover:text-white hover:bg-white/10 dark:hover:bg-black/20 focus:outline-none p-2 rounded-xl transition-all active:scale-95 shrink-0"
+                        class="md:hidden text-white/90 hover:text-white hover:bg-white/10 dark:hover:bg-black/20 focus:outline-none p-2 rounded-xl transition-all active:scale-95 shrink-0 cursor-pointer"
                         aria-label="Open sidebar menu">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
                     </button>
                     
-                    <div class="flex items-center gap-2.5 min-w-0 shrink-0">
-                        <h1 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight truncate max-w-[150px] sm:max-w-xs md:max-w-sm lg:max-w-md flex items-center gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <h1 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight truncate flex items-center gap-2">
                             @yield('header', 'Nurse Portal')
                         </h1>
                     </div>
-
-                    <!-- Intelligent Search Bar -->
-                    <div class="relative flex-1 max-w-md lg:max-w-xl mx-1 sm:mx-4 group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-800/60 dark:text-emerald-300/70">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        </div>
-                        <input type="text" 
-                               x-model="searchQuery" 
-                               @input="triggerSearch(); showResults = true"
-                               @focus="showResults = true" 
-                               @click="showResults = true"
-                               @keydown.escape.stop="showResults = false; $el.blur()" 
-                               placeholder="Search patient, vitals queue, or shortcuts..." 
-                               class="no-uppercase w-full pl-9 pr-9 py-2 bg-white/95 hover:bg-white focus:bg-white dark:bg-slate-900/90 dark:hover:bg-slate-900 dark:focus:bg-slate-900 rounded-full border border-emerald-400/30 dark:border-emerald-700/50 shadow-inner focus:ring-2 focus:ring-white/40 dark:focus:ring-emerald-500/40 focus:outline-none text-xs sm:text-sm text-slate-800 placeholder-slate-400 dark:text-slate-100 dark:placeholder-slate-400 transition-all"
-                               style="text-transform: none !important;"
-                               autocomplete="off"
-                               spellcheck="false">
-                        
-                        <!-- Clear Search Button -->
-                        <button type="button" 
-                                x-show="searchQuery.length > 0" 
-                                @click="clearSearch()"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors"
-                                aria-label="Clear search">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                        
-                        <!-- Search Dropdown -->
-                        <div x-show="showResults && searchQuery.trim().length > 0" 
-                             x-transition:enter="transition ease-out duration-75"
-                             x-transition:enter-start="opacity-0 scale-98"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-50"
-                             x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-98"
-                             style="display: none;" 
-                             class="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 overflow-hidden top-full left-0 py-2">
-                            <div class="px-4 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
-                                <span>Quick Navigation</span>
-                                <button type="button" @click="showResults = false" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold lowercase text-[10px] cursor-pointer">Press Esc to close</button>
-                            </div>
-
-                            <template x-if="filteredLinks.length > 0">
-                                <ul class="max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-50 dark:divide-slate-800/40">
-                                    <template x-for="link in filteredLinks" :key="link.name">
-                                        <li>
-                                            <a :href="link.route" class="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800/80 text-sm transition-colors group/item">
-                                                <div class="p-1.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover/item:scale-105 transition-transform shrink-0">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <span class="font-bold text-slate-800 dark:text-white text-xs sm:text-sm block truncate" x-text="link.name"></span>
-                                                    <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="link.desc || 'Quick navigation shortcut'"></span>
-                                                </div>
-                                            </a>
-                                        </li>
-                                    </template>
-                                </ul>
-                            </template>
-
-                            <template x-if="filteredLinks.length === 0">
-                                <div class="px-5 py-6 text-center">
-                                    <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center mb-2.5">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                        </svg>
-                                    </div>
-                                    <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">No navigation shortcuts</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Filtering on-screen triage queue for "<span class="font-medium text-slate-700 dark:text-slate-300" x-text="searchQuery"></span>"</p>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
                 </div>
 
+                <!-- Right Side Actions: Date Pill, Theme Toggle, Account Menu -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                    <!-- Theme Toggle -->
-                    @include('partials.theme-toggle')
-
                     <!-- Live Date Badge -->
-                    <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 dark:bg-emerald-950/40 border border-white/15 dark:border-emerald-700/30 text-xs font-semibold text-emerald-50">
-                        <svg class="w-3.5 h-3.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 dark:bg-emerald-950/40 border border-white/15 dark:border-emerald-700/30 text-xs font-semibold text-emerald-50 shrink-0">
+                        <svg class="w-3.5 h-3.5 text-emerald-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
                         <span>{{ now()->format('l, F j, Y') }}</span>
                     </div>
+
+                    <!-- Theme Toggle -->
+                    @include('partials.theme-toggle', ['variant' => 'circle'])
+
+                    <!-- Staff Messages -->
+                    @include('partials.chat-nav-button')
+
+                    <!-- Account Menu -->
+                    @include('partials.account-menu')
                 </div>
             </div>
         </header>

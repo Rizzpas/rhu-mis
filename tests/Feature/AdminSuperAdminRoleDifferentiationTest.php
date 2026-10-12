@@ -197,6 +197,28 @@ class AdminSuperAdminRoleDifferentiationTest extends TestCase
             'status' => 'draft',
         ])->assertRedirect();
         $this->assertEquals('draft', $announcement->fresh()->status);
+
+        // Regular admin can update announcement and gets success notification
+        $updateTitleByAdmin = 'Updated By Admin ' . uniqid();
+        $adminUpdateResponse = $this->actingAs($this->regularAdmin)->put(route('admin.announcements.update', $announcement->id), [
+            'title' => $updateTitleByAdmin,
+            'content' => 'Updated content by regular admin.',
+            'status' => 'published',
+        ]);
+        $adminUpdateResponse->assertRedirect(route('admin.announcements.index'));
+        $adminUpdateResponse->assertSessionHas('success');
+        $this->assertEquals($updateTitleByAdmin, $announcement->fresh()->title);
+
+        // Super admin can update announcement and gets success notification
+        $updateTitleBySuperAdmin = 'Updated By Super Admin ' . uniqid();
+        $superAdminUpdateResponse = $this->actingAs($this->superAdmin)->put(route('admin.announcements.update', $announcement->id), [
+            'title' => $updateTitleBySuperAdmin,
+            'content' => 'Updated content by super admin.',
+            'status' => 'published',
+        ]);
+        $superAdminUpdateResponse->assertRedirect(route('admin.announcements.index'));
+        $superAdminUpdateResponse->assertSessionHas('success');
+        $this->assertEquals($updateTitleBySuperAdmin, $announcement->fresh()->title);
     }
 
     public function test_only_super_admin_can_delete_announcements(): void

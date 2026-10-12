@@ -155,12 +155,10 @@
                         Role & Department
                     </label>
                     @php
-                        $roleOptions = ['all' => 'All Roles'];
-                        if (auth()->user()->can('promote-admin')) {
-                            $roleOptions['super_admin'] = 'Super Admin';
-                            $roleOptions['admin'] = 'Admin';
-                        }
-                        $roleOptions += [
+                        $roleOptions = [
+                            'all' => 'All Roles',
+                            'super_admin' => 'Super Admin',
+                            'admin' => 'Admin',
                             'regular_doctor' => 'Regular Doctor',
                             'pedia_doctor' => 'Pedia Doctor',
                             'laboratory' => 'Laboratory',
@@ -223,7 +221,6 @@
         <!-- Add Staff Modal -->
         <div x-show="showAddDoctor" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto"
              x-data="{
-                step: 1,
                 firstName: @js(old('first_name', '')),
                 middleName: @js(old('middle_name', '')),
                 lastName: @js(old('last_name', '')),
@@ -339,6 +336,8 @@
                 },
                 password: '',
                 passwordConfirmation: '',
+                showPassword: false,
+                showPasswordConfirmation: false,
                 get strength() {
                     let score = 0;
                     if (this.password.length > 7) score++;
@@ -385,43 +384,84 @@
                         time_out: this.timeOut
                     })));
                 },
-                nextStep() {
-                    if (this.step === 1) {
-                        if (!this.firstName || !this.lastName || !this.email) {
-                            alert('Please fill out First Name, Last Name, and Email Address.');
-                            return;
-                        }
+                errors: {},
+                isSubmitting: false,
+                clearError(field) {
+                    if (this.errors[field]) {
+                        delete this.errors[field];
+                    }
+                },
+                validate() {
+                    this.errors = {};
+                    if (!this.firstName || !this.firstName.trim()) {
+                        this.errors.first_name = 'First name is required.';
+                    }
+                    if (!this.lastName || !this.lastName.trim()) {
+                        this.errors.last_name = 'Last name is required.';
+                    }
+                    if (!this.email || !this.email.trim()) {
+                        this.errors.email = 'Email address is required.';
+                    } else {
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (!emailRegex.test(this.email)) {
-                            alert('Please enter a valid email address.');
-                            return;
+                        if (!emailRegex.test(this.email.trim())) {
+                            this.errors.email = 'Please enter a valid email address.';
                         }
                     }
-                    if (this.step === 2 && !this.role) {
-                        alert('Please select a role for the staff member.');
+                    if (!this.role) {
+                        this.errors.role = 'Please select a role for the staff member.';
+                    }
+                    if (!this.password) {
+                        this.errors.password = 'Temporary password is required.';
+                    } else if (this.password.length < 8) {
+                        this.errors.password = 'Password must be at least 8 characters.';
+                    }
+                    if (!this.passwordConfirmation) {
+                        this.errors.password_confirmation = 'Please confirm the temporary password.';
+                    } else if (this.password !== this.passwordConfirmation) {
+                        this.errors.password_confirmation = 'Passwords do not match.';
+                    }
+
+                    return Object.keys(this.errors).length === 0;
+                },
+                handleSubmit(e) {
+                    if (this.isSubmitting) {
+                        e.preventDefault();
                         return;
                     }
-                    if (this.step < 3) this.step++;
-                },
-                prevStep() {
-                    if (this.step > 1) this.step--;
-                },
-                goToStep(s) {
-                    if (s < this.step) {
-                        this.step = s;
-                    } else if (s === 2 && this.firstName && this.lastName && this.email) {
-                        this.step = 2;
-                    } else if (s === 3 && this.firstName && this.lastName && this.email && this.role) {
-                        this.step = 3;
+                    if (!this.validate()) {
+                        e.preventDefault();
+                        const firstKey = Object.keys(this.errors)[0];
+                        const el = document.getElementById('add_staff_error_' + firstKey);
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        return;
                     }
+                    this.isSubmitting = true;
+                },
+                init() {
+                    @if(old('schedule'))
+                        try {
+                            const oldSched = JSON.parse(@js(old('schedule')));
+                            if (Array.isArray(oldSched)) {
+                                oldSched.forEach(item => {
+                                    if (this.days.hasOwnProperty(item.day)) {
+                                        this.days[item.day] = true;
+                                    }
+                                    if (item.time_in) this.timeIn = item.time_in;
+                                    if (item.time_out) this.timeOut = item.time_out;
+                                });
+                            }
+                        } catch(e) {}
+                    @endif
                 }
              }">
-            <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <div class="flex items-center justify-center min-h-screen px-4 py-6 sm:py-8">
                 <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
                     @click="showAddDoctor = false">
                 </div>
 
-                <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl transform transition-all sm:max-w-2xl lg:max-w-3xl w-full z-10 max-h-[92vh] flex flex-col border border-slate-200/80 dark:border-slate-800 overflow-hidden"
+                <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl transform transition-all sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl w-full z-10 max-h-[90vh] flex flex-col border border-slate-200/80 dark:border-slate-800 overflow-hidden"
                      @dragenter.prevent="handleDragEnter($event)"
                      @dragleave.prevent="handleDragLeave($event)"
                      @dragover.prevent
@@ -448,13 +488,14 @@
                         </p>
                         <div class="mt-4 px-4 py-1.5 rounded-full bg-teal-500/20 text-xs font-bold text-teal-300 border border-teal-400/30 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Supports JPG, PNG, WEBP, GIF</span>
+                            <span>Supports JPG, PNG, WEBP</span>
                         </div>
                     </div>
 
                     <form action="{{ route('admin.staff.store') }}" method="POST" enctype="multipart/form-data"
+                          id="addStaffForm"
                           class="flex flex-col flex-1 min-h-0"
-                          @submit="if(step < 3) { $event.preventDefault(); nextStep(); } else if (password !== passwordConfirmation) { $event.preventDefault(); alert('Passwords do not match'); }">
+                          @submit="handleSubmit($event)">
                         @csrf
                         <input type="hidden" name="_form" value="add_staff">
                         <input type="hidden" name="name" :value="fullName">
@@ -462,8 +503,8 @@
                         <input type="hidden" name="role" :value="role">
                         <input type="hidden" name="status" :value="status">
 
-                        <!-- Modal Header -->
-                        <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 flex justify-between items-center shrink-0 rounded-t-3xl">
+                        <!-- Modal Header (Fixed / Non-scrolling) -->
+                        <div class="px-6 sm:px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 flex justify-between items-center shrink-0 rounded-t-3xl">
                             <div class="flex items-center gap-3.5">
                                 <div class="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-xs">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -472,78 +513,35 @@
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Add New Staff Member</h3>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">
-                                        <span x-text="step === 1 ? 'Step 1 of 3: Personal Information' : (step === 2 ? 'Step 2 of 3: Role & Schedule' : 'Step 3 of 3: Security & Confirmation')"></span>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Enter personal details, role, duty schedule, and temporary credentials in one continuous form.
                                     </p>
                                 </div>
                             </div>
                             <button type="button" @click="showAddDoctor = false"
-                                class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+                                class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                                title="Close modal">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
 
-                        <!-- Sleek Stepper Navigation Bar -->
-                        <div class="px-6 sm:px-8 py-2.5 bg-slate-100/70 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
-                            <!-- Step 1 pill -->
-                            <button type="button" @click="goToStep(1)"
-                                    class="flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer group"
-                                    :class="step === 1 ? 'text-teal-600 dark:text-teal-400' : (step > 1 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400')">
-                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all"
-                                      :class="step === 1 ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/20' : (step > 1 ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500')">
-                                    <template x-if="step > 1">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                    </template>
-                                    <template x-if="step <= 1">1</template>
-                                </span>
-                                <span class="hidden sm:inline tracking-wide">Personal Info</span>
-                            </button>
-
-                            <!-- Divider Line 1 -->
-                            <div class="flex-1 h-0.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
-                                     :style="step > 1 ? 'width: 100%' : 'width: 0%'"></div>
-                            </div>
-
-                            <!-- Step 2 pill -->
-                            <button type="button" @click="goToStep(2)"
-                                    class="flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer group"
-                                    :class="step === 2 ? 'text-teal-600 dark:text-teal-400' : (step > 2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400')">
-                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all"
-                                      :class="step === 2 ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/20' : (step > 2 ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500')">
-                                    <template x-if="step > 2">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                    </template>
-                                    <template x-if="step <= 2">2</template>
-                                </span>
-                                <span class="hidden sm:inline tracking-wide">Role & Schedule</span>
-                            </button>
-
-                            <!-- Divider Line 2 -->
-                            <div class="flex-1 h-0.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
-                                     :style="step > 2 ? 'width: 100%' : 'width: 0%'"></div>
-                            </div>
-
-                            <!-- Step 3 pill -->
-                            <button type="button" @click="goToStep(3)"
-                                    class="flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer group"
-                                    :class="step === 3 ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400'">
-                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all"
-                                      :class="step === 3 ? 'bg-teal-600 text-white shadow-sm ring-2 ring-teal-500/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'">
-                                    3
-                                </span>
-                                <span class="hidden sm:inline tracking-wide">Security & Finish</span>
-                            </button>
-                        </div>
-
                         <!-- Modal Scrollable Body -->
-                        <div class="px-6 sm:px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+                        <div class="px-6 sm:px-8 py-6 space-y-8 overflow-y-auto custom-scrollbar flex-1 min-h-0">
 
-                            <!-- STEP 1: Personal Info -->
-                            <div x-show="step === 1" class="space-y-6">
+                            <!-- SECTION 1: Personal Information -->
+                            <div class="space-y-5">
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-7 h-7 rounded-xl bg-teal-100 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xs font-black shadow-2xs">1</span>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Personal Information</h4>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Staff identity details and optional profile photo.</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500"><span class="text-red-500">*</span> Required fields</span>
+                                </div>
                                 <!-- Profile Picture & Identity Preview Banner -->
                                 <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 dark:from-slate-800/70 dark:to-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row items-center gap-5">
                                     <div class="relative group shrink-0">
@@ -659,8 +657,15 @@
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                                 First Name <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="text" x-model="firstName" name="first_name" :required="step === 1" placeholder="e.g. John"
-                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                            <input type="text" x-model="firstName" @input="clearError('first_name')" name="first_name" placeholder="e.g. John"
+                                                :class="errors.first_name ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-300 dark:border-slate-600'"
+                                                class="block w-full rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                            <template x-if="errors.first_name">
+                                                <p id="add_staff_error_first_name" class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5" role="alert">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <span x-text="errors.first_name"></span>
+                                                </p>
+                                            </template>
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
@@ -673,8 +678,15 @@
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                                 Last Name <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="text" x-model="lastName" name="last_name" :required="step === 1" placeholder="e.g. Doe"
-                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                            <input type="text" x-model="lastName" @input="clearError('last_name')" name="last_name" placeholder="e.g. Doe"
+                                                :class="errors.last_name ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-300 dark:border-slate-600'"
+                                                class="block w-full rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                            <template x-if="errors.last_name">
+                                                <p id="add_staff_error_last_name" class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5" role="alert">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <span x-text="errors.last_name"></span>
+                                                </p>
+                                            </template>
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
@@ -689,21 +701,41 @@
                                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                             Email Address <span class="text-red-500">*</span>
                                         </label>
-                                        <input type="email" x-model="email" name="email" :required="step === 1" placeholder="doctor.name@rhu.gov.ph"
-                                            class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                        <input type="email" x-model="email" @input="clearError('email')" name="email" placeholder="staff.member@rhu.gov.ph"
+                                            :class="errors.email ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-300 dark:border-slate-600'"
+                                            class="block w-full rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                        <template x-if="errors.email">
+                                            <p id="add_staff_error_email" class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5" role="alert">
+                                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span x-text="errors.email"></span>
+                                            </p>
+                                        </template>
+                                        @if(old('_form') === 'add_staff')
+                                            @error('email')
+                                                <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <span>{{ $message }}</span>
+                                                </p>
+                                            @enderror
+                                        @endif
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- STEP 2: Role & Work Schedule -->
-                            <div x-show="step === 2" style="display: none;" class="space-y-6">
+                            <!-- SECTION 2: Role & Duty Schedule -->
+                            <div class="space-y-5 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-7 h-7 rounded-xl bg-teal-100 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xs font-black shadow-2xs">2</span>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Role & Duty Schedule</h4>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Designation, system permissions, status, and weekly duty hours.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Role & Availability Status -->
                                 <div class="space-y-4">
-                                    <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                                        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                                        <span>Role & Availability Status</span>
-                                    </div>
-
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <!-- Custom Floating Role Dropdown -->
                                         <div class="relative" @click.outside="openRoleDropdown = false">
@@ -713,8 +745,8 @@
                                             
                                             <button type="button" 
                                                     @click="openRoleDropdown = !openRoleDropdown; openStatusDropdown = false"
-                                                    class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                                                    :class="openRoleDropdown ? 'border-teal-500 ring-2 ring-teal-500/20' : ''">
+                                                    class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
+                                                    :class="errors.role ? 'border-rose-500 ring-2 ring-rose-500/20' : (openRoleDropdown ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-600')">
                                                 <span class="truncate" :class="!role ? 'text-slate-400 dark:text-slate-500 font-normal' : ''" x-text="getRoleLabel(role)"></span>
                                                 <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform duration-200 shrink-0 ml-2"
                                                      :class="openRoleDropdown ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
@@ -722,6 +754,21 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                 </svg>
                                             </button>
+
+                                            <template x-if="errors.role">
+                                                <p id="add_staff_error_role" class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5" role="alert">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <span x-text="errors.role"></span>
+                                                </p>
+                                            </template>
+                                            @if(old('_form') === 'add_staff')
+                                                @error('role')
+                                                    <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5">
+                                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                        <span>{{ $message }}</span>
+                                                    </p>
+                                                @enderror
+                                            @endif
 
                                             <!-- Custom Floating Menu -->
                                             <div x-show="openRoleDropdown" 
@@ -734,7 +781,7 @@
                                                  style="display: none;"
                                                  class="absolute left-0 right-0 z-50 mt-1.5 max-h-56 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 custom-scrollbar backdrop-blur-md">
                                                 <template x-for="item in availableRoles" :key="item.value">
-                                                    <div @click="role = item.value; openRoleDropdown = false"
+                                                    <div @click="role = item.value; clearError('role'); openRoleDropdown = false"
                                                          class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors"
                                                          :class="role === item.value 
                                                             ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
@@ -1107,8 +1154,19 @@
                                 </div>
                             </div>
 
-                            <!-- STEP 3: Security & Completion -->
-                            <div x-show="step === 3" style="display: none;" class="space-y-6">
+                            <!-- SECTION 3: Security & Account Credentials -->
+                            <div class="space-y-5 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-7 h-7 rounded-xl bg-teal-100 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xs font-black shadow-2xs">3</span>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Security & Account Credentials</h4>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Set temporary password for login authentication.</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500"><span class="text-red-500">*</span> Required fields</span>
+                                </div>
+
                                 <!-- Security Notice Box -->
                                 <div class="p-4 rounded-2xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200/80 dark:border-teal-800/60 flex items-start gap-3">
                                     <div class="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-900/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -1117,7 +1175,7 @@
                                     <div>
                                         <h5 class="text-xs font-bold text-teal-900 dark:text-teal-200">Account Credentials</h5>
                                         <p class="text-xs text-teal-800/80 dark:text-teal-300/80 mt-0.5">
-                                            Set a temporary password for this staff member (minimum 8 characters). They can change this password anytime in their profile.
+                                            Set a temporary password for this staff member (minimum 8 characters). They can change this password anytime in their profile settings.
                                         </p>
                                     </div>
                                 </div>
@@ -1134,8 +1192,24 @@
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                                 Temporary Password <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="password" name="password" x-model="password" :required="step === 3" placeholder="••••••••"
-                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                            <div class="relative">
+                                                <input :type="showPassword ? 'text' : 'password'" name="password" x-model="password" @input="clearError('password')" placeholder="••••••••"
+                                                    :class="errors.password ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-300 dark:border-slate-600'"
+                                                    class="block w-full rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white pl-3.5 pr-11 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                                
+                                                <button type="button" @click="showPassword = !showPassword"
+                                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors cursor-pointer focus:outline-none"
+                                                    :title="showPassword ? 'Hide password' : 'Show password'"
+                                                    tabindex="-1">
+                                                    <svg x-show="!showPassword" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    <svg x-show="showPassword" x-cloak class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                             
                                             <!-- Password Strength Bar -->
                                             <div class="mt-2.5 flex items-center gap-2" x-show="password.length > 0">
@@ -1153,29 +1227,75 @@
                                                     :class="{'text-red-500': strength <= 1, 'text-yellow-500': strength === 2, 'text-teal-500': strength === 3, 'text-green-500': strength === 4}"
                                                     x-text="strengthText"></span>
                                             </div>
+
+                                            <template x-if="errors.password">
+                                                <p id="add_staff_error_password" class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5" role="alert">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <span x-text="errors.password"></span>
+                                                </p>
+                                            </template>
+                                            @if(old('_form') === 'add_staff')
+                                                @error('password')
+                                                    <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5">
+                                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                        <span>{{ $message }}</span>
+                                                    </p>
+                                                @enderror
+                                            @endif
                                         </div>
 
                                         <div>
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                                 Confirm Password <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="password" name="password_confirmation" x-model="passwordConfirmation" :required="step === 3" placeholder="••••••••"
-                                                class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                            <div class="relative">
+                                                <input :type="showPasswordConfirmation ? 'text' : 'password'" name="password_confirmation" x-model="passwordConfirmation" @input="clearError('password_confirmation')" placeholder="••••••••"
+                                                    :class="errors.password_confirmation ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-300 dark:border-slate-600'"
+                                                    class="block w-full rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white pl-3.5 pr-11 py-2.5 text-sm font-medium shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                                
+                                                <button type="button" @click="showPasswordConfirmation = !showPasswordConfirmation"
+                                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors cursor-pointer focus:outline-none"
+                                                    :title="showPasswordConfirmation ? 'Hide password' : 'Show password'"
+                                                    tabindex="-1">
+                                                    <svg x-show="!showPasswordConfirmation" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    <svg x-show="showPasswordConfirmation" x-cloak class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                             
-                                            <p x-show="passwordConfirmation.length > 0 && password !== passwordConfirmation"
+                                            <p x-show="passwordConfirmation.length > 0 && password !== passwordConfirmation && !errors.password_confirmation"
                                                 class="text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                 <span>Passwords do not match.</span>
                                             </p>
+
+                                            <template x-if="errors.password_confirmation">
+                                                <p id="add_staff_error_password_confirmation" class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5" role="alert">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <span x-text="errors.password_confirmation"></span>
+                                                </p>
+                                            </template>
+                                            @if(old('_form') === 'add_staff')
+                                                @error('password_confirmation')
+                                                    <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-1.5">
+                                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                        <span>{{ $message }}</span>
+                                                    </p>
+                                                @enderror
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Review Staff Details Summary Card -->
-                                <div class="space-y-3 pt-1">
+                                <!-- Staff Summary Preview Card -->
+                                <div class="space-y-3 pt-2">
                                     <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                         <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                                        <span>Staff Summary Review</span>
+                                        <span>Staff Summary Preview</span>
                                     </div>
 
                                     <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
@@ -1191,7 +1311,7 @@
                                                 </div>
                                                 <div>
                                                     <h5 class="text-sm font-bold text-slate-900 dark:text-white" x-text="fullName || 'New Staff Member'"></h5>
-                                                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="email"></p>
+                                                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="email || 'No email specified'"></p>
                                                 </div>
                                             </div>
 
@@ -1210,47 +1330,39 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex items-center gap-2 text-xs" :class="formattedSchedule ? 'text-slate-600 dark:text-slate-400' : 'text-red-600 dark:text-red-400'">
-                                            <svg class="w-4 h-4 shrink-0" :class="formattedSchedule ? 'text-teal-500' : 'text-red-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div class="flex items-center gap-2 text-xs" :class="formattedSchedule ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'">
+                                            <svg class="w-4 h-4 shrink-0" :class="formattedSchedule ? 'text-teal-500' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                             </svg>
-                                            <span :class="formattedSchedule ? 'font-medium' : 'font-semibold'" x-text="formattedSchedule ? formattedSchedule : 'No Schedule Set'"></span>
+                                            <span :class="formattedSchedule ? 'font-medium' : 'font-normal'" x-text="formattedSchedule ? formattedSchedule : 'No Schedule Set (Flexible / On-call)'"></span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Modal Footer -->
-                        <div class="px-8 py-4 bg-slate-50/70 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0 rounded-b-3xl">
-                            <div>
-                                <button type="button" x-show="step > 1" @click="prevStep()"
-                                    class="px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                    <span>Back</span>
-                                </button>
-                            </div>
-                            
-                            <div class="flex items-center gap-3">
-                                <button type="button" @click="showAddDoctor = false"
-                                    class="px-5 py-2.5 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer">
-                                    Cancel
-                                </button>
+                        <!-- Modal Footer (Fixed / Non-scrolling) -->
+                        <div class="px-6 sm:px-8 py-4 bg-slate-50/80 dark:bg-slate-900/90 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center shrink-0 rounded-b-3xl gap-3">
+                            <button type="button" @click="showAddDoctor = false"
+                                class="px-5 py-2.5 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer">
+                                Cancel
+                            </button>
 
-                                <button type="button" x-show="step < 3" @click="nextStep()"
-                                    class="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-sm font-bold text-white rounded-xl shadow-md shadow-teal-600/20 hover:shadow-teal-600/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
-                                    <span>Next</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-
-                                <button type="submit" x-show="step === 3"
-                                    :disabled="!password || password.length < 8 || password !== passwordConfirmation"
-                                    :class="(!password || password.length < 8 || password !== passwordConfirmation) ? 'opacity-50 cursor-not-allowed' : 'hover:from-teal-700 hover:to-emerald-700 active:scale-95 cursor-pointer shadow-md shadow-teal-600/20'"
-                                    class="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-sm font-bold text-white rounded-xl transition-all flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span>Create Staff</span>
-                                </button>
-                            </div>
+                            <button type="submit"
+                                :disabled="isSubmitting"
+                                :class="isSubmitting ? 'opacity-70 cursor-wait' : 'hover:from-teal-700 hover:to-emerald-700 active:scale-95 cursor-pointer shadow-md shadow-teal-600/20'"
+                                class="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-sm font-bold text-white rounded-xl transition-all flex items-center gap-2">
+                                <template x-if="isSubmitting">
+                                    <svg class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                    </svg>
+                                </template>
+                                <template x-if="!isSubmitting">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                                </template>
+                                <span x-text="isSubmitting ? 'Creating Staff Member...' : 'Create Staff Member'">Create Staff Member</span>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -1545,7 +1657,7 @@
                         </p>
                         <div class="mt-4 px-4 py-1.5 rounded-full bg-teal-500/20 text-xs font-bold text-teal-300 border border-teal-400/30 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Supports JPG, PNG, WEBP, GIF</span>
+                            <span>Supports JPG, PNG, WEBP</span>
                         </div>
                     </div>
 

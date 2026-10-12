@@ -159,7 +159,7 @@
             <div class="pt-3 border-t border-white/15 flex items-center justify-between text-xs">
                 <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse"></span>
-                    <span class="font-bold text-emerald-100 text-[11px]">{{ auth()->user()->status ?? 'Online' }}</span>
+                    <span class="font-bold text-emerald-100 text-[11px]">{{ auth()->user()->effective_status }}</span>
                 </div>
                 <span class="text-[11px] text-emerald-200/90 font-medium">{{ \Carbon\Carbon::today()->format('M d, Y') }}</span>
             </div>
@@ -343,6 +343,20 @@
 
                     openConfirmModal(e) {
                         this.pendingFormData = new FormData(e.target);
+                        const formClass = this.pendingFormData.get('classification');
+                        const formDob = this.pendingFormData.get('dob');
+                        if (formClass === 'Pediatric' && formDob) {
+                            const d = new Date(formDob);
+                            if (!isNaN(d.getTime())) {
+                                const today = new Date();
+                                let months = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                                if (today.getDate() < d.getDate()) months--;
+                                if (months < 6) {
+                                    this.showToast('The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.', 'error');
+                                    return;
+                                }
+                            }
+                        }
                         if (this.vitalsStartedAt) {
                             let elapsed = Math.floor((Date.now() - this.vitalsStartedAt) / 1000);
                             if (elapsed < 1) elapsed = 1;

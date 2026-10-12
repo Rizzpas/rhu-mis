@@ -71,6 +71,8 @@ class User extends Authenticatable
         'role',
         'status',
         'schedule_override',
+        'schedule_override_at',
+        'schedule_override_expires_at',
         'avatar_path',
         'schedule',
         'last_activity_at',
@@ -97,6 +99,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_activity_at' => 'datetime',
+            'schedule_override_at' => 'datetime',
+            'schedule_override_expires_at' => 'datetime',
         ];
     }
 
@@ -186,119 +190,45 @@ class User extends Authenticatable
     }
 
     /**
-     * Dynamically determine if the user is present based on schedule and heartbeat.
-     * Priority order:
-     *   1. Occupied/Seminar status → "occupied" (not present but shown differently on frontend)
-     *   2. Manual offline override (schedule_override = 'manual_offline') → definitively offline
-     *   3. Manually set to 'Online'/'Present' → present
-     *   4. Within an active schedule slot → present (auto-online)
-     *   5. Otherwise → offline
+     * Whether the user is currently online and available (not busy).
+     *
+     * Computed on every read by App\Services\StaffPresence from the current time,
+     * the practitioner schedule and any unexpired manual override. The stored
+     * `status` column is NOT trusted for presence (it is only a cache + busy flag).
      */
     public function getIsPresentAttribute(): bool
     {
-        $status = strtolower($this->status ?? '');
-
-        // Occupied/Seminar are handled separately by the frontend (shown as "Occupied")
-        if (in_array($status, ['occupied', 'seminar'])) {
-            return false;
-        }
-
-        // If the user has manually overridden to offline, respect that
-        if ($this->schedule_override === 'manual_offline') {
-            return false;
-        }
-
-        $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
-
-        // Demo Mode: anyone who isn't manually offline/occupied is present
-        if ($isDemoMode) {
-            // In demo mode, only require a recent heartbeat (generous 12-hour window)
-            return $this->isActive(720);
-        }
-
-        // If manually set to 'Present', they are physically in clinic
-        if (in_array($status, ['present'])) {
-            return true;
-        }
-
-        // If manually set to 'Online', check recent activity (generous 60-min window)
-        if (in_array($status, ['online']) && $this->isActive(60)) {
-            return true;
-        }
-
-        // Auto-online via schedule: check if they have an active schedule slot RIGHT NOW
-        // This is the key fix: doctors can still be "present" if their schedule says they should be working now
-        $now = now();
-        $dayOfWeek = $now->format('D');
-        $timeNow = $now->format('H:i:s');
-
-        $hasActiveScheduleSlot = $this->relationLoaded('practitionerSchedules')
-            ? $this->practitionerSchedules->contains(function ($s) use ($dayOfWeek, $timeNow) {
-                return $s->day_of_week === $dayOfWeek
-                    && $s->time_in <= $timeNow
-                    && $s->time_out >= $timeNow;
-            })
-            : $this->practitionerSchedules()
-                ->where('day_of_week', $dayOfWeek)
-                ->where('time_in', '<=', $timeNow)
-                ->where('time_out', '>=', $timeNow)
-                ->exists();
-
-        return $hasActiveScheduleSlot;
+        return \App\Services\StaffPresence::effectiveStatus($this) === 'Online';
     }
 
     /**
-     * Query scope to filter only present users.
-     * Aligns with getIsPresentAttribute logic:
-     *   - Excludes Occupied/Seminar status
-     *   - Excludes manual_offline override
-     *   - Includes manually Online/Present (with recent heartbeat)
-     *   - Includes anyone within an active schedule slot (auto-online)
+     * Effective presence: 'Online' | 'Occupied' | 'Offline'.
+     */
+    public function getEffectiveStatusAttribute(): string
+    {
+        return \App\Services\StaffPresence::effectiveStatus($this);
+    }
+
+    /**
+     * Query scope: users who are effectively online right now (including Occupied).
+     */
+    public function scopeEffectivelyOnline($query)
+    {
+        return \App\Services\StaffPresence::applyOnlineScope($query);
+    }
+
+    /**
+     * Query scope to filter only present (online and not busy) users.
+     * SQL mirror of getIsPresentAttribute().
      */
     public function scopePresent($query)
     {
-        $now = now();
-        $dayOfWeek = $now->format('D');
-        $time = $now->format('H:i:s');
-
-        $isDemoMode = \App\Models\SiteSetting::get('demo_mode') === '1';
-
-        // Always exclude Occupied/Seminar
-        $query->whereNotIn('status', ['Occupied', 'occupied', 'Seminar', 'seminar']);
-
-        // Always exclude manual offline overrides
         $query->where(function ($q) {
-            $q->whereNull('schedule_override')
-              ->orWhere('schedule_override', '!=', 'manual_offline');
+            $q->whereNull('status')
+              ->orWhereNotIn('status', ['Occupied', 'occupied', 'Seminar', 'seminar', 'in meeting', 'on seminar']);
         });
 
-        if ($isDemoMode) {
-            // In demo mode, everyone who isn't Occupied/manual_offline is present
-            return $query;
-        }
-
-        // Either: manually Present (on-duty)
-        // Or: Online with activity in last 60 minutes
-        // Or: has an active schedule slot right now
-        $activeSince = $now->copy()->subMinutes(60);
-
-        $query->where(function ($q) use ($dayOfWeek, $time, $activeSince) {
-            // Status explicitly Present (on duty)
-            $q->whereIn('status', ['Present', 'present'])
-            // OR manually online with recent heartbeat
-            ->orWhere(function ($inner) use ($activeSince) {
-                $inner->whereIn('status', ['Online', 'online'])
-                      ->where('last_activity_at', '>=', $activeSince);
-            })
-            // OR has active schedule slot (no heartbeat required for schedule-based)
-            ->orWhereHas('practitionerSchedules', function ($scheduleQuery) use ($dayOfWeek, $time) {
-                $scheduleQuery->where('day_of_week', $dayOfWeek)
-                    ->where('time_in', '<=', $time)
-                    ->where('time_out', '>=', $time);
-            });
-        });
-
-        return $query;
+        return \App\Services\StaffPresence::applyOnlineScope($query);
     }
 
     /**

@@ -72,11 +72,9 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            // ── Presence System: Auto-set "Online" on login ──
-            $user->update([
-                'status' => 'Online',
-                'last_activity_at' => now(),
-            ]);
+            // ── Presence System: opening the account outside schedule makes the user online;
+            //    inside schedule the schedule (and any manual-offline override) governs. ──
+            \App\Services\StaffPresence::handleLogin($user);
 
             \App\Models\AuditLog::record('Login', $user);
 
@@ -103,10 +101,8 @@ class AuthController extends Controller
             // Only force them offline if we are NOT in demo mode.
             // In demo mode, we want them to stay "Online" so the presenter can log in/out freely.
             if (! $isDemoMode) {
-                $user->update([
-                    'status' => 'Offline',
-                    'last_activity_at' => null,
-                ]);
+                // Ends a manual-online session; the schedule-based status takes over.
+                \App\Services\StaffPresence::handleLogout($user);
             }
 
             \App\Models\AuditLog::record('Logout', $user);

@@ -22,6 +22,55 @@ class ProfileController extends Controller
     }
 
     /**
+     * Show the authenticated user's own activity log (scoped to their audit records only).
+     */
+    public function activity(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = \App\Models\AuditLog::where('user_id', $user->id);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('action', 'like', "%{$search}%")
+                    ->orWhere('model_type', 'like', "%{$search}%");
+            });
+        }
+
+        $range = $request->input('range', 'all');
+        match ($range) {
+            'today' => $query->whereDate('created_at', today()),
+            '7d' => $query->where('created_at', '>=', now()->subDays(7)),
+            '30d' => $query->where('created_at', '>=', now()->subDays(30)),
+            default => null,
+        };
+
+        $category = $request->input('category', 'all');
+        if ($category === 'auth') {
+            $query->where(function ($q) {
+                $q->where('action', 'like', '%Login%')->orWhere('action', 'like', '%Logout%');
+            });
+        } elseif ($category === 'viewed') {
+            $query->where('action', 'like', 'Viewed%');
+        } elseif ($category === 'changes') {
+            $query->where('action', 'not like', 'Viewed%')
+                ->where('action', 'not like', '%Login%')
+                ->where('action', 'not like', '%Logout%');
+        }
+
+        $logs = $query->latest()->paginate(15)->withQueryString();
+
+        $stats = [
+            'total' => \App\Models\AuditLog::where('user_id', $user->id)->count(),
+            'today' => \App\Models\AuditLog::where('user_id', $user->id)->whereDate('created_at', today())->count(),
+            'last_login' => \App\Models\AuditLog::where('user_id', $user->id)->where('action', 'Login')->latest()->first(),
+        ];
+
+        return view('profile.activity', compact('user', 'logs', 'stats', 'range', 'category'));
+    }
+
+    /**
      * Update user's profile information.
      */
     public function update(Request $request)
@@ -84,12 +133,13 @@ class ProfileController extends Controller
         }
 
         if ($request->filled('status')) {
-            $user->status = match(strtolower($validated['status'])) {
+            $normalized = match(strtolower($validated['status'])) {
                 'online', 'present' => 'Online',
                 'offline', 'unavailable', 'out of office' => 'Offline',
                 'occupied', 'in meeting', 'seminar' => 'Occupied',
                 default => 'Offline'
             };
+            $user->forceFill(\App\Services\StaffPresence::manualStatusAttributes($user, $normalized));
         }
 
         if ($request->hasFile('avatar')) {
@@ -125,25 +175,15 @@ class ProfileController extends Controller
             'occupied', 'in meeting', 'seminar' => 'Occupied',
             default => 'Offline'
         };
-        $user->status = $normalizedStatus;
-
-        // Set schedule_override to track manual status changes
-        // This tells the auto-schedule sync command to respect the user's choice
-        if ($normalizedStatus === 'Offline') {
-            // Manual offline: stay offline until next schedule slot starts
-            $user->schedule_override = 'manual_offline';
-            $user->last_activity_at = null;
-        } elseif ($normalizedStatus === 'Online' || $normalizedStatus === 'Occupied') {
-            // Manual online/occupied: stay active, auto-offline when schedule ends
-            $user->schedule_override = 'manual_online';
-            $user->last_activity_at = now();
-        }
-
-        $user->save();
+        // Records a timestamped, self-expiring override (see App\Services\StaffPresence):
+        //  - Offline: offline immediately, until the start of the next scheduled shift.
+        //  - Online/Occupied inside schedule: any override is removed (schedule governs).
+        //  - Online/Occupied outside schedule: manual-online until offline/logout.
+        \App\Services\StaffPresence::setManualStatus($user, $normalizedStatus);
 
         return response()->json([
             'success' => true,
-            'status' => $user->status,
+            'status' => $user->effective_status,
         ]);
     }
 

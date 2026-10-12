@@ -42,28 +42,74 @@
                 <span>Print Dossier</span>
             </button>
 
-            <!-- Timeframe Filter -->
-            <div class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700">
-                <label for="time_filter" class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Period:</label>
-                <div class="w-36">
-                    <x-select 
-                        id="time_filter" 
-                        :options="['today' => 'Today', 'weekly' => 'This Week', 'monthly' => 'This Month', 'yearly' => 'This Year', 'all' => 'All Time', 'custom' => 'Custom Range']" 
-                        :value="$timeFilter"
-                        x-model="$store.dashboard.timeFilter" 
-                        @change="$store.dashboard.refresh()"
-                        size="sm"
-                        class="border-0 shadow-none font-bold text-slate-800 dark:text-white !py-0"
-                    />
+            <!-- Timeframe Filter Dropdown -->
+            <div class="relative" x-data="{
+                open: false,
+                options: {
+                    'today': 'Today',
+                    'weekly': 'This Week',
+                    'monthly': 'This Month',
+                    'yearly': 'This Year',
+                    'all': 'All Time',
+                    'custom': 'Custom Range'
+                },
+                select(val) {
+                    this.open = false;
+                    $store.dashboard.setFilter(val);
+                }
+            }" @click.outside="open = false">
+                <div class="h-11 flex items-center gap-2 bg-white dark:bg-slate-800 px-3.5 rounded-xl shadow-2xs border border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 transition-all">
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Period:</span>
+                    </div>
+
+                    <!-- Dropdown Trigger Button -->
+                    <button type="button" @click="open = !open"
+                            class="h-8 px-2.5 rounded-lg text-xs font-bold text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 flex items-center gap-1.5 transition-all cursor-pointer focus:outline-none">
+                        <span x-text="options[$store.dashboard.timeFilter] || 'This Month'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400 transition-transform duration-200"
+                             :class="open ? 'rotate-180 text-emerald-500 dark:text-emerald-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Custom Range Pickers -->
+                    <div x-show="$store.dashboard.timeFilter === 'custom'" x-cloak class="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700">
+                        <input type="date" x-model="$store.dashboard.startDate" @change="$store.dashboard.refresh()" class="h-7 px-2 text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                        <span class="text-xs text-slate-400">&ndash;</span>
+                        <input type="date" x-model="$store.dashboard.endDate" @change="$store.dashboard.refresh()" class="h-7 px-2 text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                    </div>
+
+                    <div x-show="$store.dashboard.loading" x-cloak class="ml-1">
+                        <svg class="animate-spin h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    </div>
                 </div>
-                <!-- Custom Range Pickers -->
-                <div x-show="$store.dashboard.timeFilter === 'custom'" class="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700" style="display: none;">
-                    <input type="date" x-model="$store.dashboard.startDate" @change="$store.dashboard.refresh()" class="h-8 px-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white font-medium" />
-                    <span class="text-xs text-slate-400">&ndash;</span>
-                    <input type="date" x-model="$store.dashboard.endDate" @change="$store.dashboard.refresh()" class="h-8 px-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white font-medium" />
-                </div>
-                <div x-show="$store.dashboard.loading" class="ml-1" style="display: none;">
-                    <svg class="animate-spin h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+
+                <!-- Dropdown Menu -->
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                     style="display: none;"
+                     class="absolute right-0 z-50 mt-1.5 w-44 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md">
+                    <template x-for="(label, key) in options" :key="key">
+                        <button type="button" @click="select(key)"
+                                class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                :class="$store.dashboard.timeFilter === key 
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                            <span x-text="label"></span>
+                            <svg x-show="$store.dashboard.timeFilter === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </button>
+                    </template>
                 </div>
             </div>
         </div>
@@ -1042,6 +1088,9 @@
                 archiveCategories: @json($archiveCategories),
             },
             get filterLabel() {
+                if (this.timeFilter === 'custom' && this.dateRangeLabel) {
+                    return this.dateRangeLabel;
+                }
                 const labels = {
                     today: 'Today',
                     weekly: 'This Week',
@@ -1052,14 +1101,35 @@
                 };
                 return labels[this.timeFilter] || this.timeFilter;
             },
-            async refresh() {
+            setFilter(val) {
+                this.timeFilter = val;
+                if (val !== 'custom') {
+                    this.refresh();
+                }
+                const url = new URL(window.location.href);
+                url.searchParams.set('time_filter', val);
+                if (val !== 'custom') {
+                    url.searchParams.delete('start_date');
+                    url.searchParams.delete('end_date');
+                }
+                window.history.replaceState({}, '', url.toString());
+            },
+            async refresh(newFilter) {
+                if (newFilter) {
+                    this.timeFilter = newFilter;
+                }
                 this.loading = true;
                 try {
                     let url = window.__dashboardStatsUrl + '?time_filter=' + encodeURIComponent(this.timeFilter);
                     if (this.timeFilter === 'custom' && this.startDate && this.endDate) {
                         url += '&start_date=' + encodeURIComponent(this.startDate) + '&end_date=' + encodeURIComponent(this.endDate);
+                        const stateUrl = new URL(window.location.href);
+                        stateUrl.searchParams.set('time_filter', 'custom');
+                        stateUrl.searchParams.set('start_date', this.startDate);
+                        stateUrl.searchParams.set('end_date', this.endDate);
+                        window.history.replaceState({}, '', stateUrl.toString());
                     }
-                    const res = await fetch(url);
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
                     if (res.ok) {
                         const data = await res.json();
                         this.filtered.census = data.census;
@@ -1154,11 +1224,11 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: { precision: 0, font: { size: 10 } },
-                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            ticks: { precision: 0, font: { size: 10 }, color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b' },
+                            grid: { color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.08)' : 'rgba(148, 163, 184, 0.1)' }
                         },
                         x: {
-                            ticks: { font: { size: 9 }, maxRotation: 45 },
+                            ticks: { font: { size: 9 }, maxRotation: 45, color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b' },
                             grid: { display: false }
                         }
                     }
@@ -1195,11 +1265,11 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: { precision: 0, font: { size: 10 } },
-                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            ticks: { precision: 0, font: { size: 10 }, color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b' },
+                            grid: { color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.08)' : 'rgba(148, 163, 184, 0.1)' }
                         },
                         x: {
-                            ticks: { font: { size: 9 } },
+                            ticks: { font: { size: 9 }, color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b' },
                             grid: { display: false }
                         }
                     }

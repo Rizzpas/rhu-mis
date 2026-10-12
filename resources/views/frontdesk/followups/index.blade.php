@@ -222,18 +222,17 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse table-auto md:table-fixed">
                 <thead>
                     <tr class="bg-slate-50/90 dark:bg-slate-950/80 text-slate-500 dark:text-slate-400 text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
-                        <th class="p-4 sm:p-5">Patient Details</th>
-                        <th class="p-4 sm:p-5">Prior Visit & Diagnosis</th>
-                        <th class="p-4 sm:p-5">Follow-Up Reason</th>
-                        <th class="p-4 sm:p-5">Target Return & Status</th>
-                        <th class="p-4 sm:p-5">Attending Doctor</th>
-                        <th class="p-4 sm:p-5 text-right">Actions</th>
+                        <th scope="col" class="py-3.5 px-4 md:w-[24%]">Patient Details</th>
+                        <th scope="col" class="py-3.5 px-3.5 md:w-[26%]">Clinical Details &amp; Reason</th>
+                        <th scope="col" class="py-3.5 px-3 md:w-[17%]">Target Return &amp; Status</th>
+                        <th scope="col" class="py-3.5 px-3 md:w-[15%]">Attending Doctor</th>
+                        <th scope="col" class="py-3.5 px-4 md:w-[18%] text-right">Desk Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
                     @forelse($followups as $followup)
                         @php
                             $patient = $followup->patient;
@@ -247,33 +246,33 @@
                             $isUpcoming = !$isFulfilled && $targetDate && $targetDate->gt($today);
                             $daysDiff = $targetDate ? abs((int) $targetDate->diffInDays($today, false)) : 0;
                         @endphp
-                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors {{ $isOverdue ? 'border-l-4 border-rose-500 bg-rose-50/20' : ($isDueToday ? 'border-l-4 border-amber-500 bg-amber-50/20' : '') }}">
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors {{ $isOverdue ? 'border-l-4 border-rose-500 bg-rose-50/20 dark:bg-rose-950/15' : ($isDueToday ? 'border-l-4 border-amber-500 bg-amber-50/20 dark:bg-amber-950/15' : '') }}">
                             {{-- Patient Details --}}
-                            <td class="p-4 sm:p-5 align-top">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-black flex items-center justify-center border border-emerald-500/20 shadow-2xs shrink-0 text-xs mt-0.5">
+                            <td class="py-3.5 px-4 align-middle">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-9 h-9 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-black flex items-center justify-center border border-emerald-500/20 shadow-2xs shrink-0 text-xs">
                                         {{ $patient ? substr($patient->first_name, 0, 1) . substr($patient->last_name, 0, 1) : 'PT' }}
                                     </div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2">
+                                    <div class="min-w-0 truncate">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
                                             @if($patient)
-                                                <a href="{{ route('frontdesk.patients.show', $patient->id) }}" class="font-extrabold text-slate-900 dark:text-white text-sm hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors truncate">
+                                                <a href="{{ route('frontdesk.patients.show', $patient->id) }}" class="font-extrabold text-slate-900 dark:text-white text-sm hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors truncate" title="{{ $patient->full_name }}">
                                                     {{ $patient->full_name }}
                                                 </a>
                                             @else
                                                 <span class="font-extrabold text-slate-900 dark:text-white text-sm">Unknown Citizen</span>
                                             @endif
                                             @if($patient && $patient->age)
-                                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold border border-slate-200/60 dark:border-slate-700">
+                                                <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold border border-slate-200/60 dark:border-slate-700 whitespace-nowrap">
                                                     {{ $patient->age }}y, {{ $patient->gender ?? $patient->sex ?? '—' }}
                                                 </span>
                                             @endif
                                         </div>
 
-                                        <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5 mt-1 font-medium">
-                                            <p class="font-mono text-emerald-700 dark:text-emerald-400 font-bold">ID: {{ $followup->patient_id }}</p>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5 mt-0.5 font-medium">
+                                            <p class="font-mono text-emerald-700 dark:text-emerald-400 font-bold truncate">ID: {{ $followup->patient_id }}</p>
                                             @if($patient && $patient->contact_number)
-                                                <p class="flex items-center gap-1">
+                                                <p class="flex items-center gap-1 truncate text-[11px]">
                                                     <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                                     <span class="font-semibold">{{ $patient->contact_number }}</span>
                                                 </p>
@@ -286,58 +285,59 @@
                                 </div>
                             </td>
 
-                            {{-- Prior Visit & Diagnosis --}}
-                            <td class="p-4 sm:p-5 align-top">
-                                <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                    {{ $followup->created_at->format('M d, Y') }}
-                                </p>
-                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $followup->created_at->diffForHumans() }}</p>
+                            {{-- Clinical Details & Reason --}}
+                            <td class="py-3.5 px-3.5 align-middle">
+                                <div class="space-y-1 min-w-0">
+                                    {{-- Diagnosis Tag --}}
+                                    @if($followup->diagnosis)
+                                        <div class="truncate">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 max-w-full truncate" title="{{ $followup->diagnosis }}">
+                                                {{ $followup->diagnosis }}
+                                            </span>
+                                        </div>
+                                    @endif
 
-                                @if($followup->diagnosis)
-                                    <div class="mt-1.5">
-                                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Diagnosis</span>
-                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 leading-snug line-clamp-2 mt-0.5" title="{{ $followup->diagnosis }}">
-                                            {{ $followup->diagnosis }}
+                                    {{-- Follow-Up Clinical Reason --}}
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 leading-snug line-clamp-2" title="{{ $followup->followup_reason ?? 'Routine Medical Re-evaluation' }}">
+                                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mr-1">Reason:</span>
+                                            {{ $followup->followup_reason ?? 'Routine Medical Re-evaluation' }}
                                         </p>
                                     </div>
-                                @endif
-                            </td>
 
-                            {{-- Follow-Up Reason --}}
-                            <td class="p-4 sm:p-5 align-top">
-                                <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-200/70 dark:border-slate-700/60 max-w-xs">
-                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Clinical Instruction</span>
-                                    <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-1 leading-relaxed">
-                                        {{ $followup->followup_reason ?? 'Routine Medical Re-evaluation' }}
-                                    </p>
+                                    {{-- Prior Encounter Timestamp --}}
+                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 truncate">
+                                        <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span class="truncate">Prior: {{ $followup->created_at->format('M d, Y') }} ({{ $followup->created_at->diffForHumans() }})</span>
+                                    </div>
                                 </div>
                             </td>
 
                             {{-- Target Return & Status --}}
-                            <td class="p-4 sm:p-5 align-top">
-                                <div class="space-y-1.5">
-                                    <p class="text-sm font-black text-slate-900 dark:text-white">
+                            <td class="py-3.5 px-3 align-middle">
+                                <div class="space-y-1.5 min-w-0">
+                                    <p class="text-sm font-black text-slate-900 dark:text-white truncate">
                                         {{ $targetDate ? $targetDate->format('M d, Y') : '—' }}
                                     </p>
 
                                     @if($isFulfilled)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
-                                            <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs whitespace-nowrap">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
                                             <span>Fulfilled {{ $followup->followup_completed_at->format('M d') }}</span>
                                         </span>
                                     @elseif($isOverdue)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 shadow-2xs animate-pulse">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/60 shadow-2xs whitespace-nowrap">
+                                            <span class="w-2 h-2 rounded-full bg-rose-600 shrink-0 animate-pulse"></span>
                                             <span>{{ $daysDiff }} Day{{ $daysDiff === 1 ? '' : 's' }} Overdue</span>
                                         </span>
                                     @elseif($isDueToday)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-2xs animate-pulse">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs whitespace-nowrap">
+                                            <span class="w-2 h-2 rounded-full bg-amber-600 shrink-0 animate-pulse"></span>
                                             <span>Due Today</span>
                                         </span>
                                     @elseif($isUpcoming)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60 shadow-2xs">
-                                            <svg class="w-3 h-3 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/60 shadow-2xs whitespace-nowrap">
+                                            <svg class="w-3.5 h-3.5 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
                                             <span>In {{ $daysDiff }} Day{{ $daysDiff === 1 ? '' : 's' }}</span>
                                         </span>
                                     @else
@@ -347,15 +347,15 @@
                             </td>
 
                             {{-- Attending Doctor --}}
-                            <td class="p-4 sm:p-5 align-top">
+                            <td class="py-3.5 px-3 align-middle">
                                 @if($doctor)
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 shrink-0">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 shrink-0 shadow-2xs">
                                             {{ substr($doctor->name, 0, 1) }}
                                         </div>
-                                        <div class="min-w-0">
-                                            <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{{ $doctor->formatted_name ?? $doctor->name }}</p>
-                                            <p class="text-[10px] text-slate-400 capitalize">{{ str_replace('_', ' ', $doctor->role) }}</p>
+                                        <div class="min-w-0 truncate">
+                                            <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" title="{{ $doctor->formatted_name ?? $doctor->name }}">{{ $doctor->formatted_name ?? $doctor->name }}</p>
+                                            <p class="text-[10px] text-slate-400 capitalize mt-0.5 truncate">{{ str_replace('_', ' ', $doctor->role) }}</p>
                                         </div>
                                     </div>
                                 @else
@@ -364,42 +364,67 @@
                             </td>
 
                             {{-- Actions --}}
-                            <td class="p-4 sm:p-5 align-top text-right">
-                                <div class="flex items-center justify-end gap-1.5">
-                                    {{-- Quick Check-In / Queue --}}
-                                    @if(!$isFulfilled && $patient)
-                                        <a href="{{ route('frontdesk.registration.index', ['patient_search' => $patient->patient_id, 'followup' => 1]) }}"
-                                            class="h-8 px-2.5 rounded-xl inline-flex items-center gap-1 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-2xs transition-all cursor-pointer active:scale-95"
-                                            title="Check-In Patient for Follow-up Consultation">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                            <span>Check-In</span>
-                                        </a>
-                                    @endif
+                            <td class="py-3.5 px-4 align-middle text-right">
+                                @if(!$isFulfilled)
+                                    <div class="inline-flex flex-col items-end gap-1.5 w-full max-w-[165px] ml-auto">
+                                        {{-- Primary Quick Check-In (Row 1) --}}
+                                        @if($patient)
+                                            <a href="{{ route('frontdesk.registration.index', ['patient_search' => $patient->patient_id, 'followup' => 1]) }}"
+                                                class="w-full h-8 px-2.5 rounded-xl inline-flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap group/checkin"
+                                                title="Check-In Patient for Follow-up Consultation">
+                                                <svg class="w-3.5 h-3.5 shrink-0 group-hover/checkin:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                                <span>Check-In</span>
+                                            </a>
+                                        @endif
 
-                                    {{-- Reschedule Date --}}
-                                    <button type="button"
-                                        @click="openRescheduleModal({{ $followup->id }}, '{{ addslashes($patient->full_name ?? 'Citizen') }}', '{{ $followup->followup_date ? $followup->followup_date->format('Y-m-d') : '' }}', '{{ $followup->followup_doctor_id ?? $followup->doctor_id }}', '{{ addslashes($followup->followup_reason ?? '') }}')"
-                                        class="h-8 px-2.5 rounded-xl inline-flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-2xs transition-all cursor-pointer active:scale-95"
-                                        title="Reschedule Follow-Up Date">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        <span>Reschedule</span>
-                                    </button>
+                                        {{-- Secondary Actions: Reschedule & Resolve (Row 2) --}}
+                                        <div class="flex items-center gap-1 w-full">
+                                            <button type="button"
+                                                @click="openRescheduleModal({{ $followup->id }}, '{{ addslashes($patient->full_name ?? 'Citizen') }}', '{{ $followup->followup_date ? $followup->followup_date->format('Y-m-d') : '' }}', '{{ $followup->followup_doctor_id ?? $followup->doctor_id }}', '{{ addslashes($followup->followup_reason ?? '') }}')"
+                                                class="flex-1 h-7 px-1.5 rounded-lg inline-flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                                                title="Reschedule Follow-Up Date">
+                                                <svg class="w-3 h-3 text-slate-500 dark:text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                                <span>Reschedule</span>
+                                            </button>
 
-                                    {{-- Mark Fulfilled (if unfulfilled) --}}
-                                    @if(!$isFulfilled)
+                                            <button type="button"
+                                                @click="openFulfillModal({{ $followup->id }}, '{{ addslashes($patient->full_name ?? 'Citizen') }}')"
+                                                class="flex-1 h-7 px-1.5 rounded-lg inline-flex items-center justify-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200/90 dark:border-emerald-800/60 shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                                                title="Mark as Fulfilled / Resolved">
+                                                <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                <span>Resolve</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @else
+                                    {{-- Fulfilled Status and Actions --}}
+                                    <div class="inline-flex items-center justify-end gap-1.5 w-full max-w-[165px] ml-auto">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs whitespace-nowrap">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            <span>Fulfilled</span>
+                                        </span>
                                         <button type="button"
-                                            @click="openFulfillModal({{ $followup->id }}, '{{ addslashes($patient->full_name ?? 'Citizen') }}')"
-                                            class="h-8 w-8 rounded-xl inline-flex items-center justify-center text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs transition-all cursor-pointer active:scale-95"
-                                            title="Mark as Fulfilled / Resolved">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            @click="openRescheduleModal({{ $followup->id }}, '{{ addslashes($patient->full_name ?? 'Citizen') }}', '{{ $followup->followup_date ? $followup->followup_date->format('Y-m-d') : '' }}', '{{ $followup->followup_doctor_id ?? $followup->doctor_id }}', '{{ addslashes($followup->followup_reason ?? '') }}')"
+                                            class="h-7 px-2 rounded-lg inline-flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                                            title="Reschedule Follow-Up Date">
+                                            <svg class="w-3 h-3 text-slate-500 dark:text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span>Reschedule</span>
                                         </button>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="p-16 text-center text-slate-500 dark:text-slate-400">
+                            <td colspan="5" class="p-16 text-center text-slate-500 dark:text-slate-400">
                                 <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto flex items-center justify-center mb-3 shadow-xs">
                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </div>
@@ -439,143 +464,147 @@
     {{-- ═══════════════════════════════════════════════════════════ --}}
 
     {{-- Reschedule Modal --}}
-    <div x-show="rescheduleModalOpen" 
-        style="display: none;" 
-        class="fixed inset-0 z-[999] overflow-y-auto" 
-        aria-labelledby="modal-reschedule-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div x-show="rescheduleModalOpen" 
-                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
-                x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
-                class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" 
-                @click="rescheduleModalOpen = false" aria-hidden="true"></div>
+    <template x-teleport="body">
+        <div x-show="rescheduleModalOpen" 
+            x-cloak
+            class="fixed inset-0 z-[100] overflow-y-auto" 
+            aria-labelledby="modal-reschedule-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <div x-show="rescheduleModalOpen" 
+                    x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
+                    x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
+                    class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" 
+                    @click="rescheduleModalOpen = false" aria-hidden="true"></div>
 
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div x-show="rescheduleModalOpen" 
-                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
-                x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                @click.stop
-                class="relative z-50 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200/90 dark:border-slate-800">
-                
-                {{-- Modal Header --}}
-                <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/60">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-2xs">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div x-show="rescheduleModalOpen" 
+                    x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                    x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                    @click.stop
+                    class="relative z-50 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-200/90 dark:border-slate-800">
+                    
+                    {{-- Modal Header --}}
+                    <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/60">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-2xs">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-reschedule-title">Reschedule Follow-Up Date</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400" x-text="activePatientName"></p>
+                            </div>
                         </div>
+                        <button type="button" @click="rescheduleModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    {{-- Modal Form --}}
+                    <form :action="'/frontdesk/followups/' + activeConsultationId + '/reschedule'" method="POST" class="p-6 sm:p-7 space-y-4">
+                        @csrf
+
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-reschedule-title">Reschedule Follow-Up Date</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400" x-text="activePatientName"></p>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">New Return Date <span class="text-rose-500">*</span></label>
+                            <input type="date" name="followup_date" x-model="rescheduleDate" min="{{ now()->toDateString() }}" required
+                                class="h-11 px-3.5 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
                         </div>
-                    </div>
-                    <button type="button" @click="rescheduleModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Assigned Attending Doctor</label>
+                            <select name="followup_doctor_id" x-model="rescheduleDoctorId"
+                                class="h-11 px-3.5 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs cursor-pointer">
+                                <option value="">Keep Original Attending Doctor</option>
+                                @foreach($doctors as $doc)
+                                    <option value="{{ $doc->id }}">{{ $doc->formatted_name ?? $doc->name }} ({{ ucfirst(str_replace('_', ' ', $doc->role)) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Reason for Rescheduling / Clinical Notes</label>
+                            <textarea name="followup_reason" x-model="rescheduleReason" rows="3"
+                                placeholder="e.g. Patient called to postpone due to work conflict, requested return next Tuesday..."
+                                class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs placeholder:text-slate-400 resize-none"></textarea>
+                        </div>
+
+                        <div class="pt-2 flex justify-end gap-2.5">
+                            <button type="button" @click="rescheduleModalOpen = false" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition cursor-pointer">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-xs transition cursor-pointer active:scale-95">
+                                Save Rescheduled Date
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                {{-- Modal Form --}}
-                <form :action="'/frontdesk/followups/' + activeConsultationId + '/reschedule'" method="POST" class="p-6 sm:p-7 space-y-4">
-                    @csrf
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">New Return Date <span class="text-rose-500">*</span></label>
-                        <input type="date" name="followup_date" x-model="rescheduleDate" min="{{ now()->toDateString() }}" required
-                            class="h-11 px-3.5 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Assigned Attending Doctor</label>
-                        <select name="followup_doctor_id" x-model="rescheduleDoctorId"
-                            class="h-11 px-3.5 block w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs cursor-pointer">
-                            <option value="">Keep Original Attending Doctor</option>
-                            @foreach($doctors as $doc)
-                                <option value="{{ $doc->id }}">{{ $doc->formatted_name ?? $doc->name }} ({{ ucfirst(str_replace('_', ' ', $doc->role)) }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Reason for Rescheduling / Clinical Notes</label>
-                        <textarea name="followup_reason" x-model="rescheduleReason" rows="3"
-                            placeholder="e.g. Patient called to postpone due to work conflict, requested return next Tuesday..."
-                            class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs placeholder:text-slate-400 resize-none"></textarea>
-                    </div>
-
-                    <div class="pt-2 flex justify-end gap-2.5">
-                        <button type="button" @click="rescheduleModalOpen = false" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition cursor-pointer">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-xs transition cursor-pointer active:scale-95">
-                            Save Rescheduled Date
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
+    </template>
 
     {{-- Mark Fulfilled Modal --}}
-    <div x-show="fulfillModalOpen" 
-        style="display: none;" 
-        class="fixed inset-0 z-[999] overflow-y-auto" 
-        aria-labelledby="modal-fulfill-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div x-show="fulfillModalOpen" 
-                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
-                x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
-                class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" 
-                @click="fulfillModalOpen = false" aria-hidden="true"></div>
+    <template x-teleport="body">
+        <div x-show="fulfillModalOpen" 
+            x-cloak
+            class="fixed inset-0 z-[100] overflow-y-auto" 
+            aria-labelledby="modal-fulfill-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <div x-show="fulfillModalOpen" 
+                    x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
+                    x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
+                    class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" 
+                    @click="fulfillModalOpen = false" aria-hidden="true"></div>
 
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div x-show="fulfillModalOpen" 
-                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
-                x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                @click.stop
-                class="relative z-50 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-200/90 dark:border-slate-800">
-                
-                {{-- Modal Header --}}
-                <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/60">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-2xs">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div x-show="fulfillModalOpen" 
+                    x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                    x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                    @click.stop
+                    class="relative z-50 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-200/90 dark:border-slate-800">
+                    
+                    {{-- Modal Header --}}
+                    <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/60">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-2xs">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-fulfill-title">Complete Follow-Up</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400" x-text="activePatientName"></p>
+                            </div>
                         </div>
+                        <button type="button" @click="fulfillModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    {{-- Modal Form --}}
+                    <form :action="'/frontdesk/followups/' + activeConsultationId + '/fulfill'" method="POST" class="p-6 sm:p-7 space-y-4">
+                        @csrf
+
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Are you sure you want to mark this follow-up as fulfilled? This will mark the return consultation as satisfied and clear active overdue alerts for this record.
+                        </p>
+
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-fulfill-title">Complete Follow-Up</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400" x-text="activePatientName"></p>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Resolution Notes (Optional)</label>
+                            <textarea name="resolution_notes" rows="3"
+                                placeholder="e.g. Patient contacted by phone, reported full recovery and medication compliance; no further visit needed."
+                                class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs placeholder:text-slate-400 resize-none"></textarea>
                         </div>
-                    </div>
-                    <button type="button" @click="fulfillModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
+
+                        <div class="pt-2 flex justify-end gap-2.5">
+                            <button type="button" @click="fulfillModalOpen = false" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition cursor-pointer">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-xs transition cursor-pointer active:scale-95">
+                                Mark Fulfilled
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                {{-- Modal Form --}}
-                <form :action="'/frontdesk/followups/' + activeConsultationId + '/fulfill'" method="POST" class="p-6 sm:p-7 space-y-4">
-                    @csrf
-
-                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Are you sure you want to mark this follow-up as fulfilled? This will mark the return consultation as satisfied and clear active overdue alerts for this record.
-                    </p>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Resolution Notes (Optional)</label>
-                        <textarea name="resolution_notes" rows="3"
-                            placeholder="e.g. Patient contacted by phone, reported full recovery and medication compliance; no further visit needed."
-                            class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs placeholder:text-slate-400 resize-none"></textarea>
-                    </div>
-
-                    <div class="pt-2 flex justify-end gap-2.5">
-                        <button type="button" @click="fulfillModalOpen = false" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition cursor-pointer">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-xs transition cursor-pointer active:scale-95">
-                            Mark Fulfilled
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
+    </template>
 </div>
 
 @push('scripts')

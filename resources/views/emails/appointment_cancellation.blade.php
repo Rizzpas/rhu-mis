@@ -55,7 +55,7 @@
             
             <p style="margin-top: 30px; font-size: 14px; color: #64748b;">
                 Regards,<br>
-                Rural Health Unit Team
+                Rural Health Unit, Silang Cavite
             </p>
         </div>
         

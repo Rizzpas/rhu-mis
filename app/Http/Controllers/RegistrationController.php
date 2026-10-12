@@ -349,14 +349,19 @@ class RegistrationController extends Controller
         ]);
 
         if (isset($validated['classification'])) {
-            $age = \Carbon\Carbon::parse($patient->dob)->age;
-            if ($validated['classification'] === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
-                return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.');
+            $dob = \Carbon\Carbon::parse($patient->dob);
+            if ($validated['classification'] === 'Pediatric') {
+                if ($dob->isFuture() || $dob->diffInMonths(now()) < \App\Models\Patient::MIN_PEDIA_CONSULTATION_MONTHS) {
+                    return back()->with('error', 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.');
+                }
+                if ($dob->age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+                    return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.');
+                }
             }
-            if ($validated['classification'] === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+            if ($validated['classification'] === 'Regular Adult' && $dob->age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
                 return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old.');
             }
-            if ($validated['classification'] === 'Senior Citizen' && $age < 60) {
+            if ($validated['classification'] === 'Senior Citizen' && $dob->age < 60) {
                 return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old.');
             }
         }
@@ -452,14 +457,19 @@ class RegistrationController extends Controller
             'guardian_philhealth' => ['nullable', 'required_if:classification,Pediatric', 'string', 'regex:/^\d{2}-\d{9}-\d{1}$/'],
         ]);
 
-        $age = \Carbon\Carbon::parse($validated['dob'])->age;
-        if ($validated['classification'] === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
-            return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below. Please choose another classification.')->withInput();
+        $dob = \Carbon\Carbon::parse($validated['dob']);
+        if ($validated['classification'] === 'Pediatric') {
+            if ($dob->isFuture() || $dob->diffInMonths(now()) < \App\Models\Patient::MIN_PEDIA_CONSULTATION_MONTHS) {
+                return back()->with('error', 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.')->withInput();
+            }
+            if ($dob->age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+                return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below. Please choose another classification.')->withInput();
+            }
         }
-        if ($validated['classification'] === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+        if ($validated['classification'] === 'Regular Adult' && $dob->age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
             return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old. Please correct the classification or date of birth.')->withInput();
         }
-        if ($validated['classification'] === 'Senior Citizen' && $age < 60) {
+        if ($validated['classification'] === 'Senior Citizen' && $dob->age < 60) {
             return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old. Please correct the classification or date of birth.')->withInput();
         }
 
@@ -596,14 +606,19 @@ class RegistrationController extends Controller
         $classification = $patient->classification ?? 'Regular Adult';
 
         // ── Age Validation ──────────────────────────────────────────
-        $age = \Carbon\Carbon::parse($patient->dob)->age;
-        if ($classification === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
-            return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.');
+        $dob = \Carbon\Carbon::parse($patient->dob);
+        if ($classification === 'Pediatric') {
+            if ($dob->isFuture() || $dob->diffInMonths(now()) < \App\Models\Patient::MIN_PEDIA_CONSULTATION_MONTHS) {
+                return back()->with('error', 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.');
+            }
+            if ($dob->age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+                return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.');
+            }
         }
-        if ($classification === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+        if ($classification === 'Regular Adult' && $dob->age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
             return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old.');
         }
-        if ($classification === 'Senior Citizen' && $age < 60) {
+        if ($classification === 'Senior Citizen' && $dob->age < 60) {
             return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old.');
         }
 
@@ -844,14 +859,19 @@ class RegistrationController extends Controller
         // Default consultation_date to today
         $validated['consultation_date'] = $validated['consultation_date'] ?? date('Y-m-d');
 
-        $age = Carbon::parse($validated['dob'])->age;
-        if ($validated['classification'] === 'Pediatric' && $age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
-            return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.')->withInput();
+        $dob = Carbon::parse($validated['dob']);
+        if ($validated['classification'] === 'Pediatric') {
+            if ($dob->isFuture() || $dob->diffInMonths(now()) < \App\Models\Patient::MIN_PEDIA_CONSULTATION_MONTHS) {
+                return back()->with('error', 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.')->withInput();
+            }
+            if ($dob->age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+                return back()->with('error', 'Pediatric classification is restricted to patients '.\App\Models\Patient::MAX_PEDIATRIC_AGE.' years old and below.')->withInput();
+            }
         }
-        if ($validated['classification'] === 'Regular Adult' && $age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
+        if ($validated['classification'] === 'Regular Adult' && $dob->age <= \App\Models\Patient::MAX_PEDIATRIC_AGE) {
             return back()->with('error', 'Adult classification requires the patient to be at least '.(\App\Models\Patient::MAX_PEDIATRIC_AGE + 1).' years old.')->withInput();
         }
-        if ($validated['classification'] === 'Senior Citizen' && $age < 60) {
+        if ($validated['classification'] === 'Senior Citizen' && $dob->age < 60) {
             return back()->with('error', 'Senior Citizen classification requires the patient to be at least 60 years old.')->withInput();
         }
 

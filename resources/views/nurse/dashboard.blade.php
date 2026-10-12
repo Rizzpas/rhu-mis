@@ -161,7 +161,7 @@
             <div class="pt-3 border-t border-white/15 flex items-center justify-between text-xs relative z-10">
                 <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse"></span>
-                    <span class="font-bold text-emerald-100 text-[11px]">{{ auth()->user()->status ?? 'Online' }}</span>
+                    <span class="font-bold text-emerald-100 text-[11px]">{{ auth()->user()->effective_status }}</span>
                 </div>
                 <span class="text-[11px] text-emerald-200/90 font-medium">{{ \Carbon\Carbon::today()->format('M d, Y') }}</span>
             </div>

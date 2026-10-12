@@ -17,9 +17,7 @@ class HeartbeatController extends Controller
         $user = Auth::user();
 
         if ($user) {
-            $user->update([
-                'last_activity_at' => now(),
-            ]);
+            \App\Services\StaffPresence::handleAccountActive($user);
         }
 
         return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);

@@ -21,38 +21,7 @@ class PublicController extends Controller
 
     public function index()
     {
-        $now = now();
-        $today = $now->format('D'); // Mon, Tue, Wed, etc.
-        $currentTime = $now->format('H:i:s');
-
-        $doctors = \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])
-            ->with('practitionerSchedules')
-            ->where(function ($q) {
-                $q->whereNull('schedule_override')
-                  ->orWhere('schedule_override', '!=', 'manual_offline');
-            })
-            ->get()
-            ->filter(function ($doctor) use ($today, $currentTime) {
-                // Must be present (online with recent heartbeat OR actively scheduled right now)
-                if ($doctor->is_present) {
-                    return true;
-                }
-
-                // If occupied or seminar, only show if doctor has recent activity or is in schedule
-                $status = strtolower($doctor->status ?? '');
-                if (in_array($status, ['occupied', 'seminar'])) {
-                    $hasActiveSchedule = $doctor->practitionerSchedules->contains(function ($s) use ($today, $currentTime) {
-                        return $s->day_of_week === $today
-                            && $s->time_in <= $currentTime
-                            && $s->time_out >= $currentTime;
-                    });
-
-                    return $doctor->isActive(10) || $hasActiveSchedule;
-                }
-
-                return false;
-            })
-            ->values();
+        $doctors = self::onlineDoctors();
 
         // Fetch up to 7 latest published announcements for the carousel (Total 8 slides with hero)
         $announcements = Announcement::where('status', 'published')
@@ -105,6 +74,26 @@ class PublicController extends Controller
         return view('units.show', compact('unit'));
     }
 
+    /**
+     * Doctors who are effectively online right now (schedule + active override),
+     * each tagged with `presence_status` ('Online' | 'Occupied').
+     * Computed on every call — never trusts the stored `status` column.
+     */
+    public static function onlineDoctors(): \Illuminate\Support\Collection
+    {
+        $now = \App\Services\StaffPresence::now();
+
+        return \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])
+            ->with('practitionerSchedules')
+            ->orderBy('name')
+            ->get()
+            ->each(function ($doctor) use ($now) {
+                $doctor->presence_status = \App\Services\StaffPresence::effectiveStatus($doctor, $now);
+            })
+            ->filter(fn ($doctor) => $doctor->presence_status !== 'Offline')
+            ->values();
+    }
+
     public static function getHomeUpdateState(): array
     {
         // Check for the latest update timestamp across all published announcements
@@ -112,42 +101,20 @@ class PublicController extends Controller
             ->latest('updated_at')
             ->first();
 
-        // Check for the latest update timestamp across all doctors
-        $doctors = \App\Models\User::whereIn('role', ['regular_doctor', 'pedia_doctor'])
-            ->with('practitionerSchedules')
-            ->get();
+        $onlineDoctors = self::onlineDoctors();
 
-        $now = now();
-        $today = $now->format('D');
-        $currentTime = $now->format('H:i:s');
-
-        $onlineDoctorCount = $doctors->filter(function ($doctor) use ($today, $currentTime) {
-            if ($doctor->schedule_override === 'manual_offline') {
-                return false;
-            }
-            if ($doctor->is_present) {
-                return true;
-            }
-            $status = strtolower($doctor->status ?? '');
-            if (in_array($status, ['occupied', 'seminar'])) {
-                return $doctor->isActive(10) || $doctor->practitionerSchedules->contains(function ($s) use ($today, $currentTime) {
-                    return $s->day_of_week === $today
-                        && $s->time_in <= $currentTime
-                        && $s->time_out >= $currentTime;
-                });
-            }
-            return false;
-        })->count();
-
-        $latestDoctorModified = $doctors->max(function ($d) {
-            return max($d->updated_at?->timestamp ?? 0, $d->last_activity_at?->timestamp ?? 0);
-        });
+        // Signature of who is online and in which state. Changes the instant a shift
+        // starts/ends or an override is applied/expires, so the page refreshes the list.
+        $doctorSignature = md5($onlineDoctors
+            ->map(fn ($d) => $d->id.':'.$d->presence_status)
+            ->implode('|'));
 
         return [
             'last_announcement_modified' => $latestAnnouncement ? $latestAnnouncement->updated_at->toDateTimeString() : '',
-            'last_doctor_modified' => (string) ($latestDoctorModified ?? ''),
+            'last_doctor_modified' => $doctorSignature,
             'announcement_count' => Announcement::where('status', 'published')->count(),
-            'doctor_count' => $onlineDoctorCount,
+            'doctor_count' => $onlineDoctors->count(),
+            'doctor_signature' => $doctorSignature,
         ];
     }
 
@@ -632,7 +599,7 @@ class PublicController extends Controller
                     }
                 },
             ],
-            'preferred_time' => 'required|string|max:30',
+            'preferred_time' => 'nullable|string|max:50',
             'complaint' => 'required|string|max:1000',
             'data_privacy_agreed' => 'accepted',
         ];
@@ -679,8 +646,11 @@ class PublicController extends Controller
         ]);
 
         if ($request->type === 'pedia') {
-            $age = \Carbon\Carbon::parse($request->dob)->age;
-            if ($age > 12) {
+            $dob = \Carbon\Carbon::parse($request->dob);
+            if ($dob->isFuture() || $dob->diffInMonths(now()) < \App\Models\Patient::MIN_PEDIA_CONSULTATION_MONTHS) {
+                return back()->withErrors(['dob' => 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.'])->withInput();
+            }
+            if ($dob->age > \App\Models\Patient::MAX_PEDIATRIC_AGE) {
                 return back()->withErrors(['dob' => 'Pediatric patients must be 12 years old or below. Please select Adult Follow-up instead.'])->withInput();
             }
         } else {
@@ -989,7 +959,7 @@ class PublicController extends Controller
 
         $request->validate([
             'new_date' => 'required|date|after_or_equal:today',
-            'new_time' => 'required|string',
+            'new_time' => 'nullable|string|max:50',
         ]);
 
         $rescheduleDate = \Carbon\Carbon::parse($request->new_date);
@@ -1002,6 +972,13 @@ class PublicController extends Controller
 
         $appointment = Appointment::findOrFail(session('manage_appointment_id'));
         $isFollowUp = $appointment->type === 'adult' || $appointment->is_follow_up;
+
+        if ($appointment->type === 'pedia' && $appointment->dob) {
+            $dob = \Carbon\Carbon::parse($appointment->dob);
+            if ($dob->isFuture() || $dob->diffInMonths(now()) < \App\Models\Patient::MIN_PEDIA_CONSULTATION_MONTHS) {
+                return back()->withErrors(['new_date' => 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.'])->withInput();
+            }
+        }
 
         // Enforce Pedia Capacity
         if (! $isFollowUp && $appointment->type === 'pedia') {
@@ -1034,10 +1011,15 @@ class PublicController extends Controller
         }
 
         $appointment->preferred_date = $request->new_date;
-        $appointment->preferred_time = $request->new_time;
+        $appointment->preferred_time = $request->new_time ?: null;
         $appointment->status = 'rescheduled';
         $appointment->save();
 
-        return back()->with('success', 'Appointment rescheduled successfully to '.\Carbon\Carbon::parse($request->new_date)->format('F d, Y').' at '.$request->new_time);
+        $formattedDate = \Carbon\Carbon::parse($request->new_date)->format('F d, Y');
+        $successMsg = $request->new_time
+            ? "Appointment rescheduled successfully to {$formattedDate} at {$request->new_time}."
+            : "Appointment rescheduled successfully to {$formattedDate}.";
+
+        return back()->with('success', $successMsg);
     }
 }

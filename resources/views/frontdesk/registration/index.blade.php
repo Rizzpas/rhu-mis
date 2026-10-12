@@ -2034,7 +2034,11 @@
                     @endif
                     <input type="hidden" name="is_new_patient_form" value="1">
                     
-                    @if(session('error') || (isset($errors) && $errors->any()))
+                    @php
+                        $hasSessionError = session('error') && !str_contains(session('error'), 'Cannot auto-triage');
+                        $hasValidationErrors = isset($errors) && $errors->any();
+                    @endphp
+                    @if($hasSessionError || $hasValidationErrors)
                         <div class="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 shadow-xs">
                             <div class="flex items-start gap-3">
                                 <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
@@ -2042,10 +2046,10 @@
                                 </div>
                                 <div class="flex-1 text-xs">
                                     <h4 class="font-bold text-rose-900 dark:text-rose-200 mb-1">Registration Could Not Be Completed</h4>
-                                    @if(session('error'))
+                                    @if($hasSessionError)
                                         <p class="text-rose-700 dark:text-rose-300 font-semibold mb-1">{{ session('error') }}</p>
                                     @endif
-                                    @if(isset($errors) && $errors->any())
+                                    @if($hasValidationErrors)
                                         <ul class="list-disc list-inside space-y-0.5 text-rose-700 dark:text-rose-300">
                                             @foreach($errors->all() as $err)
                                                 <li>{{ $err }}</li>
@@ -2087,6 +2091,15 @@
                             }
                             return age;
                         },
+                        calculateAgeInMonths(dobStr) {
+                            if (!dobStr) return null;
+                            const d = new Date(dobStr);
+                            if (isNaN(d.getTime())) return null;
+                            const today = new Date();
+                            let months = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                            if (today.getDate() < d.getDate()) months--;
+                            return months;
+                        },
                         syncClassificationWithDob(dobStr, autoSwitch = true) {
                             if (!dobStr) return;
                             this.selectedDob = dobStr;
@@ -2107,9 +2120,15 @@
                         get ageMismatchWarning() {
                             if (!this.selectedDob) return null;
                             const age = this.calculateAge(this.selectedDob);
+                            const months = this.calculateAgeInMonths(this.selectedDob);
                             if (age === null) return null;
-                            if (this.classification === 'Pediatric' && age > 12) {
-                                return `Age Mismatch: The patient is ${age} years old. Pediatric classification is restricted to children 12 years old and below. Please select Regular Adult, Senior Citizen, or PWD.`;
+                            if (this.classification === 'Pediatric') {
+                                if (months !== null && months < 6) {
+                                    return `Age Restriction: The patient is ${months} month${months === 1 ? '' : 's'} old. The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.`;
+                                }
+                                if (age > 12) {
+                                    return `Age Mismatch: The patient is ${age} years old. Pediatric classification is restricted to children 12 years old and below. Please select Regular Adult, Senior Citizen, or PWD.`;
+                                }
                             }
                             if (this.classification === 'Regular Adult' && age <= 12) {
                                 return `Age Mismatch: The patient is ${age} years old. Adult classification requires the patient to be at least 13 years old. Please select Pediatric.`;
@@ -2977,19 +2996,45 @@
             if (this.isSubmitting) return;
             this.isOpen = false;
         }
-     }"
-     x-show="isOpen"
-     x-cloak
-     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs transition-opacity"
-     @keydown.escape.window="closeModal()">
+     }">
+    <template x-teleport="body">
+        <div x-show="isOpen"
+             x-cloak
+             class="fixed inset-0 z-[100] overflow-y-auto"
+             role="dialog"
+             aria-modal="true"
+             @keydown.escape.window="closeModal()">
 
-    <div @click.away="closeModal()" 
-         class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-100 transition-all border border-slate-200 dark:border-slate-800"
-         :class="{
-             'ring-2 ring-rose-500/30 border-rose-300 dark:border-rose-900/60': severity === 'severe',
-             'ring-2 ring-amber-500/30 border-amber-300 dark:border-amber-900/60': severity === 'mild',
-             'ring-2 ring-emerald-500/30 border-emerald-300 dark:border-emerald-900/60': severity === 'light'
-         }">
+            <!-- Full-Page Backdrop Overlay -->
+            <div x-show="isOpen"
+                 x-transition:enter="ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+                 @click="closeModal()"
+                 aria-hidden="true"></div>
+
+            <!-- Modal Panel Centering -->
+            <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="isOpen"
+                     x-transition:enter="ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="ease-in duration-150"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     @click.stop
+                     class="relative z-10 inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full text-left overflow-hidden transform transition-all sm:my-8 sm:align-middle border border-slate-200 dark:border-slate-800"
+                     :class="{
+                         'ring-2 ring-rose-500/30 border-rose-300 dark:border-rose-900/60': severity === 'severe',
+                         'ring-2 ring-amber-500/30 border-amber-300 dark:border-amber-900/60': severity === 'mild',
+                         'ring-2 ring-emerald-500/30 border-emerald-300 dark:border-emerald-900/60': severity === 'light'
+                     }">
 
         <!-- Dynamic Header based on severity -->
         <div class="px-6 py-5 flex items-center justify-between text-white"
@@ -3137,6 +3182,9 @@
             </button>
         </div>
     </div>
+            </div>
+        </div>
+    </template>
 </div>
 
 @if(session('print_queue_id'))
@@ -3163,24 +3211,25 @@
                 }
                 this.showSlipModal = false;
             }
-         }" 
-         x-show="showSlipModal"
-         x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto" 
-         aria-labelledby="modal-title" role="dialog" aria-modal="true"
-         @keydown.window="if (showSlipModal && ($event.key === 'p' || $event.key === 'P')) { doPrint(); }"
-         @keydown.escape.window.prevent="">
-         
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay -->
-            <div x-show="showSlipModal" 
-                 x-transition:enter="ease-out duration-300" 
-                 x-transition:enter-start="opacity-0" 
-                 x-transition:enter-end="opacity-100" 
-                 x-transition:leave="ease-in duration-200" 
-                 x-transition:leave-start="opacity-100" 
-                 x-transition:leave-end="opacity-0" 
-                 class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity" aria-hidden="true"></div>
+         }">
+        <template x-teleport="body">
+            <div x-show="showSlipModal"
+                 x-cloak
+                 class="fixed inset-0 z-[100] overflow-y-auto" 
+                 aria-labelledby="modal-title" role="dialog" aria-modal="true"
+                 @keydown.window="if (showSlipModal && ($event.key === 'p' || $event.key === 'P')) { doPrint(); }"
+                 @keydown.escape.window.prevent="">
+                 
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <!-- Background overlay -->
+                    <div x-show="showSlipModal" 
+                         x-transition:enter="ease-out duration-300" 
+                         x-transition:enter-start="opacity-0" 
+                         x-transition:enter-end="opacity-100" 
+                         x-transition:leave="ease-in duration-200" 
+                         x-transition:leave-start="opacity-100" 
+                         x-transition:leave-end="opacity-0" 
+                         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             
@@ -3254,6 +3303,8 @@
             </div>
         </div>
     </div>
+    </template>
+</div>
     
     <script>
         function printSlip() {

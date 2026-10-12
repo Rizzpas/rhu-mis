@@ -87,6 +87,64 @@ describe('Appointment Form Component Logic', () => {
       form.formData.is_follow_up = true;
       expect(form.isFollowUp).toBe(true);
     });
+
+    it('prevents selecting pedia if patient is younger than 6 months old', () => {
+      const today = new Date();
+      const dob = new Date(today.getFullYear(), today.getMonth() - 2, today.getDate());
+      form.formData.dob = dob.toISOString().split('T')[0];
+      form.formData.type = 'adult';
+      form.setService('pedia');
+      expect(form.formData.type).toBe('adult');
+    });
+  });
+
+  describe('patientAge & ageMismatchNotice', () => {
+    it('calculates age correctly from DOB', () => {
+      form.formData.dob = '';
+      expect(form.patientAge).toBeNull();
+
+      const today = new Date();
+      const birthYear = today.getFullYear() - 8;
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      form.formData.dob = `${birthYear}-${m}-${d}`;
+      expect(form.patientAge).toBe(8);
+    });
+
+    it('warns when patient age exceeds 12 for pediatric consultation', () => {
+      form.formData.type = 'pedia';
+      const today = new Date();
+      const birthYear = today.getFullYear() - 14;
+      form.formData.dob = `${birthYear}-01-01`;
+      expect(form.patientAge).toBeGreaterThan(12);
+      expect(form.ageMismatchNotice).toContain('Pediatric consultation is intended for children 12 years old and below');
+    });
+
+    it('warns when patient age is 12 or below for adult consultation', () => {
+      form.formData.type = 'adult';
+      const today = new Date();
+      const birthYear = today.getFullYear() - 7;
+      form.formData.dob = `${birthYear}-01-01`;
+      expect(form.patientAge).toBeLessThanOrEqual(12);
+      expect(form.ageMismatchNotice).toContain('Children 12 and below must use the Pediatrics consultation service');
+    });
+
+    it('warns when patient age is under 6 months old for pediatric consultation', () => {
+      form.formData.type = 'pedia';
+      const today = new Date();
+      const dob = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate());
+      form.formData.dob = dob.toISOString().split('T')[0];
+      expect(form.patientAgeInMonths).toBeLessThan(6);
+      expect(form.ageMismatchNotice).toContain('The Pedia Consultation service is only available for patients aged 6 months and above');
+    });
+
+    it('returns null when patient age matches consultation service', () => {
+      form.formData.type = 'pedia';
+      const today = new Date();
+      const birthYear = today.getFullYear() - 5;
+      form.formData.dob = `${birthYear}-01-01`;
+      expect(form.ageMismatchNotice).toBeNull();
+    });
   });
 
   describe('Calendar Operations', () => {
@@ -274,6 +332,21 @@ describe('Appointment Form Component Logic', () => {
       expect(form.errors.dob).toBeUndefined();
     });
 
+    it('enforces minimum 6 months age restriction for pedia flow in validateInfo', () => {
+      form.formData.type = 'pedia';
+      form.formData.first_name = 'BABY';
+      form.formData.last_name = 'SANTOS';
+      form.formData.sex = 'Male';
+      form.formData.symptoms = ['Cough'];
+      form.formData.email = 'test@example.com';
+      const today = new Date();
+      const dob = new Date(today.getFullYear(), today.getMonth() - 2, today.getDate());
+      form.formData.dob = dob.toISOString().split('T')[0];
+
+      expect(form.validateInfo()).toBe(false);
+      expect(form.errors.dob).toContain('The Pedia Consultation service is only available for patients aged 6 months and above');
+    });
+
     it('enforces adult age restriction (> 12 years)', () => {
       form.formData.type = 'adult';
       form.formData.is_follow_up = true;
@@ -400,7 +473,7 @@ describe('Appointment Form Component Logic', () => {
       expect(form.step).toBe(3); // Advanced to calendar step
     });
 
-    it('sends OTP on Step 3 when date and time are selected', async () => {
+    it('sends OTP on Step 3 when date is selected (first-come first-served queue without time slot requirement)', async () => {
       const mockFetch = jest.fn().mockResolvedValue({
         status: 200,
         json: async () => ({ success: true }),
@@ -409,7 +482,7 @@ describe('Appointment Form Component Logic', () => {
       form = appointmentForm({ fetchFn: mockFetch });
       form.step = 3;
       form.selectedDate = '2026-10-15';
-      form.selectedTime = '09:00 AM';
+      form.selectedTime = ''; // No time slot selected (first-come, first-served)
       form.formData.email = 'patient@example.com';
 
       await form.nextStep();

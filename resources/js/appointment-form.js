@@ -21,6 +21,40 @@ export function appointmentForm(config = {}) {
     get isFollowUp() {
       return this.formData.type === 'adult' || (this.formData.type === 'pedia' && this.formData.is_follow_up);
     },
+    get patientAge() {
+      if (!this.formData.dob) return null;
+      const d = new Date(this.formData.dob);
+      if (isNaN(d.getTime())) return null;
+      const today = new Date();
+      let age = today.getFullYear() - d.getFullYear();
+      const m = today.getMonth() - d.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+      return age;
+    },
+    get patientAgeInMonths() {
+      if (!this.formData.dob) return null;
+      const d = new Date(this.formData.dob);
+      if (isNaN(d.getTime())) return null;
+      const today = new Date();
+      let months = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+      if (today.getDate() < d.getDate()) months--;
+      return months;
+    },
+    get ageMismatchNotice() {
+      if (this.patientAge === null) return null;
+      if (this.formData.type === 'pedia') {
+        if (this.patientAgeInMonths !== null && this.patientAgeInMonths < 6) {
+          return 'Age Restriction: The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.';
+        }
+        if (this.patientAge > 12) {
+          return `Age Notice: This patient is ${this.patientAge} years old. Pediatric consultation is intended for children 12 years old and below.`;
+        }
+      }
+      if (this.formData.type !== 'pedia' && this.patientAge <= 12) {
+        return `Age Notice: This patient is ${this.patientAge} years old. Children 12 and below must use the Pediatrics consultation service.`;
+      }
+      return null;
+    },
     step: 1,
     maxStepReached: 1,
     progress: 0,
@@ -234,6 +268,17 @@ export function appointmentForm(config = {}) {
     },
 
     setService(type) {
+      if (type === 'pedia' && this.patientAgeInMonths !== null && this.patientAgeInMonths < 6) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('add-toast', {
+            detail: {
+              type: 'error',
+              message: 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.',
+            },
+          }));
+        }
+        return;
+      }
       this.formData.type = type;
       this.formData.is_follow_up = (type === 'adult');
       this.fetchAvailability();
@@ -321,14 +366,22 @@ export function appointmentForm(config = {}) {
 
       if (this.formData.dob) {
         const dobDate = new Date(this.formData.dob);
-        let age = new Date().getFullYear() - dobDate.getFullYear();
-        const month = new Date().getMonth() - dobDate.getMonth();
-        if (month < 0 || (month === 0 && new Date().getDate() < dobDate.getDate())) {
+        const today = new Date();
+        let age = today.getFullYear() - dobDate.getFullYear();
+        const month = today.getMonth() - dobDate.getMonth();
+        if (month < 0 || (month === 0 && today.getDate() < dobDate.getDate())) {
           age--;
+        }
+        let ageInMonths = (today.getFullYear() - dobDate.getFullYear()) * 12 + (today.getMonth() - dobDate.getMonth());
+        if (today.getDate() < dobDate.getDate()) {
+          ageInMonths--;
         }
 
         if (this.formData.type === 'pedia') {
-          if (age > 12) {
+          if (ageInMonths < 6) {
+            this.errors.dob = 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.';
+            isValid = false;
+          } else if (age > 12) {
             this.errors.dob = 'Pediatric patients must be 12 years old or below';
             isValid = false;
           }
@@ -453,11 +506,7 @@ export function appointmentForm(config = {}) {
       } else if (this.step === 3) {
         if (!this.selectedDate) {
           if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('add-toast', { detail: { type: 'error', message: 'Please select a preferred date.' } }));
-          }
-        } else if (!this.selectedTime) {
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('add-toast', { detail: { type: 'error', message: 'Please select a preferred arrival time.' } }));
+            window.dispatchEvent(new CustomEvent('add-toast', { detail: { type: 'error', message: 'Please select an appointment date.' } }));
           }
         } else {
           await this.sendOtp();

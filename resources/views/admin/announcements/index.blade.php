@@ -38,6 +38,81 @@
         </div>
     </div>
 
+    {{-- Operational Notifications --}}
+    @if(session('success'))
+        <div x-data="{ show: true }" 
+             x-show="show" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 -translate-y-2 scale-98"
+             class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-teal-500/15 dark:from-emerald-950/60 dark:via-emerald-900/40 dark:to-teal-950/50 border border-emerald-500/30 dark:border-emerald-500/40 p-4 sm:p-4.5 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white dark:bg-emerald-400 dark:text-slate-950 flex items-center justify-center shrink-0 shadow-xs ring-4 ring-emerald-500/20">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="text-xs sm:text-sm font-bold text-emerald-950 dark:text-emerald-100 tracking-tight">Success</h4>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-700/60 uppercase tracking-wider">Announcement Updated</span>
+                        </div>
+                        <p class="text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-200/90 mt-0.5">{{ session('success') }}</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        @click="show = false" 
+                        class="p-1.5 rounded-xl text-emerald-700 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-200 hover:bg-emerald-200/50 dark:hover:bg-emerald-800/50 transition-colors cursor-pointer shrink-0" 
+                        title="Dismiss notification"
+                        aria-label="Dismiss">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+    @if(session('error'))
+        <div x-data="{ show: true }" 
+             x-show="show" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 -translate-y-2 scale-98"
+             class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-red-500/15 dark:from-rose-950/60 dark:via-rose-900/40 dark:to-red-950/50 border border-rose-500/30 dark:border-rose-500/40 p-4 sm:p-4.5 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs ring-4 ring-rose-500/20">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs sm:text-sm font-bold text-rose-950 dark:text-rose-100 tracking-tight">Error</h4>
+                        <p class="text-xs sm:text-sm font-semibold text-rose-800 dark:text-rose-200/90 mt-0.5">{{ session('error') }}</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        @click="show = false" 
+                        class="p-1.5 rounded-xl text-rose-700 hover:text-rose-900 dark:text-rose-400 dark:hover:text-rose-200 hover:bg-rose-200/50 dark:hover:bg-rose-800/50 transition-colors cursor-pointer shrink-0" 
+                        title="Dismiss notification"
+                        aria-label="Dismiss">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden" 
          x-data="{ 
              selectedAnnouncements: [], 
@@ -111,7 +186,7 @@
     
     <!-- Advanced Search and Filter Bar -->
     <div class="px-6 py-4 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
-        <form method="GET" action="{{ route('admin.announcements.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
+        <form method="GET" action="{{ route('admin.announcements.index') }}" id="announcementFilterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
             <!-- Search Keyword -->
             <div class="sm:col-span-2 lg:col-span-2">
                 <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Search Keyword</label>
@@ -379,7 +454,7 @@
                     <span>Filter</span>
                 </button>
             </div>
-            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+            <input type="hidden" name="per_page" id="announcement_per_page" value="{{ request('per_page', 10) }}">
         </form>
     </div>
 
@@ -520,14 +595,32 @@
 
     <!-- Pagination Controls -->
     <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Showing 
-            <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->firstItem() ?? ($announcements->count() > 0 ? 1 : 0) }}</span>
-            to 
-            <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->lastItem() ?? $announcements->count() }}</span>
-            of 
-            <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->total() }}</span>
-            announcements
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                Showing 
+                <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->firstItem() ?? ($announcements->count() > 0 ? 1 : 0) }}</span>
+                to 
+                <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->lastItem() ?? $announcements->count() }}</span>
+                of 
+                <span class="font-bold text-slate-900 dark:text-white">{{ $announcements->total() }}</span>
+                announcements
+            </div>
+
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Per page:</label>
+                <x-select 
+                    :options="[
+                        '10' => '10 per page',
+                        '20' => '20 per page',
+                        '50' => '50 per page'
+                    ]" 
+                    :value="request('per_page', 10)"
+                    size="sm"
+                    containerClass="w-36"
+                    :dropUp="true"
+                    @change="document.getElementById('announcement_per_page').value = $event.detail; document.getElementById('announcementFilterForm').submit()"
+                />
+            </div>
         </div>
         
         <div>

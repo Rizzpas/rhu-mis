@@ -1,6 +1,17 @@
-<div x-data="notificationSystem()" class="relative mr-3" x-init="init()">
+<div x-data="notificationSystem()"
+     class="relative shrink-0"
+     x-init="init()"
+     @click.outside="dropdownOpen = false"
+     @keydown.escape.window="if (dropdownOpen) { dropdownOpen = false; $refs.notificationBtn?.focus(); }">
     <!-- Bell Icon Button -->
-    <button @click="toggleDropdown" @click.away="dropdownOpen = false" type="button" class="relative inline-flex items-center justify-center p-2 rounded-full text-emerald-100 hover:text-white hover:bg-emerald-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400">
+    <button x-ref="notificationBtn"
+            @click="toggleDropdown"
+            type="button"
+            :aria-expanded="dropdownOpen.toString()"
+            aria-haspopup="true"
+            aria-label="Notifications"
+            class="relative inline-flex items-center justify-center p-2 rounded-full text-emerald-100 hover:text-white hover:bg-emerald-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            :class="dropdownOpen ? 'text-white bg-emerald-700/60 ring-2 ring-emerald-400 shadow-xs' : ''">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
         
         <!-- Badge -->
@@ -9,7 +20,16 @@
     </button>
 
     <!-- Dropdown Menu -->
-    <div x-show="dropdownOpen" x-transition:enter="transition ease-[cubic-bezier(0.16,1,0.3,1)] duration-200" x-transition:enter-start="opacity-0 scale-95 -translate-y-2" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 -translate-y-2" style="display: none;" class="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-700 overflow-hidden z-[100]">
+    <div x-show="dropdownOpen"
+         x-transition:enter="transition ease-[cubic-bezier(0.16,1,0.3,1)] duration-200"
+         x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+         x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+         x-cloak
+         style="display: none;"
+         class="absolute right-0 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-24px)] bg-white dark:bg-slate-800 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
         
         <!-- Header -->
         <div class="px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center backdrop-blur-sm">

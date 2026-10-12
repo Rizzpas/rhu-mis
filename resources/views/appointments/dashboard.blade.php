@@ -169,7 +169,7 @@
                                     </span>
                                 </div>
                                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate sm:whitespace-normal">
-                                    Select an available date on the calendar, then pick your preferred arrival window.
+                                    Select an available consultation date on the calendar to reschedule your appointment.
                                 </p>
                             </div>
                         </div>
@@ -298,14 +298,14 @@
                             </div>
                         </div>
 
-                        <!-- Right Column: Time Slot & Reschedule Summary (5 cols on lg, full width on mobile) -->
+                        <!-- Right Column: Reschedule Summary & Queue Policy (5 cols on lg, full width on mobile) -->
                         <div class="lg:col-span-5 p-4 sm:p-6 bg-slate-50/60 dark:bg-slate-900/50 flex flex-col justify-between">
                             <div>
                                 <!-- Schedule Comparison Overview Bento -->
                                 <div class="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs mb-3 sm:mb-4">
                                     <div class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 flex items-center justify-between">
                                         <span>Schedule Overview</span>
-                                        <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1" x-show="selectedDate && selectedTime">
+                                        <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1" x-show="selectedDate">
                                             <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
                                             Ready to Confirm
                                         </span>
@@ -326,11 +326,11 @@
 
                                         <!-- New Schedule -->
                                         <div class="p-2 sm:p-2.5 rounded-xl border transition-all"
-                                             :class="(selectedDate && selectedTime) 
+                                             :class="selectedDate 
                                                  ? 'bg-blue-50/90 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 shadow-2xs' 
                                                  : 'bg-slate-50/50 dark:bg-slate-900/40 border-dashed border-slate-300 dark:border-slate-700/80'">
                                             <div class="text-[9px] font-bold uppercase tracking-wider"
-                                                 :class="(selectedDate && selectedTime) ? 'text-blue-700 dark:text-blue-300' : 'text-slate-400 dark:text-slate-500'">
+                                                 :class="selectedDate ? 'text-blue-700 dark:text-blue-300' : 'text-slate-400 dark:text-slate-500'">
                                                 New Schedule
                                             </div>
                                             <template x-if="selectedDate">
@@ -339,10 +339,9 @@
                                                         <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                                         <span x-text="formatDateShort(selectedDate)"></span>
                                                     </div>
-                                                    <div class="text-[11px] mt-0.5 flex items-center gap-1.5"
-                                                         :class="selectedTime ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-amber-600 dark:text-amber-400 italic'">
-                                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                        <span x-text="selectedTime ? selectedTime : 'Choose arrival window below...'"></span>
+                                                    <div class="text-[11px] mt-0.5 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                                                        <svg class="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                        <span>First-Come, First-Served Queue</span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -356,15 +355,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Time Slot Picker -->
+                                <!-- Queue Policy & Instructions -->
                                 <div>
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                                            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                            <span>Step 2 • Arrival Window</span>
-                                        </h4>
-                                    </div>
-
                                     <!-- Empty state: No date chosen yet -->
                                     <div x-show="!selectedDate" class="text-center py-6 sm:py-7 px-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-800/30">
                                         <div class="w-8 h-8 sm:w-9 sm:h-9 mx-auto rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2">
@@ -372,43 +364,34 @@
                                         </div>
                                         <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Choose a Consultation Date</p>
                                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 max-w-xs mx-auto">
-                                            Click an available date on the calendar above to view arrival windows.
+                                            Click an available date on the calendar to reschedule your consultation.
                                         </p>
                                     </div>
 
-                                    <!-- Loading State -->
-                                    <div x-show="selectedDate && loadingSlots" class="text-center py-6 sm:py-7 px-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/60">
-                                        <svg class="animate-spin h-6 w-6 text-blue-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Fetching available arrival windows...</p>
-                                    </div>
-
-                                    <!-- No slots available on selected date -->
-                                    <div x-show="selectedDate && !loadingSlots && timeSlots.length === 0" class="text-center py-5 sm:py-6 px-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50">
-                                        <div class="w-8 h-8 mx-auto rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-1.5">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                        </div>
-                                        <p class="text-xs font-bold text-rose-800 dark:text-rose-300">No Slots Available</p>
-                                        <p class="text-[11px] text-rose-600 dark:text-rose-400 mt-0.5">Please choose a different date on the calendar.</p>
-                                    </div>
-
-                                    <!-- Slots Grid (Touch friendly) -->
-                                    <div x-show="selectedDate && !loadingSlots && timeSlots.length > 0" class="space-y-1.5">
-                                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-                                            <span>Select your arrival window:</span>
-                                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500" x-text="timeSlots.length + ' available'"></span>
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto pr-1">
-                                            <template x-for="slot in timeSlots" :key="slot.value">
-                                                <button type="button" 
-                                                        @click="selectedTime = slot.value"
-                                                        class="min-h-[40px] p-2 sm:p-2.5 rounded-xl border text-[11px] sm:text-xs font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation active:scale-[0.98]"
-                                                        :class="selectedTime === slot.value 
-                                                            ? 'border-blue-600 bg-blue-600 text-white font-bold shadow-sm shadow-blue-600/30 ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-slate-900' 
-                                                            : 'border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-950/20'">
-                                                    <svg class="w-3.5 h-3.5 shrink-0" :class="selectedTime === slot.value ? 'text-white' : 'text-slate-400 dark:text-slate-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                    <span class="truncate" x-text="slot.label"></span>
-                                                </button>
-                                            </template>
+                                    <!-- Queue Policy Banner (when date is selected) -->
+                                    <div x-show="selectedDate" class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            </div>
+                                            <div class="flex-1 text-xs">
+                                                <h5 class="font-bold text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
+                                                    First-Come, First-Served Queue Policy
+                                                </h5>
+                                                <p class="text-emerald-800 dark:text-emerald-300 mt-1 leading-relaxed text-[11px] sm:text-xs">
+                                                    RHU Silang consultation queues are processed strictly in the order patients arrive at the clinic on their confirmed appointment day. No specific arrival time window needs to be selected.
+                                                </p>
+                                                <div class="mt-2.5 pt-2 border-t border-emerald-200/60 dark:border-emerald-800/50 space-y-1 text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                        <span>RHU Operating Hours: <strong>8:00 AM – 5:00 PM</strong></span>
+                                                    </div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                        <span>Recommended Arrival: <strong>8:00 AM – 11:00 AM</strong> for Triage Intake</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -418,7 +401,7 @@
                             <div class="mt-3 sm:mt-4 p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/50 flex items-start gap-2.5 text-[10px] sm:text-[11px] text-amber-900 dark:text-amber-200">
                                 <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 <p class="leading-relaxed">
-                                    <strong>Triage Processing:</strong> Please arrive <strong>30 minutes before</strong> your arrival window for vital signs check and queue number assignment.
+                                    <strong>Triage Processing:</strong> Please present your reference number at the triage desk upon arrival for initial vital signs check and queue number assignment.
                                 </p>
                             </div>
                         </div>
@@ -428,13 +411,13 @@
                     <!-- Modal Footer (Balanced Mobile Layout with 50/50 Touch Buttons) -->
                     <div class="px-4 py-3 sm:px-6 sm:py-4 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800/80 flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 sm:gap-3 shrink-0">
                         <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left w-full sm:w-auto">
-                            <template x-if="!selectedDate || !selectedTime">
+                            <template x-if="!selectedDate">
                                 <span class="flex items-center justify-center sm:justify-start gap-1.5 text-slate-400 dark:text-slate-500">
                                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <span>Select date & arrival window to confirm</span>
+                                    <span>Select a new date on the calendar to confirm</span>
                                 </span>
                             </template>
-                            <template x-if="selectedDate && selectedTime">
+                            <template x-if="selectedDate">
                                 <span class="flex items-center justify-center sm:justify-start gap-1.5 font-bold text-blue-600 dark:text-blue-400">
                                     <svg class="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
                                     <span>New appointment schedule ready</span>
@@ -452,10 +435,9 @@
                             <form action="{{ route('appointment.reschedule') }}" method="POST" class="w-1/2 sm:w-auto">
                                 @csrf
                                 <input type="hidden" name="new_date" x-model="selectedDate">
-                                <input type="hidden" name="new_time" x-model="selectedTime">
                                 <button type="submit" 
-                                        :disabled="!selectedDate || !selectedTime"
-                                        :class="(!selectedDate || !selectedTime) 
+                                        :disabled="!selectedDate"
+                                        :class="(!selectedDate) 
                                             ? 'opacity-40 cursor-not-allowed bg-slate-300 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-transparent' 
                                             : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer border-transparent'"
                                         class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border px-4 sm:px-6 py-2.5 text-xs font-bold transition-all truncate">
@@ -478,10 +460,7 @@
         return {
             showReschedule: false,
             selectedDate: '',
-            selectedTime: '',
             availability: {},
-            timeSlots: [],
-            loadingSlots: false,
             type: '{{ $appointment->type }}',
             isFollowUp: {{ ($appointment->type === 'adult' || $appointment->is_follow_up) ? 'true' : 'false' }},
             validDays: null,
@@ -491,10 +470,20 @@
             currentAppointmentDate: '{{ $appointment->preferred_date->format('Y-m-d') }}',
             
             async openRescheduleModal() {
+                @if($appointment->type === 'pedia' && $appointment->dob)
+                    const pDob = new Date('{{ $appointment->dob }}');
+                    if (!isNaN(pDob.getTime())) {
+                        const today = new Date();
+                        let months = (today.getFullYear() - pDob.getFullYear()) * 12 + (today.getMonth() - pDob.getMonth());
+                        if (today.getDate() < pDob.getDate()) months--;
+                        if (months < 6) {
+                            alert('The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.');
+                            return;
+                        }
+                    }
+                @endif
                 this.showReschedule = true;
                 this.selectedDate = '';
-                this.selectedTime = '';
-                this.timeSlots = [];
                 
                 let today = new Date();
                 this.currentMonth = today.getMonth();
@@ -654,26 +643,6 @@
 
             selectDate(date) {
                 this.selectedDate = date;
-                this.selectedTime = '';
-                this.fetchTimeSlots(date);
-            },
-            
-            async fetchTimeSlots(date) {
-                this.loadingSlots = true;
-                this.timeSlots = [];
-                try {
-                    const params = new URLSearchParams({ date, type: this.type });
-                    if (this.followUpDoctorId) {
-                        params.append('doctor_id', this.followUpDoctorId);
-                    }
-                    const response = await fetch(`{{ route('appointment.time-slots') }}?${params}`);
-                    const data = await response.json();
-                    this.timeSlots = data.slots || [];
-                } catch (e) {
-                    console.error('Failed to fetch time slots', e);
-                } finally {
-                    this.loadingSlots = false;
-                }
             },
 
             formatDate(dateString) {

@@ -348,6 +348,40 @@ class FrontdeskRegistrationDropdownDesignTest extends TestCase
             'classification' => 'Regular Adult',
         ]);
     }
+
+    public function test_submitting_pediatric_patient_younger_than_6_months_is_rejected_by_controller()
+    {
+        $payload = [
+            'first_name' => 'BABY',
+            'last_name' => 'DOE',
+            'sex' => 'Male',
+            'civil_status' => 'Single',
+            'classification' => 'Pediatric',
+            'blood_type' => 'O+',
+            'dob' => now()->subMonths(3)->format('Y-m-d'),
+            'contact_number' => '09123456789',
+            'email' => 'babydoe@gmail.com',
+            'education' => 'None',
+            'religion' => 'Roman Catholic',
+            'barangay' => 'Biga 1',
+            'city_province' => 'Silang, Cavite',
+            'address' => 'Biga 1, Silang, Cavite',
+            'mothers_maiden_name' => 'JANE DOE',
+            'guardian_first_name' => 'JANE',
+            'guardian_last_name' => 'DOE',
+            'guardian_relation' => 'Mother',
+            'guardian_contact' => '09123456789',
+            'guardian_philhealth' => '12-345678901-2',
+        ];
+
+        $response = $this->actingAs($this->frontdesk)
+            ->from(route('frontdesk.registration.index', ['new_patient' => 1]))
+            ->post(route('frontdesk.patients.store'), $payload);
+
+        $response->assertRedirect(route('frontdesk.registration.index', ['new_patient' => 1]));
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('The Pedia Consultation service is only available for patients aged 6 months and above', session('error'));
+    }
 }
 
 

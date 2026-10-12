@@ -26,29 +26,33 @@ class AutoLogoutInactiveStaff extends Command
         $minutes = (int) $this->option('minutes');
         $cutoff = Carbon::now()->subMinutes($minutes);
 
-        // Find clinical staff who have status Online/Present/Occupied but haven't had any activity within the cutoff
-        $inactiveStaff = User::whereIn('status', ['Online', 'online', 'Present', 'present', 'Occupied', 'occupied'])
-            ->whereIn('role', [
+        // Idle staff (no heartbeat within the cutoff) are treated as logged out:
+        // their manual-online session ends and the schedule-based status takes over.
+        $inactiveStaff = User::whereIn('role', [
                 'regular_doctor', 'pedia_doctor',
                 'clinical_nurse', 'vitals_nurse',
                 'information_desk', 'laboratory', 'radiology', 'pharmacy',
             ])
+            ->where(function ($q) {
+                $q->where('schedule_override', \App\Services\StaffPresence::OVERRIDE_ONLINE)
+                  ->orWhereIn('status', ['Occupied', 'occupied']);
+            })
             ->where(function ($q) use ($cutoff) {
                 $q->where('last_activity_at', '<', $cutoff)
                     ->orWhereNull('last_activity_at');
             })
+            ->with('practitionerSchedules')
             ->get();
 
         $count = $inactiveStaff->count();
 
         foreach ($inactiveStaff as $user) {
-            $user->update([
-                'status' => 'Offline',
-                'last_activity_at' => null,
-            ]);
+            $lastActivity = $user->last_activity_at?->toIso8601String() ?? 'Never';
+
+            \App\Services\StaffPresence::handleLogout($user);
 
             \App\Models\AuditLog::record('Auto Logout (Idle)', $user, [
-                'last_activity' => $user->last_activity_at?->toIso8601String() ?? 'Never',
+                'last_activity' => $lastActivity,
                 'idle_threshold' => "{$minutes} minutes",
             ]);
         }

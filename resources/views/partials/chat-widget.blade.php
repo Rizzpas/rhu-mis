@@ -5,42 +5,31 @@
      x-data="chatWidget()"
      x-init="init()"
      x-cloak
-     class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999]"
+     class="z-[9999]"
      @keydown.escape.window="if(panelOpen) closePanel()">
 
     {{-- ═══════════════════════════════════════════════════ --}}
-    {{-- CHAT BUBBLE BUTTON --}}
+    {{-- LEGACY CHAT BUBBLE BUTTON (Hidden - Trigger moved to Navbar) --}}
     {{-- ═══════════════════════════════════════════════════ --}}
     <button @click="togglePanel()"
             id="chat-bubble-btn"
-            class="group relative w-14 h-14 rounded-full bg-slate-800 dark:bg-slate-700 text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center"
-            :class="panelOpen ? 'ring-2 ring-slate-500 dark:ring-slate-400' : ''">
-        {{-- Chat icon --}}
-        <svg x-show="!panelOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-        </svg>
-        {{-- Close icon --}}
-        <svg x-show="panelOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-        {{-- Unread badge --}}
-        <span x-show="totalUnread > 0 && !panelOpen"
-              x-text="totalUnread > 99 ? '99+' : totalUnread"
-              class="absolute -top-1 -right-1 min-w-[22px] h-[22px] flex items-center justify-center px-1.5 text-xs font-bold text-white bg-red-500 rounded-full shadow-md animate-pulse">
-        </span>
+            class="hidden"
+            aria-hidden="true"
+            tabindex="-1">
     </button>
 
     {{-- ═══════════════════════════════════════════════════ --}}
     {{-- CHAT PANEL --}}
     {{-- ═══════════════════════════════════════════════════ --}}
     <div x-show="panelOpen"
-         x-transition:enter="transition ease-out duration-250"
-         x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+         @click.outside="if (!$event.target.closest('#navbar-chat-btn')) closePanel()"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2 scale-95"
          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-         class="fixed inset-x-3 bottom-[76px] sm:bottom-[72px] sm:right-0 sm:left-auto sm:inset-x-auto sm:absolute w-auto sm:w-[380px] max-w-[420px] mx-auto sm:mx-0 h-[calc(100dvh-92px)] sm:h-[560px] max-h-[580px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 flex flex-col overflow-hidden"
+         x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
+         class="fixed inset-x-3 top-[68px] sm:top-[70px] sm:right-4 sm:left-auto sm:inset-x-auto w-auto sm:w-[390px] max-w-[420px] h-[calc(100dvh-86px)] sm:h-[600px] max-h-[620px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 flex flex-col overflow-hidden z-[9999]"
          style="display: none;">
 
         {{-- ─── CONVERSATION LIST VIEW ─── --}}
@@ -345,6 +334,36 @@
 
 <script>
 document.addEventListener('alpine:init', () => {
+    // Shared chat store so navbar button and widget stay in sync
+    if (!Alpine.store('chat')) {
+        Alpine.store('chat', {
+            panelOpen: false,
+            totalUnread: 0,
+            widgetInstance: null,
+            toggle() {
+                if (this.widgetInstance) {
+                    this.widgetInstance.togglePanel();
+                } else {
+                    window.dispatchEvent(new CustomEvent('chat-toggle'));
+                }
+            },
+            open() {
+                if (this.widgetInstance) {
+                    if (!this.widgetInstance.panelOpen) this.widgetInstance.togglePanel();
+                } else {
+                    window.dispatchEvent(new CustomEvent('chat-open'));
+                }
+            },
+            close() {
+                if (this.widgetInstance) {
+                    if (this.widgetInstance.panelOpen) this.widgetInstance.closePanel();
+                } else {
+                    window.dispatchEvent(new CustomEvent('chat-close'));
+                }
+            }
+        });
+    }
+
     Alpine.data('chatWidget', () => ({
         // State
         panelOpen: false,
@@ -382,6 +401,18 @@ document.addEventListener('alpine:init', () => {
         pollTimer: null,
 
         init() {
+            // Bind to shared Alpine store
+            if (window.Alpine && Alpine.store('chat')) {
+                Alpine.store('chat').widgetInstance = this;
+                Alpine.store('chat').panelOpen = this.panelOpen;
+                Alpine.store('chat').totalUnread = this.totalUnread;
+            }
+
+            // Window event listeners for cross-component triggers
+            window.addEventListener('chat-toggle', () => this.togglePanel());
+            window.addEventListener('chat-open', () => { if (!this.panelOpen) this.togglePanel(); });
+            window.addEventListener('chat-close', () => { if (this.panelOpen) this.closePanel(); });
+
             // Immediately fetch conversations on load so unread badge and list are ready
             this.fetchConversations(true);
 
@@ -408,8 +439,16 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        syncStore() {
+            if (window.Alpine && Alpine.store('chat')) {
+                Alpine.store('chat').panelOpen = this.panelOpen;
+                Alpine.store('chat').totalUnread = this.totalUnread;
+            }
+        },
+
         togglePanel() {
             this.panelOpen = !this.panelOpen;
+            this.syncStore();
             if (this.panelOpen) {
                 this.fetchConversations(false);
             } else {
@@ -419,6 +458,7 @@ document.addEventListener('alpine:init', () => {
 
         closePanel() {
             this.panelOpen = false;
+            this.syncStore();
             this.leaveChannel();
             this.currentView = 'list';
             this.activeChat = null;
@@ -751,12 +791,14 @@ document.addEventListener('alpine:init', () => {
                 if (res.ok) {
                     const data = await res.json();
                     this.totalUnread = data.count;
+                    this.syncStore();
                 }
             } catch (e) { /* silent */ }
         },
 
         updateTotalUnread() {
             this.totalUnread = this.conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+            this.syncStore();
         },
 
         // ─── HELPERS ───

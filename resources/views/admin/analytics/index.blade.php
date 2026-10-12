@@ -77,20 +77,68 @@
                 </div>
             </div>
         </div>
-        <form action="{{ route('admin.analytics') }}" method="GET" class="h-10 flex items-center gap-2 bg-white dark:bg-slate-900/90 px-3 rounded-xl shadow-2xs border border-slate-200/90 dark:border-slate-700/80 focus-within:border-emerald-500 transition-all">
-            <label for="time_filter" class="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-wider pl-1 shrink-0">Timeframe:</label>
-            <div class="w-32">
-                <x-select 
-                    name="time_filter" 
-                    id="time_filter" 
-                    :options="['today' => 'Today', 'weekly' => 'This Week', 'monthly' => 'This Month', 'yearly' => 'This Year', 'all' => 'All Time']" 
-                    :value="$timeFilter" 
-                    @change="$el.closest('form').submit()"
-                    size="sm"
-                    class="border-0 shadow-none font-bold text-xs text-slate-800 dark:text-white !py-0 focus:ring-0 bg-transparent"
-                />
+        <!-- Unified Timeframe Filter Dropdown -->
+        <div class="relative" x-data="{
+            open: false,
+            selected: '{{ $timeFilter }}',
+            options: {
+                'today': 'Today',
+                'weekly': 'This Week',
+                'monthly': 'This Month',
+                'yearly': 'This Year',
+                'all': 'All Time'
+            },
+            select(val) {
+                this.selected = val;
+                this.open = false;
+                window.location.href = '{{ route('admin.analytics') }}?time_filter=' + encodeURIComponent(val);
+            }
+        }" @click.outside="open = false">
+            <button type="button" @click="open = !open"
+                    class="h-10 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 text-xs font-bold shadow-2xs hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:bg-slate-50 dark:hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all flex items-center gap-2.5 cursor-pointer"
+                    :class="open ? 'border-emerald-500 dark:border-emerald-500 ring-2 ring-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'">
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400">Timeframe:</span>
+                </div>
+                <span class="font-extrabold text-slate-900 dark:text-white" x-text="options[selected] || 'This Month'"></span>
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-400 transition-transform duration-200"
+                     :class="open ? 'rotate-180 text-emerald-500 dark:text-emerald-400' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div x-show="open" x-cloak
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                 style="display: none;"
+                 class="absolute right-0 z-50 mt-1.5 w-44 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-900/20 p-1.5 backdrop-blur-md divide-y divide-slate-100 dark:divide-slate-800/80">
+                <div class="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Select Period
+                </div>
+                <div class="pt-1 space-y-0.5">
+                    <template x-for="(label, key) in options" :key="key">
+                        <button type="button" @click="select(key)"
+                                class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer text-left"
+                                :class="selected === key 
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' 
+                                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
+                            <span x-text="label"></span>
+                            <svg x-show="selected === key" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </button>
+                    </template>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -382,7 +430,6 @@
                                 <th class="py-3 px-4">Classification Sector</th>
                                 <th class="py-3 px-4 text-right">Registered (All-Time)</th>
                                 <th class="py-3 px-4 text-right">Served (Period)</th>
-                                <th class="py-3 px-4 text-left">Clinical Program</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60 font-medium">
@@ -400,7 +447,6 @@
                                     <span class="font-bold text-sky-600 dark:text-sky-400">{{ number_format($classificationSummary['categories']['pediatric']['served_count']) }}</span>
                                     <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['pediatric']['served_pct'] }}%)</span>
                                 </td>
-                                <td class="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">Well-Child / EPI / Pedia OPD</td>
                             </tr>
                             <!-- Regular Adult -->
                             <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/30 transition-colors">
@@ -416,7 +462,6 @@
                                     <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ number_format($classificationSummary['categories']['regular_adult']['served_count']) }}</span>
                                     <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['regular_adult']['served_pct'] }}%)</span>
                                 </td>
-                                <td class="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">General OPD &amp; Adult Consults</td>
                             </tr>
                             <!-- Senior Citizen -->
                             <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/30 transition-colors">
@@ -432,7 +477,6 @@
                                     <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ number_format($classificationSummary['categories']['senior_citizen']['served_count']) }}</span>
                                     <span class="text-[10px] text-slate-400">({{ $classificationSummary['categories']['senior_citizen']['served_pct'] }}%)</span>
                                 </td>
-                                <td class="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">Geriatric Fast-Track &amp; NCD</td>
                             </tr>
                             <!-- Subtotal Row -->
                             <tr class="bg-slate-100/70 dark:bg-slate-700/50 font-black">
@@ -443,7 +487,6 @@
                                 <td class="py-2.5 px-4 text-right tabular-nums text-slate-900 dark:text-white">
                                     {{ number_format($classificationSummary['unique_served_total']) }} <span class="text-[10px] text-slate-400">(100%)</span>
                                 </td>
-                                <td class="py-2.5 px-4 text-slate-500 dark:text-slate-400 text-[10px] uppercase">Master Registry</td>
                             </tr>
                             <!-- PWD Overlay Row -->
                             <tr class="bg-amber-50/70 dark:bg-amber-950/30 border-t-2 border-amber-500/30 font-bold">
@@ -458,9 +501,6 @@
                                 <td class="py-3 px-4 text-right tabular-nums text-amber-900 dark:text-amber-200">
                                     {{ number_format($classificationSummary['pwd']['served_count']) }}
                                     <span class="text-[10px] text-amber-600 dark:text-amber-400">({{ $classificationSummary['pwd']['served_percentage'] }}%)</span>
-                                </td>
-                                <td class="py-3 px-4 text-amber-800 dark:text-amber-300 text-[11px] font-medium">
-                                    Express Priority / Patients can be Senior + PWD
                                 </td>
                             </tr>
                         </tbody>
@@ -1717,24 +1757,168 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 <script>
-    // Global Chart Configuration
-    Chart.register(ChartDataLabels);
-    Chart.defaults.font.family = "'Inter', 'sans-serif'";
-    Chart.defaults.color = '#64748b';
-    Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
-    Chart.defaults.plugins.tooltip.titleFont = { size: 14, weight: 'bold' };
-    Chart.defaults.plugins.tooltip.padding = 12;
-    Chart.defaults.plugins.tooltip.cornerRadius = 8;
-    
-    Chart.defaults.plugins.datalabels.color = '#ffffff';
-    Chart.defaults.plugins.datalabels.font = { weight: 'bold', size: 12 };
-    Chart.defaults.plugins.datalabels.formatter = Math.round;
-    Chart.defaults.plugins.datalabels.display = function(context) { return context.dataset.data[context.dataIndex] > 0; };
+    // Dynamic Theme Manager for Chart.js in Dark and Light Modes
+    function getChartTheme() {
+        const isDark = document.documentElement.classList.contains('dark');
+        return {
+            isDark: isDark,
+            textPrimary: isDark ? '#f1f5f9' : '#1e293b',       // High-contrast label color (Slate-100 vs Slate-800)
+            textSecondary: isDark ? '#94a3b8' : '#64748b',     // Muted ticks/scale color (Slate-400 vs Slate-500)
+            gridColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(148, 163, 184, 0.12)',
+            tooltipBg: isDark ? 'rgba(15, 23, 42, 0.96)' : 'rgba(15, 23, 42, 0.92)',
+            tooltipBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
+            // Datalabels & accent colors
+            tealLabel: isDark ? '#2dd4bf' : '#0f766e',
+            purpleLabel: isDark ? '#c084fc' : '#7c3aed',
+            amberLabel: isDark ? '#fbbf24' : '#d97706',
+            emeraldLabel: isDark ? '#34d399' : '#059669',
+            blueLabel: isDark ? '#60a5fa' : '#2563eb',
+            // Doughnut center text
+            centerTotal: isDark ? '#f8fafc' : '#0f172a',
+            centerSub: isDark ? '#cbd5e1' : '#64748b'
+        };
+    }
+
+    function applyGlobalChartDefaults() {
+        const theme = getChartTheme();
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = "'Inter', 'sans-serif'";
+        Chart.defaults.color = theme.textSecondary;
+        Chart.defaults.borderColor = theme.gridColor;
+
+        if (Chart.defaults.plugins.tooltip) {
+            Chart.defaults.plugins.tooltip.backgroundColor = theme.tooltipBg;
+            Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
+            Chart.defaults.plugins.tooltip.bodyColor = '#f1f5f9';
+            Chart.defaults.plugins.tooltip.borderColor = theme.tooltipBorder;
+            Chart.defaults.plugins.tooltip.borderWidth = theme.isDark ? 1 : 0;
+            Chart.defaults.plugins.tooltip.titleFont = { size: 14, weight: 'bold' };
+            Chart.defaults.plugins.tooltip.padding = 12;
+            Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        }
+
+        if (Chart.defaults.plugins.datalabels) {
+            Chart.defaults.plugins.datalabels.color = '#ffffff';
+            Chart.defaults.plugins.datalabels.font = { weight: 'bold', size: 12 };
+            Chart.defaults.plugins.datalabels.formatter = Math.round;
+            Chart.defaults.plugins.datalabels.display = function(context) { 
+                return context.dataset.data[context.dataIndex] > 0; 
+            };
+        }
+    }
+    applyGlobalChartDefaults();
 
     // Chart Instances Store
     const charts = {};
 
+    // Center Text Plugin for Doughnut Charts (Displays Total in Donut Center)
+    const doughnutCenterTextPlugin = {
+        id: 'doughnutCenterText',
+        beforeDraw: function(chart) {
+            if (chart.config.type !== 'doughnut') return;
+            const chartArea = chart.chartArea;
+            if (!chartArea) return;
+            const { ctx } = chart;
+            ctx.save();
+            const dataset = chart.data.datasets[0];
+            const total = (dataset ? dataset.data : []).reduce((a, b) => a + Number(b), 0);
+            const subLabel = chart.canvas.id === 'classificationChart' ? 'Patients' : 'Cases';
+            const centerX = (chartArea.left + chartArea.right) / 2;
+            const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+            const theme = getChartTheme();
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.font = '800 24px "Inter", sans-serif';
+            ctx.fillStyle = theme.centerTotal;
+            ctx.fillText(total.toLocaleString(), centerX, centerY - 9);
+
+            ctx.font = '800 11px "Inter", sans-serif';
+            ctx.fillStyle = theme.centerSub;
+            ctx.fillText(subLabel.toUpperCase(), centerX, centerY + 13);
+            ctx.restore();
+        }
+    };
+
+    // Synchronize all chart instances when theme changes
+    function syncAllChartsTheme() {
+        applyGlobalChartDefaults();
+        const theme = getChartTheme();
+
+        Object.entries(charts).forEach(([key, chart]) => {
+            if (!chart) return;
+
+            // Update axis tick and grid colors
+            if (chart.options.scales) {
+                if (chart.options.scales.x) {
+                    if (chart.options.scales.x.ticks) {
+                        chart.options.scales.x.ticks.color = theme.textSecondary;
+                    }
+                    if (chart.options.scales.x.grid && chart.options.scales.x.grid.display !== false) {
+                        chart.options.scales.x.grid.color = theme.gridColor;
+                    }
+                }
+                if (chart.options.scales.y) {
+                    if (chart.options.scales.y.ticks) {
+                        if (['demographics', 'barangay', 'workload', 'duration', 'encoding'].includes(key)) {
+                            chart.options.scales.y.ticks.color = theme.textPrimary;
+                        } else {
+                            chart.options.scales.y.ticks.color = theme.textSecondary;
+                        }
+                    }
+                    if (chart.options.scales.y.grid && chart.options.scales.y.grid.display !== false) {
+                        chart.options.scales.y.grid.color = theme.gridColor;
+                    }
+                }
+            }
+
+            // Update legend label color
+            if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                chart.options.plugins.legend.labels.color = theme.textPrimary;
+            }
+
+            // Update specific datalabel colors
+            if (chart.options.plugins && chart.options.plugins.datalabels) {
+                if (key === 'barangay') {
+                    chart.options.plugins.datalabels.color = theme.tealLabel;
+                } else if (key === 'peak') {
+                    chart.options.plugins.datalabels.color = theme.purpleLabel;
+                } else if (key === 'workload') {
+                    chart.options.plugins.datalabels.color = theme.amberLabel;
+                } else if (key === 'duration') {
+                    chart.options.plugins.datalabels.color = theme.blueLabel;
+                } else if (key === 'encoding') {
+                    chart.options.plugins.datalabels.color = theme.purpleLabel;
+                } else if (key === 'volume') {
+                    chart.options.plugins.datalabels.color = theme.emeraldLabel;
+                    chart.options.plugins.datalabels.backgroundColor = theme.isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+                    chart.options.plugins.datalabels.borderColor = theme.isDark ? 'rgba(52, 211, 153, 0.4)' : 'rgba(5, 150, 105, 0.2)';
+                }
+            }
+
+            chart.update('none');
+        });
+    }
+
+    // Listen to theme change events from layout toggle
+    window.addEventListener('theme-changed', syncAllChartsTheme);
+
+    // Also observe html class attribute mutations for dark mode
+    const htmlThemeObserver = new MutationObserver(function(mutations) {
+        for (const m of mutations) {
+            if (m.type === 'attributes' && m.attributeName === 'class') {
+                syncAllChartsTheme();
+                break;
+            }
+        }
+    });
+    htmlThemeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
     document.addEventListener("DOMContentLoaded", function () {
+        const initialTheme = getChartTheme();
+
         // 1. Visit Volume
         const volumeCtx = document.getElementById('visitVolumeChart').getContext('2d');
         const volumeData = {!! json_encode($visitVolumeData) !!};
@@ -1754,8 +1938,32 @@
             },
             options: {
                 responsive: true, maintainAspectRatio: false, layout: { padding: { top: 25 } },
-                plugins: { legend: { display: false }, datalabels: { align: 'top', anchor: 'end', color: '#10b981', backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: 4, padding: 4 } },
-                scales: { y: { beginAtZero: true, suggestedMax: 5, ticks: { precision: 0, stepSize: 1 }, grid: { borderDash: [4, 4] } }, x: { grid: { display: false } } }
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        align: 'top',
+                        anchor: 'end',
+                        color: initialTheme.emeraldLabel,
+                        backgroundColor: initialTheme.isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                        borderColor: initialTheme.isDark ? 'rgba(52, 211, 153, 0.4)' : 'rgba(5, 150, 105, 0.2)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        padding: 4,
+                        font: { weight: '700', size: 11 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: 5,
+                        ticks: { precision: 0, stepSize: 1, color: initialTheme.textSecondary },
+                        grid: { borderDash: [4, 4], color: initialTheme.gridColor }
+                    },
+                    x: {
+                        ticks: { color: initialTheme.textSecondary },
+                        grid: { display: false }
+                    }
+                }
             }
         });
 
@@ -1770,8 +1978,26 @@
             },
             options: {
                 responsive: true, maintainAspectRatio: false, layout: { padding: { top: 25 } },
-                plugins: { legend: { display: false }, datalabels: { align: 'top', anchor: 'end', color: '#8b5cf6' } },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { borderDash: [4, 4] } }, x: { grid: { display: false } } }
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        align: 'top',
+                        anchor: 'end',
+                        color: initialTheme.purpleLabel,
+                        font: { weight: '700', size: 11 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, color: initialTheme.textSecondary },
+                        grid: { borderDash: [4, 4], color: initialTheme.gridColor }
+                    },
+                    x: {
+                        ticks: { color: initialTheme.textSecondary },
+                        grid: { display: false }
+                    }
+                }
             }
         });
 
@@ -1786,8 +2012,29 @@
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 40 } },
-                plugins: { legend: { display: false }, datalabels: { align: 'right', anchor: 'end', color: '#f59e0b' } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        align: 'right',
+                        anchor: 'end',
+                        color: initialTheme.amberLabel,
+                        font: { weight: '700', size: 11 }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, color: initialTheme.textSecondary },
+                        grid: { color: initialTheme.gridColor }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            color: initialTheme.textPrimary,
+                            font: { size: 12, weight: '700' }
+                        }
+                    }
+                }
             }
         });
 
@@ -1806,42 +2053,48 @@
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 14, usePointStyle: true, font: { size: 13 } } },
-                    datalabels: { formatter: (value) => Math.abs(value) },
-                    tooltip: { callbacks: { label: function (context) { return context.dataset.label + ': ' + Math.abs(context.raw); } } }
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 14,
+                            usePointStyle: true,
+                            font: { size: 13, weight: '700' },
+                            color: initialTheme.textPrimary
+                        }
+                    },
+                    datalabels: {
+                        color: '#ffffff',
+                        font: { weight: '800', size: 11 },
+                        formatter: (value) => Math.abs(value)
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) { return context.dataset.label + ': ' + Math.abs(context.raw); }
+                        }
+                    }
                 },
-                scales: { x: { stacked: true, ticks: { callback: function (value) { return Math.abs(value); }, precision: 0 } }, y: { stacked: true, grid: { display: false } } }
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            color: initialTheme.textSecondary,
+                            font: { size: 11, weight: '600' },
+                            callback: function (value) { return Math.abs(value); },
+                            precision: 0
+                        },
+                        grid: { color: initialTheme.gridColor }
+                    },
+                    y: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: {
+                            color: initialTheme.textPrimary,
+                            font: { size: 12, weight: '700' }
+                        }
+                    }
+                }
             }
         });
-
-        // Center Text Plugin for Doughnut Charts (Displays Total in Donut Center)
-        const doughnutCenterTextPlugin = {
-            id: 'doughnutCenterText',
-            beforeDraw: function(chart) {
-                if (chart.config.type !== 'doughnut') return;
-                const chartArea = chart.chartArea;
-                if (!chartArea) return;
-                const { ctx } = chart;
-                ctx.save();
-                const dataset = chart.data.datasets[0];
-                const total = (dataset ? dataset.data : []).reduce((a, b) => a + Number(b), 0);
-                const subLabel = chart.canvas.id === 'classificationChart' ? 'Patients' : 'Cases';
-                const centerX = (chartArea.left + chartArea.right) / 2;
-                const centerY = (chartArea.top + chartArea.bottom) / 2;
-
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                ctx.font = '800 22px "Inter", sans-serif';
-                ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a';
-                ctx.fillText(total.toLocaleString(), centerX, centerY - 8);
-
-                ctx.font = '700 10px "Inter", sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillText(subLabel.toUpperCase(), centerX, centerY + 12);
-                ctx.restore();
-            }
-        };
 
         // 5. Classification Doughnut (Formatted in Percentages with Center Total)
         const classCtx = document.getElementById('classificationChart').getContext('2d');
@@ -1867,24 +2120,28 @@
                         position: window.innerWidth < 768 ? 'bottom' : 'right',
                         labels: {
                             boxWidth: 12,
-                            padding: 12,
-                            font: { size: 11, weight: '600' },
+                            padding: 14,
+                            font: { size: 11, weight: '700' },
+                            color: initialTheme.textPrimary,
                             usePointStyle: true,
                             generateLabels: function(chart) {
                                 const data = chart.data;
                                 if (data.labels.length && data.datasets.length) {
                                     const dataset = data.datasets[0];
                                     const total = dataset.data.reduce((a, b) => a + Number(b), 0);
-                                    return data.labels.map((label, i) => {
+                                    const theme = getChartTheme();
+                                    return data.labels.map((rawLabel, i) => {
                                         const val = Number(dataset.data[i]) || 0;
                                         const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
                                         const meta = chart.getDatasetMeta(0);
                                         const style = meta.controller ? meta.controller.getStyle(i) : {};
+                                        const formattedLabel = String(rawLabel).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                                         return {
-                                            text: `${label}: ${val.toLocaleString()} (${pct}%)`,
+                                            text: `${formattedLabel}: ${val.toLocaleString()} (${pct}%)`,
                                             fillStyle: style.backgroundColor || dataset.backgroundColor[i],
-                                            strokeStyle: '#ffffff',
-                                            lineWidth: 0,
+                                            strokeStyle: theme.isDark ? '#334155' : '#ffffff',
+                                            lineWidth: 1,
+                                            fontColor: theme.textPrimary,
                                             hidden: isNaN(dataset.data[i]) || meta.data[i]?.hidden,
                                             index: i
                                         };
@@ -1912,7 +2169,8 @@
                                 const val = Number(context.raw) || 0;
                                 const sum = context.dataset.data.reduce((a, b) => a + Number(b), 0);
                                 const pct = sum > 0 ? ((val / sum) * 100).toFixed(1) : '0.0';
-                                return ` ${context.label}: ${val.toLocaleString()} (${pct}%)`;
+                                const label = String(context.label).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                return ` ${label}: ${val.toLocaleString()} (${pct}%)`;
                             }
                         }
                     }
@@ -1955,14 +2213,16 @@
                         position: window.innerWidth < 768 ? 'bottom' : 'right',
                         labels: {
                             boxWidth: 12,
-                            padding: 12,
-                            font: { size: 11, weight: '600' },
+                            padding: 14,
+                            font: { size: 11, weight: '700' },
+                            color: initialTheme.textPrimary,
                             usePointStyle: true,
                             generateLabels: function(chart) {
                                 const data = chart.data;
                                 if (data.labels.length && data.datasets.length) {
                                     const dataset = data.datasets[0];
                                     const total = dataset.data.reduce((a, b) => a + Number(b), 0);
+                                    const theme = getChartTheme();
                                     return data.labels.map((label, i) => {
                                         const val = Number(dataset.data[i]) || 0;
                                         const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
@@ -1971,8 +2231,9 @@
                                         return {
                                             text: `${label}: ${val.toLocaleString()} (${pct}%)`,
                                             fillStyle: style.backgroundColor || dataset.backgroundColor[i],
-                                            strokeStyle: '#ffffff',
-                                            lineWidth: 0,
+                                            strokeStyle: theme.isDark ? '#334155' : '#ffffff',
+                                            lineWidth: 1,
+                                            fontColor: theme.textPrimary,
                                             hidden: isNaN(dataset.data[i]) || meta.data[i]?.hidden,
                                             index: i
                                         };
@@ -2040,8 +2301,29 @@
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 40 } },
-                plugins: { legend: { display: false }, datalabels: { align: 'right', anchor: 'end', color: '#0d9488', font: { weight: '600', size: 12 } } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(148,163,184,0.08)' } }, y: { grid: { display: false }, ticks: { font: { size: 12, weight: '500' } } } }
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        align: 'right',
+                        anchor: 'end',
+                        color: initialTheme.tealLabel,
+                        font: { weight: '800', size: 12 }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, font: { size: 11, weight: '600' }, color: initialTheme.textSecondary },
+                        grid: { color: initialTheme.gridColor }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 12, weight: '700' },
+                            color: initialTheme.textPrimary
+                        }
+                    }
+                }
             }
         });
 
@@ -2056,8 +2338,30 @@
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 40 } },
-                plugins: { legend: { display: false }, datalabels: { align: 'right', anchor: 'end', color: '#3b82f6', formatter: function(value) { return value + 'm'; } } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        align: 'right',
+                        anchor: 'end',
+                        color: initialTheme.blueLabel,
+                        font: { weight: '800', size: 11 },
+                        formatter: function(value) { return value + 'm'; }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, color: initialTheme.textSecondary },
+                        grid: { color: initialTheme.gridColor }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 12, weight: '700' },
+                            color: initialTheme.textPrimary
+                        }
+                    }
+                }
             }
         });
 
@@ -2071,8 +2375,30 @@
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 40 } },
-                plugins: { legend: { display: false }, datalabels: { align: 'right', anchor: 'end', color: '#8b5cf6', formatter: function(value) { return value + 's'; } } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        align: 'right',
+                        anchor: 'end',
+                        color: initialTheme.purpleLabel,
+                        font: { weight: '800', size: 11 },
+                        formatter: function(value) { return value + 's'; }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, color: initialTheme.textSecondary },
+                        grid: { color: initialTheme.gridColor }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 12, weight: '700' },
+                            color: initialTheme.textPrimary
+                        }
+                    }
+                }
             }
         });
     });

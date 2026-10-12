@@ -1,6 +1,389 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $demographicSexOptions = [
+        [
+            'value' => 'Male',
+            'label' => 'Male',
+            'sublabel' => 'Biological male',
+            'badge' => '♂ Male',
+            'badgeClass' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'icon' => 'mars',
+            'iconColor' => 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
+        ],
+        [
+            'value' => 'Female',
+            'label' => 'Female',
+            'sublabel' => 'Biological female',
+            'badge' => '♀ Female',
+            'badgeClass' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'venus',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+    ];
+
+    $demographicCivilStatusOptions = [
+        [
+            'value' => 'Single',
+            'label' => 'Single',
+            'sublabel' => 'Never legally married',
+            'badge' => 'Unmarried',
+            'badgeClass' => 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400',
+        ],
+        [
+            'value' => 'Married',
+            'label' => 'Married',
+            'sublabel' => 'Legally married with spouse',
+            'badge' => 'Coupled',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+        ],
+        [
+            'value' => 'Separated',
+            'label' => 'Separated',
+            'sublabel' => 'Legally or de facto separated',
+            'badge' => 'Separated',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+        ],
+        [
+            'value' => 'Widowed',
+            'label' => 'Widowed',
+            'sublabel' => 'Surviving spouse',
+            'badge' => 'Widowed',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            'icon' => 'user',
+            'iconColor' => 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400',
+        ],
+    ];
+
+    $demographicBloodTypeOptions = [
+        [
+            'value' => 'Unknown',
+            'label' => 'Unknown / Not Sure',
+            'sublabel' => 'To be determined via laboratory test',
+            'badge' => 'Unverified',
+            'badgeClass' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+            'icon' => 'drop',
+            'iconColor' => 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+        ],
+        [
+            'value' => 'A+',
+            'label' => 'A Positive (A+)',
+            'sublabel' => 'A RhD positive',
+            'badge' => 'A+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'A-',
+            'label' => 'A Negative (A-)',
+            'sublabel' => 'A RhD negative',
+            'badge' => 'A-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+        [
+            'value' => 'B+',
+            'label' => 'B Positive (B+)',
+            'sublabel' => 'B RhD positive',
+            'badge' => 'B+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'B-',
+            'label' => 'B Negative (B-)',
+            'sublabel' => 'B RhD negative',
+            'badge' => 'B-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+        [
+            'value' => 'O+',
+            'label' => 'O Positive (O+)',
+            'sublabel' => 'Most common blood group',
+            'badge' => 'O+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'O-',
+            'label' => 'O Negative (O-)',
+            'sublabel' => 'Universal donor red blood cells',
+            'badge' => 'O-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+        [
+            'value' => 'AB+',
+            'label' => 'AB Positive (AB+)',
+            'sublabel' => 'Universal plasma donor',
+            'badge' => 'AB+',
+            'badgeClass' => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border-red-200 dark:border-red-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400',
+        ],
+        [
+            'value' => 'AB-',
+            'label' => 'AB Negative (AB-)',
+            'sublabel' => 'Rare blood phenotype',
+            'badge' => 'AB-',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            'icon' => 'drop',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+    ];
+
+    $demographicEducationOptions = [
+        [
+            'value' => 'N/A',
+            'label' => 'Not Applicable (N/A)',
+            'sublabel' => 'Minors or unassigned',
+            'badge' => 'N/A',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'No Formal Education',
+            'label' => 'No Formal Education',
+            'sublabel' => 'Basic literacy attainment',
+            'badge' => 'Basic',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'Primary Education (Elementary)',
+            'label' => 'Primary Education (Elementary)',
+            'sublabel' => 'Grade school completed or attended',
+            'badge' => 'Primary',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        ],
+        [
+            'value' => 'Secondary Education (High School)',
+            'label' => 'Secondary Education (High School)',
+            'sublabel' => 'Junior or Senior High School',
+            'badge' => 'Secondary',
+            'badgeClass' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        ],
+        [
+            'value' => 'Vocational',
+            'label' => 'Vocational / Trade Course',
+            'sublabel' => 'Technical-vocational / TESDA certificate',
+            'badge' => 'Tech-Voc',
+            'badgeClass' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+        ],
+        [
+            'value' => 'College Undergraduate',
+            'label' => 'College Undergraduate',
+            'sublabel' => 'Tertiary units earned',
+            'badge' => 'Undergrad',
+            'badgeClass' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        ],
+        [
+            'value' => 'College Graduate',
+            'label' => 'College Graduate',
+            'sublabel' => 'Completed Bachelor’s degree',
+            'badge' => 'Graduate',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        ],
+        [
+            'value' => 'Post-Graduate',
+            'label' => 'Post-Graduate (Master’s/Doctorate)',
+            'sublabel' => 'Masteral, Doctorate, or Post-Doc degree',
+            'badge' => 'Post-Grad',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        ],
+    ];
+
+    $demographicOccupationOptions = [
+        [
+            'value' => 'N/A',
+            'label' => 'Not Applicable (N/A)',
+            'sublabel' => 'Dependents, minors, or unassigned',
+            'badge' => 'N/A',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'Student',
+            'label' => 'Student',
+            'sublabel' => 'Currently enrolled student',
+            'badge' => 'Student',
+            'badgeClass' => 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+        ],
+        [
+            'value' => 'Employed',
+            'label' => 'Employed',
+            'sublabel' => 'Government or private sector employee',
+            'badge' => 'Employed',
+            'badgeClass' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        ],
+        [
+            'value' => 'Self-Employed',
+            'label' => 'Self-Employed',
+            'sublabel' => 'Business owner, freelancer, contractor',
+            'badge' => 'Business',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        ],
+        [
+            'value' => 'Unemployed',
+            'label' => 'Unemployed',
+            'sublabel' => 'Homemaker or currently seeking work',
+            'badge' => 'Unemployed',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        ],
+        [
+            'value' => 'Retired',
+            'label' => 'Retired',
+            'sublabel' => 'Pensioner or retired senior',
+            'badge' => 'Retired',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        ],
+        [
+            'value' => 'Others',
+            'label' => 'Others (Please specify)',
+            'sublabel' => 'Enter custom occupation below',
+            'badge' => 'Custom',
+            'badgeClass' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        ],
+    ];
+
+    $demographicReligionOptions = [
+        [
+            'value' => 'N/A',
+            'label' => 'Not Applicable (N/A)',
+            'sublabel' => 'No religious affiliation / secular',
+            'badge' => 'Secular',
+            'badgeClass' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        ],
+        [
+            'value' => 'Roman Catholic',
+            'label' => 'Roman Catholic',
+            'sublabel' => 'Roman Catholic Christian faith',
+            'badge' => 'Catholic',
+            'badgeClass' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        ],
+        [
+            'value' => 'Islam',
+            'label' => 'Islam',
+            'sublabel' => 'Muslim faith / Islamic religion',
+            'badge' => 'Islam',
+            'badgeClass' => 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+        ],
+        [
+            'value' => 'Iglesia ni Cristo',
+            'label' => 'Iglesia ni Cristo (INC)',
+            'sublabel' => 'Iglesia ni Cristo denomination',
+            'badge' => 'INC',
+            'badgeClass' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        ],
+        [
+            'value' => 'Born Again',
+            'label' => 'Born Again / Evangelical',
+            'sublabel' => 'Protestant evangelical congregation',
+            'badge' => 'Evangelical',
+            'badgeClass' => 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+        ],
+        [
+            'value' => 'Adventist',
+            'label' => 'Seventh-day Adventist',
+            'sublabel' => 'SDA denomination',
+            'badge' => 'Adventist',
+            'badgeClass' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        ],
+        [
+            'value' => 'Aglipayan',
+            'label' => 'Aglipayan (IFI)',
+            'sublabel' => 'Philippine Independent Church',
+            'badge' => 'IFI',
+            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        ],
+        [
+            'value' => "Jehovah's Witnesses",
+            'label' => "Jehovah's Witnesses",
+            'sublabel' => "Jehovah's Witnesses faith",
+            'badge' => 'JW',
+            'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        ],
+        [
+            'value' => 'Others',
+            'label' => 'Others (Please specify)',
+            'sublabel' => 'Enter specific religious affiliation below',
+            'badge' => 'Custom',
+            'badgeClass' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+        ],
+    ];
+
+    $guardianRelationOptions = [
+        [
+            'value' => 'Mother',
+            'label' => 'Mother',
+            'sublabel' => 'Biological or adoptive mother',
+            'badge' => 'Mother',
+            'badgeClass' => 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200 dark:border-rose-700',
+            'icon' => 'user',
+            'iconColor' => 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        ],
+        [
+            'value' => 'Father',
+            'label' => 'Father',
+            'sublabel' => 'Biological or adoptive father',
+            'badge' => 'Father',
+            'badgeClass' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-700',
+            'icon' => 'user',
+            'iconColor' => 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
+        ],
+        [
+            'value' => 'Grandparent',
+            'label' => 'Grandparent',
+            'sublabel' => 'Grandmother or grandfather',
+            'badge' => 'Senior Guardian',
+            'badgeClass' => 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-700',
+            'icon' => 'star',
+            'iconColor' => 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+        ],
+        [
+            'value' => 'Sibling',
+            'label' => 'Sibling',
+            'sublabel' => 'Brother or sister of legal age',
+            'badge' => 'Sibling',
+            'badgeClass' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700',
+            'icon' => 'child',
+            'iconColor' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+        ],
+        [
+            'value' => 'Others (Please Specify)',
+            'label' => 'Others (Please Specify)',
+            'sublabel' => 'Aunt, uncle, legal guardian, caregiver',
+            'badge' => 'Custom',
+            'badgeClass' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200 dark:border-purple-700',
+            'icon' => 'edit',
+            'iconColor' => 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400',
+        ],
+    ];
+
+    $silangBrgys = array_values(array_filter(
+        array_unique(\App\Models\Patient::SILANG_BARANGAYS),
+        fn($b) => !in_array($b, ['Biga 1', 'Biga 2', 'Biga Ii', 'Balite 1', 'Balite 2'])
+    ));
+    natcasesort($silangBrgys);
+    $demographicBarangayOptions = collect($silangBrgys)->map(function ($brgy) {
+        return [
+            'value' => $brgy,
+            'label' => $brgy,
+            'sublabel' => 'Silang, Cavite',
+        ];
+    })->values()->all();
+@endphp
     <div class="py-6 sm:py-8" x-data="appointmentForm()">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -21,7 +404,7 @@
 
             <!-- Modern Step Progress Indicator -->
             <div class="mb-6 rounded-2xl bg-white/75 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-4 sm:p-5 shadow-2xs backdrop-blur-xs"
-                 x-data="{ stepLabels: ['Service', 'Patient Info', 'Date & Slot', 'Verification', 'Confirmation'] }">
+                 x-data="{ stepLabels: ['Service', 'Patient Info', 'Date', 'Verification', 'Confirmation'] }">
                 <div class="flex items-start justify-between relative max-w-2xl mx-auto">
                     <!-- Progress Bar Background Track -->
                     <div class="absolute left-6 right-6 top-5 transform -translate-y-1/2 h-1 bg-slate-200 dark:bg-slate-700 rounded-full z-0"></div>
@@ -80,9 +463,9 @@
                                     👶
                                 </div>
                                 <span class="font-display font-extrabold text-lg text-gray-900 dark:text-white">{{ __('Pediatrics') }}</span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 font-medium">General consultation & check-up for infants and children</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 font-medium">General consultation & check-up for infants (6 mos+) and children (up to 12 yrs)</span>
                                 <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                                    Dedicated Pedia Doctor
+                                    Dedicated Pedia Doctor • 6 Mos+
                                 </span>
                             </div>
 
@@ -139,6 +522,8 @@
                                     </div>
                                 </label>
                             </div>
+                        </div>
+
                         {{-- Manage existing appointment callout --}}
                         <div class="mt-6 p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                             <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-300">
@@ -157,69 +542,96 @@
                                 </svg>
                             </a>
                         </div>
-                    </div>
-                    </div>
-
-                    <!-- Step 2: Patient Info -->
+                    </div>                    <!-- Step 2: Patient Info -->
                     <div x-show="step === 2" x-transition style="display: none;">
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">Step 2: Patient Information</h2>
+                        <div class="flex items-center justify-between pb-3 mb-6 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <span>Step 2: Patient Demographic Information</span>
+                                </h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Please provide accurate constituent details matching official government identification.</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <span x-text="formData.type === 'pedia' ? 'Pediatric Patient' : 'Adult Follow-up'"></span>
+                            </span>
+                        </div>
 
-                        {{-- Section 1: Personal Details --}}
-                        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-                            <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4">Personal Details</h4>
-                            
-                            {{-- Name fields --}}
+                        {{-- Follow-up Profile Notice --}}
+                        <div x-show="isFollowUp" x-cloak class="p-4 mb-6 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-300/40">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div class="text-xs">
+                                    <h4 class="font-bold text-emerald-900 dark:text-emerald-200">Registered RHU Patient Profile</h4>
+                                    <p class="text-emerald-700 dark:text-emerald-300 mt-0.5 leading-relaxed">As a returning patient with existing clinical records, your permanent address and demographic files are securely saved in our system. Please confirm your identity and describe your consultation concerns.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Section 1: Demographics Card --}}
+                        <div class="bg-white dark:bg-slate-900/90 rounded-2xl p-5 sm:p-6 mb-6 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+                            <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                </div>
+                                <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Patient Demographics (Permanent Record)</h4>
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('First Name') }} <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('First Name') }} <span class="text-rose-500">*</span></label>
                                     <input type="text" name="first_name" x-model="formData.first_name" required
                                         @input="formData.first_name = $event.target.value.toUpperCase(); if (errors.first_name) delete errors.first_name;"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500 transition duration-150"
-                                        :class="errors.first_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    <p x-show="errors.first_name" class="text-red-500 text-xs mt-1" x-text="errors.first_name"></p>
+                                        placeholder="e.g. JUAN"
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                        :class="errors.first_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                    <p x-show="errors.first_name" class="text-rose-500 text-xs mt-1" x-text="errors.first_name"></p>
                                 </div>
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Middle Name') }}</label>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Middle Name') }}</label>
                                     <input type="text" name="middle_name" x-model="formData.middle_name"
                                         @input="formData.middle_name = $event.target.value.toUpperCase()"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 border-gray-300 transition duration-150">
+                                        placeholder="Optional"
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                 </div>
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Last Name') }} <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Last Name') }} <span class="text-rose-500">*</span></label>
                                     <input type="text" name="last_name" x-model="formData.last_name" required
                                         @input="formData.last_name = $event.target.value.toUpperCase(); if (errors.last_name) delete errors.last_name;"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500 transition duration-150"
-                                        :class="errors.last_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    <p x-show="errors.last_name" class="text-red-500 text-xs mt-1" x-text="errors.last_name"></p>
+                                        placeholder="e.g. DELA CRUZ"
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                        :class="errors.last_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                    <p x-show="errors.last_name" class="text-rose-500 text-xs mt-1" x-text="errors.last_name"></p>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Suffix') }}</label>
-                                    <input type="text" name="suffix" x-model="formData.suffix" placeholder="JR"
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Suffix') }}</label>
+                                    <input type="text" name="suffix" x-model="formData.suffix" placeholder="JR / SR / III"
                                         @input="formData.suffix = $event.target.value.toUpperCase()"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 uppercase dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 border-gray-300 transition duration-150">
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {{-- Sex --}}
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Sex') }} <span class="text-red-500">*</span></label>
-                                    <select name="sex" x-model="formData.sex" required
-                                        @change="formData.sex = $event.target.value; if (errors.sex) delete errors.sex;"
-                                        class="form-select mt-1 block w-full"
-                                        :class="errors.sex ? 'border-red-500! ring-red-500!' : ''">
-                                        <option value="">Select Sex</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                    </select>
-                                    <p x-show="errors.sex" class="text-red-500 text-xs mt-1" x-text="errors.sex"></p>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Sex') }} <span class="text-rose-500">*</span></label>
+                                    <x-select name="sex" x-model="formData.sex" :options="$demographicSexOptions" :value="old('sex', '')" placeholder="Select Sex..." @change="if (errors.sex) delete errors.sex;" />
+                                    <p x-show="errors.sex" class="text-rose-500 text-xs mt-1" x-text="errors.sex"></p>
                                 </div>
 
-                                {{-- Date of Birth --}}
+                                <!-- Date of Birth with Year Search & Live Age -->
                                 <div x-data="{
                                     showDatepicker: false,
                                     showMonthPicker: false,
                                     showYearPicker: false,
+                                    yearSearch: '',
+                                    allYears: Array.from({length: 120}, (_, i) => new Date().getFullYear() - i),
+                                    get filteredYears() {
+                                        if (!this.yearSearch || !this.yearSearch.trim()) return this.allYears;
+                                        return this.allYears.filter(y => String(y).includes(this.yearSearch.trim()));
+                                    },
                                     currentDate: new Date(),
                                     monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
                                     get daysInMonth() { return new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate(); },
@@ -231,11 +643,8 @@
                                         }
                                         const maxDays = new Date(this.currentDate.getFullYear(), monthIndex + 1, 0).getDate();
                                         currentDay = Math.min(currentDay, maxDays);
-
                                         this.currentDate = new Date(this.currentDate.getFullYear(), monthIndex, currentDay); 
                                         this.showMonthPicker = false;
-
-                                        // Update formData.dob immediately to reflect the new month
                                         const y = this.currentDate.getFullYear();
                                         const m = String(monthIndex + 1).padStart(2, '0');
                                         const d = String(currentDay).padStart(2, '0');
@@ -249,11 +658,9 @@
                                         }
                                         const maxDays = new Date(year, this.currentDate.getMonth() + 1, 0).getDate();
                                         currentDay = Math.min(currentDay, maxDays);
-
                                         this.currentDate = new Date(year, this.currentDate.getMonth(), currentDay); 
                                         this.showYearPicker = false;
-
-                                        // Update formData.dob immediately to reflect the new year
+                                        this.yearSearch = '';
                                         const y = year;
                                         const m = String(this.currentDate.getMonth() + 1).padStart(2, '0');
                                         const d = String(currentDay).padStart(2, '0');
@@ -269,7 +676,6 @@
                                         const targetYear = this.currentDate.getFullYear();
                                         const maxDays = new Date(targetYear, targetMonth + 1, 0).getDate();
                                         currentDay = Math.min(currentDay, maxDays);
-
                                         this.currentDate = new Date(targetYear, targetMonth, currentDay);
                                         if (formData.dob) {
                                             const y = this.currentDate.getFullYear();
@@ -288,7 +694,6 @@
                                         const targetYear = this.currentDate.getFullYear();
                                         const maxDays = new Date(targetYear, targetMonth + 1, 0).getDate();
                                         currentDay = Math.min(currentDay, maxDays);
-
                                         this.currentDate = new Date(targetYear, targetMonth, currentDay);
                                         if (formData.dob) {
                                             const y = this.currentDate.getFullYear();
@@ -336,50 +741,56 @@
                                         this.showDatepicker = !this.showDatepicker;
                                         this.showMonthPicker = false;
                                         this.showYearPicker = false;
+                                        this.yearSearch = '';
                                     },
                                     init() {
                                         this.syncFromDob();
                                         this.$watch('formData.dob', () => this.syncFromDob());
                                     }
                                 }" class="relative">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Date of Birth') }} <span class="text-red-500">*</span></label>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('Date of Birth') }} <span class="text-rose-500">*</span></label>
+                                        <span x-show="patientAge !== null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                                              :class="(formData.type === 'pedia' && patientAgeInMonths !== null && patientAgeInMonths < 6) ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800' : (patientAge <= 12 ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 border border-pink-200 dark:border-pink-800' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800')"
+                                              x-text="(patientAge === 0 && patientAgeInMonths !== null ? patientAgeInMonths + ' mos old' : patientAge + ' yrs old') + (formData.type === 'pedia' && patientAgeInMonths !== null && patientAgeInMonths < 6 ? ' • Under 6 Mos (Ineligible)' : (patientAge <= 12 ? ' • Pediatric' : ' • Adult'))"></span>
+                                    </div>
                                     <input type="hidden" name="dob" x-model="formData.dob">
                                     <div @click="toggleCalendar()"
-                                        class="mt-1 w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-sm font-medium shadow-2xs hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer"
-                                        :class="errors.dob ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : (showDatepicker ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-300 dark:border-slate-600')">
-                                        <span x-text="formData.dob ? formData.dob : 'Select Date'" class="truncate" :class="formData.dob ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-400'"></span>
-                                        <svg class="w-4 h-4 text-slate-400 dark:text-slate-400 transition-colors shrink-0 ml-2" :class="showDatepicker ? 'text-teal-600 dark:text-teal-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-xs font-semibold shadow-2xs hover:border-emerald-500 focus:outline-none transition-all cursor-pointer"
+                                        :class="errors.dob ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : (showDatepicker ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700')">
+                                        <span x-text="formData.dob ? formData.dob : 'Select Date of Birth'" class="truncate" :class="formData.dob ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"></span>
+                                        <svg class="w-4 h-4 text-slate-400 dark:text-slate-500 transition-colors shrink-0 ml-2" :class="showDatepicker ? 'text-emerald-600 dark:text-emerald-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-                                    <p x-show="errors.dob" class="text-red-500 text-xs mt-1" x-text="errors.dob"></p>
+                                    <p x-show="errors.dob" class="text-rose-500 text-xs mt-1" x-text="errors.dob"></p>
 
                                     <!-- Datepicker Popup -->
                                     <div x-show="showDatepicker" @click.away="showDatepicker = false; showMonthPicker = false; showYearPicker = false;" style="display: none;"
-                                        class="absolute z-50 mt-1 w-[320px] p-4 bg-white dark:bg-gray-800 dark:border-gray-700 border border-gray-200 rounded-2xl shadow-2xl outline-none">
+                                        class="absolute z-50 mt-1 w-[320px] p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md outline-none">
                                         
                                         <!-- Header: Prev, Month & Year Pickers, Next -->
                                         <div class="flex items-center justify-between mb-4 gap-1.5 relative">
                                             <!-- Prev Month Arrow -->
                                             <button type="button" @click="prevMonth()" 
-                                                class="p-1.5 rounded-lg text-gray-500 hover:text-teal-700 hover:bg-teal-50 dark:text-gray-400 dark:hover:text-teal-300 dark:hover:bg-gray-700/60 transition"
+                                                class="p-1.5 rounded-xl text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 dark:text-slate-400 dark:hover:text-emerald-300 dark:hover:bg-slate-800 transition cursor-pointer"
                                                 title="Previous Month">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                                             </button>
 
-                                            <!-- Month & Year Custom Selectors -->
+                                            <!-- Month & Year Selectors -->
                                             <div class="flex items-center gap-1.5 flex-1 min-w-0">
                                                 <!-- Custom Month Dropdown -->
                                                 <div class="relative w-3/5" @click.away="showMonthPicker = false">
                                                     <button type="button" 
                                                         @click="showMonthPicker = !showMonthPicker; showYearPicker = false"
-                                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition-all shadow-xs"
+                                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
                                                         :class="showMonthPicker 
-                                                            ? 'border-teal-500 ring-2 ring-teal-500/20 bg-teal-50/70 text-teal-800 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-500' 
-                                                            : 'border-gray-200 dark:border-gray-600 bg-gray-50/90 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200 hover:border-teal-400 hover:bg-white dark:hover:bg-gray-700'">
-                                                        <span x-text="monthNames[currentDate.getMonth()]" class="truncate font-semibold"></span>
-                                                        <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-300 transition-transform duration-200 shrink-0 ml-1"
-                                                            :class="showMonthPicker ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-700'">
+                                                        <span x-text="monthNames[currentDate.getMonth()]" class="truncate font-bold"></span>
+                                                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                            :class="showMonthPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
                                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
@@ -393,18 +804,18 @@
                                                         x-transition:leave="transition ease-in duration-100"
                                                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                                                        class="absolute left-0 top-full mt-1.5 w-48 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 z-50 custom-scrollbar backdrop-blur-md"
+                                                        class="absolute left-0 top-full mt-1.5 w-48 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl p-1.5 z-60 custom-scrollbar backdrop-blur-md"
                                                         style="display: none;">
                                                         <div class="space-y-0.5">
                                                             <template x-for="(month, index) in monthNames" :key="index">
                                                                 <button type="button" 
                                                                     @click="setMonth(index)"
-                                                                    class="w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors text-left"
+                                                                    class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors text-left"
                                                                     :class="currentDate.getMonth() === index 
-                                                                        ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
+                                                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
                                                                         : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
                                                                     <span x-text="month"></span>
-                                                                    <svg x-show="currentDate.getMonth() === index" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg x-show="currentDate.getMonth() === index" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                                                                     </svg>
                                                                 </button>
@@ -413,17 +824,17 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Custom Year Dropdown -->
+                                                <!-- Custom Year Dropdown with Search -->
                                                 <div class="relative w-2/5" @click.away="showYearPicker = false">
                                                     <button type="button" 
-                                                        @click="showYearPicker = !showYearPicker; showMonthPicker = false"
-                                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition-all shadow-xs"
+                                                        @click="showYearPicker = !showYearPicker; showMonthPicker = false; if (showYearPicker) { $nextTick(() => { $refs.dobYearSearchInput?.focus(); const active = $refs.dobYearList?.querySelector('[data-selected=true]'); if (active) active.scrollIntoView({ block: 'center' }); }); }"
+                                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer"
                                                         :class="showYearPicker 
-                                                            ? 'border-teal-500 ring-2 ring-teal-500/20 bg-teal-50/70 text-teal-800 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-500' 
-                                                            : 'border-gray-200 dark:border-gray-600 bg-gray-50/90 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200 hover:border-teal-400 hover:bg-white dark:hover:bg-gray-700'">
-                                                        <span x-text="currentDate.getFullYear()" class="truncate font-semibold"></span>
-                                                        <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-300 transition-transform duration-200 shrink-0 ml-1"
-                                                            :class="showYearPicker ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''"
+                                                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-500' 
+                                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-700'">
+                                                        <span x-text="currentDate.getFullYear()" class="truncate font-bold"></span>
+                                                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1"
+                                                            :class="showYearPicker ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''"
                                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
@@ -437,22 +848,40 @@
                                                         x-transition:leave="transition ease-in duration-100"
                                                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                                                        class="absolute right-0 top-full mt-1.5 w-36 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/15 p-1.5 z-50 custom-scrollbar backdrop-blur-md"
+                                                        class="absolute right-0 top-full mt-1.5 w-40 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-2 z-60 backdrop-blur-md"
                                                         style="display: none;">
-                                                        <div class="space-y-0.5">
-                                                            <template x-for="year in Array.from({length: 120}, (_, i) => new Date().getFullYear() - i)" :key="year">
+                                                        
+                                                        <!-- Quick Year Search -->
+                                                        <div class="relative mb-1.5">
+                                                            <input type="text"
+                                                                   x-ref="dobYearSearchInput"
+                                                                   x-model="yearSearch"
+                                                                   placeholder="Type year..."
+                                                                   class="w-full pl-6 pr-2 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                                                            <svg class="w-3 h-3 text-slate-400 absolute left-1.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Scrollable Years List -->
+                                                        <div x-ref="dobYearList" class="max-h-52 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
+                                                            <template x-for="year in filteredYears" :key="year">
                                                                 <button type="button" 
                                                                     @click="setYear(year)"
-                                                                    class="w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between cursor-pointer transition-colors text-left"
+                                                                    :data-selected="currentDate.getFullYear() === year ? 'true' : 'false'"
+                                                                    class="w-full px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-all text-left"
                                                                     :class="currentDate.getFullYear() === year 
-                                                                        ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold' 
-                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60'">
+                                                                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 shadow-2xs' 
+                                                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent'">
                                                                     <span x-text="year"></span>
-                                                                    <svg x-show="currentDate.getFullYear() === year" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg x-show="currentDate.getFullYear() === year" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                                                                     </svg>
                                                                 </button>
                                                             </template>
+                                                            <div x-show="filteredYears.length === 0" class="py-2 text-center text-[11px] text-slate-400 font-medium">
+                                                                No matching year
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -460,7 +889,7 @@
 
                                             <!-- Next Month Arrow -->
                                             <button type="button" @click="nextMonth()" 
-                                                class="p-1.5 rounded-lg text-gray-500 hover:text-teal-700 hover:bg-teal-50 dark:text-gray-400 dark:hover:text-teal-300 dark:hover:bg-gray-700/60 transition"
+                                                class="p-1.5 rounded-xl text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 dark:text-slate-400 dark:hover:text-emerald-300 dark:hover:bg-slate-800 transition cursor-pointer"
                                                 title="Next Month">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                             </button>
@@ -469,7 +898,7 @@
                                         <!-- Days of Week -->
                                         <div class="grid grid-cols-7 gap-1 mb-2">
                                             <template x-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']">
-                                                <div class="text-center text-xs font-bold text-gray-400 dark:text-gray-500" x-text="day"></div>
+                                                <div class="text-center text-[11px] font-bold text-slate-400 dark:text-slate-500" x-text="day"></div>
                                             </template>
                                         </div>
 
@@ -478,472 +907,447 @@
                                             <template x-for="blank in startDay"><div class="p-1"></div></template>
                                             <template x-for="day in daysInMonth" :key="currentDate.getFullYear() + '-' + currentDate.getMonth() + '-' + day">
                                                 <div @click="selectDate(day)"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-full text-sm cursor-pointer transition-colors"
+                                                    class="h-8 md:h-9 rounded-xl flex items-center justify-center text-xs transition-all border border-transparent"
                                                     :class="{
-                                                         'bg-teal-600 text-white font-bold shadow-md': isSelected(day),
-                                                         'hover:bg-teal-100 dark:hover:bg-teal-900/50 text-gray-700 dark:text-gray-300': !isSelected(day) && !isFutureDate(day),
-                                                         'text-gray-300 dark:text-gray-600 cursor-not-allowed': isFutureDate(day),
-                                                         'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium': !isSelected(day) && new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear()
+                                                         'bg-emerald-600 text-white font-bold shadow-xs cursor-pointer': isSelected(day),
+                                                         'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-400 cursor-pointer': !isSelected(day) && !isFutureDate(day),
+                                                         'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed': isFutureDate(day)
                                                      }" x-text="day">
                                                 </div>
                                             </template>
                                         </div>
 
                                         <!-- Footer: Selected preview and Done button -->
-                                        <div class="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                                            <div class="text-xs truncate mr-2">
-                                                <span class="text-gray-400 dark:text-gray-500">Selected: </span>
-                                                <span class="font-bold text-teal-600 dark:text-teal-400" x-text="formData.dob ? formData.dob : 'None'"></span>
+                                        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                                            <div class="truncate mr-2">
+                                                <span class="text-slate-400 dark:text-slate-500">Selected: </span>
+                                                <span class="font-bold text-emerald-700 dark:text-emerald-400" x-text="formData.dob ? formData.dob : 'None'"></span>
                                             </div>
                                             <button type="button" @click="showDatepicker = false; showMonthPicker = false; showYearPicker = false;"
-                                                class="px-3 py-1 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white shadow-xs transition-colors shrink-0 cursor-pointer">
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition shrink-0 cursor-pointer">
                                                 Done
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        {{-- Section 2: Demographics (Hidden for Follow-ups) --}}
-                        <div x-show="!isFollowUp" x-cloak class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-                            <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4">Demographics</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Civil Status') }}</label>
-                                    <select name="civil_status" x-model="formData.civil_status"
-                                        class="form-select mt-1 block w-full">
-                                        <option value="">Select Status</option>
-                                        <option value="Single">Single</option>
-                                        <option value="Married">Married</option>
-                                        <option value="Widowed">Widowed</option>
-                                        <option value="Separated">Separated</option>
-                                    </select>
+                                {{-- Age vs Service Warning Banner --}}
+                                <div x-show="ageMismatchNotice" x-cloak class="md:col-span-2 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 flex items-start gap-3 shadow-2xs">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    </div>
+                                    <div class="flex-1 text-xs">
+                                        <h5 class="font-bold text-amber-900 dark:text-amber-200">Patient Age Notice</h5>
+                                        <p class="text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed" x-text="ageMismatchNotice"></p>
+                                    </div>
                                 </div>
-                                <div x-data="{
-                                    selectedReligion: '',
-                                    customReligion: '',
-                                    get finalReligion() { return this.selectedReligion === 'Others' ? this.customReligion : this.selectedReligion; }
-                                }" x-effect="formData.religion = finalReligion; if (errors.religion && finalReligion) delete errors.religion;">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Religion') }}</label>
-                                    <select x-model="selectedReligion" :required="!isFollowUp && formData.type !== 'pedia'"
-                                        @change="if (errors.religion) delete errors.religion;"
-                                        class="form-select mt-1 block w-full"
-                                        :class="errors.religion ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
-                                        <option value="">Select Religion...</option>
-                                        <option value="N/A">Not Applicable (N/A)</option>
-                                        <option value="Roman Catholic">Roman Catholic</option>
-                                        <option value="Islam">Islam</option>
-                                        <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
-                                        <option value="Born Again">Born Again</option>
-                                        <option value="Adventist">Adventist</option>
-                                        <option value="Aglipayan">Aglipayan</option>
-                                        <option value="Jehovah's Witnesses">Jehovah's Witnesses</option>
-                                        <option value="Others">Others</option>
-                                    </select>
-                                    <p x-show="errors.religion" class="text-red-500 text-xs mt-1" x-text="errors.religion"></p>
-                                    <input type="text" x-show="selectedReligion === 'Others'" x-model="customReligion"
-                                        @input="if (errors.religion) delete errors.religion;"
-                                        placeholder="Specify religion..." style="display:none;"
-                                        class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm">
-                                    <input type="hidden" name="religion" :value="finalReligion">
+
+                                {{-- Demographics: Civil Status & Blood Type (Hidden for Follow-up) --}}
+                                <div x-show="!isFollowUp" class="md:col-span-1">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Civil Status') }}</label>
+                                    <x-select name="civil_status" x-model="formData.civil_status" :options="$demographicCivilStatusOptions" placeholder="Select Status..." />
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Education') }}</label>
-                                    <select name="education" x-model="formData.education"
-                                        class="form-select mt-1 block w-full">
-                                        <option value="">Select Highest Attainment</option>
-                                        <option value="N/A">Not Applicable (N/A)</option>
-                                        <option value="No Formal Education">No Formal Education</option>
-                                        <option value="Primary Education (Elementary)">Primary Education (Elementary)</option>
-                                        <template x-if="formData.type !== 'pedia'">
-                                            <optgroup label="Adult Education">
-                                                <option value="Secondary Education (High School)">Secondary Education (High School)</option>
-                                                <option value="Vocational">Vocational / Trade Course</option>
-                                                <option value="College Undergraduate">College Undergraduate</option>
-                                                <option value="College Graduate">College Graduate</option>
-                                                <option value="Post-Graduate">Post-Graduate (Master's/Doctorate)</option>
-                                            </optgroup>
-                                        </template>
-                                    </select>
-                                </div>
-                                <!-- Occupation Dropdown -->
-                                <div class="md:col-span-1" x-data="{
-                                    selectedOccupation: '',
-                                    customOccupation: '',
-                                    get finalOccupation() { return this.selectedOccupation === 'Others' ? this.customOccupation : this.selectedOccupation; }
-                                }" x-effect="formData.occupation = finalOccupation">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Occupation') }}</label>
-                                    <select x-model="selectedOccupation" class="form-select mt-1 block w-full">
-                                        <option value="">Select Occupation...</option>
-                                        <option value="N/A">Not Applicable (N/A)</option>
-                                        <option value="Student">Student</option>
-                                        <template x-if="formData.type !== 'pedia'">
-                                            <optgroup label="Adult Occupation">
-                                                <option value="Employed">Employed</option>
-                                                <option value="Self-Employed">Self-Employed</option>
-                                                <option value="Housewife/Househusband">Housewife / Househusband</option>
-                                                <option value="Retired">Retired</option>
-                                                <option value="Others">Others (Please specify)</option>
-                                            </optgroup>
-                                        </template>
-                                    </select>
-                                    <input type="text" x-show="selectedOccupation === 'Others'" x-model="customOccupation"
-                                        placeholder="Specify occupation..." style="display:none;"
-                                        class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm">
-                                    <input type="hidden" name="occupation" :value="finalOccupation">
-                                </div>
-                                <div class="md:col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Blood Type') }} <span class="text-red-500">*</span></label>
-                                    <select name="blood_type" x-model="formData.blood_type" :required="!isFollowUp"
-                                        @change="formData.blood_type = $event.target.value; if (errors.blood_type) delete errors.blood_type;"
-                                        class="form-select mt-1 block w-full"
-                                        :class="errors.blood_type ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
-                                        <option value="">Select Blood Type</option>
-                                        <option value="A+">A+</option>
-                                        <option value="A-">A-</option>
-                                        <option value="B+">B+</option>
-                                        <option value="B-">B-</option>
-                                        <option value="AB+">AB+</option>
-                                        <option value="AB-">AB-</option>
-                                        <option value="O+">O+</option>
-                                        <option value="O-">O-</option>
-                                        <option value="Unknown">Unknown / Not Sure</option>
-                                    </select>
-                                    <p x-show="errors.blood_type" class="text-red-500 text-xs mt-1" x-text="errors.blood_type"></p>
+
+                                <div x-show="!isFollowUp" class="md:col-span-1">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Blood Type') }} <span class="text-rose-500">*</span></label>
+                                    <x-select name="blood_type" x-model="formData.blood_type" :options="$demographicBloodTypeOptions" placeholder="Select Blood Type..." @change="if (errors.blood_type) delete errors.blood_type;" />
+                                    <p x-show="errors.blood_type" class="text-rose-500 text-xs mt-1" x-text="errors.blood_type"></p>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Section 3: Family Information --}}
-                        <div x-show="!isFollowUp" class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-                            <div class="mb-4">
-                                <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Family Information</h4>
-                            </div>
-                            
-                            {{-- Mother's Maiden Name --}}
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __("Mother's Maiden Name") }} <span class="text-red-500">*</span></label>
-                                <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
-                                    <div class="md:col-span-4">
-                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('First Name') }} <span class="text-red-500">*</span></label>
-                                        <input type="text" x-model="formData.mother_first_name" :required="!isFollowUp" placeholder="First Name"
-                                            @input="formData.mother_first_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
-                                            class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:bg-gray-700 dark:text-white"
-                                            :class="errors.mothers_maiden_name && !formData.mother_first_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    </div>
-                                    <div class="md:col-span-3">
-                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Middle Name') }}</label>
-                                        <input type="text" x-model="formData.mother_middle_name" placeholder="Middle Name"
-                                            @input="formData.mother_middle_name = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
-                                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase">
-                                    </div>
-                                    <div class="md:col-span-3">
-                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Last Name') }} <span class="text-red-500">*</span></label>
-                                        <input type="text" x-model="formData.mother_last_name" :required="!isFollowUp" placeholder="Last Name"
-                                            @input="formData.mother_last_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
-                                            class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:bg-gray-700 dark:text-white"
-                                            :class="errors.mothers_maiden_name && !formData.mother_last_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    </div>
-                                    <div class="md:col-span-2">
-                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Suffix') }}</label>
-                                        <input type="text" x-model="formData.mother_suffix" placeholder="Suffix"
-                                            @input="formData.mother_suffix = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
-                                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase">
-                                    </div>
+                        {{-- Section 2: Contact & Address --}}
+                        <div class="bg-white dark:bg-slate-900/90 rounded-2xl p-5 sm:p-6 mb-6 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+                            <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
-                                <input type="hidden" name="mothers_maiden_name" :value="`${formData.mother_first_name} ${formData.mother_middle_name ? formData.mother_middle_name + ' ' : ''}${formData.mother_last_name}${formData.mother_suffix ? ' ' + formData.mother_suffix : ''}`.trim().replace(/\s+/g, ' ').toUpperCase()">
-                                <p x-show="errors.mothers_maiden_name" class="text-red-500 text-xs mt-1" x-text="errors.mothers_maiden_name"></p>
+                                <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Contact &amp; Residence Address</h4>
                             </div>
-                            
-                            {{-- PhilHealth Number --}}
-                            <div x-data="{ showPhilhealth: false }" class="grid grid-cols-1 md:w-1/2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <span x-text="formData.type === 'pedia' ? `Guardian's PhilHealth No.` : `PhilHealth No.`"></span>
-                                    <span class="text-red-500">*</span>
-                                </label>
-                                <div class="relative mt-1">
-                                    <input :type="showPhilhealth ? 'text' : 'password'" name="philhealth_number" :required="!isFollowUp"
-                                        x-model="formData.philhealth_number" placeholder="12-123456789-0"
-                                        @input="formData.philhealth_number = formatPhilHealth($event.target.value); if (errors.philhealth) delete errors.philhealth;"
-                                        class="block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 pr-10"
-                                        :class="errors.philhealth ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    <button type="button" @click="showPhilhealth = !showPhilhealth" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
-                                        <svg x-show="!showPhilhealth" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                        <svg x-show="showPhilhealth" style="display:none;" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                                    </button>
-                                </div>
-                                <p x-show="errors.philhealth" class="text-red-500 text-xs mt-1" x-text="errors.philhealth"></p>
-                            </div>
-                        </div>
-
-                        {{-- Hidden classification auto-set by service type --}}
-                        <input type="hidden" name="classification" :value="formData.type === 'pedia' ? 'Pediatric' : 'Regular Adult'">
-
-                        {{-- Section 4: Contact & Address --}}
-                        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-                            <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4">Contact & Address</h4>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        <span x-text="formData.type === 'pedia' ? 'Guardian Email Address' : 'Email Address'"></span> <span class="text-red-500">*</span>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        <span x-text="formData.type === 'pedia' ? 'Guardian Email Address' : 'Email Address'"></span> <span class="text-rose-500">*</span>
                                     </label>
                                     <input type="email" name="email" x-model="formData.email" :required="true" placeholder="example@email.com"
                                         @input="formData.email = $event.target.value; if (errors.email) delete errors.email;"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
-                                        :class="errors.email ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    <p x-show="errors.email" class="text-red-500 text-xs mt-1" x-text="errors.email"></p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">We will send a verification code to this email.</p>
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 sm:text-xs font-semibold transition-colors"
+                                        :class="errors.email ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                    <p x-show="errors.email" class="text-rose-500 text-xs mt-1" x-text="errors.email"></p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">We will send a one-time verification code and appointment updates to this address.</p>
                                 </div>
                                 <div x-show="formData.type !== 'pedia' && !isFollowUp">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {{ __('Contact Number') }} <span class="text-red-500">*</span>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        {{ __('Contact Number') }} <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="text" name="contact_number" x-model="formData.contact_number" x-bind:required="!isFollowUp && formData.type !== 'pedia'" placeholder="09xxxxxxxxx" maxlength="11"
+                                    <input type="text" name="contact_number" x-model="formData.contact_number" placeholder="09XXXXXXXXX" maxlength="11"
                                         x-on:input="formData.contact_number = $event.target.value.replace(/[^0-9]/g, '').slice(0, 11); if (errors.contact_number) delete errors.contact_number;"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
-                                        :class="errors.contact_number ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    <p x-show="errors.contact_number" class="text-red-500 text-xs mt-1" x-text="errors.contact_number"></p>
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 sm:text-xs font-semibold transition-colors"
+                                        :class="errors.contact_number ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                    <p x-show="errors.contact_number" class="text-rose-500 text-xs mt-1" x-text="errors.contact_number"></p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">Standard 11-digit Philippine mobile phone number.</p>
                                 </div>
                             </div>
 
                             <div x-show="!isFollowUp" x-data="{
-                                house_no: '',
-                                street: '',
-                                building: '',
-                                barangay: '',
+                                house_no: '{{ old('house_no', '') }}',
+                                street: '{{ old('street', '') }}',
+                                building: '{{ old('building', '') }}',
+                                barangay: '{{ old('barangay', '') }}',
                                 city_province: 'Silang, Cavite',
-                                barangays: [],
-                                loadingBrgy: true,
                                 get fullAddress() {
                                     let parts = [];
-                                    if (this.house_no.trim()) parts.push(this.house_no.trim());
-                                    if (this.street.trim()) parts.push(this.street.trim());
-                                    if (this.building.trim()) parts.push(this.building.trim());
+                                    if (this.house_no && this.house_no.trim()) parts.push(this.house_no.trim());
+                                    if (this.street && this.street.trim()) parts.push(this.street.trim());
+                                    if (this.building && this.building.trim()) parts.push(this.building.trim());
                                     if (this.barangay) parts.push(this.barangay);
                                     parts.push(this.city_province);
                                     return parts.join(', ').replace(/^, | ,/g, '').trim();
-                                },
-                                async fetchBarangays() {
-                                    this.loadingBrgy = true;
-                                    try {
-                                        const res = await fetch('https://psgc.gitlab.io/api/cities-municipalities/042118000/barangays/');
-                                        const data = await res.json();
-                                        this.barangays = data.sort((a,b) => a.name.localeCompare(b.name));
-                                    } catch(e) { console.error(e); } 
-                                    finally { this.loadingBrgy = false; }
                                 }
-                            }" x-init="$watch('$root.__x?.$data.step || step', s => { if (step === 2 && barangays.length === 0) fetchBarangays(); }); if (step === 2) fetchBarangays();" x-effect="formData.address = fullAddress; formData.barangay = barangay; formData.house_no = house_no; formData.street = street; formData.building = building; formData.city_province = city_province">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Address') }} <span class="text-red-500">*</span></label>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">For patients within Silang, Cavite only.</p>
+                            }" x-effect="formData.address = fullAddress; formData.barangay = barangay; formData.house_no = house_no; formData.street = street; formData.building = building; formData.city_province = city_province; if (barangay && errors.address) delete errors.address;">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('Residential Address') }} <span class="text-rose-500">*</span></label>
+                                    <span class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">Exclusive for Silang, Cavite constituents</span>
+                                </div>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                                     <div class="md:col-span-3">
                                         <input type="text" x-model="house_no" :required="!isFollowUp" placeholder="House No."
-                                            class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm border-gray-300 uppercase">
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-4">
                                         <input type="text" x-model="street" placeholder="Street Name (Optional)"
-                                            class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm border-gray-300 uppercase">
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-5">
-                                        <input type="text" x-model="building" placeholder="Building/Subdivision (Optional)"
-                                            class="w-full rounded-md border p-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:border-teal-500 focus:ring-teal-500 shadow-sm border-gray-300 uppercase">
+                                        <input type="text" x-model="building" placeholder="Building / Subdivision (Optional)"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-6">
-                                        <select x-model="barangay" :disabled="loadingBrgy" :required="!isFollowUp"
+                                        <x-select 
+                                            name="barangay"
+                                            x-model="barangay" 
+                                            :options="$demographicBarangayOptions" 
+                                            :value="old('barangay', '')" 
+                                            placeholder="Select Barangay..." 
+                                            :searchable="true" 
+                                            search-placeholder="Search barangay..." 
                                             @change="if (errors.address) delete errors.address;"
-                                            class="form-select w-full text-sm uppercase"
-                                            :class="errors.address && !barangay ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
-                                            <option value="" x-text="loadingBrgy ? 'Loading barangays...' : 'Select Barangay'"></option>
-                                            <template x-for="bg in barangays" :key="bg.code">
-                                                <option :value="bg.name" x-text="bg.name"></option>
-                                            </template>
-                                        </select>
+                                        />
                                     </div>
                                     <div class="md:col-span-6">
                                         <input type="text" x-model="city_province" readonly
-                                            class="w-full rounded-md border-0 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shadow-inner p-2 text-sm cursor-not-allowed font-medium uppercase">
+                                            class="w-full rounded-xl border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 px-3.5 py-2.5 sm:text-xs font-semibold uppercase cursor-not-allowed">
                                     </div>
                                 </div>
                                 <input type="hidden" name="address" :value="fullAddress">
                                 <input type="hidden" name="house_no" :value="house_no">
                                 <input type="hidden" name="street" :value="street">
                                 <input type="hidden" name="building" :value="building">
-                                <input type="hidden" name="barangay" :value="barangay">
                                 <input type="hidden" name="city_province" :value="city_province">
-                                <p x-show="errors.address" class="text-red-500 text-xs mt-1" x-text="errors.address"></p>
+                                <p x-show="errors.address" class="text-rose-500 text-xs mt-1" x-text="errors.address"></p>
                             </div>
                         </div>
 
-                        {{-- Section 5: Guardian Info (Pedia only) --}}
-                        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700" x-show="formData.type === 'pedia' && !isFollowUp" x-cloak>
-                            <div class="mb-3">
-                                <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Guardian Information</h4>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Required for pediatric patients (12 years old and below)</p>
+                        {{-- Section 3: Socio-demographic Background (Hidden for Follow-up) --}}
+                        <div x-show="!isFollowUp" x-cloak class="bg-white dark:bg-slate-900/90 rounded-2xl p-5 sm:p-6 mb-6 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+                            <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Social &amp; Health Background</h4>
                             </div>
 
-                            {{-- Mother is also Guardian Toggle Card --}}
-                            <label class="group relative flex items-center justify-between gap-4 p-3.5 mb-4 rounded-xl border transition-all duration-200 cursor-pointer select-none"
-                                :class="motherIsGuardian 
-                                    ? 'bg-teal-50/80 dark:bg-teal-950/40 border-teal-300 dark:border-teal-700 shadow-xs ring-1 ring-teal-500/20' 
-                                    : 'bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-700 shadow-2xs'">
-                                <div class="flex items-center gap-3.5 min-w-0">
-                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200"
-                                        :class="motherIsGuardian 
-                                            ? 'bg-teal-600 text-white shadow-xs' 
-                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400'">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">
-                                                Mother is also the patient's guardian
-                                            </span>
-                                            <span x-show="motherIsGuardian" x-cloak class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white tracking-wide uppercase shadow-2xs">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                Linked
-                                            </span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                            <span x-show="!motherIsGuardian">Click to auto-fill guardian name using mother's information from above</span>
-                                            <span x-show="motherIsGuardian" class="text-teal-600 dark:text-teal-400 font-medium">Auto-filled and synced with Mother's Name</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <!-- Toggle Switch -->
-                                <div class="relative inline-flex items-center shrink-0">
-                                    <input type="checkbox" x-model="motherIsGuardian" @change="toggleMotherAsGuardian()" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/40 dark:peer-focus:ring-teal-600/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600 shadow-inner"></div>
-                                </div>
-                            </label>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Guardian Name') }} <span class="text-red-500">*</span></label>
-                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
-                                        <div class="md:col-span-4">
-                                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('First Name') }} <span class="text-red-500">*</span></label>
-                                            <input type="text" name="guardian_first_name" x-model="formData.guardian_first_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="First Name"
-                                                :readonly="motherIsGuardian"
-                                                @input="if (!motherIsGuardian) { formData.guardian_first_name = $event.target.value.toUpperCase(); if (errors.guardian_first_name && formData.guardian_first_name && formData.guardian_last_name) delete errors.guardian_first_name; }"
-                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
-                                                :class="[errors.guardian_first_name && !formData.guardian_first_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600', motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'dark:bg-gray-700']">
-                                        </div>
-                                        <div class="md:col-span-3">
-                                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Middle Name') }}</label>
-                                            <input type="text" name="guardian_middle_name" x-model="formData.guardian_middle_name" placeholder="Middle Name"
-                                                :readonly="motherIsGuardian"
-                                                @input="if (!motherIsGuardian) { formData.guardian_middle_name = $event.target.value.toUpperCase(); }"
-                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
-                                                :class="[motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border-gray-300 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700']">
-                                        </div>
-                                        <div class="md:col-span-3">
-                                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Last Name') }} <span class="text-red-500">*</span></label>
-                                            <input type="text" name="guardian_last_name" x-model="formData.guardian_last_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="Last Name"
-                                                :readonly="motherIsGuardian"
-                                                @input="if (!motherIsGuardian) { formData.guardian_last_name = $event.target.value.toUpperCase(); if (errors.guardian_first_name && formData.guardian_first_name && formData.guardian_last_name) delete errors.guardian_first_name; }"
-                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
-                                                :class="[errors.guardian_first_name && !formData.guardian_last_name ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600', motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'dark:bg-gray-700']">
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ __('Suffix') }}</label>
-                                            <input type="text" name="guardian_suffix" x-model="formData.guardian_suffix" placeholder="Suffix"
-                                                :readonly="motherIsGuardian"
-                                                @input="if (!motherIsGuardian) { formData.guardian_suffix = $event.target.value.toUpperCase(); }"
-                                                class="w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase dark:text-white"
-                                                :class="[motherIsGuardian ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border-gray-300 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700']">
-                                        </div>
-                                    </div>
-                                    <p x-show="errors.guardian_first_name || errors.guardian_last_name" class="text-red-500 text-xs mt-1" x-text="errors.guardian_first_name || errors.guardian_last_name"></p>
-                                </div>
-                                <div class="md:col-span-1" x-data="{
-                                    selectedGuardianRelation: '',
-                                    customGuardianRelation: '',
-                                    get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; }
-                                }" x-effect="formData.guardian_relation = finalGuardianRelation; if (errors.guardian_relation && finalGuardianRelation) delete errors.guardian_relation;">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Relationship to Patient') }} <span class="text-red-500">*</span></label>
-                                    <select x-model="selectedGuardianRelation" :required="formData.type === 'pedia' && !isFollowUp"
-                                        @change="if (errors.guardian_relation) delete errors.guardian_relation;"
-                                        class="form-select block w-full"
-                                        :class="errors.guardian_relation ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : ''">
-                                        <option value="">Select Relationship</option>
-                                        <option value="Mother">Mother</option>
-                                        <option value="Father">Father</option>
-                                        <option value="Grandparent">Grandparent</option>
-                                        <option value="Sibling">Sibling</option>
-                                        <option value="Others (Please Specify)">Others (Please Specify)</option>
-                                    </select>
-                                    <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation"
-                                        placeholder="Specify relationship..." style="display:none;"
-                                        class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-teal-500 focus:ring-teal-500 border p-2 text-sm uppercase" @input="customGuardianRelation = $event.target.value.toUpperCase(); if (errors.guardian_relation) delete errors.guardian_relation;">
-                                    <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
-                                    <p x-show="errors.guardian_relation" class="text-red-500 text-xs mt-1" x-text="errors.guardian_relation"></p>
-                                </div>
-                                <div class="md:col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Guardian Contact Number') }} <span class="text-red-500">*</span></label>
-                                    <input type="text" name="guardian_contact" x-model="formData.guardian_contact" placeholder="09xxxxxxxxx" maxlength="11"
-                                        x-on:input="formData.guardian_contact = formData.guardian_contact.replace(/[^0-9]/g, '').slice(0, 11); if (errors.guardian_contact) delete errors.guardian_contact;"
-                                        class="mt-1 block w-full rounded-md shadow-sm border p-2 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
-                                        :class="errors.guardian_contact ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'">
-                                    <p x-show="errors.guardian_contact" class="text-red-500 text-xs mt-1" x-text="errors.guardian_contact"></p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Section 6: Chief Complaint --}}
-                        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
-                            <h4 class="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4">Reason for Visit</h4>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Chief Complaint') }} <span class="text-red-500">*</span></label>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                                 <template x-for="symptom in ['Cough', 'Fever', 'Headache', 'Abdominal Pain', 'Sore Throat', 'Difficulty Breathing', 'Dizziness', 'Skin Rash']">
-                                    <label class="flex items-center space-x-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-white dark:hover:bg-gray-800 transition cursor-pointer">
-                                        <input type="checkbox" :value="symptom" x-model="formData.symptoms" @change="if (errors.complaint) delete errors.complaint;" class="rounded text-teal-600 focus:ring-teal-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                                        <span class="text-sm text-gray-700 dark:text-gray-300" x-text="symptom"></span>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                {{-- PhilHealth Number with Eye Toggle --}}
+                                <div x-data="{ showPhilhealth: false }" class="md:col-span-3 lg:col-span-1">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        <span x-text="formData.type === 'pedia' ? `Guardian's PhilHealth No.` : `PhilHealth No.`"></span>
+                                        <span class="text-rose-500">*</span>
                                     </label>
-                                 </template>
+                                    <div class="relative">
+                                        <input :type="showPhilhealth ? 'text' : 'password'" name="philhealth_number" :required="!isFollowUp"
+                                            x-model="formData.philhealth_number" placeholder="12-123456789-0" maxlength="14"
+                                            @input="formData.philhealth_number = formatPhilHealth($event.target.value); if (errors.philhealth) delete errors.philhealth;"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold pr-10 uppercase transition-colors"
+                                            :class="errors.philhealth ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                        <button type="button" @click="showPhilhealth = !showPhilhealth" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                                            <svg x-show="!showPhilhealth" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            <svg x-show="showPhilhealth" style="display:none;" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                                        </button>
+                                    </div>
+                                    <p x-show="errors.philhealth" class="text-rose-500 text-xs mt-1" x-text="errors.philhealth"></p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Education Attainment') }}</label>
+                                    <x-select name="education" x-model="formData.education" :options="$demographicEducationOptions" placeholder="Select Attainment..." />
+                                </div>
+
+                                <div x-data="{
+                                    selectedReligion: '{{ old('religion', '') }}',
+                                    customReligion: '',
+                                    get finalReligion() { return this.selectedReligion === 'Others' ? this.customReligion : this.selectedReligion; }
+                                }" x-effect="formData.religion = finalReligion; if (errors.religion && finalReligion) delete errors.religion;">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Religion') }} <span x-show="formData.type !== 'pedia'" class="text-rose-500">*</span></label>
+                                    <x-select x-model="selectedReligion" :options="$demographicReligionOptions" placeholder="Select Religion..." class="mb-2" />
+                                    <input type="text" x-show="selectedReligion === 'Others'" x-model="customReligion"
+                                        placeholder="Specify religion..." style="display:none;"
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                    <input type="hidden" name="religion" :value="finalReligion">
+                                    <p x-show="errors.religion" class="text-rose-500 text-xs mt-1" x-text="errors.religion"></p>
+                                </div>
                             </div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-2">{{ __('Others Specify') }}</label>
-                            <textarea x-model="formData.other_symptom" rows="2" placeholder="Other symptoms or reason..."
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" x-data="{
+                                selectedOccupation: '{{ old('occupation', '') }}',
+                                customOccupation: '',
+                                get finalOccupation() { return this.selectedOccupation === 'Others' ? this.customOccupation : this.selectedOccupation; }
+                            }" x-effect="formData.occupation = finalOccupation">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Occupation') }}</label>
+                                    <x-select x-model="selectedOccupation" :options="$demographicOccupationOptions" placeholder="Select Occupation..." class="mb-2" />
+                                    <input type="text" x-show="selectedOccupation === 'Others'" x-model="customOccupation"
+                                        placeholder="Specify occupation..." style="display:none;"
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                    <input type="hidden" name="occupation" :value="finalOccupation">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Section 4: Family Details & Guardian Information (Hidden for Follow-up) --}}
+                        <div x-show="!isFollowUp" x-cloak class="bg-white dark:bg-slate-900/90 rounded-2xl p-5 sm:p-6 mb-6 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+                            <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Family &amp; Guardian Information</h4>
+                            </div>
+                            
+                            {{-- Mother's Maiden Name (Hidden for Follow-up) --}}
+                            <div x-show="!isFollowUp" class="mb-5">
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __("Mother's Maiden Name (Birth Name)") }} <span class="text-rose-500">*</span></label>
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                                    <div class="md:col-span-4">
+                                        <input type="text" x-model="formData.mother_first_name" :required="!isFollowUp" placeholder="Mother's First Name"
+                                            @input="formData.mother_first_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            :class="errors.mothers_maiden_name && !formData.mother_first_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                    </div>
+                                    <div class="md:col-span-3">
+                                        <input type="text" x-model="formData.mother_middle_name" placeholder="Mother's Middle Name"
+                                            @input="formData.mother_middle_name = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                    </div>
+                                    <div class="md:col-span-3">
+                                        <input type="text" x-model="formData.mother_last_name" :required="!isFollowUp" placeholder="Mother's Last Name"
+                                            @input="formData.mother_last_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                            :class="errors.mothers_maiden_name && !formData.mother_last_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <input type="text" x-model="formData.mother_suffix" placeholder="Suffix (JR/SR)"
+                                            @input="formData.mother_suffix = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="mothers_maiden_name" :value="`${formData.mother_first_name} ${formData.mother_middle_name ? formData.mother_middle_name + ' ' : ''}${formData.mother_last_name}${formData.mother_suffix ? ' ' + formData.mother_suffix : ''}`.trim().replace(/\s+/g, ' ').toUpperCase()">
+                                <p x-show="errors.mothers_maiden_name" class="text-rose-500 text-xs mt-1" x-text="errors.mothers_maiden_name"></p>
+                            </div>
+                            
+                            {{-- Guardian Info (Pediatric only) --}}
+                            <div class="p-5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 rounded-2xl" x-show="formData.type === 'pedia' && !isFollowUp" x-cloak>
+                                <div class="mb-4 pb-2 border-b border-amber-200/60 dark:border-amber-900/60 flex items-center justify-between">
+                                    <div>
+                                        <h5 class="text-xs font-black text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                            Guardian Information (Required for Pediatrics)
+                                        </h5>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Pediatric patients (12 years old and below) require a designated parent or legal guardian.</p>
+                                    </div>
+                                </div>
+
+                                {{-- Mother is also Guardian Toggle Card --}}
+                                <label class="group relative flex items-center justify-between gap-4 p-3.5 mb-4 rounded-xl border transition-all duration-200 cursor-pointer select-none"
+                                    :class="motherIsGuardian 
+                                        ? 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 shadow-xs ring-1 ring-emerald-500/20' 
+                                        : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700 shadow-2xs'">
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200"
+                                            :class="motherIsGuardian 
+                                                ? 'bg-emerald-600 text-white shadow-xs' 
+                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                                                    Mother is also the patient's guardian
+                                                </span>
+                                                <span x-show="motherIsGuardian" x-cloak class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white tracking-wide uppercase shadow-2xs">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    Linked
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                <span x-show="!motherIsGuardian">Click to auto-fill guardian name using mother's information from above</span>
+                                                <span x-show="motherIsGuardian" class="text-emerald-700 dark:text-emerald-400 font-semibold">Auto-filled and synced with Mother's Name</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <!-- Toggle Switch -->
+                                    <div class="relative inline-flex items-center shrink-0">
+                                        <input type="checkbox" x-model="motherIsGuardian" @change="toggleMotherAsGuardian()" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-500/40 dark:peer-focus:ring-emerald-600/40 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600 shadow-inner"></div>
+                                    </div>
+                                </label>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Guardian Name') }} <span class="text-rose-500">*</span></label>
+                                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                                            <div class="md:col-span-4">
+                                                <input type="text" name="guardian_first_name" x-model="formData.guardian_first_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="Guardian First Name"
+                                                    :readonly="motherIsGuardian"
+                                                    @input="if (!motherIsGuardian) { formData.guardian_first_name = $event.target.value.toUpperCase(); if (errors.guardian_first_name && formData.guardian_first_name && formData.guardian_last_name) delete errors.guardian_first_name; }"
+                                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                                    :class="[errors.guardian_first_name && !formData.guardian_first_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : '', motherIsGuardian ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : '']">
+                                            </div>
+                                            <div class="md:col-span-3">
+                                                <input type="text" name="guardian_middle_name" x-model="formData.guardian_middle_name" placeholder="Middle Name"
+                                                    :readonly="motherIsGuardian"
+                                                    @input="if (!motherIsGuardian) { formData.guardian_middle_name = $event.target.value.toUpperCase(); }"
+                                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                                    :class="motherIsGuardian ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : ''">
+                                            </div>
+                                            <div class="md:col-span-3">
+                                                <input type="text" name="guardian_last_name" x-model="formData.guardian_last_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="Last Name"
+                                                    :readonly="motherIsGuardian"
+                                                    @input="if (!motherIsGuardian) { formData.guardian_last_name = $event.target.value.toUpperCase(); if (errors.guardian_first_name && formData.guardian_first_name && formData.guardian_last_name) delete errors.guardian_first_name; }"
+                                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                                    :class="[errors.guardian_first_name && !formData.guardian_last_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : '', motherIsGuardian ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : '']">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <input type="text" name="guardian_suffix" x-model="formData.guardian_suffix" placeholder="Suffix"
+                                                    :readonly="motherIsGuardian"
+                                                    @input="if (!motherIsGuardian) { formData.guardian_suffix = $event.target.value.toUpperCase(); }"
+                                                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
+                                                    :class="motherIsGuardian ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : ''">
+                                            </div>
+                                        </div>
+                                        <p x-show="errors.guardian_first_name || errors.guardian_last_name" class="text-rose-500 text-xs mt-1" x-text="errors.guardian_first_name || errors.guardian_last_name"></p>
+                                    </div>
+                                    <div class="md:col-span-1" x-data="{
+                                        selectedGuardianRelation: '{{ old('guardian_relation', '') }}',
+                                        customGuardianRelation: '',
+                                        get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; }
+                                    }" x-effect="formData.guardian_relation = finalGuardianRelation; if (errors.guardian_relation && finalGuardianRelation) delete errors.guardian_relation;">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Relationship to Patient') }} <span class="text-rose-500">*</span></label>
+                                        <x-select name="guardian_relation" x-model="selectedGuardianRelation" :options="$guardianRelationOptions" placeholder="Select Relationship..." class="mb-2" />
+                                        <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation"
+                                            placeholder="Specify relationship..." style="display:none;"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase(); if (errors.guardian_relation) delete errors.guardian_relation;">
+                                        <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
+                                        <p x-show="errors.guardian_relation" class="text-rose-500 text-xs mt-1" x-text="errors.guardian_relation"></p>
+                                    </div>
+                                    <div class="md:col-span-1">
+                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Guardian Contact Number') }} <span class="text-rose-500">*</span></label>
+                                        <input type="text" name="guardian_contact" x-model="formData.guardian_contact" placeholder="09XXXXXXXXX" maxlength="11"
+                                            x-on:input="formData.guardian_contact = formData.guardian_contact.replace(/[^0-9]/g, '').slice(0, 11); if (errors.guardian_contact) delete errors.guardian_contact;"
+                                            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold transition-colors"
+                                            :class="errors.guardian_contact ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
+                                        <p x-show="errors.guardian_contact" class="text-rose-500 text-xs mt-1" x-text="errors.guardian_contact"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Hidden classification auto-set by service type --}}
+                        <input type="hidden" name="classification" :value="formData.type === 'pedia' ? 'Pediatric' : 'Regular Adult'">
+
+                        {{-- Section 5: Chief Complaint --}}
+                        <div class="bg-white dark:bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+                            <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Reason for Visit (Chief Complaint)</h4>
+                            </div>
+
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">{{ __('Select Common Symptoms') }} <span class="text-rose-500">*</span></label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                                <template x-for="symptom in ['Cough', 'Fever', 'Headache', 'Abdominal Pain', 'Sore Throat', 'Difficulty Breathing', 'Dizziness', 'Skin Rash']" :key="symptom">
+                                    <label class="group relative flex items-center gap-2.5 p-3 rounded-xl border transition-all duration-200 cursor-pointer select-none"
+                                           :class="formData.symptoms.includes(symptom) 
+                                               ? 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 shadow-2xs ring-1 ring-emerald-500/20' 
+                                               : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-slate-50/50 dark:hover:bg-slate-750'">
+                                        <input type="checkbox" :value="symptom" x-model="formData.symptoms" @change="if (errors.complaint) delete errors.complaint;" 
+                                               class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700">
+                                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors" x-text="symptom"></span>
+                                    </label>
+                                </template>
+                            </div>
+
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Additional Symptoms or Consultation Reason') }}</label>
+                            <textarea x-model="formData.other_symptom" rows="3" placeholder="Describe other symptoms, prior medical advisories, or specifics of your health concern..."
                                 @input="if (errors.complaint) delete errors.complaint;"
-                                class="mt-1 block w-full rounded-md shadow-sm border p-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-teal-500 focus:ring-teal-500"
-                                :class="errors.complaint && (!combinedComplaint || combinedComplaint.trim() === '') ? 'border-red-500! ring-1 ring-red-500! dark:border-red-500!' : 'border-gray-300 dark:border-gray-600'"></textarea>
+                                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 p-3 text-xs font-semibold transition-colors"
+                                :class="errors.complaint && (!combinedComplaint || combinedComplaint.trim() === '') ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''"></textarea>
                             
                             <input type="hidden" name="complaint" :value="combinedComplaint">
-                            <p x-show="errors.complaint" class="text-red-500 text-xs mt-1" x-text="errors.complaint"></p>
+                            <p x-show="errors.complaint" class="text-rose-500 text-xs mt-1" x-text="errors.complaint"></p>
+
+                            <!-- Live Complaint Summary Preview -->
+                            <div x-show="combinedComplaint" x-cloak class="mt-3.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-2">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Summary:</span>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" x-text="combinedComplaint"></span>
+                            </div>
                         </div>
                     </div>
 
-<!-- Step 3: Date & Time Selection -->
+                    <!-- Step 3: Date Selection (First-Come, First-Served) -->
                     <div x-show="step === 3" x-transition style="display: none;">
-                        <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Step 3: Select Date & Arrival Time</h2>
+                        <div class="flex items-center justify-between pb-3 mb-6 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <span>Step 3: Select Consultation Date</span>
+                                </h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Choose an operating clinic date for your public health consultation.</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                First-Come, First-Served
+                            </span>
+                        </div>
                         
-                        <div x-show="isFollowUp && doctorName" x-cloak class="mb-4 bg-teal-50 border border-teal-200 rounded-lg p-4 dark:bg-teal-900/20 dark:border-teal-800">
-                            <h4 class="font-bold text-teal-800 dark:text-teal-300 flex items-center">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                Follow-up Appointment
+                        <div x-show="isFollowUp && doctorName" x-cloak class="mb-5 bg-emerald-50/80 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-4 dark:bg-emerald-950/30 shadow-2xs">
+                            <h4 class="font-bold text-xs text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Assigned Attending Physician Follow-up
                             </h4>
-                            <p class="text-sm text-teal-700 dark:text-teal-400 mt-1">
+                            <p class="text-xs text-emerald-800 dark:text-emerald-300 mt-1">
                                 Your assigned doctor is <strong x-text="doctorName"></strong>. 
-                                Please select an available date matching their schedule: <strong x-text="doctorSchedule"></strong>.
+                                Please select an available date matching their schedule: <strong class="font-semibold underline" x-text="doctorSchedule"></strong>.
                             </p>
                         </div>
 
-                        <div class="border rounded-lg p-4">
+                        <div class="border border-slate-200 dark:border-slate-700 rounded-2xl p-5 bg-white dark:bg-slate-800/80 shadow-2xs">
                             <div class="flex justify-between items-center mb-4">
-                                <button type="button" @click="prevMonth()" class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed" :disabled="isPrevMonthDisabled()"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                                <h4 class="font-bold text-lg" x-text="monthName + ' ' + currentYear"></h4>
-                                <button type="button" @click="nextMonth()" class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed" :disabled="isNextMonthDisabled()"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
+                                <button type="button" @click="prevMonth()" class="p-2 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:text-slate-400 dark:hover:bg-slate-700 transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" :disabled="isPrevMonthDisabled()"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg></button>
+                                <h4 class="font-black text-sm sm:text-base text-slate-800 dark:text-white" x-text="monthName + ' ' + currentYear"></h4>
+                                <button type="button" @click="nextMonth()" class="p-2 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:text-slate-400 dark:hover:bg-slate-700 transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" :disabled="isNextMonthDisabled()"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg></button>
                             </div>
-                            <div class="flex gap-2 text-xs mb-4 justify-center">
-                                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span> Available</span>
-                                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> Limited</span>
-                                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500"></span> Full</span>
+                            <div class="flex gap-4 text-xs mb-4 justify-center font-bold">
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Available</span>
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Limited</span>
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Full / Closed</span>
                             </div>
-                            <div class="grid grid-cols-7 gap-2 text-center text-sm mb-2">
-                                <span class="text-gray-400">Su</span><span class="text-gray-400">Mo</span><span class="text-gray-400">Tu</span>
-                                <span class="text-gray-400">We</span><span class="text-gray-400">Th</span><span class="text-gray-400">Fr</span><span class="text-gray-400">Sa</span>
+                            <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-400 mb-2">
+                                <span>Su</span><span>Mo</span><span>Tu</span>
+                                <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
                             </div>
                             <div class="grid grid-cols-7 gap-2">
                                 <template x-for="blank in startDay" :key="'blank-'+blank">
@@ -952,67 +1356,58 @@
                                 
                                 <template x-for="day in daysInMonth" :key="day">
                                     <div @click="!isPastDate(day) && !isDayFull(day) && selectDate(getDateString(day))"
-                                        class="h-16 md:h-20 rounded-lg flex flex-col items-center justify-center font-medium transition text-xs md:text-sm relative group border"
+                                        class="h-16 md:h-20 rounded-xl flex flex-col items-center justify-center font-bold transition text-xs md:text-sm relative group border"
                                         :class="{
-                                                'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed border-transparent': isPastDate(day),
-                                                'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 cursor-not-allowed border-red-200 dark:border-red-800': !isPastDate(day) && isDayFull(day),
-                                                'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-800/50 cursor-pointer border-yellow-200 dark:border-yellow-800': !isPastDate(day) && isDayLimited(day) && !isDayFull(day),
-                                                'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/50 cursor-pointer border-green-200 dark:border-green-800': !isPastDate(day) && !isDayLimited(day) && !isDayFull(day),
-                                                'ring-2 ring-teal-500 ring-offset-2': selectedDate === getDateString(day)
+                                                'bg-slate-100 dark:bg-slate-800/40 text-slate-300 dark:text-slate-600 cursor-not-allowed border-transparent': isPastDate(day),
+                                                'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 cursor-not-allowed border-rose-200 dark:border-rose-800': !isPastDate(day) && isDayFull(day),
+                                                'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 cursor-pointer border-amber-200 dark:border-amber-800': !isPastDate(day) && isDayLimited(day) && !isDayFull(day),
+                                                'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 cursor-pointer border-emerald-200 dark:border-emerald-800': !isPastDate(day) && !isDayLimited(day) && !isDayFull(day),
+                                                'ring-2 ring-emerald-600 ring-offset-2 dark:ring-offset-slate-800': selectedDate === getDateString(day)
                                              }">
-                                        <span class="text-lg font-bold" x-text="day"></span>
+                                        <span class="text-base sm:text-lg font-black" x-text="day"></span>
                                     </div>
                                 </template>
                             </div>
                         </div>
+
                         <input type="hidden" name="preferred_date" x-model="selectedDate" required>
-                        <input type="hidden" name="preferred_time" x-model="selectedTime" required>
-                        <div x-show="selectedDate" class="text-center mt-2">
-                            <p class="text-sm text-teal-600 font-medium">Selected: <span x-text="formatDate(selectedDate)"></span></p>
-                            <p x-show="formData.type === 'pedia' && !isFollowUp" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Slots Usage: <span class="font-bold" x-text="getSlotsUsage(selectedDate)"></span>
-                            </p>
-                        </div>
+                        <input type="hidden" name="preferred_time" value="">
 
-                        <!-- Time Slot Picker -->
-                        <div x-show="selectedDate" x-cloak class="mt-6">
-                            <h4 class="text-md font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                Select Preferred Arrival Time
-                            </h4>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                                Choose a 30-minute window based on the doctor's schedule. 
-                                <strong class="text-amber-600">Please arrive 30 minutes before your selected time</strong> for initial vital signs triage.
-                            </p>
-
-                            <div x-show="loadingSlots" class="flex items-center justify-center py-8">
-                                <svg class="animate-spin h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                <span class="ml-2 text-sm text-gray-500">Loading available time slots...</span>
-                            </div>
-
-                            <div x-show="!loadingSlots && timeSlots.length === 0" class="text-center py-6 bg-red-50 rounded-lg border border-red-200">
-                                <p class="text-sm text-red-600 font-medium">No time slots available for this date. Please select a different day.</p>
-                            </div>
-
-                            <div x-show="!loadingSlots && timeSlots.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                <template x-for="slot in timeSlots" :key="slot.value">
-                                    <button type="button" @click="selectedTime = slot.value"
-                                        class="p-3 rounded-lg border-2 text-sm font-semibold text-center transition-all duration-200"
-                                        :class="selectedTime === slot.value 
-                                            ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 ring-2 ring-teal-500 ring-offset-1 shadow-md' 
-                                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-teal-300 hover:bg-teal-50/50 dark:hover:bg-teal-900/10'"
-                                    >
-                                        <svg class="w-4 h-4 mx-auto mb-1" :class="selectedTime === slot.value ? 'text-teal-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        <span x-text="slot.label"></span>
-                                    </button>
-                                </template>
-                            </div>
-
-                            <div x-show="selectedTime" x-cloak class="mt-4 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg p-3 text-center">
-                                <p class="text-sm font-bold text-teal-800 dark:text-teal-300">
-                                    🕐 Your Arrival Window: <span x-text="selectedTime"></span>
-                                </p>
-                                <p class="text-xs text-teal-600 dark:text-teal-400 mt-1">⚠️ Please arrive 30 minutes early for Triage processing.</p>
+                        <!-- Selected Date Info & First-Come First-Served Banner -->
+                        <div x-show="selectedDate" x-cloak class="mt-6 p-5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-300/40 shadow-2xs">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 text-xs">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Selected Appointment Date</span>
+                                            <h4 class="text-sm sm:text-base font-black text-slate-900 dark:text-white" x-text="formatDate(selectedDate)"></h4>
+                                        </div>
+                                        <span x-show="formData.type === 'pedia' && !isFollowUp" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-emerald-200 dark:border-emerald-800">
+                                            Daily Slot Usage: <span class="font-extrabold text-emerald-700 dark:text-emerald-300" x-text="getSlotsUsage(selectedDate)"></span>
+                                        </span>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/60">
+                                        <p class="font-bold text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            First-Come, First-Served Queue Policy
+                                        </p>
+                                        <p class="text-emerald-800 dark:text-emerald-300 mt-1 leading-relaxed">
+                                            RHU Silang consultation queues are processed strictly in the order patients arrive at the clinic on their confirmed appointment day. No specific arrival time window needs to be selected.
+                                        </p>
+                                        <div class="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
+                                            <span>RHU Operating Hours: <strong>8:00 AM – 5:00 PM</strong></span>
+                                            <span>•</span>
+                                            <span>Recommended Arrival: <strong>8:00 AM – 11:00 AM</strong> for Triage Intake</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1061,8 +1456,9 @@
                                 </dd>
                             </div>
                             <div class="col-span-2 md:col-span-1">
-                                <dt class="text-gray-500 dark:text-gray-400">Arrival Time</dt>
-                                <dd class="font-medium text-teal-700 dark:text-teal-300" x-text="selectedTime || 'Not selected'">
+                                <dt class="text-gray-500 dark:text-gray-400">Queue Policy</dt>
+                                <dd class="font-medium text-emerald-700 dark:text-emerald-300">
+                                    First-Come, First-Served (8:00 AM – 5:00 PM)
                                 </dd>
                             </div>
                             <div class="col-span-2 md:col-span-1">
@@ -1086,7 +1482,7 @@
                             </div>
                             <div class="col-span-2">
                                 <dt class="text-gray-500 dark:text-gray-400">Visit Type</dt>
-                                <dd class="font-medium text-gray-900 dark:text-white capitalize"
+                                <dd class="font-medium text-gray-900 dark:text-white"
                                     x-text="formData.is_follow_up ? 'Follow-up Consultation' : 'General Consultation'"></dd>
                             </div>
                             <div class="col-span-2" x-show="formData.type === 'pedia' && !isFollowUp">
@@ -1150,7 +1546,7 @@
                         <button type="button" @click="nextStep()" x-show="step < 4"
                             class="group inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-xs text-white shadow-md transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             style="background: linear-gradient(135deg, #10b981, #0F3D3E);"
-                            :disabled="(step === 3 && (!selectedDate || !selectedTime))">
+                            :disabled="(step === 3 && !selectedDate)">
                             <span x-text="step === 3 ? '{{ __('Proceed to Verification') }}' : '{{ __('Next Step') }}'"></span>
                             <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
@@ -1265,6 +1661,40 @@
             return {
                 get isFollowUp() {
                     return this.formData.type === 'adult' || (this.formData.type === 'pedia' && this.formData.is_follow_up);
+                },
+                get patientAge() {
+                    if (!this.formData.dob) return null;
+                    const d = new Date(this.formData.dob);
+                    if (isNaN(d.getTime())) return null;
+                    const today = new Date();
+                    let age = today.getFullYear() - d.getFullYear();
+                    const m = today.getMonth() - d.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+                    return age;
+                },
+                get patientAgeInMonths() {
+                    if (!this.formData.dob) return null;
+                    const d = new Date(this.formData.dob);
+                    if (isNaN(d.getTime())) return null;
+                    const today = new Date();
+                    let months = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                    if (today.getDate() < d.getDate()) months--;
+                    return months;
+                },
+                get ageMismatchNotice() {
+                    if (this.patientAge === null) return null;
+                    if (this.formData.type === 'pedia') {
+                        if (this.patientAgeInMonths !== null && this.patientAgeInMonths < 6) {
+                            return 'Age Restriction: The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.';
+                        }
+                        if (this.patientAge > 12) {
+                            return `Age Notice: This patient is ${this.patientAge} years old. Pediatric consultation is intended for children 12 years old and below.`;
+                        }
+                    }
+                    if (this.formData.type !== 'pedia' && this.patientAge <= 12) {
+                        return `Age Notice: This patient is ${this.patientAge} years old. Children 12 and below must use the Pediatrics consultation service.`;
+                    }
+                    return null;
                 },
                 step: 1,
                 maxStepReached: 1,
@@ -1502,6 +1932,17 @@
                 },
 
                 setService(type) {
+                    if (type === 'pedia' && this.patientAgeInMonths !== null && this.patientAgeInMonths < 6) {
+                        if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('add-toast', {
+                                detail: {
+                                    type: 'error',
+                                    message: 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.'
+                                }
+                            }));
+                        }
+                        return;
+                    }
                     this.formData.type = type;
                     // Adult is always follow-up in this flow. Pedia is optional (checkbox).
                     this.formData.is_follow_up = (type === 'adult');
@@ -1602,8 +2043,6 @@
                     } else if (this.step === 3) {
                         if (!this.selectedDate) {
                             window.dispatchEvent(new CustomEvent('add-toast', { detail: { type: 'error', message: 'Please select a preferred date.' } }));
-                        } else if (!this.selectedTime) {
-                            window.dispatchEvent(new CustomEvent('add-toast', { detail: { type: 'error', message: 'Please select a preferred arrival time.' } }));
                         } else {
                             await this.sendOtp();
                             canProceed = false; // logic handled in sendOtp success
@@ -1652,8 +2091,6 @@
 
                 selectDate(date) {
                     this.selectedDate = date;
-                    this.selectedTime = ''; // Reset time when date changes
-                    this.fetchTimeSlots(date);
                 },
 
                 async fetchTimeSlots(date) {
@@ -1686,11 +2123,11 @@
                     syncVal('input[name="middle_name"]', v => { this.formData.middle_name = v.toUpperCase(); });
                     syncVal('input[name="last_name"]', v => { this.formData.last_name = v.toUpperCase(); });
                     syncVal('input[name="suffix"]', v => { this.formData.suffix = v.toUpperCase(); });
-                    syncVal('select[name="sex"]', v => { this.formData.sex = v; });
+                    syncVal('[name="sex"]', v => { this.formData.sex = v; });
                     syncVal('input[name="dob"]', v => { this.formData.dob = v; });
-                    syncVal('select[name="civil_status"]', v => { this.formData.civil_status = v; });
-                    syncVal('select[name="blood_type"]', v => { this.formData.blood_type = v; });
-                    syncVal('select[name="education"]', v => { this.formData.education = v; });
+                    syncVal('[name="civil_status"]', v => { this.formData.civil_status = v; });
+                    syncVal('[name="blood_type"]', v => { this.formData.blood_type = v; });
+                    syncVal('[name="education"]', v => { this.formData.education = v; });
                     syncVal('input[name="email"]', v => { this.formData.email = v; });
                     syncVal('input[name="contact_number"]', v => { this.formData.contact_number = v; });
                     syncVal('input[name="philhealth_number"]', v => { this.formData.philhealth_number = this.formatPhilHealth(v); });
@@ -1702,7 +2139,7 @@
                     syncVal('input[x-model="formData.mother_suffix"]', v => { this.formData.mother_suffix = v.toUpperCase(); });
 
                     // Address / Barangay
-                    syncVal('select[x-model="barangay"]', v => { this.formData.barangay = v; });
+                    syncVal('[name="barangay"]', v => { this.formData.barangay = v; });
                     syncVal('input[x-model="house_no"]', v => { this.formData.house_no = v; });
                     syncVal('input[x-model="street"]', v => { this.formData.street = v; });
                     syncVal('input[x-model="building"]', v => { this.formData.building = v; });
@@ -1718,22 +2155,20 @@
                         syncVal('input[name="guardian_last_name"]', v => { this.formData.guardian_last_name = v.toUpperCase(); });
                         syncVal('input[name="guardian_suffix"]', v => { this.formData.guardian_suffix = v.toUpperCase(); });
                     }
-                    syncVal('select[x-model="selectedGuardianRelation"]', v => {
+                    syncVal('[name="guardian_relation"]', v => {
                         const custom = document.querySelector('input[x-model="customGuardianRelation"]')?.value?.trim();
                         this.formData.guardian_relation = (v === 'Others (Please Specify)' && custom) ? custom.toUpperCase() : v;
                     });
                     syncVal('input[name="guardian_contact"]', v => { this.formData.guardian_contact = v; });
 
                     // Religion & Occupation
-                    const relEl = document.querySelector('select[x-model="selectedReligion"]');
+                    const relEl = document.querySelector('[name="religion"]');
                     if (relEl && relEl.value) {
-                        const customRel = document.querySelector('input[x-model="customReligion"]')?.value?.trim();
-                        this.formData.religion = (relEl.value === 'Others' && customRel) ? customRel : relEl.value;
+                        this.formData.religion = relEl.value;
                     }
-                    const occEl = document.querySelector('select[x-model="selectedOccupation"]');
+                    const occEl = document.querySelector('[name="occupation"]');
                     if (occEl && occEl.value) {
-                        const customOcc = document.querySelector('input[x-model="customOccupation"]')?.value?.trim();
-                        this.formData.occupation = (occEl.value === 'Others' && customOcc) ? customOcc : occEl.value;
+                        this.formData.occupation = occEl.value;
                     }
                 },
 
@@ -1772,14 +2207,22 @@
                     }
                     if (this.formData.dob) {
                         let dobDate = new Date(this.formData.dob);
-                        let age = new Date().getFullYear() - dobDate.getFullYear();
-                        let month = new Date().getMonth() - dobDate.getMonth();
-                        if (month < 0 || (month === 0 && new Date().getDate() < dobDate.getDate())) {
+                        let today = new Date();
+                        let age = today.getFullYear() - dobDate.getFullYear();
+                        let month = today.getMonth() - dobDate.getMonth();
+                        if (month < 0 || (month === 0 && today.getDate() < dobDate.getDate())) {
                             age--;
+                        }
+                        let ageInMonths = (today.getFullYear() - dobDate.getFullYear()) * 12 + (today.getMonth() - dobDate.getMonth());
+                        if (today.getDate() < dobDate.getDate()) {
+                            ageInMonths--;
                         }
 
                         if (this.formData.type === 'pedia') {
-                            if (age > 12) {
+                            if (ageInMonths < 6) {
+                                this.errors.dob = 'The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.';
+                                isValid = false;
+                            } else if (age > 12) {
                                 this.errors.dob = 'Pediatric patients must be 12 years old or below';
                                 isValid = false;
                             }

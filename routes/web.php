@@ -328,6 +328,7 @@ use App\Http\Controllers\ProfileController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile/activity', [ProfileController::class, 'activity'])->name('profile.activity');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/status', [ProfileController::class, 'updateStatus'])->name('profile.status.update');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');

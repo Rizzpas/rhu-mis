@@ -242,21 +242,15 @@ class StaffController extends Controller
             default => $request->status
         };
 
-        $updateData = ['status' => $normalizedStatus];
+        $oldStatus = $user->status;
 
-        if ($normalizedStatus === 'Offline') {
-            $updateData['schedule_override'] = 'manual_offline';
-            $updateData['last_activity_at'] = null;
-        } elseif ($normalizedStatus === 'Online') {
-            $updateData['schedule_override'] = 'manual_online';
-            $updateData['last_activity_at'] = now();
+        if (in_array($normalizedStatus, ['Online', 'Offline', 'Occupied'], true)) {
+            $updateData = \App\Services\StaffPresence::manualStatusAttributes($user, $normalizedStatus);
         } else {
-            $updateData['schedule_override'] = 'manual_online';
-            $updateData['last_activity_at'] = now();
+            $updateData = ['status' => $normalizedStatus];
         }
 
-        $oldStatus = $user->status;
-        $user->update($updateData);
+        $user->forceFill($updateData)->save();
 
         AuditLog::record("Staff status updated: {$user->name} ({$oldStatus} -> {$normalizedStatus})", $user, [
             'old_status' => $oldStatus,
@@ -337,31 +331,24 @@ class StaffController extends Controller
             default => $request->status
         };
 
-        $updateData = ['status' => $normalizedStatus];
-
-        if ($normalizedStatus === 'Offline') {
-            $updateData['schedule_override'] = 'manual_offline';
-            $updateData['last_activity_at'] = null;
-        } elseif ($normalizedStatus === 'Online') {
-            $updateData['schedule_override'] = 'manual_online';
-            $updateData['last_activity_at'] = now();
-        } else {
-            $updateData['schedule_override'] = 'manual_online';
-            $updateData['last_activity_at'] = now();
-        }
-
         $targetIds = array_values(array_filter($request->ids, fn ($id) => (int) $id !== (int) auth()->id()));
 
         if (empty($targetIds)) {
             return back()->with('warning', 'No eligible staff members selected for status update.');
         }
 
-        User::whereIn('id', $targetIds)->update($updateData);
+        // Per-user: the override expiry depends on each user's own schedule.
+        $overrides = [];
+        User::whereIn('id', $targetIds)->with('practitionerSchedules')->get()
+            ->each(function (User $target) use ($normalizedStatus, &$overrides) {
+                \App\Services\StaffPresence::setManualStatus($target, $normalizedStatus);
+                $overrides[$target->id] = $target->schedule_override;
+            });
 
         AuditLog::record("Bulk Staff Status Updated: {$normalizedStatus} for ".count($targetIds).' accounts', null, [
             'ids' => $targetIds,
             'status' => $normalizedStatus,
-            'schedule_override' => $updateData['schedule_override'] ?? null,
+            'schedule_override' => $overrides,
         ]);
 
         return back()->with('success', count($targetIds)." staff members set to {$normalizedStatus} successfully!");

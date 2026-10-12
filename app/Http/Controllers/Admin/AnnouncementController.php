@@ -52,7 +52,10 @@ class AnnouncementController extends Controller
             $query->where('status', $request->status);
         }
 
-        $perPage = 10;
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50])) {
+            $perPage = 10;
+        }
 
         // Calculate total records and total pages
         $total = (clone $query)->count();
@@ -337,7 +340,7 @@ class AnnouncementController extends Controller
             }
         }
 
-        return redirect()->route('admin.announcements.index')->with('success', 'Announcement updated successfully!');
+        return redirect()->route('admin.announcements.index')->with('success', "Announcement '{$announcement->title}' updated successfully!");
     }
 
     public function destroy(Announcement $announcement)

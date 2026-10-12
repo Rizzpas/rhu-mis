@@ -154,6 +154,7 @@
             mainImageName: '',
             mainPreviews: [],
             isMainDragging: false,
+            isSubmitting: false,
             
             mainError: null,
             addSection() {
@@ -273,6 +274,81 @@
         </div>
     </div>
 
+    {{-- Operational Notifications --}}
+    @if(session('success'))
+        <div x-data="{ show: true }" 
+             x-show="show" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 -translate-y-2 scale-98"
+             class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-teal-500/15 dark:from-emerald-950/60 dark:via-emerald-900/40 dark:to-teal-950/50 border border-emerald-500/30 dark:border-emerald-500/40 p-4 sm:p-4.5 shadow-sm mb-6">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white dark:bg-emerald-400 dark:text-slate-950 flex items-center justify-center shrink-0 shadow-xs ring-4 ring-emerald-500/20">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="text-xs sm:text-sm font-bold text-emerald-950 dark:text-emerald-100 tracking-tight">Success</h4>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-700/60 uppercase tracking-wider">Announcement Saved</span>
+                        </div>
+                        <p class="text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-200/90 mt-0.5">{{ session('success') }}</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        @click="show = false" 
+                        class="p-1.5 rounded-xl text-emerald-700 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-200 hover:bg-emerald-200/50 dark:hover:bg-emerald-800/50 transition-colors cursor-pointer shrink-0" 
+                        title="Dismiss notification"
+                        aria-label="Dismiss">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+    @if(session('error'))
+        <div x-data="{ show: true }" 
+             x-show="show" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 -translate-y-2 scale-98"
+             class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-red-500/15 dark:from-rose-950/60 dark:via-rose-900/40 dark:to-red-950/50 border border-rose-500/30 dark:border-rose-500/40 p-4 sm:p-4.5 shadow-sm mb-6">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs ring-4 ring-rose-500/20">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs sm:text-sm font-bold text-rose-950 dark:text-rose-100 tracking-tight">Error</h4>
+                        <p class="text-xs sm:text-sm font-semibold text-rose-800 dark:text-rose-200/90 mt-0.5">{{ session('error') }}</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        @click="show = false" 
+                        class="p-1.5 rounded-xl text-rose-700 hover:text-rose-900 dark:text-rose-400 dark:hover:text-rose-200 hover:bg-rose-200/50 dark:hover:bg-rose-800/50 transition-colors cursor-pointer shrink-0" 
+                        title="Dismiss notification"
+                        aria-label="Dismiss">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
     {{-- Validation Errors --}}
     @if ($errors->any())
         <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl p-3.5 mb-5 shadow-2xs" role="alert">
@@ -289,7 +365,7 @@
     @endif
 
     {{-- Main Form Container (2-Column Architecture) --}}
-    <form id="announcement-form" action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+    <form id="announcement-form" @submit="isSubmitting = true" action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         @csrf
 
         {{-- ────────────────────────────────────────────────────────────
@@ -862,9 +938,20 @@
                 {{-- Action Buttons --}}
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
                     <button type="submit" 
-                            class="w-full h-11 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>Publish Announcement</span>
+                            :disabled="isSubmitting"
+                            class="w-full h-11 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-wait">
+                        <template x-if="!isSubmitting">
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span>Publish Announcement</span>
+                            </span>
+                        </template>
+                        <template x-if="isSubmitting">
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                <span>Publishing Announcement...</span>
+                            </span>
+                        </template>
                     </button>
                     <a href="{{ route('admin.announcements.index') }}" 
                        class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold text-sm transition flex items-center justify-center shadow-2xs">

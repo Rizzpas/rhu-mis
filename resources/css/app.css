@@ -606,12 +606,38 @@
 
     /* --- Doctor carousel scroll container --- */
     .doctor-scroll {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
     }
 
     .doctor-scroll::-webkit-scrollbar {
-        display: none;
+        height: 6px;
+        width: 0px;
+    }
+
+    .doctor-scroll::-webkit-scrollbar:vertical {
+        display: none !important;
+        width: 0px !important;
+    }
+
+    .doctor-scroll::-webkit-scrollbar:horizontal {
+        display: block !important;
+        height: 6px !important;
+    }
+
+    .doctor-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .doctor-scroll::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.4);
+        border-radius: 9999px;
+    }
+
+    .doctor-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 116, 139, 0.6);
     }
 
     /* --- Timeline vertical line --- */
