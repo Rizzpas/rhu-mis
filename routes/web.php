@@ -76,6 +76,15 @@ Route::get('/staff', function () {
     return redirect()->route('login');
 })->name('staff.portal');
 
+Route::get('/portal', function () {
+    $staffDomain = config('app.staff_domain');
+    if (!empty($staffDomain)) {
+        $scheme = request()->secure() ? 'https://' : 'http://';
+        return redirect()->away($scheme . $staffDomain);
+    }
+    return redirect()->route('login');
+})->name('portal');
+
 Route::get('/staff-access', function () {
     $staffDomain = config('app.staff_domain');
     if (!empty($staffDomain)) {
