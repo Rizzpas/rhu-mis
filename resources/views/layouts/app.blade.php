@@ -1137,6 +1137,16 @@
                 window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDark } }));
             };
         }
+
+        // Safety fallback: Guarantee all content becomes visible even before user scrolls
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.querySelectorAll('[data-reveal]:not(.is-visible)').forEach(function(el) {
+                    el.classList.add('is-visible');
+                });
+            }, 600);
+        });
     </script>
+
 
 </html>
