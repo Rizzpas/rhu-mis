@@ -242,13 +242,6 @@
             'badgeClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
         ],
         [
-            'value' => 'Retired',
-            'label' => 'Retired',
-            'sublabel' => 'Pensioner or retired senior',
-            'badge' => 'Retired',
-            'badgeClass' => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800',
-        ],
-        [
             'value' => 'Others',
             'label' => 'Others (Please specify)',
             'sublabel' => 'Enter custom occupation below',
@@ -465,7 +458,7 @@
                                 <span class="font-display font-extrabold text-lg text-gray-900 dark:text-white">{{ __('Pediatrics') }}</span>
                                 <span class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 font-medium">General consultation & check-up for infants (6 mos+) and children (up to 12 yrs)</span>
                                 <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                                    Dedicated Pedia Doctor • 6 Mos+
+                                    Dedicated Pedia Doctor
                                 </span>
                             </div>
 
