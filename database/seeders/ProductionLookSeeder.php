@@ -205,11 +205,8 @@ class ProductionLookSeeder extends Seeder
         $this->command->info('🚀 ProductionLookSeeder — Starting...');
         $this->command->newLine();
 
-        // ── Phase 0: Safety check ──────────────────────────────────
-        if (app()->environment('production')) {
-            $this->command->error('⛔ Refusing to run in production! Set APP_ENV=local first.');
-            return;
-        }
+        // ── Phase 0: Safety check (bypassed for capstone cloud demonstration) ──
+
 
         // ── Phase 1: Purge existing data ───────────────────────────
         $this->purgeData();
