@@ -23,13 +23,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Return a generic 404 instead of redirecting to /login when an
-        // unauthenticated user probes a protected route.  This prevents
-        // information disclosure — attackers won't learn that a login
-        // page exists by simply visiting /admin, /doctor, etc.
+        // Handle unauthenticated requests:
+        // On the staff subdomain (or in local fallback), redirect cleanly to login.
+        // On the public domain, return 404 to hide internal staff routes from external probing.
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
+            $staffDomain = config('app.staff_domain');
+            if (empty($staffDomain) || $request->getHost() === $staffDomain) {
+                return redirect()->guest(route('login'));
             }
 
             abort(404);

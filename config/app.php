@@ -56,6 +56,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Staff Portal Subdomain Configuration
+    |--------------------------------------------------------------------------
+    |
+    | When set (e.g. staff.yourdomain.com), all staff routes (login, dashboards,
+    | clinical modules) are bound exclusively to this subdomain.
+    |
+    */
+
+    'staff_domain' => env('STAFF_DOMAIN') ? preg_replace('#^https?://#', '', preg_replace('/:\d+$/', '', (string) env('STAFF_DOMAIN'))) : null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

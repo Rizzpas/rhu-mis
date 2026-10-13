@@ -824,13 +824,9 @@
             <div class="border-t border-emerald-800/40 dark:border-emerald-950/80 pt-6 mt-10">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
                     
-                    <!-- Left: Disguised Staff Access Portal Link & Copyright (Must be preserved for staff login access) -->
-                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                        <a href="{{ route('staff.access') }}"
-                           class="text-emerald-200/75 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded cursor-default no-underline"
-                           style="text-decoration: none;">
-                            &copy; <span x-text="new Date().getFullYear()">{{ date('Y') }}</span> Rural Health Unit &bull; Municipality of Silang, Cavite.
-                        </a>
+                    <!-- Left: Clean Copyright (Patient-facing portal) -->
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 text-emerald-200/75">
+                        <span>&copy; <span x-text="new Date().getFullYear()">{{ date('Y') }}</span> Rural Health Unit &bull; Municipality of Silang, Cavite.</span>
                         <span class="hidden sm:inline text-emerald-700 dark:text-emerald-800" aria-hidden="true">|</span>
                         <span class="text-emerald-300/60 font-normal">All rights reserved.</span>
                     </div>

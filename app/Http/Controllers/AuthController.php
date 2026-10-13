@@ -20,24 +20,11 @@ class AuthController extends Controller
             return redirect()->to(self::homeRouteForRole($user->role));
         }
 
-        // Only render the login form if the request came through the hidden
-        // /staff-access route (which sets this session flag). Direct visits
-        // to /login without the flag return a generic 404 so outsiders can't
-        // discover that a staff login page exists.
-        // We use pull() so the token is single-use and destroyed immediately;
-        // manually typing /login afterwards will immediately return a 404.
-        if (! session()->pull('staff_portal_token')) {
-            abort(404);
-        }
-
         return view('auth.login');
     }
 
     public function login(Request $request)
     {
-        // Re-arm single-use token in case validation fails and redirects back()
-        session(['staff_portal_token' => true]);
-
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -49,14 +36,12 @@ class AuthController extends Controller
         if (RateLimiter::tooManyAttempts($emailKey, 5)) {
             $seconds = RateLimiter::availableIn($emailKey);
 
-            session(['staff_portal_token' => true]);
             return back()->withErrors(['email' => "Account locked. Please try again in {$seconds} seconds."])->onlyInput('email');
         }
 
         if (RateLimiter::tooManyAttempts($ipKey, 5)) {
             $seconds = RateLimiter::availableIn($ipKey);
 
-            session(['staff_portal_token' => true]);
             return back()->withErrors(['email' => "Too many attempts from this IP. Try again in {$seconds} seconds."])->onlyInput('email');
         }
 
@@ -67,8 +52,7 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            // Clean up staff portal token and public appointment session keys
-            session()->forget(['staff_portal_token', 'manage_appointment_id']);
+            session()->forget('manage_appointment_id');
 
             $user = Auth::user();
 
@@ -84,7 +68,6 @@ class AuthController extends Controller
         RateLimiter::hit($ipKey, 300); // 5 minutes
         RateLimiter::hit($emailKey, 600); // 10 minutes
 
-        session(['staff_portal_token' => true]);
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
@@ -112,7 +95,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 
     public static function homeRouteForRole(string $role): string

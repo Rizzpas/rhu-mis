@@ -1,8 +1,26 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\StaffPasswordResetController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\FrontDeskController;
+use App\Http\Controllers\HeartbeatController;
+use App\Http\Controllers\LabController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NurseController;
+use App\Http\Controllers\PatientController;
+use App\Http\Controllers\PharmacyController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\TriageController;
+use App\Http\Middleware\RoleMiddleware;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -10,8 +28,6 @@ use App\Http\Controllers\PublicController;
 */
 
 // Public Routes
-use App\Http\Controllers\TriageController;
-use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'index'])->name('welcome');
 Route::get('/about', [PublicController::class, 'about'])->name('about');
@@ -50,29 +66,75 @@ if (app()->environment('local')) {
     })->name('dev.toast-preview');
 }
 
-// Auth Routes
-// Hidden staff portal entry — sets a session token so the login page will render.
-// This route is triggered from a disguised link in the public footer.
+// Public Domain Shortcuts / Legacy Redirects to Staff Subdomain
+Route::get('/staff', function () {
+    $staffDomain = config('app.staff_domain');
+    if (!empty($staffDomain)) {
+        $scheme = request()->secure() ? 'https://' : 'http://';
+        return redirect()->away($scheme . $staffDomain);
+    }
+    return redirect()->route('login');
+})->name('staff.portal');
+
 Route::get('/staff-access', function () {
-    session(['staff_portal_token' => true]);
+    $staffDomain = config('app.staff_domain');
+    if (!empty($staffDomain)) {
+        $scheme = request()->secure() ? 'https://' : 'http://';
+        return redirect()->away($scheme . $staffDomain);
+    }
     return redirect()->route('login');
 })->name('staff.access');
 
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
-
-// Forgot Password
-use App\Http\Controllers\Auth\StaffPasswordResetController;
-
 Route::get('/staff-access/forgot-password', function () {
-    session(['staff_portal_token' => true]);
+    $staffDomain = config('app.staff_domain');
+    if (!empty($staffDomain)) {
+        $scheme = request()->secure() ? 'https://' : 'http://';
+        return redirect()->away($scheme . $staffDomain . '/forgot-password');
+    }
     return redirect()->route('staff.password.request');
 })->name('staff.password.access');
 
-Route::get('/staff/forgot-password', [StaffPasswordResetController::class, 'showForgotForm'])->name('staff.password.request');
-Route::post('/staff/forgot-password/otp', [StaffPasswordResetController::class, 'sendResetOtp'])->middleware('throttle:3,1')->name('staff.password.send-otp');
-Route::post('/staff/reset-password', [StaffPasswordResetController::class, 'resetPassword'])->name('staff.password.reset');
+/*
+|--------------------------------------------------------------------------
+| Staff Portal Routes
+|--------------------------------------------------------------------------
+| When STAFF_DOMAIN is configured (e.g. staff.yourdomain.com), all staff
+| routes are bound exclusively to that subdomain. Otherwise, they are registered
+| on the current domain as a fallback for local development.
+*/
+$registerStaffRoutes = function (bool $isDedicatedDomain) {
+    if ($isDedicatedDomain) {
+        // When accessed via dedicated staff subdomain, "/" is the staff portal entry
+        Route::get('/', function () {
+            if (Auth::check()) {
+                return redirect()->to(AuthController::homeRouteForRole(Auth::user()->role));
+            }
+            return app(AuthController::class)->showLoginForm();
+        })->name('staff.home');
+    } else {
+        // Fallback for single-domain setups
+        Route::get('/staff-portal', function () {
+            if (Auth::check()) {
+                return redirect()->to(AuthController::homeRouteForRole(Auth::user()->role));
+            }
+            return redirect()->route('login');
+        })->name('staff.home');
+    }
+
+    // Staff Authentication
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Forgot Password
+    Route::get('/forgot-password', [StaffPasswordResetController::class, 'showForgotForm'])->name('staff.password.request');
+    Route::post('/forgot-password/otp', [StaffPasswordResetController::class, 'sendResetOtp'])->middleware('throttle:3,1')->name('staff.password.send-otp');
+    Route::post('/reset-password', [StaffPasswordResetController::class, 'resetPassword'])->name('staff.password.reset');
+
+    // Legacy password reset route alias
+    Route::get('/staff/forgot-password', function () {
+        return redirect()->route('staff.password.request');
+    });
 
 // Heartbeat (Presence System) — JS pings this every 60s to keep user "Present"
 Route::post('/heartbeat', [\App\Http\Controllers\HeartbeatController::class, 'ping'])
@@ -80,7 +142,6 @@ Route::post('/heartbeat', [\App\Http\Controllers\HeartbeatController::class, 'pi
     ->name('heartbeat.ping');
 
 // Notifications API
-use App\Http\Controllers\NotificationController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/api/notifications', [NotificationController::class, 'index']);
@@ -89,7 +150,6 @@ Route::middleware('auth')->group(function () {
 });
 
 // Chat API
-use App\Http\Controllers\ChatController;
 
 Route::middleware('auth')->prefix('chat')->group(function () {
     Route::get('/conversations', [ChatController::class, 'index'])->name('chat.conversations');
@@ -102,8 +162,6 @@ Route::middleware('auth')->prefix('chat')->group(function () {
 });
 
 // Front Desk / Information Desk Routes
-use App\Http\Controllers\RegistrationController;
-use App\Http\Middleware\RoleMiddleware;
 
 Route::prefix('frontdesk')->middleware(['auth', RoleMiddleware::class.':admin,information_desk'])->group(function () {
     Route::get('/registration', [RegistrationController::class, 'index'])->name('frontdesk.registration.index');
@@ -218,7 +276,6 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class.':admin,super_
 });
 
 // Doctor Routes (regular_doctor + pedia_doctor)
-use App\Http\Controllers\DoctorController;
 
 Route::prefix('doctor')->middleware(['auth', RoleMiddleware::class.':regular_doctor,pedia_doctor'])->group(function () {
     Route::get('/dashboard', [DoctorController::class, 'dashboard'])->name('doctor.dashboard');
@@ -264,7 +321,6 @@ Route::middleware(['auth'])->get('/api/medicines/search', function (\Illuminate\
 })->name('api.medicines.search');
 
 // Nurse / Clinical Routes (clinical_nurse role)
-use App\Http\Controllers\NurseController;
 
 Route::prefix('nurse')->middleware(['auth', RoleMiddleware::class.':clinical_nurse'])->group(function () {
     Route::get('/dashboard', [NurseController::class, 'dashboard'])->name('nurse.dashboard');
@@ -280,7 +336,6 @@ Route::prefix('nurse')->middleware(['auth', RoleMiddleware::class.':clinical_nur
 });
 
 // Laboratory / Radiology Routes
-use App\Http\Controllers\LabController;
 
 Route::prefix('lab')->middleware(['auth', RoleMiddleware::class.':laboratory,radiology'])->group(function () {
     Route::get('/dashboard', [LabController::class, 'dashboard'])->name('lab.dashboard');
@@ -300,7 +355,6 @@ Route::middleware('auth')->get('/ancillary/{ancillary}/file', [LabController::cl
     ->name('ancillary.file');
 
 // Pharmacy Routes
-use App\Http\Controllers\PharmacyController;
 
 Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,admin,super_admin'])->group(function () {
     // Read-only routes — Admin can view dashboards, history, and medicine lists
@@ -324,8 +378,6 @@ Route::prefix('pharmacy')->middleware(['auth', RoleMiddleware::class.':pharmacy,
 });
 
 // Profile Routes
-use App\Http\Controllers\ProfileController;
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/profile/activity', [ProfileController::class, 'activity'])->name('profile.activity');
@@ -335,3 +387,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/email-otp/send', [ProfileController::class, 'sendEmailOtp'])->name('profile.email-otp.send');
     Route::post('/profile/email-otp/verify', [ProfileController::class, 'verifyEmailOtp'])->name('profile.email-otp.verify');
 });
+
+};
+
+$staffDomain = config('app.staff_domain');
+
+if (!empty($staffDomain)) {
+    Route::domain($staffDomain)->group(function () use ($registerStaffRoutes) {
+        $registerStaffRoutes(true);
+    });
+} else {
+    Route::group([], function () use ($registerStaffRoutes) {
+        $registerStaffRoutes(false);
+    });
+}
