@@ -570,5 +570,23 @@ describe('Appointment Form Component Logic', () => {
       expect(form.timeSlots).toEqual(mockSlots);
       expect(form.loadingSlots).toBe(false);
     });
+
+    it('locks relationship to Mother and syncs mother details when toggleMotherAsGuardian is enabled', () => {
+      form.formData.mother_first_name = 'Maria';
+      form.formData.mother_middle_name = 'Clara';
+      form.formData.mother_last_name = 'Santos';
+      form.formData.mother_suffix = '';
+      form.formData.guardian_relation = '';
+      form.errors.guardian_relation = 'Relationship is required';
+
+      form.motherIsGuardian = true;
+      form.toggleMotherAsGuardian();
+
+      expect(form.formData.guardian_first_name).toBe('MARIA');
+      expect(form.formData.guardian_middle_name).toBe('CLARA');
+      expect(form.formData.guardian_last_name).toBe('SANTOS');
+      expect(form.formData.guardian_relation).toBe('Mother');
+      expect(form.errors.guardian_relation).toBeUndefined();
+    });
   });
 });

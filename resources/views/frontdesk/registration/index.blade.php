@@ -1247,6 +1247,12 @@
                                 this.motherIsGuardian = false;
                             }
                         });
+                        this.$watch('motherIsGuardian', val => {
+                            if (val) {
+                                this.syncMotherToGuardian();
+                                this.selectedGuardianRelation = 'Mother';
+                            }
+                        });
                     },
                     toggleMotherAsGuardian() {
                         if (this.motherIsGuardian) {
@@ -1708,7 +1714,7 @@
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3" x-show="editingInfo && addressEditing" x-cloak>
                                     <div class="md:col-span-3">
-                                        <input type="text" :required="addressEditing" x-model="house_no" placeholder="House No." :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" :required="addressEditing" x-model="house_no" placeholder="House Number" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-4">
                                         <input type="text" x-model="street" placeholder="Street Name (Optional)" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
@@ -1873,16 +1879,16 @@
                                 </div>
                                 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Relationship <span class="text-rose-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Relationship to Patient <span class="text-rose-500">*</span></label>
                                     <x-select 
                                         x-model="selectedGuardianRelation" 
                                         :options="$demographicGuardianRelationOptions" 
                                         placeholder="Select Relationship..." 
-                                        x-bind:disabled="!editingInfo" 
+                                        x-bind:disabled="!editingInfo || motherIsGuardian" 
                                         class="mb-2" 
                                         @change="if(selectedGuardianRelation !== 'Mother') motherIsGuardian = false;" 
                                     />
-                                    <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation" placeholder="Specify relationship" :readonly="!editingInfo" :disabled="!editingInfo" :class="editingInfo ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase()">
+                                    <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation" placeholder="Specify relationship" :readonly="!editingInfo || motherIsGuardian" :disabled="!editingInfo || motherIsGuardian" :class="editingInfo && !motherIsGuardian ? 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-emerald-500 text-slate-900 dark:text-white' : 'border border-slate-200/50 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 cursor-not-allowed'" class="w-full rounded-xl shadow-2xs px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase()">
                                     <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
                                 </div>
                                 <div>
@@ -2122,6 +2128,7 @@
                               this.$watch('mother_last', val => { if (this.motherIsGuardian) this.guardian_last = (val || '').toUpperCase(); });
                               this.$watch('mother_suffix', val => { if (this.motherIsGuardian) this.guardian_suffix = (val || '').toUpperCase(); });
                               this.$watch('selectedGuardianRelation', val => { if ((val || '').toLowerCase() !== 'mother') { this.motherIsGuardian = false; } });
+                              this.$watch('motherIsGuardian', val => { if (val) { this.syncMotherToGuardian(); this.selectedGuardianRelation = 'Mother'; } });
                           },
                           toggleMotherAsGuardian() { if (this.motherIsGuardian) { this.syncMotherToGuardian(); this.selectedGuardianRelation = 'Mother'; } },
                           syncMotherToGuardian() {
@@ -2136,6 +2143,19 @@
                       x-data="{ 
                           classification: '{{ old('classification', $defaultClassification) }}', 
                           selectedDob: '{{ old('dob', $prefillApt && $prefillApt->dob ? \Carbon\Carbon::parse($prefillApt->dob)->format('Y-m-d') : '') }}',
+                          editingInfo: true,
+                          mother_first: '', mother_middle: '', mother_last: '', mother_suffix: '',
+                          get mothersMaidenFullName() {
+                              return (this.mother_first + ' ' + (this.mother_middle ? this.mother_middle + ' ' : '') + this.mother_last + (this.mother_suffix ? ' ' + this.mother_suffix : '')).trim().replace(/\s+/g, ' ').toUpperCase();
+                          },
+                          guardian_first: '{{ addslashes(old('guardian_first_name', $prefillApt ? $prefillApt->guardian_first_name : '')) }}',
+                          guardian_middle: '{{ addslashes(old('guardian_middle_name', $prefillApt ? $prefillApt->guardian_middle_name : '')) }}',
+                          guardian_last: '{{ addslashes(old('guardian_last_name', $prefillApt ? $prefillApt->guardian_last_name : '')) }}',
+                          guardian_suffix: '{{ addslashes(old('guardian_suffix', $prefillApt ? $prefillApt->guardian_suffix : '')) }}',
+                          motherIsGuardian: false,
+                          selectedGuardianRelation: '{{ addslashes($newGrelVal) }}',
+                          customGuardianRelation: '{{ addslashes($newGrelCust) }}',
+                          get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; },
                           calculateAge(dobStr) {
                               if (!dobStr) return null;
                               const d = new Date(dobStr);
@@ -2176,6 +2196,39 @@
                               if (this.classification === 'Regular Adult' && age <= 12) return 'Age Mismatch: The patient is ' + age + ' years old. Adult classification requires at least 13 years old.';
                               if (this.classification === 'Senior Citizen' && age < 60) return 'Age Mismatch: The patient is ' + age + ' years old. Senior Citizen classification requires at least 60 years old.';
                               return null;
+                          },
+                          parseMotherName(fullName) {
+                              if(!fullName) return { first: '', middle: '', last: '', suffix: '' };
+                              let parts = fullName.split(' ');
+                              if(parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' };
+                              if(parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' };
+                              let first = parts[0], last = parts[parts.length - 1], middle = parts.slice(1, parts.length - 1).join(' '), suffix = '';
+                              let suffixes = ['JR', 'SR', 'II', 'III', 'IV', 'V', 'JR.', 'SR.'];
+                              if(suffixes.includes(last.toUpperCase())) { suffix = last; last = parts[parts.length - 2] || ''; middle = parts.slice(1, parts.length - 2).join(' '); }
+                              return { first, middle, last, suffix };
+                          },
+                          init() {
+                              let parsed = this.parseMotherName('{{ addslashes(old('mothers_maiden_name', $prefillApt ? $prefillApt->mothers_maiden_name : '')) }}');
+                              this.mother_first = parsed.first; this.mother_middle = parsed.middle; this.mother_last = parsed.last; this.mother_suffix = parsed.suffix;
+                              const mFirst = (this.mother_first || '').trim().toUpperCase();
+                              const mLast = (this.mother_last || '').trim().toUpperCase();
+                              const gFirst = (this.guardian_first || '').trim().toUpperCase();
+                              const gLast = (this.guardian_last || '').trim().toUpperCase();
+                              const gRel = (this.selectedGuardianRelation || '').trim().toUpperCase();
+                              if (gRel === 'MOTHER' && gFirst && gFirst === mFirst && (!gLast || !mLast || gLast === mLast)) { this.motherIsGuardian = true; }
+                              this.$watch('mother_first', val => { if (this.motherIsGuardian) this.guardian_first = (val || '').toUpperCase(); });
+                              this.$watch('mother_middle', val => { if (this.motherIsGuardian) this.guardian_middle = (val || '').toUpperCase(); });
+                              this.$watch('mother_last', val => { if (this.motherIsGuardian) this.guardian_last = (val || '').toUpperCase(); });
+                              this.$watch('mother_suffix', val => { if (this.motherIsGuardian) this.guardian_suffix = (val || '').toUpperCase(); });
+                              this.$watch('selectedGuardianRelation', val => { if ((val || '').toLowerCase() !== 'mother') { this.motherIsGuardian = false; } });
+                              this.$watch('motherIsGuardian', val => { if (val) { this.syncMotherToGuardian(); this.selectedGuardianRelation = 'Mother'; } });
+                          },
+                          toggleMotherAsGuardian() { if (this.motherIsGuardian) { this.syncMotherToGuardian(); this.selectedGuardianRelation = 'Mother'; } },
+                          syncMotherToGuardian() {
+                              this.guardian_first = (this.mother_first || '').trim().toUpperCase();
+                              this.guardian_middle = (this.mother_middle || '').trim().toUpperCase();
+                              this.guardian_last = (this.mother_last || '').trim().toUpperCase();
+                              this.guardian_suffix = (this.mother_suffix || '').trim().toUpperCase();
                           }
                       }">
                 @endif
@@ -2627,7 +2680,7 @@
 
                                 <div x-show="mode === 'edit'" class="grid grid-cols-1 md:grid-cols-12 gap-3" x-cloak>
                                     <div class="md:col-span-3">
-                                        <input type="text" :required="mode === 'edit'" x-model="house_no" placeholder="House No." class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
+                                        <input type="text" :required="mode === 'edit'" x-model="house_no" placeholder="House Number" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-4">
                                         <input type="text" x-model="street" placeholder="Street Name (Optional)" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
@@ -2782,15 +2835,16 @@
                                 </div>
                                 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Relationship <span class="text-rose-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Relationship to Patient <span class="text-rose-500">*</span></label>
                                     <x-select 
                                         x-model="selectedGuardianRelation" 
                                         :options="$demographicGuardianRelationOptions" 
                                         placeholder="Select Relationship..." 
+                                        :disabled="motherIsGuardian"
                                         class="mb-2" 
                                         @change="if(selectedGuardianRelation !== 'Mother') motherIsGuardian = false;" 
                                     />
-                                    <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation" placeholder="Specify relationship" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase()">
+                                    <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation" placeholder="Specify relationship" :disabled="motherIsGuardian" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase()">
                                     <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
                                 </div>
                                 <div>

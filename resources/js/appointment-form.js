@@ -231,6 +231,7 @@ export function appointmentForm(config = {}) {
     toggleMotherAsGuardian() {
       if (this.motherIsGuardian) {
         this.syncMotherToGuardian();
+        this.formData.guardian_relation = 'Mother';
       }
     },
 
@@ -249,6 +250,7 @@ export function appointmentForm(config = {}) {
       this.formData.guardian_middle_name = mMid;
       this.formData.guardian_last_name = mLast;
       this.formData.guardian_suffix = mSuffix;
+      this.formData.guardian_relation = 'Mother';
 
       if (typeof document !== 'undefined') {
         const gFirst = document.querySelector('input[name="guardian_first_name"]');
@@ -259,12 +261,15 @@ export function appointmentForm(config = {}) {
         if (gLast) gLast.value = mLast;
         const gSuffix = document.querySelector('input[name="guardian_suffix"]');
         if (gSuffix) gSuffix.value = mSuffix;
+        const gRel = document.querySelector('input[name="guardian_relation"]');
+        if (gRel) gRel.value = 'Mother';
       }
 
       if (this.formData.guardian_first_name && this.formData.guardian_last_name) {
         delete this.errors.guardian_first_name;
         delete this.errors.guardian_last_name;
       }
+      delete this.errors.guardian_relation;
     },
 
     setService(type) {

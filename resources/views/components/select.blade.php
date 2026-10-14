@@ -339,7 +339,7 @@
             </template>
 
             <span class="truncate block font-normal" 
-                  :class="(!selectedOption || !selected) ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'" 
+                  :class="(!selectedOption || !selected) ? 'text-slate-400 dark:text-slate-500' : (isDisabled() ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white')" 
                   x-text="selectedLabel"></span>
 
             {{-- Selected Option Badge --}}

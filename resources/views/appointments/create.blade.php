@@ -1005,7 +1005,7 @@
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                                     <div class="md:col-span-3">
-                                        <input type="text" x-model="house_no" :required="!isFollowUp" placeholder="House No."
+                                        <input type="text" x-model="house_no" :required="!isFollowUp" placeholder="House Number"
                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-4">
@@ -1122,24 +1122,24 @@
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __("Mother's Maiden Name (Birth Name)") }} <span class="text-rose-500">*</span></label>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                                     <div class="md:col-span-4">
-                                        <input type="text" x-model="formData.mother_first_name" :required="!isFollowUp" placeholder="Mother's First Name"
+                                        <input type="text" x-model="formData.mother_first_name" :required="!isFollowUp" placeholder="First Name"
                                             @input="formData.mother_first_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
                                             :class="errors.mothers_maiden_name && !formData.mother_first_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
                                     </div>
                                     <div class="md:col-span-3">
-                                        <input type="text" x-model="formData.mother_middle_name" placeholder="Mother's Middle Name"
+                                        <input type="text" x-model="formData.mother_middle_name" placeholder="Middle Name"
                                             @input="formData.mother_middle_name = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
                                     <div class="md:col-span-3">
-                                        <input type="text" x-model="formData.mother_last_name" :required="!isFollowUp" placeholder="Mother's Last Name"
+                                        <input type="text" x-model="formData.mother_last_name" :required="!isFollowUp" placeholder="Last Name"
                                             @input="formData.mother_last_name = $event.target.value.toUpperCase(); if (errors.mothers_maiden_name && formData.mother_first_name && formData.mother_last_name) delete errors.mothers_maiden_name; if (motherIsGuardian) syncMotherToGuardian();"
                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
                                             :class="errors.mothers_maiden_name && !formData.mother_last_name ? 'border-rose-500! ring-1 ring-rose-500! dark:border-rose-500!' : ''">
                                     </div>
                                     <div class="md:col-span-2">
-                                        <input type="text" x-model="formData.mother_suffix" placeholder="Suffix (JR/SR)"
+                                        <input type="text" x-model="formData.mother_suffix" placeholder="Suffix"
                                             @input="formData.mother_suffix = $event.target.value.toUpperCase(); if (motherIsGuardian) syncMotherToGuardian();"
                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors">
                                     </div>
@@ -1202,7 +1202,7 @@
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Guardian Name') }} <span class="text-rose-500">*</span></label>
                                         <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                                             <div class="md:col-span-4">
-                                                <input type="text" name="guardian_first_name" x-model="formData.guardian_first_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="Guardian First Name"
+                                                <input type="text" name="guardian_first_name" x-model="formData.guardian_first_name" :required="formData.type === 'pedia' && !isFollowUp" placeholder="First Name"
                                                     :readonly="motherIsGuardian"
                                                     @input="if (!motherIsGuardian) { formData.guardian_first_name = $event.target.value.toUpperCase(); if (errors.guardian_first_name && formData.guardian_first_name && formData.guardian_last_name) delete errors.guardian_first_name; }"
                                                     class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors"
@@ -1236,11 +1236,11 @@
                                         selectedGuardianRelation: '{{ old('guardian_relation', '') }}',
                                         customGuardianRelation: '',
                                         get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; }
-                                    }" x-effect="formData.guardian_relation = finalGuardianRelation; if (errors.guardian_relation && finalGuardianRelation) delete errors.guardian_relation;">
+                                    }" x-effect="if (motherIsGuardian) { selectedGuardianRelation = 'Mother'; } formData.guardian_relation = finalGuardianRelation; if (errors.guardian_relation && finalGuardianRelation) delete errors.guardian_relation;">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Relationship to Patient') }} <span class="text-rose-500">*</span></label>
-                                        <x-select name="guardian_relation" x-model="selectedGuardianRelation" :options="$guardianRelationOptions" placeholder="Select Relationship..." class="mb-2" />
+                                        <x-select x-model="selectedGuardianRelation" :options="$guardianRelationOptions" placeholder="Select Relationship..." :disabled="motherIsGuardian" class="mb-2" />
                                         <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation"
-                                            placeholder="Specify relationship..." style="display:none;"
+                                            placeholder="Specify relationship..." style="display:none;" :disabled="motherIsGuardian"
                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase(); if (errors.guardian_relation) delete errors.guardian_relation;">
                                         <input type="hidden" name="guardian_relation" :value="finalGuardianRelation">
                                         <p x-show="errors.guardian_relation" class="text-rose-500 text-xs mt-1" x-text="errors.guardian_relation"></p>
@@ -1888,6 +1888,7 @@
                 toggleMotherAsGuardian() {
                     if (this.motherIsGuardian) {
                         this.syncMotherToGuardian();
+                        this.formData.guardian_relation = 'Mother';
                     }
                 },
 
@@ -1906,6 +1907,7 @@
                     this.formData.guardian_middle_name = mMid;
                     this.formData.guardian_last_name = mLast;
                     this.formData.guardian_suffix = mSuffix;
+                    this.formData.guardian_relation = 'Mother';
 
                     // Immediately update DOM input values for instant visual feedback
                     const gFirst = document.querySelector('input[name="guardian_first_name"]');
@@ -1916,12 +1918,15 @@
                     if (gLast) gLast.value = mLast;
                     const gSuffix = document.querySelector('input[name="guardian_suffix"]');
                     if (gSuffix) gSuffix.value = mSuffix;
+                    const gRel = document.querySelector('input[name="guardian_relation"]');
+                    if (gRel) gRel.value = 'Mother';
 
-                    // Clear guardian name errors if names are now present
+                    // Clear guardian name and relation errors if present
                     if (this.formData.guardian_first_name && this.formData.guardian_last_name) {
                         delete this.errors.guardian_first_name;
                         delete this.errors.guardian_last_name;
                     }
+                    delete this.errors.guardian_relation;
                 },
 
                 setService(type) {
