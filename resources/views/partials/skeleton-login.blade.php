@@ -3,10 +3,13 @@
      class="fixed inset-0 z-[9999] bg-[#faf8f2] dark:bg-[#081a1c] transition-opacity duration-300 ease-in-out flex items-center justify-center pointer-events-none p-4"
      style="opacity: 1;"
 >
-    <!-- Top-left Branding Skeleton -->
+    <!-- Top-left Branding Skeleton (matches actual: logo + "RHU SILANG" text) -->
     <div class="absolute top-6 left-6 md:top-8 md:left-10 flex items-center gap-3">
         <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
-        <div class="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse hidden sm:block"></div>
+        <div class="hidden sm:flex items-center gap-1 animate-pulse">
+            <div class="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+            <div class="h-5 w-16 bg-teal-200 dark:bg-teal-900/60 rounded-lg"></div>
+        </div>
     </div>
 
     <!-- Top-right Theme Toggle Skeleton -->
@@ -15,25 +18,29 @@
     </div>
 
     <!-- Main Login Modal Container Skeleton -->
-    <div class="w-full max-w-[900px] bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row m-4 border border-slate-100 dark:border-slate-700 animate-pulse">
+    <div class="w-full max-w-[900px] bg-white dark:bg-slate-800 rounded-3xl shadow-2xl shadow-teal-900/10 dark:shadow-teal-900/30 overflow-hidden flex flex-col md:flex-row m-4 border border-slate-100 dark:border-slate-700 animate-pulse">
         
         <!-- Left Branding Banner (Desktop) -->
-        <div class="w-full md:w-5/12 bg-gradient-to-br from-teal-700 to-emerald-900 dark:from-teal-900 dark:to-slate-900 p-10 text-white flex flex-col justify-center items-center text-center relative overflow-hidden hidden md:flex">
-            <!-- Decorative circle shimmer -->
-            <div class="w-24 h-24 rounded-full bg-white/20 p-2 mb-8 border border-white/20 shadow-xl flex items-center justify-center">
+        <div class="w-full md:w-5/12 bg-gradient-to-br from-teal-600 to-emerald-800 dark:from-teal-800 dark:to-slate-900 p-10 text-white flex flex-col justify-center items-center text-center relative overflow-hidden hidden md:flex">
+            <!-- Decorative background circles -->
+            <div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
+            <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-teal-900/40 blur-3xl"></div>
+            
+            <!-- Logo circle shimmer -->
+            <div class="relative z-10 w-24 h-24 rounded-full bg-white/10 backdrop-blur-md p-2 mb-8 border border-white/20 shadow-xl flex items-center justify-center">
                 <div class="w-16 h-16 rounded-full bg-white/30"></div>
             </div>
             
-            <div class="h-7 w-48 bg-white/30 rounded-lg mb-3"></div>
-            <div class="h-7 w-36 bg-teal-200/40 rounded-lg mb-6"></div>
+            <div class="relative z-10 space-y-3 flex flex-col items-center">
+                <div class="h-7 w-48 bg-white/30 rounded-lg"></div>
+                <div class="h-7 w-36 bg-teal-200/40 rounded-lg"></div>
+            </div>
             
-            <div class="space-y-2 w-full max-w-xs flex flex-col items-center">
+            <div class="relative z-10 space-y-2 w-full max-w-xs flex flex-col items-center mt-6">
                 <div class="h-3.5 w-56 bg-white/20 rounded"></div>
                 <div class="h-3.5 w-48 bg-white/20 rounded"></div>
                 <div class="h-3.5 w-40 bg-white/20 rounded"></div>
             </div>
-
-            <div class="mt-12 h-3 w-32 bg-white/10 rounded"></div>
         </div>
 
         <!-- Right Form Area -->

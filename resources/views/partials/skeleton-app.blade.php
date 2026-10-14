@@ -4,31 +4,56 @@
      style="opacity: 1;"
 >
     <!-- Top Bar: Official Republic Header Skeleton -->
-    <div class="bg-emerald-900 text-white h-9 px-4 md:px-8 flex justify-between items-center animate-pulse border-b border-emerald-800">
-        <div class="h-3.5 w-64 bg-emerald-700/60 rounded"></div>
-        <div class="h-3.5 w-48 bg-emerald-700/60 rounded hidden md:block"></div>
+    <div class="bg-emerald-900 text-white h-9 px-4 md:px-8 flex justify-between items-center animate-pulse border-b border-emerald-800/60">
+        <div class="hidden md:flex items-center gap-2">
+            <div class="h-3 w-40 bg-emerald-700/60 rounded"></div>
+            <div class="w-1 h-1 rounded-full bg-emerald-400/30"></div>
+            <div class="h-3 w-28 bg-emerald-700/60 rounded"></div>
+            <div class="w-1 h-1 rounded-full bg-emerald-400/30"></div>
+            <div class="h-3 w-32 bg-emerald-700/60 rounded"></div>
+        </div>
+        <div class="flex items-center gap-4 mx-auto md:mx-0">
+            <div class="h-3 w-48 bg-emerald-700/60 rounded"></div>
+            <div class="w-1 h-1 rounded-full bg-emerald-400/30 hidden sm:block"></div>
+            <div class="h-3 w-28 bg-emerald-700/60 rounded hidden sm:block"></div>
+        </div>
     </div>
 
     <!-- Main Navigation Skeleton -->
-    <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 py-3.5 animate-pulse">
+    <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800/90 shadow-2xs px-4 md:px-8 py-3.5 animate-pulse">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <!-- Brand Logo & Title -->
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                <div class="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-200/80 dark:border-slate-700/80"></div>
                 <div class="space-y-1">
-                    <div class="h-4 w-40 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                    <div class="h-2.5 w-32 bg-slate-100 dark:bg-slate-800 rounded"></div>
+                    <div class="h-4.5 w-36 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                    <div class="h-2 w-44 bg-slate-100 dark:bg-slate-800 rounded"></div>
                 </div>
             </div>
+
+            <!-- Mobile Hamburger (visible on small screens) -->
+            <div class="w-10 h-10 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 md:hidden"></div>
 
             <!-- Nav Links (Desktop) -->
             <div class="hidden md:flex items-center gap-8">
                 <div class="h-4 w-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                <div class="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                <div class="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                <div class="h-4 w-28 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <!-- Dropdown nav items with chevron -->
+                <div class="flex items-center gap-1">
+                    <div class="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                    <div class="w-3.5 h-3.5 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                </div>
+                <div class="flex items-center gap-1">
+                    <div class="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                    <div class="w-3.5 h-3.5 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                </div>
+                <div class="flex items-center gap-1">
+                    <div class="h-4 w-28 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                    <div class="w-3.5 h-3.5 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                </div>
+                <!-- Theme toggle switch -->
                 <div class="h-6 w-11 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
-                <div class="h-10 w-36 bg-emerald-600/80 dark:bg-emerald-700/80 rounded-xl"></div>
+                <!-- Book Appointment CTA Button -->
+                <div class="h-10 w-40 bg-emerald-700/80 dark:bg-emerald-800/80 rounded-xl"></div>
             </div>
         </div>
     </div>
