@@ -1942,8 +1942,8 @@
                     
                     <div class="flex items-center justify-end gap-3 pt-5 border-t border-slate-100 dark:border-slate-800">
                         <a href="{{ route('frontdesk.registration.index') }}" class="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cancel</a>
-                        <button type="button" 
-                                @click="window.queueConfirmState && window.queueConfirmState.openConfirm({
+                        <button type="button"
+                                @click="if (window.queueConfirmState) { window.queueConfirmState.openConfirm({
                                     formId: 'returningPatientQueueForm',
                                     patientName: '{{ addslashes($selectedPatient->full_name) }}',
                                     patientId: '{{ $selectedPatient->patient_id }}',
@@ -1955,7 +1955,7 @@
                                     symptoms: '{{ addslashes($preTriageRecord->symptoms ?: ($preTriageRecord->chief_complaint ?: 'None recorded')) }}',
                                     isPediatric: {{ $isPediatric ? 'true' : 'false' }},
                                     isFollowUp: {{ $isFollowUp ? 'true' : 'false' }}
-                                })"
+                                }); } else { window.toast ? window.toast.error('Please refresh the page and try again.', 'Error') : alert('Please refresh the page.'); }"
                                 class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer text-xs">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Generate Queue &amp; Assign
@@ -2924,7 +2924,14 @@
         openConfirm(config) {
             this.formId = config.formId;
             const form = document.getElementById(config.formId);
-            if (!form) return;
+            if (!form) {
+                if (window.toast) {
+                    window.toast.error('Queue form not found. Please refresh the page and try again.', 'Error');
+                } else {
+                    alert('Queue form not found. Please refresh the page.');
+                }
+                return;
+            }
 
             // Severity check runs BEFORE native validation: the severity radios are
             // sr-only, so the browser's validation bubble for them is effectively invisible.
@@ -2945,9 +2952,27 @@
                 sev = checkedSev.value;
             }
 
-            // HTML5 field validation
+            // HTML5 field validation — collect all invalid fields and show a toast
             if (!form.checkValidity()) {
-                form.reportValidity();
+                const invalidFields = Array.from(form.querySelectorAll(':invalid'))
+                    .filter(el => el.name && el.type !== 'hidden')
+                    .map(el => {
+                        const label = form.querySelector(`label[for="${el.id}"]`);
+                        return label ? label.textContent.trim().replace(/\s*\*\s*$/, '') : (el.placeholder || el.name);
+                    })
+                    .filter((v, i, a) => v && a.indexOf(v) === i)
+                    .slice(0, 5);
+                const msg = invalidFields.length
+                    ? `Please complete the following required fields: ${invalidFields.join(', ')}.`
+                    : 'Please complete all required fields before generating the queue.';
+                if (window.toast) {
+                    window.toast.error(msg, 'Missing Information');
+                } else {
+                    alert(msg);
+                }
+                // Scroll the first invalid field into view
+                const firstInvalid = form.querySelector(':invalid:not([type=hidden])');
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
 

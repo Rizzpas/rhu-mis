@@ -511,10 +511,10 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('nurse.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6" @submit.prevent="showConfirm(
+                    <form id="nurse-complete-form" action="{{ route('nurse.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6" @submit.prevent="showConfirm(
                         'Complete Consultation?', 
                         'Are you sure you want to finalize this medical record? Please ensure all diagnoses and prescriptions are correct.', 
-                        () => $el.submit()
+                        () => { const f = document.getElementById('nurse-complete-form'); if(f) f.submit(); }
                     )">
                         @csrf
                         

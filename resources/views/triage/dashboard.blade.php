@@ -192,31 +192,39 @@
                  @triage-restore.window="restoreQueue($event.detail)"
                  @triage-arrived.window="
                     appointmentId = $event.detail.appointment_id || '';
+                    isAppointmentLocked = !!$event.detail.appointment_id;
                     searchQuery = $event.detail.name;
                     searchDOB = $event.detail.dob || '';
+                    const aptClassification = $event.detail.classification || $event.detail.type || 'Adult';
+                    const aptComplaint = $event.detail.complaint || '';
                     searchPatients(searchDOB);
                     setTimeout(() => { 
                         if(searchResults.length === 0) { 
-                            setNew(); 
+                            setNew(true); 
                             selectedPatient = null; 
                             const fn = document.querySelector('input[name=first_name]'); if(fn) fn.value = $event.detail.first_name || ''; 
                             const ln = document.querySelector('input[name=last_name]'); if(ln) ln.value = $event.detail.last_name || ''; 
                             const mn = document.querySelector('input[name=middle_name]'); if(mn) mn.value = $event.detail.middle_name || ''; 
                             const sfx = document.querySelector('input[name=suffix]'); if(sfx) sfx.value = $event.detail.suffix || ''; 
-                            const dob = document.querySelector('input[name=dob]'); if(dob) dob.value = searchDOB;
-                            classification = $event.detail.classification || $event.detail.type || 'Adult';
-                            symptomsText = $event.detail.complaint || '';
+                            classification = aptClassification;
+                            symptomsText = aptComplaint;
+                            // Set DOB via Alpine event so the datepicker component picks it up
+                            if (searchDOB) {
+                                window.dispatchEvent(new CustomEvent('set-triage-dob', { detail: searchDOB }));
+                            }
                         } else if(searchResults.length === 1) {
                             selectPatient(searchResults[0]);
-                            symptomsText = $event.detail.complaint || '';
+                            classification = aptClassification;
+                            symptomsText = aptComplaint;
                         } else {
-                            symptomsText = $event.detail.complaint || '';
-                            classification = $event.detail.classification || $event.detail.type || 'Adult';
+                            symptomsText = aptComplaint;
+                            classification = aptClassification;
                         }
                     }, 800);
                  " 
                  x-data="{
                     appointmentId: '',
+                    isAppointmentLocked: false,
                     searchQuery: '',
                     searchDOB: '',
                     searchResults: [],
@@ -316,13 +324,17 @@
                         this.allergiesText = '';
                     },
 
-                    setNew() {
+                    setNew(fromAppointment = false) {
                         this.selectedPatient = null;
                         this.isNew = true;
                         this.searchQuery = '';
                         this.searchResults = [];
                         this.vitalsStartedAt = Date.now();
-                        this.classification = 'Adult';
+                        // Don't reset classification when coming from an appointment
+                        if (!fromAppointment) {
+                            this.classification = 'Adult';
+                            this.isAppointmentLocked = false;
+                        }
                         this.clearHistory();
                     },
 
@@ -333,6 +345,7 @@
                         this.searchResults = [];
                         this.vitalsStartedAt = null;
                         this.appointmentId = '';
+                        this.isAppointmentLocked = false;
                         this.weightVal = '';
                         this.heightVal = '';
                         this.tempVal = '';
@@ -696,30 +709,44 @@
                                     <div>
                                         <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5">
                                             Classification <span class="text-rose-500">*</span>
+                                            <template x-if="isAppointmentLocked">
+                                                <span class="inline-flex items-center gap-1 ml-1.5 text-[10px] text-blue-600 dark:text-blue-400 font-bold normal-case">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                    Locked by Appointment
+                                                </span>
+                                            </template>
                                         </label>
-                                        <div class="grid grid-cols-4 gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
+                                        <div class="grid grid-cols-4 gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800" :class="isAppointmentLocked ? 'opacity-60' : ''">
                                             <button type="button" 
-                                                    @click="classification = 'Pediatric'"
+                                                    @click="if(!isAppointmentLocked) classification = 'Pediatric'"
                                                     :class="classification === 'Pediatric' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
-                                                    class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
+                                                    :disabled="isAppointmentLocked"
+                                                    class="py-2 text-xs font-extrabold rounded-xl transition text-center"
+                                                    :style="isAppointmentLocked ? 'cursor: not-allowed' : 'cursor: pointer'">
                                                 Pedia
                                             </button>
                                             <button type="button" 
-                                                    @click="classification = 'Adult'"
+                                                    @click="if(!isAppointmentLocked) classification = 'Adult'"
                                                     :class="classification === 'Adult' ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
-                                                    class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
+                                                    :disabled="isAppointmentLocked"
+                                                    class="py-2 text-xs font-extrabold rounded-xl transition text-center"
+                                                    :style="isAppointmentLocked ? 'cursor: not-allowed' : 'cursor: pointer'">
                                                 Adult
                                             </button>
                                             <button type="button" 
-                                                    @click="classification = 'Senior'"
+                                                    @click="if(!isAppointmentLocked) classification = 'Senior'"
                                                     :class="classification === 'Senior' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
-                                                    class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
+                                                    :disabled="isAppointmentLocked"
+                                                    class="py-2 text-xs font-extrabold rounded-xl transition text-center"
+                                                    :style="isAppointmentLocked ? 'cursor: not-allowed' : 'cursor: pointer'">
                                                 Senior
                                             </button>
                                             <button type="button" 
-                                                    @click="classification = 'PWD'"
+                                                    @click="if(!isAppointmentLocked) classification = 'PWD'"
                                                     :class="classification === 'PWD' ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'"
-                                                    class="py-2 text-xs font-extrabold rounded-xl transition cursor-pointer text-center">
+                                                    :disabled="isAppointmentLocked"
+                                                    class="py-2 text-xs font-extrabold rounded-xl transition text-center"
+                                                    :style="isAppointmentLocked ? 'cursor: not-allowed' : 'cursor: pointer'">
                                                 PWD
                                             </button>
                                         </div>
@@ -792,6 +819,8 @@
                                             },
                                             autoUpdateClassification(dateStr) {
                                                 if (!dateStr || classification === 'PWD') return;
+                                                // Don't auto-update classification when locked by an appointment
+                                                if (isAppointmentLocked) return;
                                                 const birthDate = new Date(dateStr);
                                                 if (isNaN(birthDate.getTime())) return;
                                                 const today = new Date();
@@ -822,6 +851,17 @@
                                                             this.currentDate = d;
                                                         }
                                                         this.autoUpdateClassification(val);
+                                                    }
+                                                });
+                                                // Listen for DOB set from appointment arrival
+                                                window.addEventListener('set-triage-dob', (e) => {
+                                                    const dateStr = e.detail;
+                                                    if (dateStr) {
+                                                        this.dobValue = dateStr;
+                                                        const d = new Date(dateStr);
+                                                        if (!isNaN(d.getTime())) {
+                                                            this.currentDate = d;
+                                                        }
                                                     }
                                                 });
                                             }

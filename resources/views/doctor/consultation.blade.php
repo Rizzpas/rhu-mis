@@ -523,7 +523,7 @@
                     </div>
                     </div>
 
-                    <form action="{{ route('doctor.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6" x-data="{ showConfirm: false }" @submit.prevent="showConfirm = true">
+                    <form id="doctor-complete-form" action="{{ route('doctor.consultation.complete', $consultation->id) }}" method="POST" class="grow flex flex-col p-6 space-y-6" x-data="{ showConfirm: false }" @submit.prevent="showConfirm = true">
                         @csrf
                         
                         <div>
@@ -1042,7 +1042,7 @@
                                         <h3 class="text-xl font-black text-slate-800 mb-2">Ready to Complete?</h3>
                                         <p class="text-slate-500 text-sm mb-6">This will finalize the case and save it to the patient's medical history. Please ensure all diagnosis and instructions are correct.</p>
                                         <div class="flex flex-col gap-2">
-                                            <button type="button" @click="$el.closest('form').submit()" class="w-full py-3 bg-teal-600 text-white rounded-xl font-black hover:bg-teal-700 transition shadow-lg shadow-teal-600/20">Yes, Finalize Case</button>
+                                            <button type="button" @click="const f = document.getElementById('doctor-complete-form'); if(f) f.submit();" class="w-full py-3 bg-teal-600 text-white rounded-xl font-black hover:bg-teal-700 transition shadow-lg shadow-teal-600/20">Yes, Finalize Case</button>
                                             <button type="button" @click="showConfirm = false" class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition">Go Back & Edit</button>
                                         </div>
                                     </div>
