@@ -2898,10 +2898,9 @@
      Applies deliberately across ALL severities (Severe, Mild, Normal/Light)
      Guarantees clear review of triage level and assigned medical provider
      ========================================================================= -->
-<div x-data="{
-        // Expose the REACTIVE proxy globally. Assigning the object literal directly
-        // (window.queueConfirmState = {...}) stores Alpine's raw object, so mutations
-        // made from outside (e.g. isOpen = true) never trigger re-renders.
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('queueConfirmData', () => ({
         init() { window.queueConfirmState = this; },
         isOpen: false,
         isSubmitting: false,
@@ -2941,8 +2940,8 @@
             } else if (config.isFollowUp) {
                 sev = 'mild';
             } else {
-                const checkedSev = form.querySelector('input[name=\'symptom_severity\']:checked') 
-                    || form.querySelector('input[name=\'symptom_severity\'][type=\'hidden\']');
+                const checkedSev = form.querySelector("input[name='symptom_severity']:checked")
+                    || form.querySelector("input[name='symptom_severity'][type='hidden']");
                 if (!checkedSev || !checkedSev.value) {
                     alert('Please select a triage severity level (Light, Mild, or Severe) before generating queue.');
                     const sc = form.querySelector('.symptom-severity-container');
@@ -2957,20 +2956,19 @@
                 const invalidFields = Array.from(form.querySelectorAll(':invalid'))
                     .filter(el => el.name && el.type !== 'hidden')
                     .map(el => {
-                        const label = form.querySelector(`label[for="${el.id}"]`);
+                        const label = form.querySelector('label[for="' + el.id + '"]');
                         return label ? label.textContent.trim().replace(/\s*\*\s*$/, '') : (el.placeholder || el.name);
                     })
                     .filter((v, i, a) => v && a.indexOf(v) === i)
                     .slice(0, 5);
                 const msg = invalidFields.length
-                    ? `Please complete the following required fields: ${invalidFields.join(', ')}.`
+                    ? 'Please complete the following required fields: ' + invalidFields.join(', ') + '.'
                     : 'Please complete all required fields before generating the queue.';
                 if (window.toast) {
                     window.toast.error(msg, 'Missing Information');
                 } else {
                     alert(msg);
                 }
-                // Scroll the first invalid field into view
                 const firstInvalid = form.querySelector(':invalid:not([type=hidden])');
                 if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
@@ -2987,7 +2985,7 @@
             this.symptoms = config.symptoms || 'None recorded';
             this.isPediatric = !!config.isPediatric;
             this.isFollowUp = !!config.isFollowUp;
-            this.isEmergency = !!form.querySelector('input[name=\'emergency_override\']:checked');
+            this.isEmergency = !!form.querySelector("input[name='emergency_override']:checked");
 
             if (this.severity === 'severe') {
                 this.severityLabel = 'Severe';
@@ -3021,7 +3019,10 @@
             if (this.isSubmitting) return;
             this.isOpen = false;
         }
-     }">
+    }));
+});
+</script>
+<div x-data="queueConfirmData()">
     <template x-teleport="body">
         <div x-show="isOpen"
              x-cloak
