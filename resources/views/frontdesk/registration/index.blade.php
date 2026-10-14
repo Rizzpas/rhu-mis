@@ -2024,9 +2024,144 @@
                         <p class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5">BP: <span class="font-bold font-mono">{{ $newFromTriage->blood_pressure ?? '--' }}</span> &bull; Temp: <span class="font-bold font-mono">{{ $newFromTriage->temperature ?? '--' }}°C</span> &bull; SpO₂: <span class="font-bold font-mono">{{ $newFromTriage->spo2 ?? '--' }}%</span> &bull; <em>{{ $newFromTriage->patient_name }}</em></p>
                     </div>
                 </div>
-                <form id="newPatientQueueForm" action="{{ route('frontdesk.registerAndQueue', $newFromTriage) }}" method="POST" class="p-6 md:p-8 space-y-6">
+                <form id="newPatientQueueForm" action="{{ route('frontdesk.registerAndQueue', $newFromTriage) }}" method="POST" class="p-6 md:p-8 space-y-6"
+                      x-data="{ 
+                          classification: '{{ old('classification', $defaultClassification) }}', 
+                          selectedDob: '{{ old('dob', $prefillApt && $prefillApt->dob ? \Carbon\Carbon::parse($prefillApt->dob)->format('Y-m-d') : (isset($newFromTriage) && $newFromTriage->dob ? $newFromTriage->dob : '')) }}',
+                          editingInfo: true,
+                          mother_first: '', mother_middle: '', mother_last: '', mother_suffix: '',
+                          get mothersMaidenFullName() {
+                              return (this.mother_first + ' ' + (this.mother_middle ? this.mother_middle + ' ' : '') + this.mother_last + (this.mother_suffix ? ' ' + this.mother_suffix : '')).trim().replace(/\\s+/g, ' ').toUpperCase();
+                          },
+                          guardian_first: '{{ addslashes(old('guardian_first_name', $prefillApt ? $prefillApt->guardian_first_name : '')) }}',
+                          guardian_middle: '{{ addslashes(old('guardian_middle_name', $prefillApt ? $prefillApt->guardian_middle_name : '')) }}',
+                          guardian_last: '{{ addslashes(old('guardian_last_name', $prefillApt ? $prefillApt->guardian_last_name : '')) }}',
+                          guardian_suffix: '{{ addslashes(old('guardian_suffix', $prefillApt ? $prefillApt->guardian_suffix : '')) }}',
+                          motherIsGuardian: false,
+                          selectedGuardianRelation: '{{ addslashes($newGrelVal) }}',
+                          customGuardianRelation: '{{ addslashes($newGrelCust) }}',
+                          get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; },
+                          calculateAge(dobStr) {
+                              if (!dobStr) return null;
+                              const d = new Date(dobStr);
+                              if (isNaN(d.getTime())) return null;
+                              const today = new Date();
+                              let age = today.getFullYear() - d.getFullYear();
+                              const m = today.getMonth() - d.getMonth();
+                              if (m < 0 || (m === 0 && today.getDate() < d.getDate())) { age--; }
+                              return age;
+                          },
+                          calculateAgeInMonths(dobStr) {
+                              if (!dobStr) return null;
+                              const d = new Date(dobStr);
+                              if (isNaN(d.getTime())) return null;
+                              const today = new Date();
+                              let months = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                              if (today.getDate() < d.getDate()) months--;
+                              return months;
+                          },
+                          syncClassificationWithDob(dobStr, autoSwitch = true) {
+                              if (!dobStr) return;
+                              this.selectedDob = dobStr;
+                              const age = this.calculateAge(dobStr);
+                              if (age === null || !autoSwitch) return;
+                              if (age <= 12) { this.classification = 'Pediatric'; }
+                              else if (age >= 60) { if (this.classification !== 'PWD') this.classification = 'Senior Citizen'; }
+                              else { if (this.classification === 'Pediatric' || !this.classification) this.classification = 'Regular Adult'; }
+                          },
+                          get ageMismatchWarning() {
+                              if (!this.selectedDob) return null;
+                              const age = this.calculateAge(this.selectedDob);
+                              const months = this.calculateAgeInMonths(this.selectedDob);
+                              if (age === null) return null;
+                              if (this.classification === 'Pediatric') {
+                                  if (months !== null && months < 6) return 'Age Restriction: The patient is ' + months + ' month' + (months === 1 ? '' : 's') + ' old. Pedia service is only available for patients 6 months and above.';
+                                  if (age > 12) return 'Age Mismatch: The patient is ' + age + ' years old. Pediatric classification is restricted to children 12 years old and below.';
+                              }
+                              if (this.classification === 'Regular Adult' && age <= 12) return 'Age Mismatch: The patient is ' + age + ' years old. Adult classification requires at least 13 years old.';
+                              if (this.classification === 'Senior Citizen' && age < 60) return 'Age Mismatch: The patient is ' + age + ' years old. Senior Citizen requires at least 60 years old.';
+                              return null;
+                          },
+                          parseMotherName(fullName) {
+                              if(!fullName) return { first: '', middle: '', last: '', suffix: '' };
+                              let parts = fullName.split(' ');
+                              if(parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' };
+                              if(parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' };
+                              let first = parts[0], last = parts[parts.length - 1], middle = parts.slice(1, parts.length - 1).join(' '), suffix = '';
+                              let suffixes = ['JR', 'SR', 'II', 'III', 'IV', 'V', 'JR.', 'SR.'];
+                              if(suffixes.includes(last.toUpperCase())) { suffix = last; last = parts[parts.length - 2] || ''; middle = parts.slice(1, parts.length - 2).join(' '); }
+                              return { first, middle, last, suffix };
+                          },
+                          init() {
+                              let parsed = this.parseMotherName('{{ addslashes(old('mothers_maiden_name', $prefillApt ? $prefillApt->mothers_maiden_name : '')) }}');
+                              this.mother_first = parsed.first; this.mother_middle = parsed.middle; this.mother_last = parsed.last; this.mother_suffix = parsed.suffix;
+                              const mFirst = (this.mother_first || '').trim().toUpperCase();
+                              const mLast = (this.mother_last || '').trim().toUpperCase();
+                              const gFirst = (this.guardian_first || '').trim().toUpperCase();
+                              const gLast = (this.guardian_last || '').trim().toUpperCase();
+                              const gRel = (this.selectedGuardianRelation || '').trim().toUpperCase();
+                              if (gRel === 'MOTHER' && gFirst && gFirst === mFirst && (!gLast || !mLast || gLast === mLast)) { this.motherIsGuardian = true; }
+                              this.$watch('mother_first', val => { if (this.motherIsGuardian) this.guardian_first = (val || '').toUpperCase(); });
+                              this.$watch('mother_middle', val => { if (this.motherIsGuardian) this.guardian_middle = (val || '').toUpperCase(); });
+                              this.$watch('mother_last', val => { if (this.motherIsGuardian) this.guardian_last = (val || '').toUpperCase(); });
+                              this.$watch('mother_suffix', val => { if (this.motherIsGuardian) this.guardian_suffix = (val || '').toUpperCase(); });
+                              this.$watch('selectedGuardianRelation', val => { if ((val || '').toLowerCase() !== 'mother') { this.motherIsGuardian = false; } });
+                          },
+                          toggleMotherAsGuardian() { if (this.motherIsGuardian) { this.syncMotherToGuardian(); this.selectedGuardianRelation = 'Mother'; } },
+                          syncMotherToGuardian() {
+                              this.guardian_first = (this.mother_first || '').trim().toUpperCase();
+                              this.guardian_middle = (this.mother_middle || '').trim().toUpperCase();
+                              this.guardian_last = (this.mother_last || '').trim().toUpperCase();
+                              this.guardian_suffix = (this.mother_suffix || '').trim().toUpperCase();
+                          }
+                      }">
                 @else
-                <form action="{{ route('frontdesk.patients.store') }}" method="POST" class="p-6 md:p-8 space-y-6">
+                <form action="{{ route('frontdesk.patients.store') }}" method="POST" class="p-6 md:p-8 space-y-6"
+                      x-data="{ 
+                          classification: '{{ old('classification', $defaultClassification) }}', 
+                          selectedDob: '{{ old('dob', $prefillApt && $prefillApt->dob ? \Carbon\Carbon::parse($prefillApt->dob)->format('Y-m-d') : '') }}',
+                          calculateAge(dobStr) {
+                              if (!dobStr) return null;
+                              const d = new Date(dobStr);
+                              if (isNaN(d.getTime())) return null;
+                              const today = new Date();
+                              let age = today.getFullYear() - d.getFullYear();
+                              const m = today.getMonth() - d.getMonth();
+                              if (m < 0 || (m === 0 && today.getDate() < d.getDate())) { age--; }
+                              return age;
+                          },
+                          calculateAgeInMonths(dobStr) {
+                              if (!dobStr) return null;
+                              const d = new Date(dobStr);
+                              if (isNaN(d.getTime())) return null;
+                              const today = new Date();
+                              let months = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                              if (today.getDate() < d.getDate()) months--;
+                              return months;
+                          },
+                          syncClassificationWithDob(dobStr, autoSwitch = true) {
+                              if (!dobStr) return;
+                              this.selectedDob = dobStr;
+                              const age = this.calculateAge(dobStr);
+                              if (age === null || !autoSwitch) return;
+                              if (age <= 12) { this.classification = 'Pediatric'; }
+                              else if (age >= 60) { if (this.classification !== 'PWD') this.classification = 'Senior Citizen'; }
+                              else { if (this.classification === 'Pediatric' || !this.classification) this.classification = 'Regular Adult'; }
+                          },
+                          get ageMismatchWarning() {
+                              if (!this.selectedDob) return null;
+                              const age = this.calculateAge(this.selectedDob);
+                              const months = this.calculateAgeInMonths(this.selectedDob);
+                              if (age === null) return null;
+                              if (this.classification === 'Pediatric') {
+                                  if (months !== null && months < 6) return 'Age Restriction: The patient is ' + months + ' month' + (months === 1 ? '' : 's') + ' old. Pedia service is only available for patients 6 months and above.';
+                                  if (age > 12) return 'Age Mismatch: The patient is ' + age + ' years old. Pediatric classification is restricted to children 12 years old and below.';
+                              }
+                              if (this.classification === 'Regular Adult' && age <= 12) return 'Age Mismatch: The patient is ' + age + ' years old. Adult classification requires at least 13 years old.';
+                              if (this.classification === 'Senior Citizen' && age < 60) return 'Age Mismatch: The patient is ' + age + ' years old. Senior Citizen classification requires at least 60 years old.';
+                              return null;
+                          }
+                      }">
                 @endif
                     @csrf
                     @if($prefillApt || old('appointment_id'))
@@ -2076,143 +2211,7 @@
                         $newGrelVal = $matchedGrelNew ?? ($rawGrelNew ? 'Others (Please Specify)' : '');
                         $newGrelCust = $matchedGrelNew ? '' : $rawGrelNew;
                     @endphp
-                    <div x-data="{ 
-                        classification: '{{ old('classification', $defaultClassification) }}', 
-                        selectedDob: '{{ old('dob', $prefillApt && $prefillApt->dob ? \Carbon\Carbon::parse($prefillApt->dob)->format('Y-m-d') : (isset($newFromTriage) && $newFromTriage->dob ? $newFromTriage->dob : '')) }}',
-                        calculateAge(dobStr) {
-                            if (!dobStr) return null;
-                            const d = new Date(dobStr);
-                            if (isNaN(d.getTime())) return null;
-                            const today = new Date();
-                            let age = today.getFullYear() - d.getFullYear();
-                            const m = today.getMonth() - d.getMonth();
-                            if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
-                                age--;
-                            }
-                            return age;
-                        },
-                        calculateAgeInMonths(dobStr) {
-                            if (!dobStr) return null;
-                            const d = new Date(dobStr);
-                            if (isNaN(d.getTime())) return null;
-                            const today = new Date();
-                            let months = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
-                            if (today.getDate() < d.getDate()) months--;
-                            return months;
-                        },
-                        syncClassificationWithDob(dobStr, autoSwitch = true) {
-                            if (!dobStr) return;
-                            this.selectedDob = dobStr;
-                            const age = this.calculateAge(dobStr);
-                            if (age === null || !autoSwitch) return;
-                            if (age <= 12) {
-                                this.classification = 'Pediatric';
-                            } else if (age >= 60) {
-                                if (this.classification !== 'PWD') {
-                                    this.classification = 'Senior Citizen';
-                                }
-                            } else {
-                                if (this.classification === 'Pediatric' || !this.classification) {
-                                    this.classification = 'Regular Adult';
-                                }
-                            }
-                        },
-                        get ageMismatchWarning() {
-                            if (!this.selectedDob) return null;
-                            const age = this.calculateAge(this.selectedDob);
-                            const months = this.calculateAgeInMonths(this.selectedDob);
-                            if (age === null) return null;
-                            if (this.classification === 'Pediatric') {
-                                if (months !== null && months < 6) {
-                                    return `Age Restriction: The patient is ${months} month${months === 1 ? '' : 's'} old. The Pedia Consultation service is only available for patients aged 6 months and above. Patients younger than 6 months require specialized neonatal or infant healthcare.`;
-                                }
-                                if (age > 12) {
-                                    return `Age Mismatch: The patient is ${age} years old. Pediatric classification is restricted to children 12 years old and below. Please select Regular Adult, Senior Citizen, or PWD.`;
-                                }
-                            }
-                            if (this.classification === 'Regular Adult' && age <= 12) {
-                                return `Age Mismatch: The patient is ${age} years old. Adult classification requires the patient to be at least 13 years old. Please select Pediatric.`;
-                            }
-                            if (this.classification === 'Senior Citizen' && age < 60) {
-                                return `Age Mismatch: The patient is ${age} years old. Senior Citizen classification requires the patient to be at least 60 years old.`;
-                            }
-                            return null;
-                        },
-                        editingInfo: true,
-                        mother_first: '',
-                        mother_middle: '',
-                        mother_last: '',
-                        mother_suffix: '',
-                        get mothersMaidenFullName() {
-                            return `${this.mother_first} ${this.mother_middle ? this.mother_middle + ' ' : ''}${this.mother_last}${this.mother_suffix ? ' ' + this.mother_suffix : ''}`.trim().replace(/\s+/g, ' ').toUpperCase();
-                        },
-                        guardian_first: '{{ addslashes(old('guardian_first_name', $prefillApt ? $prefillApt->guardian_first_name : '')) }}',
-                        guardian_middle: '{{ addslashes(old('guardian_middle_name', $prefillApt ? $prefillApt->guardian_middle_name : '')) }}',
-                        guardian_last: '{{ addslashes(old('guardian_last_name', $prefillApt ? $prefillApt->guardian_last_name : '')) }}',
-                        guardian_suffix: '{{ addslashes(old('guardian_suffix', $prefillApt ? $prefillApt->guardian_suffix : '')) }}',
-                        motherIsGuardian: false,
-                        selectedGuardianRelation: '{{ addslashes($newGrelVal) }}',
-                        customGuardianRelation: '{{ addslashes($newGrelCust) }}',
-                        get finalGuardianRelation() { 
-                            return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; 
-                        },
-                        parseMotherName(fullName) {
-                            if(!fullName) return { first: '', middle: '', last: '', suffix: '' };
-                            let parts = fullName.split(' ');
-                            if(parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' };
-                            if(parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' };
-                            let first = parts[0];
-                            let last = parts[parts.length - 1];
-                            let middle = parts.slice(1, parts.length - 1).join(' ');
-                            let suffixes = ['JR', 'SR', 'II', 'III', 'IV', 'V', 'JR.', 'SR.'];
-                            let suffix = '';
-                            if(suffixes.includes(last.toUpperCase())) {
-                                suffix = last;
-                                last = parts[parts.length - 2] || '';
-                                middle = parts.slice(1, parts.length - 2).join(' ');
-                            }
-                            return { first, middle, last, suffix };
-                        },
-                        init() {
-                            let parsed = this.parseMotherName('{{ addslashes(old('mothers_maiden_name', $prefillApt ? $prefillApt->mothers_maiden_name : '')) }}');
-                            this.mother_first = parsed.first;
-                            this.mother_middle = parsed.middle;
-                            this.mother_last = parsed.last;
-                            this.mother_suffix = parsed.suffix;
 
-                            const mFirst = (this.mother_first || '').trim().toUpperCase();
-                            const mLast = (this.mother_last || '').trim().toUpperCase();
-                            const gFirst = (this.guardian_first || '').trim().toUpperCase();
-                            const gLast = (this.guardian_last || '').trim().toUpperCase();
-                            const gRel = (this.selectedGuardianRelation || '').trim().toUpperCase();
-
-                            if (gRel === 'MOTHER' && gFirst && gFirst === mFirst && (!gLast || !mLast || gLast === mLast)) {
-                                this.motherIsGuardian = true;
-                            }
-
-                            this.$watch('mother_first', val => { if (this.motherIsGuardian) this.guardian_first = (val || '').toUpperCase(); });
-                            this.$watch('mother_middle', val => { if (this.motherIsGuardian) this.guardian_middle = (val || '').toUpperCase(); });
-                            this.$watch('mother_last', val => { if (this.motherIsGuardian) this.guardian_last = (val || '').toUpperCase(); });
-                            this.$watch('mother_suffix', val => { if (this.motherIsGuardian) this.guardian_suffix = (val || '').toUpperCase(); });
-                            this.$watch('selectedGuardianRelation', val => {
-                                if ((val || '').toLowerCase() !== 'mother') {
-                                    this.motherIsGuardian = false;
-                                }
-                            });
-                        },
-                        toggleMotherAsGuardian() {
-                            if (this.motherIsGuardian) {
-                                this.syncMotherToGuardian();
-                                this.selectedGuardianRelation = 'Mother';
-                            }
-                        },
-                        syncMotherToGuardian() {
-                            this.guardian_first = (this.mother_first || '').trim().toUpperCase();
-                            this.guardian_middle = (this.mother_middle || '').trim().toUpperCase();
-                            this.guardian_last = (this.mother_last || '').trim().toUpperCase();
-                            this.guardian_suffix = (this.mother_suffix || '').trim().toUpperCase();
-                        }
-                    }">
                         <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
                             <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -2825,7 +2824,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
                     @endif
 
                     <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
