@@ -284,6 +284,11 @@ class User extends Authenticatable
             return null;
         }
 
+        // Full URL or Data URI support
+        if (str_starts_with($this->avatar_path, 'data:') || str_starts_with($this->avatar_path, 'http://') || str_starts_with($this->avatar_path, 'https://')) {
+            return $this->avatar_path;
+        }
+
         $cleanPath = ltrim(str_replace(['uploads/', 'storage/'], '', $this->avatar_path), '/');
 
         // Check if file exists in public/uploads/
@@ -299,7 +304,17 @@ class User extends Authenticatable
             return asset('uploads/'.$cleanPath);
         }
 
-        return asset('uploads/'.$cleanPath);
+        // Check if S3 / Cloud Object Storage is used and has the file
+        try {
+            if (config('filesystems.default') === 's3' && \Illuminate\Support\Facades\Storage::disk('s3')->exists($cleanPath)) {
+                return \Illuminate\Support\Facades\Storage::disk('s3')->url($cleanPath);
+            }
+        } catch (\Throwable $e) {
+            // Ignore storage connection issues
+        }
+
+        // If file does NOT exist on disk, return null so blade views cleanly fallback to initials
+        return null;
     }
 
     /**

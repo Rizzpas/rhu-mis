@@ -63,6 +63,46 @@ class ProductionLookSeeder extends Seeder
         'pharmacy'         => 'pharmacy',
     ];
 
+    /**
+     * Staff photos that are committed to git in public/uploads/staff.
+     * Using committed assets ensures profile pictures never disappear on ephemeral cloud deployments.
+     */
+    private const COMMITTED_STAFF_PHOTOS = [
+        'regular_doctor' => [
+            'staff/IMFyNqHgO3cDveaXBcnoKMTy8MztNX6BFgeHFnHl.jpg',
+            'staff/2MiosPP9dtbAREYHH7ySOJKKylkSNYB5Y9jZ61lQ.jpg',
+            'staff/45Gaxt3GTRx2fdsaFBo6x1xpzeb1ArHT4h1x8z3g.jpg',
+            'staff/9mUxzOU6gDdRNHQWPVCun3exf68cnHgkoEEZNWN5.jpg',
+            'staff/cT8BJFL9DOXVcNmleTQM15t2FVjYH2zeIYsBZ1Dc.jpg',
+            'staff/H5cC8TdtyVIzx8u9rUom3j3CkqRPcWRoWI5pIqra.jpg',
+            'staff/LOaLnMVwOhZJz195SPaPBlRFal8TipbnvHNG4qZr.jpg',
+            'staff/PurGP7wFQ8uLo3ZAv4jnfPSjSCt6a5tihTi73qdT.jpg',
+        ],
+        'pedia_doctor' => [
+            'staff/j6p0tGZ97uvj37As9qd9EHbCIQ1O5vNb9XtA6y48.jpg',
+            'staff/9qBCTE6him5CXyNY1Xlhn0rk2X2QedpyHe8xJZWr.jpg',
+            'staff/9YFVFPaV2SGl8pPORAGWgRTUly4HKbOZP5MvLFWT.webp',
+        ],
+        'vitals_nurse' => [
+            'staff/6Tuudlp2S3zDpZ9AZ6lLIioDm0cdbGR7v7JtPYfi.jpg',
+            'staff/iuP45nD6ka6P6MTdqxzzSrEHEndDTOuGnzvMhXXN.jpg',
+            'staff/mQtytYqEH7uL1cUD2VWMVwbod11l83bfffsVhuh6.jpg',
+        ],
+        'clinical_nurse' => [
+            'staff/eFzCa9tOCXZeDovEBeYsDp81lqQdQSiYaMXSNMBx.jpg',
+            'staff/No9clsaWKS1NMWmQKZxRxhebn4pUQHhCAqwXLSxm.jpg',
+            'staff/Rf4Qtuexw5QJYl57YVYCen4f54TRnxMEcYVXhUrW.webp',
+        ],
+        'information_desk' => [
+            'staff/GbRrd6Vu0HqPw0P9i6vEfHku0021PF8msJ6eWJcx.png',
+            'staff/rHxdPB0W3V7FtGXx1w1Ob4ofFwyEvhtUQbfqlhhI.jpg',
+        ],
+        'radiology' => [
+            'staff/scDiWplFOdVSRkpQDWpG1ZqU4N6ucB3izPnsPZjG.jpg',
+            'staff/YKnirkblOYNrJAKDEqT2Yu9ycnYhoa5RXYSwZqu5.jpg',
+        ],
+    ];
+
     private const FILIPINO_FIRST_NAMES_M = [
         'Juan', 'Jose', 'Andres', 'Marco', 'Rafael', 'Miguel', 'Gabriel', 'Carlos',
         'Antonio', 'Francisco', 'Ricardo', 'Eduardo', 'Fernando', 'Lorenzo', 'Roberto',
@@ -282,9 +322,6 @@ class ProductionLookSeeder extends Seeder
     {
         $this->command->info('👥 Seeding staff users...');
 
-        $avatarDir = public_path('uploads/staff');
-        File::ensureDirectoryExists($avatarDir);
-
         $staffCreated = 0;
         $now = Carbon::now();
 
@@ -310,8 +347,8 @@ class ProductionLookSeeder extends Seeder
                 $createdAt = $now->copy()->subMonths($monthsAgo)->addDays(rand(0, 28));
                 $period = $createdAt->format('ym');
 
-                // Generate a simple colored avatar placeholder (100x100 PNG)
-                $avatarFilename = $this->generateAvatarPlaceholder($avatarDir, $firstName, $lastName, $sex);
+                // Use a committed photo tracked in Git if available, or null for clean initials badge fallback
+                $avatarPath = self::COMMITTED_STAFF_PHOTOS[$role][$i] ?? null;
 
                 $staffId = User::generateStaffId($role, $period);
 
@@ -325,7 +362,7 @@ class ProductionLookSeeder extends Seeder
                     'role'             => $role,
                     'status'           => $status,
                     'staff_id'         => $staffId,
-                    'avatar_path'      => "staff/{$avatarFilename}",
+                    'avatar_path'      => $avatarPath,
                     'last_activity_at' => $status !== 'Offline' ? $now->copy()->subMinutes(rand(1, 30)) : $now->copy()->subHours(rand(2, 48)),
                     'created_at'       => $createdAt,
                     'updated_at'       => $now,
@@ -377,25 +414,7 @@ class ProductionLookSeeder extends Seeder
         }
     }
 
-    private function generateAvatarPlaceholder(string $dir, string $firstName, string $lastName, string $sex): string
-    {
-        $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
-        $colors = $sex === 'M'
-            ? ['3B82F6', '6366F1', '8B5CF6', '0EA5E9', '14B8A6', '10B981']
-            : ['EC4899', 'F43F5E', 'F97316', 'EAB308', 'A855F7', 'E879F9'];
-        $bgColor = $colors[array_rand($colors)];
 
-        // Create a simple SVG avatar and save as file
-        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">'
-             . '<rect width="200" height="200" fill="#' . $bgColor . '"/>'
-             . '<text x="100" y="115" font-family="Arial,sans-serif" font-size="72" font-weight="bold" '
-             . 'fill="white" text-anchor="middle">' . htmlspecialchars($initials) . '</text></svg>';
-
-        $filename = 'seed_' . Str::random(20) . '.svg';
-        File::put("{$dir}/{$filename}", $svg);
-
-        return $filename;
-    }
 
     // ================================================================
     //  Phase 3: Patients
