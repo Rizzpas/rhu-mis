@@ -2014,6 +2014,22 @@
                 </div>
                 @endif
 
+                @php
+                    $defaultClassification = '';
+                    if (isset($newFromTriage) && $newFromTriage->classification) {
+                        $c = $newFromTriage->classification;
+                        $defaultClassification = $c === 'Adult' ? 'Regular Adult' : ($c === 'Senior' ? 'Senior Citizen' : $c);
+                    } elseif (isset($prefillApt) && $prefillApt && $prefillApt->type === 'pedia') {
+                        $defaultClassification = 'Pediatric';
+                    }
+
+                    $rawGrelNew = old('guardian_relation', $prefillApt->guardian_relation ?? '');
+                    $knownGrels = ['Mother', 'Father', 'Grandparent', 'Sibling'];
+                    $matchedGrelNew = collect($knownGrels)->first(fn($r) => strtolower($r) === strtolower($rawGrelNew));
+                    $newGrelVal = $matchedGrelNew ?? ($rawGrelNew ? 'Others (Please Specify)' : '');
+                    $newGrelCust = $matchedGrelNew ? '' : $rawGrelNew;
+                @endphp
+
                 @if(isset($newFromTriage) && $newFromTriage)
                 <div class="mx-6 mt-5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl px-5 py-3.5 flex items-center gap-3.5 shadow-2xs">
                     <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-300/40">
@@ -2196,21 +2212,7 @@
                         </div>
                     @endif
 
-                    @php
-                        $defaultClassification = '';
-                        if (isset($newFromTriage) && $newFromTriage->classification) {
-                            $c = $newFromTriage->classification;
-                            $defaultClassification = $c === 'Adult' ? 'Regular Adult' : ($c === 'Senior' ? 'Senior Citizen' : $c);
-                        } elseif (isset($prefillApt) && $prefillApt && $prefillApt->type === 'pedia') {
-                            $defaultClassification = 'Pediatric';
-                        }
 
-                        $rawGrelNew = old('guardian_relation', $prefillApt->guardian_relation ?? '');
-                        $knownGrels = ['Mother', 'Father', 'Grandparent', 'Sibling'];
-                        $matchedGrelNew = collect($knownGrels)->first(fn($r) => strtolower($r) === strtolower($rawGrelNew));
-                        $newGrelVal = $matchedGrelNew ?? ($rawGrelNew ? 'Others (Please Specify)' : '');
-                        $newGrelCust = $matchedGrelNew ? '' : $rawGrelNew;
-                    @endphp
 
                         <div class="flex items-center gap-2 pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
                             <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
