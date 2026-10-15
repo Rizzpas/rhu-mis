@@ -2887,8 +2887,9 @@
                         @if(isset($newFromTriage) && $newFromTriage)
                         <button type="button" 
                                 @click="
-                                    if (ageMismatchWarning) {
-                                        window.toast ? window.toast.error(ageMismatchWarning, 'Validation Warning') : alert(ageMismatchWarning);
+                                    const _amw = $data.ageMismatchWarning;
+                                    if (_amw) {
+                                        window.toast ? window.toast.error(_amw, 'Validation Warning') : alert(_amw);
                                         return;
                                     }
                                     const form = document.getElementById('newPatientQueueForm');
@@ -2918,9 +2919,10 @@
                         @else
                         <button type="submit" 
                                 @click="
-                                    if (ageMismatchWarning) {
+                                    const _amw = $data.ageMismatchWarning;
+                                    if (_amw) {
                                         $event.preventDefault();
-                                        window.toast ? window.toast.error(ageMismatchWarning, 'Validation Warning') : alert(ageMismatchWarning);
+                                        window.toast ? window.toast.error(_amw, 'Validation Warning') : alert(_amw);
                                         return;
                                     }
                                 "
