@@ -17,10 +17,10 @@ class PharmacyController extends Controller
      */
     public function dashboard()
     {
-        // Load active prescriptions (pending + partially dispatched), oldest first
+        // Load active prescriptions (pending + partially dispatched), newest first
         $prescriptions = Prescription::active()
             ->with(['patient', 'doctor', 'items.medicine.batches'])
-            ->orderBy('created_at', 'asc')
+            ->orderBy('created_at', 'desc')
             ->paginate(10)
             ->withQueryString();
 

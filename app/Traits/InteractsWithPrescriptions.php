@@ -30,24 +30,24 @@ trait InteractsWithPrescriptions
 
             $matchedMedicine = null;
 
-            if ($medicineId) {
+            if ($medicineId && $medicineId !== '') {
                 $matchedMedicine = Medicine::where('is_active', true)->find($medicineId);
             }
 
             if (! $matchedMedicine && $medicineName) {
-                // Strip parenthetical suffix, e.g. "Paracetamol (Tablet)" → "Paracetamol"
+                // Strip parenthetical suffix, e.g. "Paracetamol (Tablet)" -> "Paracetamol"
                 $cleanName = trim(preg_replace('/\s*\([^)]*\)$/', '', $medicineName));
-                // Strip dosage patterns, e.g. "Mefenamic Acid 500mg" → "Mefenamic Acid"
+                // Strip dosage patterns, e.g. "Mefenamic Acid 500mg" -> "Mefenamic Acid"
                 $baseName = trim(preg_replace('/\s+\d+\s*(mg|mcg|ml|g|iu)\b/i', '', $cleanName));
 
                 $matchedMedicine = Medicine::where('is_active', true)
                     ->where(function ($q) use ($medicineName, $cleanName, $baseName) {
-                        $q->where('name', $medicineName)
-                            ->orWhere('generic_name', $medicineName)
-                            ->orWhere('name', $cleanName)
-                            ->orWhere('generic_name', $cleanName)
-                            ->orWhere('name', $baseName)
-                            ->orWhere('generic_name', $baseName);
+                        $q->whereRaw('LOWER(name) = ?', [strtolower($medicineName)])
+                            ->orWhereRaw('LOWER(generic_name) = ?', [strtolower($medicineName)])
+                            ->orWhereRaw('LOWER(name) = ?', [strtolower($cleanName)])
+                            ->orWhereRaw('LOWER(generic_name) = ?', [strtolower($cleanName)])
+                            ->orWhereRaw('LOWER(name) = ?', [strtolower($baseName)])
+                            ->orWhereRaw('LOWER(generic_name) = ?', [strtolower($baseName)]);
                     })
                     ->first();
             }
