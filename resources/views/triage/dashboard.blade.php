@@ -195,7 +195,8 @@
                     isAppointmentLocked = !!$event.detail.appointment_id;
                     searchQuery = $event.detail.name;
                     searchDOB = $event.detail.dob || '';
-                    const aptClassification = normalizeClassification($event.detail.classification || $event.detail.type || 'Adult');
+                    const rawClass = ($event.detail.classification || $event.detail.type || 'Adult').trim().toLowerCase();
+                    const aptClassification = rawClass === 'pediatric' || rawClass === 'pedia' ? 'Pediatric' : rawClass === 'senior' || rawClass === 'senior citizen' ? 'Senior' : rawClass === 'pwd' ? 'PWD' : 'Adult';
                     const aptComplaint = $event.detail.complaint || '';
                     searchPatients(searchDOB);
                     setTimeout(() => { 
@@ -320,7 +321,7 @@
                         this.isNew = false;
                         this.vitalsStartedAt = Date.now();
 
-                        this.classification = normalizeClassification(p.classification || 'Adult');
+                        this.classification = this.normalizeClassification(p.classification || 'Adult');
                         
                         this.historyText = p.past_medical_history || p.allergies || '';
                         this.medicineText = p.medicine_taken || p.last_medicine || '';
