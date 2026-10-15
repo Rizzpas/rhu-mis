@@ -146,7 +146,7 @@ class TriageController extends Controller
             'last_name' => 'nullable|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'suffix' => 'nullable|string|max:20',
-            'classification' => 'required|in:Adult,Senior,Pediatric,PWD',
+            'classification' => 'required|in:Adult,Senior,Pediatric,PWD,Regular Adult,Senior Citizen',
             'dob' => 'nullable|date|before_or_equal:today',
             'chief_complaint' => 'nullable|string|max:500',
             'symptoms' => 'required|string',
@@ -188,6 +188,13 @@ class TriageController extends Controller
             'spo2.regex' => 'SpO2 must be a number (e.g., 98).',
             'oxygen_saturation.between' => 'Oxygen saturation must be between 50% and 100%.',
         ]);
+
+        // ── 2. Normalize Classification ─────────────────────────────────────────
+        // Map registration/patient-record classifications to triage-standard values
+        $classMap = ['Regular Adult' => 'Adult', 'Senior Citizen' => 'Senior'];
+        if (isset($classMap[$validated['classification']])) {
+            $validated['classification'] = $classMap[$validated['classification']];
+        }
 
         // Reconstruct full name if split names were provided
         if (empty($validated['patient_name']) && ! empty($validated['first_name']) && ! empty($validated['last_name'])) {

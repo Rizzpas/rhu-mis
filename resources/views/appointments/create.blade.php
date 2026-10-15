@@ -1238,7 +1238,7 @@
                                         get finalGuardianRelation() { return this.selectedGuardianRelation === 'Others (Please Specify)' ? this.customGuardianRelation : this.selectedGuardianRelation; }
                                     }" x-effect="if (motherIsGuardian) { selectedGuardianRelation = 'Mother'; } formData.guardian_relation = finalGuardianRelation; if (errors.guardian_relation && finalGuardianRelation) delete errors.guardian_relation;">
                                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ __('Relationship to Patient') }} <span class="text-rose-500">*</span></label>
-                                        <x-select x-model="selectedGuardianRelation" :options="$guardianRelationOptions" placeholder="Select Relationship..." :disabled="motherIsGuardian" class="mb-2" />
+                                        <x-select x-model="selectedGuardianRelation" :options="$guardianRelationOptions" placeholder="Select Relationship..." x-bind:disabled="motherIsGuardian" class="mb-2" />
                                         <input type="text" x-show="selectedGuardianRelation === 'Others (Please Specify)'" x-model="customGuardianRelation"
                                             placeholder="Specify relationship..." style="display:none;" :disabled="motherIsGuardian"
                                             class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs focus:border-emerald-500 px-3.5 py-2.5 sm:text-xs font-semibold uppercase transition-colors" @input="customGuardianRelation = $event.target.value.toUpperCase(); if (errors.guardian_relation) delete errors.guardian_relation;">

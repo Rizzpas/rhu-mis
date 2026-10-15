@@ -195,7 +195,7 @@
                     isAppointmentLocked = !!$event.detail.appointment_id;
                     searchQuery = $event.detail.name;
                     searchDOB = $event.detail.dob || '';
-                    const aptClassification = $event.detail.classification || $event.detail.type || 'Adult';
+                    const aptClassification = normalizeClassification($event.detail.classification || $event.detail.type || 'Adult');
                     const aptComplaint = $event.detail.complaint || '';
                     searchPatients(searchDOB);
                     setTimeout(() => { 
@@ -235,6 +235,7 @@
                     vitalsStartedAt: null,
                     classification: 'Adult',
                     symptomsText: '',
+
                     historyText: '',
                     medicineText: '',
                     allergiesText: '',
@@ -242,6 +243,18 @@
                     heightVal: '',
                     tempVal: '',
                     spo2Val: '',
+
+                    // Normalize classification from various sources (appointments, patient records)
+                    // to match the triage UI's expected values: Pediatric, Adult, Senior, PWD
+                    normalizeClassification(raw) {
+                        if (!raw) return 'Adult';
+                        const val = raw.trim().toLowerCase();
+                        if (val === 'pediatric' || val === 'pedia') return 'Pediatric';
+                        if (val === 'senior' || val === 'senior citizen') return 'Senior';
+                        if (val === 'pwd') return 'PWD';
+                        // "Regular Adult", "Adult", or any unrecognized value → Adult
+                        return 'Adult';
+                    },
 
                     get bmi() {
                         const w = parseFloat(this.weightVal);
@@ -307,11 +320,7 @@
                         this.isNew = false;
                         this.vitalsStartedAt = Date.now();
 
-                        let mappedClass = 'Adult';
-                        if (p.classification === 'Senior Citizen' || p.classification === 'Senior') mappedClass = 'Senior';
-                        else if (p.classification === 'Pediatric') mappedClass = 'Pediatric';
-                        else if (p.classification === 'PWD') mappedClass = 'PWD';
-                        this.classification = mappedClass;
+                        this.classification = normalizeClassification(p.classification || 'Adult');
                         
                         this.historyText = p.past_medical_history || p.allergies || '';
                         this.medicineText = p.medicine_taken || p.last_medicine || '';
@@ -1105,10 +1114,10 @@
                                             BP (mmHg)
                                         </label>
                                         <div class="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20">
-                                            <input type="text" x-model="sys" x-ref="sys" @input="checkSys" placeholder="120"
+                                            <input type="text" x-model="sys" x-ref="sys" @input="checkSys" placeholder="120" required
                                                    class="w-1/2 bg-transparent text-center border-none focus:ring-0 p-0 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
                                             <span class="text-slate-400 font-bold px-1">/</span>
-                                            <input type="text" x-model="dia" x-ref="dia" @input="checkDia" placeholder="80"
+                                            <input type="text" x-model="dia" x-ref="dia" @input="checkDia" placeholder="80" required
                                                    class="w-1/2 bg-transparent text-center border-none focus:ring-0 p-0 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
                                         </div>
                                         <input type="hidden" name="blood_pressure" :value="(sys||dia)?sys+'/'+dia:''">
@@ -1124,6 +1133,7 @@
                                                name="temperature" 
                                                x-model="tempVal"
                                                placeholder="36.5"
+                                               required
                                                x-on:input="$el.value = $el.value.replace(/[^0-9.]/g, '').replace(/^0+(?!$|\.)/, '')"
                                                :class="parseFloat(tempVal) > 37.5 ? 'border-rose-400 text-rose-600 font-black ring-1 ring-rose-400' : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-extrabold'"
                                                class="w-full rounded-xl border bg-white dark:bg-slate-800 px-3 py-1.5 text-xs sm:text-sm focus:border-emerald-500">
@@ -1134,7 +1144,7 @@
                                         <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
                                             HR (bpm)
                                         </label>
-                                        <input type="text" name="heart_rate" placeholder="80"
+                                        <input type="text" name="heart_rate" placeholder="80" required
                                                x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/^0+(?!$)/, '')"
                                                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white focus:border-emerald-500">
                                     </div>
@@ -1144,7 +1154,7 @@
                                         <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
                                             RR (cpm)
                                         </label>
-                                        <input type="text" name="respiratory_rate" placeholder="16"
+                                        <input type="text" name="respiratory_rate" placeholder="16" required
                                                x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/^0+(?!$)/, '')"
                                                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white focus:border-emerald-500">
                                     </div>
@@ -1154,7 +1164,7 @@
                                         <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
                                             Pulse (bpm)
                                         </label>
-                                        <input type="text" name="pulse_rate" placeholder="80"
+                                        <input type="text" name="pulse_rate" placeholder="80" required
                                                x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/^0+(?!$)/, '')"
                                                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white focus:border-emerald-500">
                                     </div>
@@ -1169,6 +1179,7 @@
                                                name="spo2" 
                                                x-model="spo2Val"
                                                placeholder="98"
+                                               required
                                                x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/^0+(?!$)/, '')"
                                                :class="parseFloat(spo2Val) < 95 && spo2Val.length > 0 ? 'border-rose-400 text-rose-600 font-black' : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-extrabold'"
                                                class="w-full rounded-xl border bg-white dark:bg-slate-800 px-3 py-1.5 text-xs sm:text-sm focus:border-emerald-500">
@@ -1183,6 +1194,7 @@
                                                name="weight" 
                                                x-model="weightVal" 
                                                placeholder="65"
+                                               required
                                                x-on:input="$el.value = $el.value.replace(/[^0-9.]/g, '').replace(/^0+(?!$|\.)/, '')"
                                                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white focus:border-emerald-500">
                                     </div>
@@ -1196,6 +1208,7 @@
                                                name="height" 
                                                x-model="heightVal" 
                                                placeholder="165"
+                                               required
                                                x-on:input="$el.value = $el.value.replace(/[^0-9.]/g, '').replace(/^0+(?!$|\.)/, '')"
                                                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white focus:border-emerald-500">
                                     </div>
