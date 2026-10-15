@@ -112,7 +112,7 @@ trait InteractsWithPrescriptions
             return null;
         }
 
-        $expiryDays = \App\Models\SiteSetting::get('pharmacy.prescription_expiry_days', 3);
+        $expiryDays = (int) \App\Models\SiteSetting::get('pharmacy.prescription_expiry_days', 3);
         $expiresAt = now()->addDays($expiryDays);
 
         $prescription = Prescription::create([
