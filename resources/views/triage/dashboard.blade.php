@@ -245,15 +245,12 @@
                     tempVal: '',
                     spo2Val: '',
 
-                    // Normalize classification from various sources (appointments, patient records)
-                    // to match the triage UI's expected values: Pediatric, Adult, Senior, PWD
                     normalizeClassification(raw) {
                         if (!raw) return 'Adult';
                         const val = raw.trim().toLowerCase();
                         if (val === 'pediatric' || val === 'pedia') return 'Pediatric';
                         if (val === 'senior' || val === 'senior citizen') return 'Senior';
                         if (val === 'pwd') return 'PWD';
-                        // "Regular Adult", "Adult", or any unrecognized value → Adult
                         return 'Adult';
                     },
 
