@@ -1121,8 +1121,6 @@
             </div>
         </div>
     </div>
-</div>
-
     {{-- Generic Confirmation Modal --}}
     <template x-teleport="body">
         <div x-show="genericConfirmOpen"
@@ -1184,6 +1182,7 @@
             </div>
         </div>
     </template>
+</div>
 @endsection
 
 @push('scripts')
