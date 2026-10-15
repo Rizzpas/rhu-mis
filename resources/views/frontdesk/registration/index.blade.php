@@ -2840,7 +2840,7 @@
                                         x-model="selectedGuardianRelation" 
                                         :options="$demographicGuardianRelationOptions" 
                                         placeholder="Select Relationship..." 
-                                        :disabled="motherIsGuardian"
+                                        x-bind:disabled="motherIsGuardian"
                                         class="mb-2" 
                                         @change="if(selectedGuardianRelation !== 'Mother') motherIsGuardian = false;" 
                                     />
